@@ -1,0 +1,75 @@
+{
+  "project": "Lupine 3D",
+  "version": "0.2.0",
+  "rom": {
+    "path": "build/lupine3d.gb",
+    "bytes": 32768,
+    "sha256": "0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00",
+    "header_checksum": "0x4F",
+    "global_checksum": "0x27F6",
+    "title": "LUPINE3D",
+    "cgb_flag": "0xC0",
+    "cartridge_type": "0x00"
+  },
+  "checks": {
+    "rom_size_32768": true,
+    "cgb_only_flag": true,
+    "rom_only_cartridge": true,
+    "header_checksum": true,
+    "global_checksum": true,
+    "engine_fits_rom": true
+  },
+  "automated_integration_tests": 7,
+  "architecture": {
+    "viewport": [
+      160,
+      96
+    ],
+    "rays": 40,
+    "ray_width_pixels": 4,
+    "ray_step": "Q8.8 quarter tile",
+    "framebuffer_bytes": 3840,
+    "vram_dma_half_bytes": 1920,
+    "vram_dma_blocks_per_half": 120,
+    "estimated_dma_half_microseconds": 960.0,
+    "estimated_vblank_microseconds": 1087.189,
+    "engine_bytes": 24240,
+    "engine_end": "0x6000"
+  },
+  "harness": {
+    "scope": "project-specific deterministic SM83/CGB smoke-test harness; not an independent full emulator",
+    "refresh_hz_used_for_estimate": 59.727501,
+    "stationary_10_updates": {
+      "steps": 933315,
+      "cycles": 9487176,
+      "frames": 59,
+      "swaps": 10,
+      "pc": 982,
+      "player_x": 384,
+      "player_y": 384,
+      "angle": 0,
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x93",
+      "vram_pages_differ": false,
+      "estimated_updates_per_second": 10.123
+    },
+    "scripted_10_updates": {
+      "steps": 933405,
+      "cycles": 9487208,
+      "frames": 59,
+      "swaps": 10,
+      "pc": 982,
+      "player_x": 464,
+      "player_y": 384,
+      "angle": 16,
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x93",
+      "vram_pages_differ": false,
+      "estimated_updates_per_second": 10.123
+    }
+  },
+  "physical_hardware_tested": false,
+  "hardware_acceptance_document": "docs/HARDWARE_TEST_CHECKLIST.md"
+}

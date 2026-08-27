@@ -1,0 +1,10 @@
+*.bin binary
+*.gb binary
+*.gif binary
+*.png binary
+*.zip binary
+
+*.md text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+Makefile text eol=lf

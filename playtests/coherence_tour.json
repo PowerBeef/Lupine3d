@@ -1,0 +1,15 @@
+{
+  "name": "coherence_tour",
+  "pixel_oracle": "v030_capture_pixels.json",
+  "actions": [
+    {"pose": [384, 384, 0], "updates": 1, "capture": "entry"},
+    {"buttons": ["up"], "updates": 5, "capture": "entry_forward"},
+    {"buttons": ["right"], "updates": 7, "capture": "corner_turn"},
+    {"buttons": ["up"], "updates": 4, "capture": "corner_approach"},
+    {"pose": [2176, 1152, 0], "updates": 1, "capture": "door_closed"},
+    {"buttons": ["b"], "updates": 1, "capture": "door_open"},
+    {"buttons": ["a"], "updates": 1, "capture": "muzzle_flash"},
+    {"pose": [2176, 1408, 144], "updates": 1, "capture": "material_junction"},
+    {"buttons": ["left"], "updates": 6, "capture": "junction_pan"}
+  ]
+}

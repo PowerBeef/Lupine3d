@@ -1,0 +1,138 @@
+{
+  "configuration": {
+    "views": 3048,
+    "positions": 381,
+    "angles_per_position": 8,
+    "physical_column_reference_rays": 487680,
+    "map_size": [
+      16,
+      16
+    ],
+    "viewport": [
+      160,
+      96
+    ],
+    "fov_degrees": 60.5
+  },
+  "integer_dda_identity": {
+    "quantized_ray_samples": 243840,
+    "mismatches": 0,
+    "first_mismatches": [],
+    "grid_crossings": {
+      "mean": 2.224860564304462,
+      "median": 2.0,
+      "p95": 5.0,
+      "p99": 8.0,
+      "max": 16.0
+    }
+  },
+  "geometry_accuracy": [
+    {
+      "method": "v0.1.0 quarter-step, 40 rays / 4 px",
+      "top_edge_abs_error_px": {
+        "mean": 3.30662095794571,
+        "median": 1.6922408415289247,
+        "p95": 8.139980239198955,
+        "p99": 12.0,
+        "max": 42.0
+      },
+      "wrong_wall_segment_pct": 7.807783792650919,
+      "wrong_material_pct": 0.3092191601049869,
+      "physical_column_samples": 487680
+    },
+    {
+      "method": "v0.2.0 full exact DDA, 80 rays / 2 px",
+      "top_edge_abs_error_px": {
+        "mean": 0.25514945407087003,
+        "median": 0.05882352941176805,
+        "p95": 1.097137220808385,
+        "p99": 1.7981573274554705,
+        "max": 38.46851796749403
+      },
+      "wrong_wall_segment_pct": 0.3440780839895013,
+      "wrong_material_pct": 0.028707349081364828,
+      "physical_column_samples": 487680
+    },
+    {
+      "method": "v0.2.0 validated adaptive DDA, 80 columns",
+      "top_edge_abs_error_px": {
+        "mean": 0.257208342092943,
+        "median": 0.05882352941176805,
+        "p95": 1.0890423362805137,
+        "p99": 1.7981573274554705,
+        "max": 38.46851796749403
+      },
+      "wrong_wall_segment_pct": 0.3440780839895013,
+      "wrong_material_pct": 0.028707349081364828,
+      "physical_column_samples": 487680
+    }
+  ],
+  "improvement_vs_v0_1": {
+    "mean_top_edge_error_reduction_pct": 92.22141438755237,
+    "wrong_segment_reduction_pct": 95.59314021587835,
+    "wrong_material_reduction_pct": 90.71618037135278,
+    "horizontal_geometry_columns": {
+      "v0.1.0": 40,
+      "v0.2.0": 80
+    }
+  },
+  "traversal_work": {
+    "v0_1_quarter_tile_steps_per_ray": {
+      "mean": 6.3890830052493435,
+      "median": 4.0,
+      "p95": 17.0,
+      "p99": 30.0,
+      "max": 56.0
+    },
+    "v0_2_grid_crossings_per_exact_cast": {
+      "mean": 2.224860564304462,
+      "median": 2.0,
+      "p95": 5.0,
+      "p99": 8.0,
+      "max": 16.0
+    },
+    "mean_per_ray_iteration_reduction_pct": 65.1771535527635
+  },
+  "adaptive_spans": {
+    "mandatory_anchor_casts": 41,
+    "maximum_anchor_top_delta_for_interpolation": 2,
+    "actual_casts_per_view": {
+      "mean": 44.49376640419948,
+      "median": 44.0,
+      "p95": 52.0,
+      "p99": 56.0,
+      "max": 60.0
+    },
+    "mean_rays_avoided_vs_full_80": 35.50623359580052,
+    "wall_key_mismatches_vs_full_exact": 0,
+    "style_mismatches_vs_full_exact": 0,
+    "top_edge_abs_error_px_vs_full_exact": {
+      "mean": 0.0557496719160105,
+      "median": 0.0,
+      "p95": 1.0,
+      "p99": 1.0,
+      "max": 1.0
+    }
+  },
+  "boundary_tile_renderer": {
+    "dynamic_tile_capacity": 96,
+    "dynamic_tiles_per_view": {
+      "mean": 25.931102362204726,
+      "median": 30.0,
+      "p95": 50.0,
+      "p99": 54.0,
+      "max": 58.0
+    },
+    "commit_bytes_per_view": {
+      "mean": 798.8976377952756,
+      "median": 864.0,
+      "p95": 1184.0,
+      "p99": 1248.0,
+      "max": 1312.0
+    },
+    "overflow_views": 0,
+    "maximum_commit_bytes": 1920,
+    "v0_1_framebuffer_bytes": 3840,
+    "mean_vram_payload_reduction_pct": 79.19537401574803
+  }
+}
