@@ -120,8 +120,14 @@ current implementation is split under `tools/lupine3d_v4/`:
 
 The active content lives in `levels/living_world.json`. Override it at build
 time with `LUPINE3D_LEVEL=/absolute/path/to/level.json`; the resident slice
-currently requires one material-3 door, one Sentinel, one Sentinel drop, and
-one empty exit cell.
+supports one to four authored material-3 doors, one Sentinel, one Sentinel
+drop, and one empty exit cell. Current `lupine-level-v2` gameplay levels also
+require safe-spawn metadata and one Sentinel-locked exit door.
+
+`make playtest` intentionally rebuilds with `levels/renderer_benchmark.json`
+before checking the nine frozen pixel oracles. `make playtest-world` rebuilds
+the normal Hangar Breach ROM. This isolates renderer regression evidence from
+deliberate gameplay-map revisions.
 
 Enable the opt-in reprojection variant with `LUPINE3D_REPROJECTION=1`. The
 test suite builds this variant in a fresh subprocess so the environment-backed

@@ -1,4 +1,4 @@
-# Lupine 3D 0.6.0 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.6.1 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.6.0 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.6.0_SHA256SUMS.txt` |
+| ROM version | 0.6.1 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.6.1_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -31,13 +31,16 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] D-pad movement and turning work.
 - [ ] Collision blocks every outer wall.
 - [ ] A produces shot sound and visible muzzle flash.
-- [ ] B opens the door when directly ahead.
-- [ ] The door retracts over eight visible updates and blocks passage until fully open.
+- [ ] The southern start chamber is safe and the Sentinel is not visible before leaving it.
+- [ ] B opens each normal door only when it is directly ahead.
+- [ ] Every door retracts over eight visible updates and blocks passage until fully open.
+- [ ] The exit door rejects B with the locked sound before the Sentinel dies.
 - [ ] Sentinel far and near LODs render without tile corruption.
 - [ ] Sentinel strips disappear behind walls and return when line of sight clears.
 - [ ] Sentinel patrol, chase, attack, hurt and death states are observable.
 - [ ] Three centred shots kill the Sentinel and reveal its medkit.
-- [ ] The medkit can be collected and the activated exit completes the level.
+- [ ] Killing the Sentinel unlocks the exit door and reveals the pulsing exit beacon.
+- [ ] The medkit can be collected and entering the marked exit completes the level.
 - [ ] Very short A/B taps are not lost during visually complex updates.
 - [ ] Weapon/crosshair remain stable.
 - [ ] Page flips show no tearing or mixed old/new tiles.

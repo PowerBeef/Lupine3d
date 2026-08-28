@@ -7,6 +7,7 @@ import os
 import statistics
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -17,6 +18,7 @@ sys.path.insert(0, str(ROOT / "research"))
 import build_rom as br  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
 import tail_failure_lab as tail_lab  # noqa: E402
+from lupine3d_v4.levels import compile_level  # noqa: E402
 from sm83emu import CGB  # noqa: E402
 
 BASELINE_SHA256 = "0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00"
@@ -29,6 +31,7 @@ class Lupine3DTests(unittest.TestCase):
         cls.rom, cls.assembler, cls.manifest = br.make_rom()
         cls.symbols = cls.assembler.labels
         cls.grid = br.make_map()
+        cls.renderer_level = compile_level(ROOT / "levels" / "renderer_benchmark.json")
 
     def boot_to_main(self) -> CGB:
         cgb = CGB(self.rom, self.symbols)
@@ -89,7 +92,11 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(self.manifest["renderer_atlas_patterns"], 121)
         self.assertEqual(self.manifest["oam_reserved_ui_entries"], 18)
         self.assertEqual(self.manifest["oam_entity_capacity"], 22)
-        self.assertEqual(self.manifest["level_format"], "lupine-level-v1")
+        self.assertEqual(self.manifest["level_format"], "lupine-level-v2")
+        self.assertEqual(self.manifest["active_level_doors"], 4)
+        self.assertEqual(self.manifest["maximum_level_doors"], 4)
+        self.assertEqual(self.manifest["safe_spawn_radius_cells"], 5)
+        self.assertTrue(self.manifest["exit_beacon"])
         self.assertTrue(self.manifest["animated_door"])
         self.assertEqual(self.manifest["sha256"], hashlib.sha256(rom).hexdigest())
 
@@ -212,7 +219,13 @@ class Lupine3DTests(unittest.TestCase):
         level = br.ACTIVE_LEVEL
         self.assertEqual((level.width, level.height), (16, 16))
         self.assertEqual(level.grid, self.grid)
-        self.assertEqual(len(level.header_bytes()), 20)
+        self.assertEqual(level.format, "lupine-level-v2")
+        self.assertEqual(len(level.header_bytes()), 18)
+        self.assertEqual(len(level.door_bytes()), br.MAX_DOORS * br.DOOR_RECORD_BYTES)
+        self.assertEqual(len(level.doors), 4)
+        self.assertEqual(level.safe_radius_cells, 5)
+        self.assertEqual(sum(bool(door.flags & br.DOOR_FLAG_EXIT) for door in level.doors), 1)
+        self.assertTrue(level.doors[-1].flags & br.DOOR_FLAG_LOCK_SENTINEL)
         self.assertEqual(level.vram_profile, br.VRAM_PROFILE_ENTITY)
         self.assertEqual(level.entities[0].kind, "sentinel")
         self.assertEqual(level.pickups[0].source, "sentinel_drop")
@@ -236,11 +249,32 @@ class Lupine3DTests(unittest.TestCase):
                         if first and second:
                             self.assertEqual(first, second)
 
+    def test_level_v2_rejects_unsafe_spawns_bad_door_frames_and_missing_exit_lock(self) -> None:
+        source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
+        mutations = []
+        unsafe = json.loads(json.dumps(source))
+        unsafe["player_spawn"]["x_q8"] = unsafe["entities"][0]["x_q8"]
+        unsafe["player_spawn"]["y_q8"] = unsafe["entities"][0]["y_q8"]
+        mutations.append((unsafe, "safe_radius_cells"))
+        bad_frame = json.loads(json.dumps(source))
+        bad_frame["doors"][0]["orientation"] = "vertical"
+        mutations.append((bad_frame, "orientation"))
+        no_exit_lock = json.loads(json.dumps(source))
+        no_exit_lock["doors"][-1]["kind"] = "standard"
+        no_exit_lock["doors"][-1]["unlock"] = "none"
+        mutations.append((no_exit_lock, "exit door"))
+        with tempfile.TemporaryDirectory() as directory:
+            for index, (mutated, message) in enumerate(mutations):
+                path = Path(directory) / f"invalid_{index}.json"
+                path.write_text(json.dumps(mutated), encoding="utf-8")
+                with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                    compile_level(path)
+
     def test_scene_vram_profiles_exchange_atlas_capacity_for_entity_tiles(self) -> None:
         self.assertEqual(len(br.RENDERER_ATLAS_TILES) // 16, 121)
         self.assertEqual(len(br.ENTITY_ATLAS_TILES) // 16, 80)
         self.assertEqual(br.ENTITY_TILE_BASE - br.ATLAS_TILE_BASE, 80)
-        self.assertLessEqual(br.HIT_EFFECT_TILE_BASE + 2, br.ENTITY_TILE_LIMIT)
+        self.assertEqual(br.EXIT_BEACON_TILE + br.EXIT_BEACON_FRAMES, br.ENTITY_TILE_LIMIT)
 
         cgb = self.boot_to_main()
         cgb.write8(br.VRAM_PROFILE, br.VRAM_PROFILE_RENDERER)
@@ -289,6 +323,7 @@ class Lupine3DTests(unittest.TestCase):
             (0x0880, 0x0380, 0, 79),
             (0x08A0, 0x05C0, 193, 12),
             (0x0D20, 0x0D80, 64, 12),
+            (0x0380, 0x0B80, 192, 39),
         ]
         observed_styles = set()
         for x_q8, y_q8, angle, ray_index in probes:
@@ -416,7 +451,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertLess(statistics.fmean(dynamic_counts), 35.0)
 
     def test_tail_failure_certificate_preserves_worst_case_evidence(self) -> None:
-        records, summary = tail_lab.inspect_pose(2688, 2944, 12)
+        records, summary = tail_lab.inspect_pose(
+            2688, 2944, 12, grid=self.renderer_level.grid,
+        )
         record = next(item for item in records if item.physical_column == 153)
         self.assertEqual(record.top_error_px, 41.0)
         self.assertTrue(record.wrong_segment)
@@ -497,6 +534,8 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_controls_move_turn_and_page_flip(self) -> None:
         cgb = self.boot_to_main()
+        start_x = cgb.read16(br.PLAYER_XL)
+        start_y = cgb.read16(br.PLAYER_YL)
 
         def script(iteration: int, _swaps: int) -> int:
             if 1 <= iteration <= 4:
@@ -507,8 +546,9 @@ class Lupine3DTests(unittest.TestCase):
 
         cgb.button_provider = script
         cgb.run(until_swaps=7, max_steps=6_000_000)
-        self.assertEqual(cgb.read16(br.PLAYER_XL), 0x01D0)
-        self.assertEqual(cgb.read8(br.ANGLE), 12)
+        self.assertEqual(cgb.read16(br.PLAYER_XL), start_x)
+        self.assertEqual(cgb.read16(br.PLAYER_YL), start_y - 80)
+        self.assertEqual(cgb.read8(br.ANGLE), 204)
         self.assertEqual(cgb.page_swaps, 7)
         self.assertEqual(cgb.io[0x40] & 0x08, 0x08)
 
@@ -537,7 +577,7 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_collision_blocks_world_boundary(self) -> None:
         cgb = self.boot_to_main()
-        cgb.write8(br.ANGLE, 128)
+        self.set_pose(cgb, 0x0180, 0x0D80, 128)
         cgb.button_provider = lambda iteration, _swaps: 0x04 if iteration <= 10 else 0
         cgb.run(until_swaps=10, max_steps=8_000_000)
         x = cgb.read16(br.PLAYER_XL)
@@ -546,40 +586,79 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_animated_door_preserves_collision_until_fully_open(self) -> None:
         cgb = self.boot_to_main()
-        self.set_pose(cgb, 0x0880, 0x0480, 0)
-        door_addr = br.MAP + 4 * 16 + 9
+        self.set_pose(cgb, 0x0380, 0x0B40, 192)
+        door_addr = br.MAP + 10 * 16 + 3
+        door_record = br.DOOR_TABLE
         self.assertEqual(cgb.read8(door_addr), 3)
         cgb.call_subroutine("cast_all")
         closed_top = cgb.read8(br.RAY_TOPS + 40)
-        cgb.write8(br.DOOR_STATE, 1)
-        cgb.write8(br.DOOR_FRACTION, 128)
+        cgb.write8(door_record + br.DOOR_STATE_OFFSET, 1)
+        cgb.write8(door_record + br.DOOR_FRACTION_OFFSET, 128)
         cgb.call_subroutine("cast_all")
         self.assertGreater(cgb.read8(br.RAY_TOPS + 40), closed_top)
-        cgb.write8(br.DOOR_STATE, 0)
-        cgb.write8(br.DOOR_FRACTION, 0)
+        cgb.write8(door_record + br.DOOR_STATE_OFFSET, 0)
+        cgb.write8(door_record + br.DOOR_FRACTION_OFFSET, 0)
         cgb.button_provider = lambda iteration, _swaps: 0x20 if iteration == 1 else 0
         cgb.run(until_swaps=1, max_steps=1_500_000)
         self.assertEqual(cgb.read8(door_addr), 3)
-        self.assertEqual(cgb.read8(br.DOOR_STATE), 1)
-        self.assertEqual(cgb.read8(br.DOOR_FRACTION), 32)
+        self.assertEqual(cgb.read8(door_record + br.DOOR_STATE_OFFSET), 1)
+        self.assertEqual(cgb.read8(door_record + br.DOOR_FRACTION_OFFSET), 32)
         self.assertEqual(cgb.read8(0xFF14), 0xC4)
         cgb.button_provider = lambda _iteration, _swaps: 0
         cgb.run(until_swaps=8, max_steps=9_000_000)
         self.assertEqual(cgb.read8(door_addr), 0)
-        self.assertEqual(cgb.read8(br.DOOR_STATE), 2)
+        self.assertEqual(cgb.read8(door_record + br.DOOR_STATE_OFFSET), 2)
+        for index in range(1, br.MAX_DOORS):
+            record = br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES
+            self.assertEqual(cgb.read8(record + br.DOOR_STATE_OFFSET), 0)
 
         # Empty-world mode remains the exact visual oracle and intentionally
         # retains the original instant interaction semantics.
         legacy = self.boot_to_main()
         legacy.write8(br.WORLD_MODE, br.WORLD_MODE_EMPTY)
-        self.set_pose(legacy, 0x0880, 0x0480, 0)
+        self.set_pose(legacy, 0x0380, 0x0B40, 192)
         legacy.button_provider = lambda iteration, _swaps: 0x20 if iteration == 1 else 0
         legacy.run(until_swaps=1, max_steps=1_500_000)
         self.assertEqual(legacy.read8(door_addr), 0)
 
+        # The exit door is a separate record and rejects interaction with a
+        # distinct lock sound until the Sentinel-death condition is active.
+        exit_cgb = self.boot_to_main()
+        exit_record = br.DOOR_TABLE + 3 * br.DOOR_RECORD_BYTES
+        self.set_pose(exit_cgb, 0x0C80, 0x0980, 64)
+        exit_cgb.call_subroutine("open_door")
+        self.assertEqual(exit_cgb.read8(exit_record + br.DOOR_STATE_OFFSET), 0)
+        self.assertEqual(exit_cgb.read8(0xFF14), 0xC2)
+        exit_cgb.write8(br.EXIT_ACTIVE, 1)
+        exit_cgb.call_subroutine("open_door")
+        self.assertEqual(exit_cgb.read8(exit_record + br.DOOR_STATE_OFFSET), 1)
+        self.assertEqual(exit_cgb.read8(0xFF14), 0xC4)
+
+        # Every authored threshold is reachable through the same coordinate
+        # lookup, but mutates only its own record.
+        interactions = (
+            (0, (0x0380, 0x0B40, 192), False),  # start airlock, from south
+            (1, (0x0380, 0x0840, 192), False),  # courtyard access, from south
+            (2, (0x07C0, 0x0880, 0), False),    # zig-zag entry, from west
+            (3, (0x0C80, 0x0980, 64), True),   # exit lock, from north
+        )
+        for target_index, pose, unlock_exit in interactions:
+            with self.subTest(door=br.ACTIVE_LEVEL.doors[target_index].name):
+                probe = self.boot_to_main()
+                self.set_pose(probe, *pose)
+                if unlock_exit:
+                    probe.write8(br.EXIT_ACTIVE, 1)
+                probe.call_subroutine("open_door")
+                for index in range(br.MAX_DOORS):
+                    record = br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES
+                    expected = 1 if index == target_index else 0
+                    self.assertEqual(
+                        probe.read8(record + br.DOOR_STATE_OFFSET), expected,
+                    )
+
     def test_sentinel_projection_combat_drop_pickup_and_exit_vertical_slice(self) -> None:
         cgb = self.boot_to_main()
-        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        self.set_pose(cgb, 0x0980, 0x0880, 0)
         cgb.call_subroutine("cast_all")
         cgb.call_subroutine("render_entities")
         self.assertEqual(cgb.read8(br.SENTINEL_VISIBLE), 1)
@@ -599,6 +678,20 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 1)
         self.assertEqual(cgb.read8(br.EXIT_ACTIVE), 1)
 
+        # The active exit has a world-space billboard, not an unexplained
+        # invisible completion cell.
+        self.set_pose(cgb, 0x0D80, 0x0B80, 64)
+        cgb.call_subroutine("cast_all")
+        cgb.call_subroutine("render_entities")
+        entity_tiles = [
+            cgb.read8(br.OAM_SHADOW + index * 4 + 2)
+            for index in range(br.ENTITY_OAM_FIRST, 40)
+        ]
+        self.assertTrue(any(
+            br.EXIT_BEACON_TILE <= tile < br.EXIT_BEACON_TILE + br.EXIT_BEACON_FRAMES
+            for tile in entity_tiles
+        ))
+
         cgb.write16(br.PLAYER_XL, cgb.read16(br.SENTINEL_XL))
         cgb.write16(br.PLAYER_YL, cgb.read16(br.SENTINEL_YL))
         cgb.call_subroutine("collect_pickup_and_exit")
@@ -612,7 +705,7 @@ class Lupine3DTests(unittest.TestCase):
     def test_sentinel_exact_los_chase_and_attack_run_on_simulation_ticks(self) -> None:
         cgb = self.boot_to_main()
         cgb.write8(br.SENTINEL_STATE, br.SENTINEL_PATROL)
-        self.set_pose(cgb, 0x0A80, 0x0D80, 0)
+        self.set_pose(cgb, 0x0A80, 0x0880, 0)
         before_x = cgb.read16(br.SENTINEL_XL)
         cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL)
         cgb.call_subroutine("update_world")
@@ -620,7 +713,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_CHASE)
         self.assertLess(cgb.read16(br.SENTINEL_XL), before_x)
 
-        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        self.set_pose(cgb, 0x0B80, 0x0880, 0)
         health = cgb.read8(br.PLAYER_HEALTH)
         cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL * 2)
         cgb.write8(br.SENTINEL_COOLDOWN, 0)
@@ -638,7 +731,7 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_entity_wall_depth_clipping_and_scanline_budget(self) -> None:
         cgb = self.boot_to_main()
-        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        self.set_pose(cgb, 0x0980, 0x0880, 0)
         cgb.call_subroutine("cast_all")
         cgb.call_subroutine("render_entities")
         self.assertLess(cgb.read8(br.SENTINEL_DEPTH), cgb.read8(br.RAY_DEPTH + 40))

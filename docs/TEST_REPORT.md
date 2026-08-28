@@ -1,11 +1,11 @@
-# Lupine 3D 0.6.0 test report
+# Lupine 3D 0.6.1 test report
 
 **Software target:** CGB-only, 4 MiB MBC5, no cartridge RAM<br>
 **Physical hardware tested:** no
 
 ## Automated result
 
-All **34 tests pass**. They cover:
+All **35 tests pass**. They cover:
 
 - Nintendo logo, CGB/MBC5/ROM-size fields, version byte and checksums;
 - deterministic 4 MiB output and the frozen reference-ROM SHA-256 oracle;
@@ -14,12 +14,13 @@ All **34 tests pass**. They cover:
 - exact 80-ray top/style/face/along/depth/segment records;
 - exact 160-column reconstruction, edge recasts and event grammar;
 - exact atlas signatures, both VRAM profiles and generated entity art;
-- the authored map, compiled level header and stable surface segments;
+- the authored map, safe-spawn certificate, four-door table, compiled level header and stable surface segments;
 - generated tile bytes and complete 384-byte hidden map;
 - more than 2,000 exhaustive map/angle guardrail views;
 - forced 120-block single-VBlank publication and deferred OAM DMA;
 - OAM total/per-scanline capacity and wall-depth clipping;
-- radius collision and an eight-step collision-preserving door;
+- radius collision and four independent eight-step, collision-preserving doors;
+- door orientation/frame validation and Sentinel-locked exit rejection;
 - Sentinel line of sight, chase, attack, hitscan damage, death and drop;
 - medkit collection, exit activation and level completion;
 - VBlank input latching during long renders;
@@ -33,10 +34,10 @@ All **34 tests pass**. They cover:
 |---|---:|
 | Updates | 27 |
 | Captures | 9 |
-| Mean cycles/update | 972,626.963 |
-| Maximum cycles/update | 1,124,336 |
-| Minimum updates/s | 7.4609 |
-| Maximum dynamic tiles | 50 / 96 |
+| Mean cycles/update | 972,632.148 |
+| Maximum cycles/update | 1,124,756 |
+| Minimum updates/s | 7.4582 |
+| Maximum dynamic tiles | 54 / 96 |
 | Maximum total casts | 59 |
 | Maximum visible OAM | 18 / 40 |
 | Maximum OAM per scanline | 4 / 10 |
@@ -50,19 +51,19 @@ This route runs in `WORLD_MODE_EMPTY`. It proves that the gameplay expansion doe
 
 | Measurement | Result |
 |---|---:|
-| Updates | 8 |
-| Captures | 6 |
-| Mean cycles/update | 859,909 |
-| Maximum cycles/update | 1,125,772 |
+| Updates | 26 |
+| Captures | 12 |
+| Mean cycles/update | 788,468.769 |
+| Maximum cycles/update | 1,125,776 |
 | Minimum updates/s | 7.4514 |
-| Maximum dynamic tiles | 38 / 96 |
-| Maximum total casts | 55 |
+| Maximum dynamic tiles | 42 / 96 |
+| Maximum total casts | 56 |
 | Maximum visible OAM | 26 / 40 |
 | Maximum OAM per scanline | 5 / 10 |
 | Unsafe GDMA starts | 0 |
 | Failed checks/state assertions | 0 |
 
-The route sees the Sentinel, lands three edge-separated shots, verifies health transitions, verifies death/drop/exit activation, collects the medkit, and enters the active exit.
+The route begins at the certified safe spawn, independently opens the start airlock, rejects the still-locked exit, reaches the Sentinel, lands three edge-separated shots, verifies health transitions and death/drop/exit activation, collects the medkit, opens the unlocked exit door, observes the beacon, and enters the completion cell.
 
 ## Research gates
 
@@ -74,7 +75,7 @@ The route sees the Sentinel, lands three edge-separated shots, verifies health t
 - DDA product LUT: 65,536 exact bytes across four MBC5 banks;
 - rare tail: 1,566 columns at or above eight pixels, all segment-selection events;
 - rejected correction experiment: one changed/improved column out of 3,901,440;
-- resident engine: 29,949 bytes, ending at `$764D`;
+- resident engine: 30,973 bytes, ending at `$7A4D`;
 - hot HRAM: 111 bytes at `$FF80–$FFEE`, separate from the `$FFF4` DMA stub.
 
 ## Remaining acceptance work

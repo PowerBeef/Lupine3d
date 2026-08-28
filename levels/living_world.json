@@ -1,35 +1,71 @@
 {
-  "format": "lupine-level-v1",
-  "name": "Sentinel Outpost",
+  "format": "lupine-level-v2",
+  "name": "Hangar Breach",
   "width": 16,
   "height": 16,
   "rows": [
     "1111111111111111",
-    "1000000000000001",
-    "1011110111110101",
-    "1010000100010101",
-    "1010220103010101",
-    "1010000000010101",
-    "1010111111010101",
-    "1000100000010001",
-    "1110101111011101",
-    "1000101000010001",
-    "1011101011110101",
-    "1000001000000101",
-    "1011111111100101",
-    "1000000000000001",
-    "1000000000000001",
+    "1000001000000001",
+    "1000001022220001",
+    "1000001000020001",
+    "1000001000020001",
+    "1000001000000001",
+    "1000001022200001",
+    "1113111020000001",
+    "1110000030000001",
+    "1110111110000001",
+    "1113111111113111",
+    "1000001000010001",
+    "1000001000010001",
+    "1000001000010001",
+    "1000001000010001",
     "1111111111111111"
   ],
-  "player_spawn": {"x_q8": 384, "y_q8": 384, "angle": 0},
+  "player_spawn": {
+    "x_q8": 896,
+    "y_q8": 3456,
+    "angle": 192,
+    "safe_radius_cells": 5
+  },
   "doors": [
-    {"x": 9, "y": 4, "orientation": "vertical"}
+    {
+      "id": "start_airlock",
+      "x": 3,
+      "y": 10,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "courtyard_access",
+      "x": 3,
+      "y": 7,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "zigzag_entry",
+      "x": 8,
+      "y": 8,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "exit_lock",
+      "x": 12,
+      "y": 10,
+      "orientation": "horizontal",
+      "kind": "exit",
+      "unlock": "sentinel_dead"
+    }
   ],
   "entities": [
     {
       "kind": "sentinel",
-      "x_q8": 3456,
-      "y_q8": 3456,
+      "x_q8": 3200,
+      "y_q8": 2176,
       "health": 3,
       "activation_radius_q4": 96
     }
@@ -40,7 +76,7 @@
   "triggers": [
     {"kind": "activate_exit", "condition": "sentinel_dead"}
   ],
-  "exit": {"x": 14, "y": 13},
+  "exit": {"x": 13, "y": 13, "marker": "beacon"},
   "palette_profile": "outpost",
   "vram_profile": "entity-heavy"
 }

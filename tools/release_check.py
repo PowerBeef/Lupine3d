@@ -185,6 +185,15 @@ def main() -> None:
         "ray_segment_buffer_80_bytes": int(v2_manifest["ray_segment_buffer_bytes"]) == 80,
         "segment_aware_reconstruction": bool(v2_manifest["segment_aware_reconstruction"]),
         "entity_heavy_profile_active": v2_manifest["vram_profile"] == "entity-heavy",
+        "level_v2_safe_spawn_contract": (
+            v2_manifest["level_format"] == "lupine-level-v2"
+            and int(v2_manifest["safe_spawn_radius_cells"]) >= 5
+        ),
+        "four_independent_door_records": (
+            int(v2_manifest["active_level_doors"]) == 4
+            and int(v2_manifest["maximum_level_doors"]) == 4
+        ),
+        "world_space_exit_beacon": bool(v2_manifest["exit_beacon"]),
         "living_world_playtest_passed": bool(world_playtest["summary"]["passed"]),
         "living_world_oam_total_safe": int(world_playtest["summary"]["max_visible_oam"]) <= 40,
         "living_world_oam_scanline_safe": int(world_playtest["summary"]["max_oam_per_scanline"]) <= 10,
@@ -193,7 +202,11 @@ def main() -> None:
             update.get("world_state", {}).get("level_complete") == 1
             for update in world_playtest["updates"]
         ),
-        f"automated_test_inventory_{automated_tests}": automated_tests >= 34,
+        "living_world_normal_and_exit_doors_completed": (
+            any(update.get("door_states", {}).get("start_airlock") == 2 for update in world_playtest["updates"])
+            and any(update.get("door_states", {}).get("exit_lock") == 2 for update in world_playtest["updates"])
+        ),
+        f"automated_test_inventory_{automated_tests}": automated_tests >= 35,
         "material_full_width_contrast_bands_zero": int(v2_manifest["full_width_contrast_bands"]) == 0,
     }
     if not all(checks.values()):

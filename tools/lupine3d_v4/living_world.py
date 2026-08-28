@@ -24,8 +24,10 @@ def emit_level_loader(a: Assembler) -> None:
     ):
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.inc_rr("hl")  # activation radius is a future multi-entity field
-    for address in (DOOR_CELL_X, DOOR_CELL_Y, DOOR_ORIENTATION, EXIT_CELL_X, EXIT_CELL_Y):
+    for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT):
         a.ldi_a_hl(); a.ld_abs_a(address)
+    a.ld_rr_label("hl", "door_data"); a.ld_rr_nn("de", DOOR_TABLE)
+    a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.ld_r_n("a", SENTINEL_DORMANT); a.ld_abs_a(SENTINEL_STATE)
     a.ld_r_n("a", 99); a.ld_abs_a(PLAYER_HEALTH)
@@ -34,7 +36,9 @@ def emit_level_loader(a: Assembler) -> None:
         SENTINEL_AI_STAMP, SENTINEL_AI_PHASE, SENTINEL_ANIM,
         SENTINEL_COOLDOWN, SENTINEL_VISIBLE, SENTINEL_OAM_USED,
         PICKUP_ACTIVE, PICKUP_COLLECTED, EXIT_ACTIVE, LEVEL_COMPLETE,
-        DOOR_FRACTION, DOOR_STATE, OAM_DIRTY, OAM_DEFERRED,
+        DOOR_ACTIVE_INDEX, DOOR_ACTIVE_STATE, DOOR_ACTIVE_FRACTION,
+        DOOR_ACTIVE_FLAGS, DOOR_LOOKUP_X, DOOR_LOOKUP_Y,
+        OAM_DIRTY, OAM_DEFERRED,
     ):
         a.ld_abs_a(address)
     a.ret()
@@ -69,6 +73,65 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_r_r("a", "d"); a.ldi_hl_a(); a.ld_r_r("a", "e"); a.ldi_hl_a()
     store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     a.ld_a_abs(SENTINEL_OAM_USED); a.inc_r("a"); a.ld_abs_a(SENTINEL_OAM_USED); a.ret()
+
+
+def emit_door_system(a: Assembler) -> None:
+    """Emit the fixed-capacity, independently stateful door runtime."""
+    a.label("lookup_door_bc")  # B=x, C=y; selected record -> active scratch, A=found
+    a.ld_r_r("a", "b"); a.ld_abs_a(DOOR_LOOKUP_X)
+    a.ld_r_r("a", "c"); a.ld_abs_a(DOOR_LOOKUP_Y)
+    for index in range(MAX_DOORS):
+        next_label = f"door_lookup_{index}_next"
+        base = DOOR_TABLE + index * DOOR_RECORD_BYTES
+        a.ld_a_abs(DOOR_COUNT); a.cp_n(index + 1); a.jp("door_lookup_none", "c")
+        a.ld_a_abs(base + DOOR_X_OFFSET); a.cp_r("b"); a.jr(next_label, "nz")
+        a.ld_a_abs(base + DOOR_Y_OFFSET); a.cp_r("c"); a.jr(next_label, "nz")
+        a.ld_r_n("a", index); a.ld_abs_a(DOOR_ACTIVE_INDEX)
+        for source, destination in (
+            (base + DOOR_STATE_OFFSET, DOOR_ACTIVE_STATE),
+            (base + DOOR_FRACTION_OFFSET, DOOR_ACTIVE_FRACTION),
+            (base + DOOR_FLAGS_OFFSET, DOOR_ACTIVE_FLAGS),
+        ):
+            a.ld_a_abs(source); a.ld_abs_a(destination)
+        a.ld_r_n("a", 1); a.ret()
+        a.label(next_label)
+    a.label("door_lookup_none"); a.xor_r("a"); a.ret()
+
+    a.label("store_active_door")
+    for index in range(MAX_DOORS):
+        next_label = f"door_store_{index}_next"
+        base = DOOR_TABLE + index * DOOR_RECORD_BYTES
+        a.ld_a_abs(DOOR_ACTIVE_INDEX); a.cp_n(index); a.jr(next_label, "nz")
+        a.ld_a_abs(DOOR_ACTIVE_STATE); a.ld_abs_a(base + DOOR_STATE_OFFSET)
+        a.ld_a_abs(DOOR_ACTIVE_FRACTION); a.ld_abs_a(base + DOOR_FRACTION_OFFSET)
+        a.ret()
+        a.label(next_label)
+    a.ret()
+
+    a.label("update_animated_doors")
+    for index in range(MAX_DOORS):
+        next_label = f"door_update_{index}_next"
+        base = DOOR_TABLE + index * DOOR_RECORD_BYTES
+        a.ld_a_abs(DOOR_COUNT); a.cp_n(index + 1); a.jp("door_update_all_done", "c")
+        a.ld_a_abs(base + DOOR_STATE_OFFSET); a.cp_n(1); a.jr(next_label, "nz")
+        a.ld_a_abs(base + DOOR_FRACTION_OFFSET); a.add_a_n(32)
+        a.ld_abs_a(base + DOOR_FRACTION_OFFSET); a.jr(next_label, "nc")
+        # The eighth step wraps the fraction, commits the open state, and only
+        # then removes the collision/ray/LOS cell from the authoritative map.
+        a.ld_r_n("a", 2); a.ld_abs_a(base + DOOR_STATE_OFFSET)
+        a.ld_a_abs(base + DOOR_Y_OFFSET); a.cb("swap", "a"); a.ld_r_r("b", "a")
+        a.ld_a_abs(base + DOOR_X_OFFSET); a.add_a_r("b"); a.ld_r_r("l", "a")
+        a.ld_r_n("h", 0xD0); a.xor_r("a"); a.ld_hl_a()
+        a.label(next_label)
+    a.label("door_update_all_done"); a.ret()
+
+    a.label("sound_locked")
+    a.xor_r("a"); a.ldh_n_a(NR10)
+    a.ld_r_n("a", 0x80); a.ldh_n_a(NR11)
+    a.ld_r_n("a", 0x72); a.ldh_n_a(NR12)
+    a.ld_r_n("a", 0x20); a.ldh_n_a(NR13)
+    a.ld_r_n("a", 0xC2); a.ldh_n_a(NR14)
+    a.ret()
 
 
 def emit_signed_math(a: Assembler) -> None:
@@ -106,9 +169,15 @@ def _emit_q4_delta(a: Assembler, prefix: str, entity_lo: int, entity_hi: int,
 
 def emit_entity_projection(a: Assembler) -> None:
     a.label("project_sentinel")
+    for source, destination in (
+        (SENTINEL_XL, ENTITY_WORLD_XL), (SENTINEL_XH, ENTITY_WORLD_XH),
+        (SENTINEL_YL, ENTITY_WORLD_YL), (SENTINEL_YH, ENTITY_WORLD_YH),
+    ):
+        a.ld_a_abs(source); a.ld_abs_a(destination)
+    a.label("project_entity")
     a.xor_r("a"); a.ld_abs_a(SENTINEL_VISIBLE)
-    _emit_q4_delta(a, "entity_dx", SENTINEL_XL, SENTINEL_XH, PLAYER_XL, PLAYER_XH, ENTITY_DX)
-    _emit_q4_delta(a, "entity_dy", SENTINEL_YL, SENTINEL_YH, PLAYER_YL, PLAYER_YH, ENTITY_DY)
+    _emit_q4_delta(a, "entity_dx", ENTITY_WORLD_XL, ENTITY_WORLD_XH, PLAYER_XL, PLAYER_XH, ENTITY_DX)
+    _emit_q4_delta(a, "entity_dy", ENTITY_WORLD_YL, ENTITY_WORLD_YH, PLAYER_YL, PLAYER_YH, ENTITY_DY)
     # Camera basis uses the exact 256-entry signed movement vectors (scale 64).
     a.ld_a_abs(ANGLE); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "step_dx"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ENTITY_COS)
@@ -173,7 +242,12 @@ def emit_entity_renderer(a: Assembler) -> None:
     a.call("clear_entity_oam_shadow")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(VRAM_PROFILE_ENTITY); a.ret("nz")
-    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.jp("render_dropped_pickup", "z")
+    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.jr("render_dead_world", "z")
+    a.call("render_sentinel_actor"); a.jr("render_world_exit")
+    a.label("render_dead_world"); a.call("render_dropped_pickup")
+    a.label("render_world_exit"); a.call("render_exit_beacon"); a.ret()
+
+    a.label("render_sentinel_actor")
     a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(SENTINEL_LOD); a.or_r("a"); a.jr("render_sentinel_near", "z")
     # Far LOD: one 8x16 column represented by two 8x8 objects.
@@ -208,6 +282,31 @@ def emit_entity_renderer(a: Assembler) -> None:
     a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     a.ld_r_n("b", 82); a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
     a.ld_r_n("d", PICKUP_TILE); a.ld_r_n("e", 0x09); a.call("submit_oam_8x8"); a.ret()
+
+    a.label("render_exit_beacon")
+    a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
+    a.ld_r_n("a", 0x80); a.ld_abs_a(ENTITY_WORLD_XL); a.ld_abs_a(ENTITY_WORLD_YL)
+    a.ld_a_abs(EXIT_CELL_X); a.ld_abs_a(ENTITY_WORLD_XH)
+    a.ld_a_abs(EXIT_CELL_Y); a.ld_abs_a(ENTITY_WORLD_YH)
+    a.call("project_entity"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
+    a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(1); a.add_a_n(EXIT_BEACON_TILE); a.ld_r_r("d", "a")
+    a.ld_a_abs(SENTINEL_LOD); a.or_r("a"); a.jr("render_exit_beacon_far", "nz")
+    # Near the exit, mirror the same chevron tile into a 16x16 illuminated
+    # panel. This spends OAM rather than scarce tile IDs and gives the goal a
+    # strong approach cue without adding screen-space HUD text.
+    for row in range(2):
+        for col in range(2):
+            a.ld_r_n("b", 68 + row * 8)
+            a.ld_a_abs(SENTINEL_SCREEN_X)
+            if col: a.add_a_n(8)
+            a.ld_r_r("c", "a")
+            a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(1); a.add_a_n(EXIT_BEACON_TILE); a.ld_r_r("d", "a")
+            a.ld_r_n("e", 0x09 | (0x20 if col else 0) | (0x40 if row else 0))
+            a.call("submit_oam_8x8")
+    a.ret()
+    a.label("render_exit_beacon_far")
+    a.ld_r_n("b", 76); a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
+    a.ld_r_n("e", 0x09); a.call("submit_oam_8x8"); a.ret()
 
 
 def emit_line_of_sight(a: Assembler) -> None:
@@ -252,7 +351,7 @@ def emit_line_of_sight(a: Assembler) -> None:
 def emit_world_update(a: Assembler) -> None:
     a.label("update_world")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
-    a.call("update_animated_door"); a.call("collect_pickup_and_exit")
+    a.call("update_animated_doors"); a.call("collect_pickup_and_exit")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.ret("z")
     a.ld_a_abs(INPUT_SAMPLE_COUNT); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_AI_STAMP); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.cp_n(AI_TICK_INTERVAL); a.ret("c")
     a.ld_r_r("a", "b"); a.ld_abs_a(SENTINEL_AI_STAMP)
@@ -306,13 +405,6 @@ def emit_world_update(a: Assembler) -> None:
     a.label("sentinel_chase_y_test")
     a.ld_r_r("c", "a"); a.ld_a_abs(SENTINEL_XH); a.ld_r_r("b", "a"); a.call("map_cell_bc"); a.or_r("a"); a.ret("nz")
     a.ld_a_abs(v1.CAND_L); a.ld_abs_a(SENTINEL_YL); a.ld_a_abs(v1.CAND_H); a.ld_abs_a(SENTINEL_YH); a.ret()
-
-    a.label("update_animated_door")
-    a.ld_a_abs(DOOR_STATE); cp = "door_update_done"; a.or_r("a"); a.jr(cp, "z"); a.cp_n(2); a.jr(cp, "z")
-    a.ld_a_abs(DOOR_FRACTION); a.add_a_n(32); a.ld_abs_a(DOOR_FRACTION); a.jr(cp, "nc")
-    # Fraction wrapped after eight simulation steps: remove the collision cell.
-    a.ld_r_n("a", 2); a.ld_abs_a(DOOR_STATE); a.ld_a_abs(DOOR_CELL_Y); a.cb("swap", "a"); a.ld_r_r("b", "a"); a.ld_a_abs(DOOR_CELL_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0xD0); a.xor_r("a"); a.ld_hl_a()
-    a.label(cp); a.ret()
 
     a.label("collect_pickup_and_exit")
     a.ld_a_abs(PICKUP_ACTIVE); a.or_r("a"); a.jr("check_level_exit", "z")
@@ -379,12 +471,21 @@ def emit_movement_v6(a: Assembler) -> None:
 
     a.label("open_door")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("open_door_legacy", "z")
-    a.ld_a_abs(DOOR_STATE); a.or_r("a"); a.ret("nz")
     # Keep the proven two-quarter-step interaction reach.
     a.ld_a_abs(ANGLE); a.call("ray_setup"); a.ld_r_n("a", 2); a.ld_abs_a(v1.DOOR_COUNT)
     a.label("open_door6_advance"); a.call("ray_advance"); a.ld_a_abs(v1.DOOR_COUNT); a.dec_r("a"); a.ld_abs_a(v1.DOOR_COUNT); a.jr("open_door6_advance", "nz")
     a.call("ray_map_cell"); a.cp_n(3); a.ret("nz")
-    a.ld_r_n("a", 1); a.ld_abs_a(DOOR_STATE); a.call("sound_door"); a.ret()
+    a.ld_a_abs(v1.RAY_XH); a.ld_r_r("b", "a")
+    a.ld_a_abs(v1.RAY_YH); a.ld_r_r("c", "a"); a.call("lookup_door_bc")
+    a.or_r("a"); a.ret("z")
+    a.ld_a_abs(DOOR_ACTIVE_STATE); a.or_r("a"); a.ret("nz")
+    a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_LOCK_SENTINEL); a.jr("open_door6_unlocked", "z")
+    a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.jr("open_door6_unlocked", "nz")
+    a.call("sound_locked"); a.ret()
+    a.label("open_door6_unlocked")
+    a.ld_r_n("a", 1); a.ld_abs_a(DOOR_ACTIVE_STATE)
+    a.xor_r("a"); a.ld_abs_a(DOOR_ACTIVE_FRACTION)
+    a.call("store_active_door"); a.call("sound_door"); a.ret()
     a.label("open_door_legacy")
     a.ld_a_abs(ANGLE); a.call("ray_setup"); a.ld_r_n("a", 2); a.ld_abs_a(v1.DOOR_COUNT)
     a.label("open_door_legacy_advance"); a.call("ray_advance"); a.ld_a_abs(v1.DOOR_COUNT); a.dec_r("a"); a.ld_abs_a(v1.DOOR_COUNT); a.jr("open_door_legacy_advance", "nz")

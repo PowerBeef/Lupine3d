@@ -15,14 +15,14 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 from sm83 import Assembler  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
-from lupine3d_v4.levels import active_level  # noqa: E402
+from lupine3d_v4 import levels as level_codec  # noqa: E402
 
 BUILD = ROOT / "build"
 BUILD.mkdir(parents=True, exist_ok=True)
 ASSETS = ROOT / "assets"
 TILE_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_TILE_ATLAS_DIR", ASSETS))
 ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / "entity_atlas_80"))
-ACTIVE_LEVEL = active_level(ROOT)
+ACTIVE_LEVEL = level_codec.active_level(ROOT)
 
 # Hardware registers (LDH offsets).
 P1 = v1.P1
@@ -119,13 +119,13 @@ PICKUP_ACTIVE = 0xD732
 PICKUP_COLLECTED = 0xD733
 EXIT_ACTIVE = 0xD734
 LEVEL_COMPLETE = 0xD735
-DOOR_FRACTION = 0xD736
-DOOR_STATE = 0xD737
-DOOR_CELL_X = 0xD738
-DOOR_CELL_Y = 0xD739
-DOOR_ORIENTATION = 0xD73A
-EXIT_CELL_X = 0xD73B
-EXIT_CELL_Y = 0xD73C
+DOOR_COUNT = 0xD736
+DOOR_ACTIVE_INDEX = 0xD737
+DOOR_ACTIVE_STATE = 0xD738
+DOOR_ACTIVE_FRACTION = 0xD739
+DOOR_ACTIVE_FLAGS = 0xD73A
+DOOR_LOOKUP_X = 0xD73B
+DOOR_LOOKUP_Y = 0xD73C
 OAM_DIRTY = 0xD73D
 OAM_DEFERRED = 0xD73E
 ENTITY_DX = 0xD73F
@@ -156,6 +156,31 @@ MOVE_DELTA = 0xD757
 COLLIDE_EDGE = 0xD758
 COLLIDE_LOW = 0xD759
 COLLIDE_HIGH = 0xD75A
+ENTITY_WORLD_XL = 0xD75B
+ENTITY_WORLD_XH = 0xD75C
+ENTITY_WORLD_YL = 0xD75D
+ENTITY_WORLD_YH = 0xD75E
+DOOR_LOOP_INDEX = 0xD75F
+DOOR_TABLE = 0xD760
+MAX_DOORS = level_codec.MAX_DOORS
+DOOR_RECORD_BYTES = level_codec.DOOR_RECORD_BYTES
+DOOR_X_OFFSET = level_codec.DOOR_X
+DOOR_Y_OFFSET = level_codec.DOOR_Y
+DOOR_ORIENTATION_OFFSET = level_codec.DOOR_ORIENTATION
+DOOR_FLAGS_OFFSET = level_codec.DOOR_FLAGS
+DOOR_STATE_OFFSET = level_codec.DOOR_STATE
+DOOR_FRACTION_OFFSET = level_codec.DOOR_FRACTION
+DOOR_FLAG_EXIT = level_codec.DOOR_FLAG_EXIT
+DOOR_FLAG_LOCK_SENTINEL = level_codec.DOOR_FLAG_LOCK_SENTINEL
+EXIT_CELL_X = DOOR_TABLE + MAX_DOORS * DOOR_RECORD_BYTES
+EXIT_CELL_Y = EXIT_CELL_X + 1
+
+# Compatibility aliases denote the door most recently selected by a lookup.
+# Runtime ownership lives in the fixed-capacity table above.
+DOOR_STATE = DOOR_ACTIVE_STATE
+DOOR_FRACTION = DOOR_ACTIVE_FRACTION
+DOOR_CELL_X = DOOR_LOOKUP_X
+DOOR_CELL_Y = DOOR_LOOKUP_Y
 
 # Hot scalar state is a deliberately stable HRAM ABI.  All accesses emitted
 # through ld_a_abs/ld_abs_a become the shorter LDH form; descriptor arrays and
@@ -458,8 +483,10 @@ SENTINEL_FAR_FRAMES = 2
 SENTINEL_FAR_TILES_PER_FRAME = 2
 PICKUP_TILE = SENTINEL_FAR_TILE_BASE + SENTINEL_FAR_FRAMES * SENTINEL_FAR_TILES_PER_FRAME
 HIT_EFFECT_TILE_BASE = PICKUP_TILE + 1
+EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 2
+EXIT_BEACON_FRAMES = 2
 ENTITY_TILE_LIMIT = 240
-if HIT_EFFECT_TILE_BASE + 2 > ENTITY_TILE_LIMIT:
+if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")
 
 ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"

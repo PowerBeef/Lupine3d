@@ -17,7 +17,7 @@ research:
 	$(PYTHON) research/geometry_v2_lab.py
 
 research-v3:
-	$(PYTHON) research/rendering_v3_lab.py
+	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/rendering_v3_lab.py
 
 research-atlas:
 	$(PYTHON) research/build_tile_atlas_v4.py
@@ -39,10 +39,12 @@ research-tail:
 verify: build test research
 	$(PYTHON) tools/release_check.py
 
-playtest: build
-	$(PYTHON) tools/playtest.py
+playtest:
+	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) tools/build_rom.py
+	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) tools/playtest.py
 
-playtest-world: build
+playtest-world:
+	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
 
 qa: build test playtest playtest-world research-v3

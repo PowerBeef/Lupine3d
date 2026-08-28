@@ -1,4 +1,32 @@
-# Lupine 3D 0.6.0 — Living World
+# Lupine 3D 0.6.1 — Hangar Breach
+
+This revision replaces the research maze with a compact E1M1-inspired level and promotes doors, spawning and exiting into explicit engine systems.
+
+### Level and progression
+
+- Added the original 16×16 Hangar Breach layout: protected southern start, staged approach, central zig-zag tech hall, optional courtyard branch and separate exit wing.
+- Moved the Sentinel onto the mandatory route so the first enemy encounter cannot be bypassed accidentally.
+- Added compiler-enforced player-radius clearance, minimum actor separation and open-door reachability for the authored start/exit contract.
+- Added a two-phase projected exit beacon that is 8×8 at distance and mirrors into a 16×16 near panel.
+
+### Door system
+
+- Replaced the single global door with four independently stateful six-byte WRAM records.
+- Added named authored doors, validated frame orientation, exact interaction selection and independent eight-step animation.
+- Added a Sentinel-locked exit door with distinct blocked audio. Sentinel death unlocks the interaction but does not open the door automatically.
+- Extended the host oracle and driven harness to validate partially retracted door geometry and per-door state/fraction telemetry.
+
+### Verification
+
+- Isolated the frozen renderer benchmark from the active gameplay level so deliberate map revisions cannot weaken the nine-capture pixel contract.
+- Expanded the suite to 35 tests, including unsafe-spawn, malformed-door and missing-exit-lock rejection.
+- Expanded the Living World route to cover safe spawn, normal opening, locked rejection, combat, pickup, exit unlocking, beacon visibility and completion.
+
+Original Game Boy Color and independent-emulator certification remain pending.
+
+---
+
+## 0.6.0 — Living World
 
 This release turns the renderer core into a playable vertical slice while preserving the accepted empty-world pixels exactly.
 

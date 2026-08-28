@@ -401,8 +401,11 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # cell remains authoritative until the panel has fully cleared the cell.
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("door_projection_done", "z")
     a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("door_projection_done", "nz")
-    a.ld_a_abs(DOOR_STATE); a.cp_n(1); a.jr("door_projection_done", "nz")
-    a.ld_a_abs(DOOR_FRACTION)
+    a.ld_a_abs(DDA_MAP_X); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_MAP_Y); a.ld_r_r("c", "a"); a.call("lookup_door_bc")
+    a.or_r("a"); a.jr("door_projection_done", "z")
+    a.ld_a_abs(DOOR_ACTIVE_STATE); a.cp_n(1); a.jr("door_projection_done", "nz")
+    a.ld_a_abs(DOOR_ACTIVE_FRACTION)
     for _ in range(3): a.cb("srl", "a")
     a.ld_r_r("b", "a"); a.ld_a_abs(TOP_RESULT); a.add_a_r("b"); a.cp_n(48); a.jr("door_projection_store", "c"); a.ld_r_n("a", 47)
     a.label("door_projection_store"); a.ld_abs_a(TOP_RESULT)

@@ -139,7 +139,21 @@ def make_entity_tiles() -> bytes:
                      (4 - phase, 4 - phase), (4 + phase, 4 + phase)):
             if 0 <= x < 8 and 0 <= y < 8: effect[y][x] = 3
         out.extend(tile_from_pixels(effect))
-    expected_tiles = (HIT_EFFECT_TILE_BASE + 2) - ENTITY_TILE_BASE
+
+    # One high-contrast diegetic exit beacon consumes the final tile freed by
+    # the 80-pattern entity profile. The chevron remains legible at 8x8 and
+    # uses OBJ palette 1's warning colours rather than a screen-space label.
+    for phase in range(EXIT_BEACON_FRAMES):
+        beacon = [[0] * 8 for _ in range(8)]
+        for x in range(1, 7):
+            beacon[1][x] = beacon[6][x] = 2 + phase
+        for y in range(1, 7):
+            beacon[y][1] = beacon[y][6] = 2 + phase
+        for x, y in ((3, 2), (4, 2), (4, 3), (5, 3), (4, 4), (5, 4), (3, 5), (4, 5)):
+            beacon[y][x] = 3
+        out.extend(tile_from_pixels(beacon))
+
+    expected_tiles = (EXIT_BEACON_TILE + EXIT_BEACON_FRAMES) - ENTITY_TILE_BASE
     assert len(out) == expected_tiles * 16
     return bytes(out)
 

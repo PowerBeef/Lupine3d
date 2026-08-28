@@ -1,14 +1,14 @@
 # Living World architecture
 
-Lupine 3D 0.6.0 adds the first complete gameplay slice without weakening the accepted wall-rendering contract. The empty-world route still produces the same nine RGB captures; Living World state is exercised by a separate scenario.
+Lupine 3D 0.6.1 turns the first gameplay slice into a navigable Hangar Breach level without weakening the accepted wall-rendering contract. The renderer benchmark is built as an isolated fixture and still produces the same nine RGB captures; Hangar Breach state is exercised by a separate scenario.
 
 ## Frame ownership
 
 The main loop owns simulation and the camera. VBlank owns only input sampling and optional display reprojection.
 
 1. Consume one stable held/edge-latched input snapshot.
-2. Apply radius-based movement or begin a door interaction.
-3. Advance the door and low-frequency Sentinel simulation.
+2. Apply radius-based movement or select one door interaction.
+3. Advance every opening door and the low-frequency Sentinel simulation.
 4. Cast walls into 80 ray records and reconstruct 160 physical columns.
 5. Compose the hidden BG page.
 6. Transform, depth-test and write entities into shadow OAM.
@@ -38,7 +38,7 @@ Static and dynamic wall vocabulary occupies tile IDs 0–198 in the entity-heavy
 | Profile | Atlas patterns | Entity patterns | Use |
 |---|---:|---:|---|
 | Renderer-heavy | 121 | 0 | Highest wall-cache coverage |
-| Entity-heavy | 80 | 39 of 41 available IDs | Sentinel, medkit and hit effects |
+| Entity-heavy | 80 | 41 of 41 available IDs | Sentinel, medkit, hit effects and two exit-beacon phases |
 
 Both atlas payloads and their exact signature dictionaries are stored in ROM. The build-selected active profile is resident; the inactive profile occupies a high ROM bank. Profile selection happens during level loading.
 
@@ -59,7 +59,7 @@ The current level has one actor, so its one-element submission list is already i
 
 OAM is transferred only as a complete DMA image. When `DYN_COUNT > 72`, OAM DMA is deferred so the worst-case BG GDMA publication retains its VBlank guarantee. The next frame with sufficient budget publishes the newest complete shadow image.
 
-The driven Living World route reaches 26 visible objects total and five objects on its busiest scanline, below the hardware limits of 40 and 10 respectively.
+The driven Hangar Breach route reaches 26 visible objects total and five objects on its busiest scanline, below the hardware limits of 40 and 10 respectively.
 
 ## Billboard projection and clipping
 
@@ -70,7 +70,7 @@ The Sentinel transform uses signed Q4 relative coordinates and the same 256-angl
 - screen X = `80 + lateral·127/forward`;
 - entity depth = `forward·2` in Q5 tiles.
 
-Actors behind the camera, outside the signed transform range, outside the projection range, or behind every relevant wall sample consume no OAM.
+Actors and the exit beacon share generic world-coordinate projection scratch. Objects behind the camera, outside the signed transform range, outside the projection range, or behind every relevant wall sample consume no OAM.
 
 There are two size LODs:
 
@@ -78,6 +78,8 @@ There are two size LODs:
 - near: 16×32, two columns of four 8×8 objects.
 
 Near billboards test the left and right eight-pixel strips separately against `RAY_DEPTH`. A hidden strip is omitted; a visible strip is submitted. This provides coarse wall clipping without runtime sprite scaling or BG tile recomposition.
+
+The active exit is an 8×8 pulsing chevron at distance. Inside the near threshold, four mirrored instances of the same tile form a 16×16 panel. The larger goal marker therefore costs OAM capacity but no additional tile IDs.
 
 ## Sentinel simulation
 
@@ -89,23 +91,27 @@ Player fire is a centre-screen hitscan guarded by the same successful entity pro
 
 ## Level format
 
-`levels/living_world.json` uses `lupine-level-v1` and owns:
+`levels/living_world.json` uses `lupine-level-v2` and owns:
 
 - dimensions and wall-material rows;
-- player position and angle;
-- door cell and orientation;
+- player position, angle and safe-radius requirement;
+- up to four named door cells, orientations, roles and unlock conditions;
 - entity position, health and activation radius;
 - pickup source and value;
 - triggers and exit cell;
 - palette and VRAM profiles.
 
-`tools/lupine3d_v4/levels.py` validates the authored data, generates surface segments, and emits a fixed 20-byte resident header plus the 256-byte active map. Additional levels can remain in MBC5 banks until a later transition loader copies one into WRAM.
+`tools/lupine3d_v4/levels.py` validates the authored data, generates surface segments, and emits an 18-byte resident header, a fixed 24-byte/four-record door block and the 256-byte active map. It rejects unsafe player-radius placement, insufficient enemy separation, undeclared material-3 cells, duplicate/badly framed doors, unreachable exits, and a missing Sentinel-locked exit door. Additional levels can remain in MBC5 banks until a later transition loader copies one into WRAM.
+
+The current map is a compact original E1M1-inspired topology: safe southern chamber → approach hall → zig-zag technology room → locked exit wing, with an optional courtyard branch. The Sentinel sits on the mandatory central route and cannot see the spawn through the closed airlocks.
 
 ## Physical interaction
 
 Player collision is axis-separated and tests two leading-edge corners against a Q8 radius of `$38`. This keeps the camera away from wall planes and allows sliding along a free axis.
 
-The authored door retains its solid map cell through eight opening steps. Its fraction advances by 32 per simulation update and retracts the projected panel before the cell is finally removed. Collision, wall rays and Sentinel line of sight therefore agree on when the passage becomes open.
+Each authored door has an independent six-byte WRAM record: cell X/Y, orientation, flags, state and opening fraction. Interaction raycasts half a tile ahead, selects that exact record and starts only it. Fractions advance by 32 per simulation update; the material-3 cell is removed only on the eighth step. Collision, wall rays, the door-aware host oracle and Sentinel line of sight therefore agree on when each passage becomes open.
+
+The exit record carries both `exit` and `sentinel_dead` flags. Before combat completes it remains closed and plays a distinct low lock sound. Sentinel death activates the beacon and authorizes—but does not automatically open—the exit door, preserving a deliberate final interaction.
 
 ## Optional micro-reprojection
 
@@ -121,11 +127,11 @@ The default build leaves this disabled. It needs evaluation in multiple independ
 
 ## Acceptance evidence
 
-The 0.6.0 software gate requires:
+The 0.6.1 software gate requires:
 
-- all 34 unit and ROM-execution tests passing;
+- all 35 unit and ROM-execution tests passing;
 - nine empty-world RGB captures byte-exact;
-- the Living World combat/pickup/exit scenario passing;
+- the 26-update Hangar Breach safe-start/door/combat/beacon/exit scenario passing;
 - exact depth and segment buffers on every driven update;
 - zero dynamic-tile overflow and unsafe GDMA starts;
 - OAM below total and per-scanline hardware limits;

@@ -37,9 +37,14 @@ WORLD_STATE_FIELDS = {
     "pickup_collected": br.PICKUP_COLLECTED,
     "exit_active": br.EXIT_ACTIVE,
     "level_complete": br.LEVEL_COMPLETE,
-    "door_state": br.DOOR_STATE,
-    "door_fraction": br.DOOR_FRACTION,
 }
+
+
+def door_snapshot(cgb: CGB, offset: int) -> dict[str, int]:
+    return {
+        door.name: cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + offset)
+        for index, door in enumerate(br.ACTIVE_LEVEL.doors)
+    }
 
 
 def read_block(cgb: CGB, address: int, count: int) -> bytes:
@@ -58,8 +63,15 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
     y_q8 = cgb.read16(br.PLAYER_YL)
     angle = cgb.read8(br.ANGLE)
     grid = read_block(cgb, br.MAP, 256)
-    pair = br.reference_adaptive_descriptor_view(x_q8, y_q8, angle, grid)
-    pixel = br.reference_pixel_descriptor_view(x_q8, y_q8, angle, grid)
+    door_states = {
+        (door.x, door.y): (
+            cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + br.DOOR_STATE_OFFSET),
+            cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + br.DOOR_FRACTION_OFFSET),
+        )
+        for index, door in enumerate(br.ACTIVE_LEVEL.doors)
+    }
+    pair = br.reference_adaptive_descriptor_view(x_q8, y_q8, angle, grid, door_states)
+    pixel = br.reference_pixel_descriptor_view(x_q8, y_q8, angle, grid, door_states)
 
     actual_pair = (
         list(read_block(cgb, br.RAY_TOPS, br.RAYS)),
@@ -192,6 +204,21 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                 raise AssertionError(
                     f"world state mismatch: expected {expected_world}, got {actual_world}"
                 )
+            expected_doors = {
+                str(name): int(value)
+                for name, value in action.get("expect_doors", {}).items()
+            }
+            door_states = door_snapshot(cgb, br.DOOR_STATE_OFFSET)
+            door_fractions = door_snapshot(cgb, br.DOOR_FRACTION_OFFSET)
+            unknown_doors = sorted(set(expected_doors) - set(door_states))
+            if unknown_doors:
+                raise ValueError(f"unknown door expectations: {', '.join(unknown_doors)}")
+            actual_doors = {name: door_states[name] for name in expected_doors}
+            door_expectations_exact = actual_doors == expected_doors
+            if not door_expectations_exact:
+                raise AssertionError(
+                    f"door state mismatch: expected {expected_doors}, got {actual_doors}"
+                )
             commit = cgb.commit_events[-1]
             update = {
                 "update": len(updates) + 1,
@@ -206,6 +233,10 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                 "world_expectations": expected_world,
                 "world_state": actual_world,
                 "world_expectations_exact": world_expectations_exact,
+                "door_expectations": expected_doors,
+                "door_states": door_states,
+                "door_fractions": door_fractions,
+                "door_expectations_exact": door_expectations_exact,
             }
             updates.append(update)
 
@@ -243,6 +274,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         if (not update["commit_vblank_safe"] or not all(update["checks"].values())
             or update["visible_oam"] > 40 or update["max_oam_per_scanline"] > 10
             or not update["world_expectations_exact"]
+            or not update["door_expectations_exact"]
             or update.get("capture_pixels_exact") is False)
     ]
     report = {

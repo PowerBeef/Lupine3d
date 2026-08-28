@@ -33,7 +33,9 @@ class ReferenceRayHit:
 
 def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
                         ray_index: int, offsets_key: str, corrections_key: str,
-                        count: int, grid: bytes | None = None) -> ReferenceRayHit:
+                        count: int, grid: bytes | None = None,
+                        door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                        ) -> ReferenceRayHit:
     """Byte-exact host model shared by pair-centre and physical-pixel rays."""
     if not 0 <= ray_index < count:
         raise ValueError(f"ray index out of range: {ray_index}")
@@ -93,13 +95,17 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     perp32 = 511 if component == 0 else min(511, (d32 * corr + component // 2) // component)
     projection = tables["projection_half"]
     top = 48 - projection[perp32]
+    depth_q5 = make_top_depth_lut()[top]
+    if material == 3 and door_states is not None:
+        state, fraction = door_states.get((mx, my), (0, 0))
+        if state == 1:
+            top = min(47, top + fraction // 8)
     style = 4 if material == 3 else (2 + axis if material == 2 else axis)
     if axis == 0:
         plane, along = mx + (1 if sx < 0 else 0), my
     else:
         plane, along = my + (1 if sy < 0 else 0), mx
     face_key = (axis << 7) | ((material & 3) << 5) | (plane & 31)
-    depth_q5 = make_top_depth_lut()[top]
     side = (0 if sx > 0 else 1) if axis == 0 else (2 if sy > 0 else 3)
     segment_table = make_segment_table()
     segment_id = segment_table[(my * 16 + mx) * 4 + side]
@@ -113,27 +119,36 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
 
 
 def reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
-                       ray_index: int, grid: bytes | None = None) -> ReferenceRayHit:
+                       ray_index: int, grid: bytes | None = None,
+                       door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                       ) -> ReferenceRayHit:
     """Byte-exact host model of one 80-ray backbone sample."""
     return _reference_cast_hit(
         player_x_q8, player_y_q8, player_angle, ray_index,
-        "ray_offsets", "ray_corrections", RAYS, grid,
+        "ray_offsets", "ray_corrections", RAYS, grid, door_states,
     )
 
 
 def reference_cast_physical_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
-                                pixel_index: int, grid: bytes | None = None) -> ReferenceRayHit:
+                                pixel_index: int, grid: bytes | None = None,
+                                door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                                ) -> ReferenceRayHit:
     """Byte-exact host model of one physical-pixel edge-recast sample."""
     return _reference_cast_hit(
         player_x_q8, player_y_q8, player_angle, pixel_index,
-        "physical_offsets", "physical_corrections", PHYSICAL_COLUMNS, grid,
+        "physical_offsets", "physical_corrections", PHYSICAL_COLUMNS, grid, door_states,
     )
 
 
 def reference_full_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int,
-                                   grid: bytes | None = None) -> tuple[list[int], list[int], list[int], list[int]]:
+                                   grid: bytes | None = None,
+                                   door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                                   ) -> tuple[list[int], list[int], list[int], list[int]]:
     """Host reference for all 80 exact DDA descriptors and wall-face keys."""
-    hits = [reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid) for i in range(RAYS)]
+    hits = [
+        reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid, door_states)
+        for i in range(RAYS)
+    ]
     return (
         [hit.top for hit in hits],
         [hit.style for hit in hits],
@@ -142,9 +157,14 @@ def reference_full_descriptor_view(player_x_q8: int, player_y_q8: int, player_an
     )
 
 def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int,
-                                       grid: bytes | None = None) -> tuple[list[int], list[int], list[int], list[int], int, list[int], list[int]]:
+                                       grid: bytes | None = None,
+                                       door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                                       ) -> tuple[list[int], list[int], list[int], list[int], int, list[int], list[int]]:
     """Apply the ROM's validated one-level affine span reconstruction."""
-    hits = [reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid) for i in range(RAYS)]
+    hits = [
+        reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid, door_states)
+        for i in range(RAYS)
+    ]
     full_tops = [hit.top for hit in hits]
     full_styles = [hit.style for hit in hits]
     full_keys = [hit.face_key for hit in hits]
@@ -186,6 +206,7 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
 
 def reference_pixel_descriptor_view(
     player_x_q8: int, player_y_q8: int, player_angle: int, grid: bytes | None = None,
+    door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
 ) -> tuple[list[int], list[int], list[int], list[int], int, int, int]:
     """Build the final 160 physical-pixel descriptor stream.
 
@@ -196,7 +217,7 @@ def reference_pixel_descriptor_view(
     and material events.
     """
     tops, styles, keys, alongs, adaptive_casts, depths, segments = reference_adaptive_descriptor_view(
-        player_x_q8, player_y_q8, player_angle, grid
+        player_x_q8, player_y_q8, player_angle, grid, door_states
     )
     pixel_tops = [0] * PHYSICAL_COLUMNS
     pixel_styles = [0] * PHYSICAL_COLUMNS
@@ -221,7 +242,9 @@ def reference_pixel_descriptor_view(
         if keys[i] == keys[i + 1] and segments[i] == segments[i + 1]:
             continue
         for pixel_index in (i * 2 + 1, i * 2 + 2):
-            hit = reference_cast_physical_hit(player_x_q8, player_y_q8, player_angle, pixel_index, grid)
+            hit = reference_cast_physical_hit(
+                player_x_q8, player_y_q8, player_angle, pixel_index, grid, door_states,
+            )
             pixel_tops[pixel_index] = hit.top
             pixel_styles[pixel_index] = hit.style
             pixel_keys[pixel_index] = hit.face_key

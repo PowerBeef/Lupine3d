@@ -75,7 +75,10 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def run(command: list[str], cwd: Path, *, capture: bool = False, timeout: int = 180) -> subprocess.CompletedProcess[str]:
+def run(
+    command: list[str], cwd: Path, *, capture: bool = False,
+    timeout: int = 180, env_overrides: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     print(f"+ ({cwd}) {' '.join(command)}", flush=True)
     result = subprocess.run(
         command,
@@ -83,7 +86,11 @@ def run(command: list[str], cwd: Path, *, capture: bool = False, timeout: int = 
         check=False,
         text=True,
         capture_output=capture,
-        env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+        env={
+            **os.environ,
+            "PYTHONDONTWRITEBYTECODE": "1",
+            **(env_overrides or {}),
+        },
         timeout=timeout,
     )
     if capture:
@@ -140,8 +147,13 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT)
     run([python, "research/geometry_v2_lab.py"], ROOT)
-    run([python, "research/rendering_v3_lab.py"], ROOT)
-    run([python, "tools/playtest.py"], ROOT)
+    benchmark_env = {
+        "LUPINE3D_LEVEL": str((ROOT / "levels" / "renderer_benchmark.json").resolve()),
+    }
+    run([python, "research/rendering_v3_lab.py"], ROOT, env_overrides=benchmark_env)
+    run([python, "tools/build_rom.py"], ROOT, env_overrides=benchmark_env)
+    run([python, "tools/playtest.py"], ROOT, env_overrides=benchmark_env)
+    run([python, "tools/build_rom.py"], ROOT)
     run([
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",

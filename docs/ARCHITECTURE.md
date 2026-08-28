@@ -1,4 +1,4 @@
-# Lupine 3D 0.6.0 architecture
+# Lupine 3D 0.6.1 architecture
 
 ## Design target
 
@@ -121,11 +121,11 @@ Tile numbers are always uploaded with `VBK=0`. A completed page uses at most 96 
 
 ## Living World memory and OAM
 
-Gameplay state occupies `$D720–$D75A`. It includes the selected VRAM profile, Sentinel transform/state, player health, pickup/exit state, door fraction/state, LOS scratch and radius-collision scratch.
+Gameplay state occupies `$D720–$D779`. It includes the selected VRAM profile, Sentinel transform/state, player health, pickup/exit state, a four-record door table, generic projection coordinates, LOS scratch and radius-collision scratch.
 
 Shadow OAM occupies `$C800–$C89F`. Entries 0–17 are reserved for foreground UI, while 18–39 are available to world entities. A ten-byte OAM-DMA routine lives at `$FFF4–$FFFD`; hot scalar state uses 111 bytes at `$FF80–$FFEE`, leaving the two regions disjoint.
 
-The entity renderer supports an 8×16 far LOD and 16×32 near LOD. Near left/right strips independently compare entity Q5 depth with the corresponding wall-depth samples. Fully hidden actors consume no OAM.
+The entity renderer supports an 8×16 far LOD and 16×32 near LOD. Near left/right strips independently compare entity Q5 depth with the corresponding wall-depth samples. Fully hidden actors consume no OAM. The active exit uses the same projection certificate as a pulsing 8×8/16×16 world beacon.
 
 If the wall compositor exceeds 72 dynamic tiles, OAM DMA is deferred to protect the BG commit's worst-case VBlank budget. The shadow image remains coherent while deferred.
 
@@ -133,9 +133,9 @@ If the wall compositor exceeds 72 dynamic tiles, OAM DMA is deferred to protect 
 
 The Sentinel has dormant, patrol, chase, attack, hurt and dead states. AI ticks every fourth VBlank input sample. Cell-space Bresenham traversal tests line of sight against the exact active map. Player hitscan uses the projected, wall-visible Sentinel record.
 
-Player collision is axis-separated with a Q8 radius of `$38`. The door opens over eight fraction steps and remains solid until its panel has fully retracted, keeping rays, collision and AI sight consistent.
+Player collision is axis-separated with a Q8 radius of `$38`. Up to four doors open independently over eight fraction steps and remain solid until their panels have fully retracted, keeping rays, collision and AI sight consistent. Door flags support a Sentinel-gated exit lock with distinct blocked feedback.
 
-The current content compiler reads `lupine-level-v1` JSON and emits the active header, map, spawn/interaction records and build-time face segments. See [Living World architecture](LIVING_WORLD_V6.md) for the content and entity contracts.
+The content compiler reads legacy `lupine-level-v1` renderer fixtures and current `lupine-level-v2` gameplay JSON. Version 2 validates player-radius spawn clearance, minimum enemy separation, door frames and IDs, a reachable completion cell, and one Sentinel-locked exit door. See [Living World architecture](LIVING_WORLD_V6.md) for the content and entity contracts.
 
 ## Optional reprojection
 
@@ -145,4 +145,4 @@ The default remains disabled until independent emulator and original-CGB LCD tes
 
 ## Generated engine footprint
 
-The current resident engine is 29,949 bytes and ends at `$764D`. Hot HRAM uses 111 bytes. The ROM remains 4 MiB so the arithmetic tables and both scene profiles coexist with substantial capacity for banked content.
+The current resident engine is approximately 31 KiB and still fits banks 0/1. Hot HRAM uses 111 bytes. The ROM remains 4 MiB so the arithmetic tables and both scene profiles coexist with substantial capacity for banked content.

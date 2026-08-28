@@ -14,13 +14,13 @@
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D rendering the Sentinel enemy inside its Game Boy Color first-person world">
 
-<sub>160×96 viewport · 4 MiB MBC5 ROM · 34 automated tests · two driven playtest routes</sub>
+<sub>160×96 viewport · 4 MiB MBC5 ROM · 35 automated tests · two driven playtest routes</sub>
 
 </div>
 
 ---
 
-Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.0 “Living World”** implementation combines coherent wall geometry with a depth-aware billboard renderer, one complete enemy, a dropped pickup, animated doors, combat, and a finishable authored level.
+Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.1 “Hangar Breach”** implementation combines coherent wall geometry with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level.
 
 The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG pages, GDMA, OAM, VBlank interrupts, the joypad and audio hardware. There is no bitmap framebuffer, coprocessor, cartridge RAM, imported game code, or borrowed artwork.
 
@@ -33,13 +33,15 @@ The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG 
 | Build-time wall-segment IDs | Exact-grid line of sight | One-VBlank GDMA page publication |
 | Exact boundary-tile cache | Wall-clipped size-LOD billboards | Atomic shadow-OAM DMA |
 | World-anchored material grammar | Hitscan, damage, medkit and exit | VBlank-rate edge-latched input |
-| Two scene-level VRAM profiles | Radius collision and moving door | Optional ±4 px turn reprojection |
+| Two scene-level VRAM profiles | Radius collision and four moving doors | Optional ±4 px turn reprojection |
 
-### Sentinel Outpost
+### Hangar Breach
 
-The included level is a deliberately small vertical slice. The Sentinel begins dormant, patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies, and drops a medkit. Its death activates the exit, so the level has a complete start-to-finish combat loop rather than disconnected engine demonstrations.
+The included 16×16 level is a compact, original E1M1-inspired adaptation built for Lupine's single-height grid. It preserves the recognizable rhythm of a protected southern start, staged corridors, a central zig-zag technology hall, an optional courtyard branch and a separate exit wing without importing Doom map data or artwork.
 
-The level, spawn points, door, pickup, exit, material profile, and VRAM profile are authored in [`levels/living_world.json`](levels/living_world.json) and compiled into a compact bank-friendly payload.
+The start chamber is compiler-certified for player-radius clearance and enemy separation. Opening its airlock leads toward an unavoidable Sentinel encounter. The Sentinel patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies and drops a medkit. Its death unlocks—not automatically opens—the final door, behind which a pulsing world-space beacon marks the completion cell.
+
+The level, safe spawn, four door records, pickup, exit, material profile, and VRAM profile are authored in [`levels/living_world.json`](levels/living_world.json) and compiled into a compact bank-friendly payload.
 
 ## Rendering architecture
 
@@ -65,7 +67,7 @@ The wall compositor reuses static ceiling, floor and seam tiles, consults an exa
 | Profile | Exact wall atlas | Freed tile IDs | Intended use |
 |---|---:|---:|---|
 | Renderer-heavy | 121 patterns | 0 | Maximum exact wall-cache coverage |
-| Entity-heavy | 80 patterns | 41 | Sentinel frames, pickup and effects |
+| Entity-heavy | 80 patterns | 41 | Sentinel, pickup, effects and exit beacon |
 
 Both payloads coexist in ROM. The active level selects its profile during loading. Across the 24,384-view atlas corpus, the entity-heavy cache peaks at 58 generated tiles against a capacity of 96 and produces zero overflows.
 
@@ -73,19 +75,19 @@ Both payloads coexist in ROM. The active level selects its profile during loadin
 
 The first entity path uses normal CGB objects instead of merging actors into the BG compositor. It supports 8×16 far and 16×32 near representations, divides near billboards into eight-pixel strips, rejects each strip against `RAY_DEPTH[80]`, and submits visible strips through a 160-byte shadow-OAM image.
 
-OAM entries 0–17 are permanently reserved for the weapon, muzzle flash and crosshair. Entities use entries 18–39. Publication is deferred when a pathological wall frame would leave insufficient VBlank budget; the next safe frame publishes the complete OAM image atomically.
+OAM entries 0–17 are permanently reserved for the weapon, muzzle flash and crosshair. Entities use entries 18–39. The exit beacon uses one 8×8 object at distance and a mirrored 16×16 panel nearby. Publication is deferred when a pathological wall frame would leave insufficient VBlank budget; the next safe frame publishes the complete OAM image atomically.
 
 ## Measured behavior
 
-The empty-world regression route contains 27 updates and nine frozen RGB captures. The Living World route contains eight updates and drives the complete combat and level-completion sequence.
+The isolated renderer-regression route contains 27 updates and nine frozen RGB captures. The Hangar Breach route drives the safe start, normal and locked doors, combat, pickup, exit beacon and level completion.
 
 | Driven result | Empty-world oracle | Living World |
 |---|---:|---:|
-| Mean cycles/update | **972,627** | **859,909** |
-| Maximum cycles/update | **1,124,336** | **1,125,772** |
-| Minimum updates/s | **7.461** | **7.451** |
-| Maximum dynamic tiles | **50 / 96** | **38 / 96** |
-| Maximum total ray casts | **59** | **55** |
+| Mean cycles/update | **972,632** | **788,469** |
+| Maximum cycles/update | **1,124,756** | **1,125,776** |
+| Minimum updates/s | **7.458** | **7.451** |
+| Maximum dynamic tiles | **54 / 96** | **42 / 96** |
+| Maximum total ray casts | **59** | **56** |
 | Maximum visible OAM entries | **18 / 40** | **26 / 40** |
 | Maximum objects on one scanline | **4 / 10** | **5 / 10** |
 | Unsafe GDMA starts | **0** | **0** |
@@ -121,7 +123,7 @@ Useful development targets:
 
 ```sh
 make build                 # deterministic 4 MiB cartridge image
-make test                  # 34 ROM/host differential tests
+make test                  # 35 ROM/host differential tests
 make playtest              # nine-capture exact empty-world oracle
 make playtest-world        # Sentinel combat and level-completion route
 make research-atlas-all    # regenerate both VRAM-profile caches
@@ -144,13 +146,13 @@ It scrolls the previous 3D page by at most four pixels while a full update is re
 | D-pad Up / Down | Move forward / backward |
 | D-pad Left / Right | Turn |
 | A | Fire |
-| B | Open the door ahead |
+| B | Open/interact with the door ahead |
 
 Short button presses are sampled and edge-latched every VBlank, even during a long visual update. The renderer always sees one stable camera snapshot.
 
 ## Verification
 
-Every push and pull request performs a deterministic ROM build, runs all 34 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
+Every push and pull request performs a deterministic ROM build, runs all 35 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
 
 The suite executes the generated SM83 program and verifies:
 
@@ -159,7 +161,8 @@ The suite executes the generated SM83 program and verifies:
 - exact 160-column reconstruction, dynamic tiles and hidden tile map;
 - both exact atlas payloads and the complete authored level;
 - OAM total/per-scanline limits, wall occlusion and deferred DMA;
-- collision, line of sight, AI, combat, pickup, exit and animated door state;
+- safe-spawn validation, collision, line of sight, AI and combat;
+- independent normal/locked door state, pickup, exit beacon and completion;
 - VBlank input latching, optional reprojection bounds and HUD reset;
 - one-fresh-VBlank GDMA ordering and page alternation;
 - the frozen reference-ROM hash and exceptional-tail certificate.
@@ -186,7 +189,7 @@ Original Game Boy Color certification has not been completed in this environment
 
 ## Scope
 
-Lupine 3D now proves a playable engine slice, not a general-purpose content suite. It has one authored 16×16 level, one enemy type, one pickup, one door and one exit. Multi-entity scenes, projectile actors, more levels and materials, animation streaming, saving, and textured floor/ceiling casting remain future work.
+Lupine 3D now proves a playable engine slice, not a general-purpose content suite. It has one authored 16×16 level, one enemy type, one pickup, four independently stateful doors and one marked exit. Multi-entity scenes, projectile actors, more levels and materials, door closing/crushing, animation streaming, saving, and textured floor/ceiling casting remain future work.
 
 Code and original assets are available under the [MIT License](LICENSE). “Lupine 3D” is an independent project name; see [NOTICE.md](NOTICE.md) for the naming and asset statement.
 

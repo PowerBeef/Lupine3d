@@ -43,7 +43,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     # Runtime routines.
     v1.emit_copy_routine(a); v1.emit_wait_vblank(a); emit_palette_init(a)
-    emit_level_loader(a); emit_vram_init(a); emit_oam_system(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
+    emit_level_loader(a); emit_vram_init(a); emit_oam_system(a); emit_door_system(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
     # Legacy quarter-step helpers are retained only for the two-step door interaction.
     v1.emit_ray_helpers(a)
     emit_mul_u8(a); emit_div_u16_u8_sat(a); emit_div_u16_u8_sat9(a); emit_signed_math(a)
@@ -53,6 +53,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Data section.
     a.align(16, text="data alignment")
     a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
+    a.label("door_data"); a.bytes(ACTIVE_LEVEL.door_bytes(), "fixed-capacity authored door records")
     a.label("map_data"); a.bytes(make_map(), "compiled 16x16 world map")
     a.label("ui_tiles"); a.bytes(make_ui_tiles(), "HUD / utility tiles 240-255")
     a.label("weapon_tiles"); a.bytes(make_weapon_tiles(), "32x32 weapon tiles 240-255")
@@ -155,13 +156,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "vram_profile": "entity-heavy" if ACTIVE_LEVEL.vram_profile == VRAM_PROFILE_ENTITY else "renderer-heavy",
         "renderer_atlas_patterns": len(RENDERER_ATLAS_TILES) // 16,
         "entity_atlas_patterns": len(ENTITY_ATLAS_TILES) // 16,
-        "entity_tile_ids": [ENTITY_TILE_BASE, HIT_EFFECT_TILE_BASE + 1],
+        "entity_tile_ids": [ENTITY_TILE_BASE, EXIT_BEACON_TILE + EXIT_BEACON_FRAMES - 1],
         "oam_shadow_bytes": OAM_BYTES,
         "oam_reserved_ui_entries": ENTITY_OAM_FIRST,
         "oam_entity_capacity": ENTITY_OAM_COUNT,
         "sentinel_states": ["dormant", "patrol", "chase", "attack", "hurt", "dead"],
-        "level_format": "lupine-level-v1",
+        "level_format": ACTIVE_LEVEL.format,
         "active_level": ACTIVE_LEVEL.name,
+        "active_level_doors": len(ACTIVE_LEVEL.doors),
+        "maximum_level_doors": MAX_DOORS,
+        "safe_spawn_radius_cells": ACTIVE_LEVEL.safe_radius_cells,
+        "exit_beacon": True,
         "player_collision_radius_q8": PLAYER_RADIUS_Q8,
         "animated_door": True,
         "micro_reprojection_compiled": ENABLE_MICRO_REPROJECTION,
