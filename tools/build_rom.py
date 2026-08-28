@@ -762,7 +762,654 @@ def reference_pixel_descriptor_view(
         current = tops[i]
         previous = tops[i - 1] if i else current
         following = tops[i + 1] if i + 1 < RAYS else current
-        pixel_tops[i * 2] = (current * 3 + prev…9980 tokens truncated…("door_event_count", "nc")
+        pixel_tops[i * 2] = (current * 3 + previous + 2) // 4
+        pixel_tops[i * 2 + 1] = (current * 3 + following + 2) // 4
+        for output in (i * 2, i * 2 + 1):
+            pixel_styles[output] = styles[i]
+            pixel_keys[output] = keys[i]
+            pixel_alongs[output] = alongs[i]
+
+    edge_recasts = 0
+    for i in range(RAYS - 1):
+        if keys[i] == keys[i + 1]:
+            continue
+        for pixel_index in (i * 2 + 1, i * 2 + 2):
+            hit = reference_cast_physical_hit(player_x_q8, player_y_q8, player_angle, pixel_index, grid)
+            pixel_tops[pixel_index] = hit.top
+            pixel_styles[pixel_index] = hit.style
+            pixel_keys[pixel_index] = hit.face_key
+            pixel_alongs[pixel_index] = hit.along
+            edge_recasts += 1
+
+    events = 0
+    for i in range(1, PHYSICAL_COLUMNS):
+        if pixel_keys[i - 1] != pixel_keys[i]:
+            if pixel_tops[i - 1] <= 40:
+                pixel_styles[i - 1] = CREASE_STYLE
+            if pixel_tops[i] <= 40:
+                pixel_styles[i] = CREASE_STYLE
+            events += 1
+        elif pixel_alongs[i - 1] != pixel_alongs[i] and pixel_tops[i] <= 40:
+            material = (pixel_keys[i] >> 5) & 3
+            pixel_styles[i] = TECH_RIB_STYLE if material == 2 else CREASE_STYLE
+            events += 1
+
+    # Door features are derived from each contiguous projected run, so the
+    # frame and spine remain attached to the door instead of repeating every
+    # eight screen pixels.
+    i = 0
+    while i < PHYSICAL_COLUMNS:
+        if ((pixel_keys[i] >> 5) & 3) != 3:
+            i += 1
+            continue
+        start = i
+        while i < PHYSICAL_COLUMNS and ((pixel_keys[i] >> 5) & 3) == 3:
+            i += 1
+        end = i - 1
+        if pixel_tops[start] <= 40:
+            pixel_styles[start] = CREASE_STYLE
+        if pixel_tops[end] <= 40:
+            pixel_styles[end] = CREASE_STYLE
+        if end - start + 1 >= 3:
+            middle = (start + end) // 2
+            if pixel_tops[middle] <= 32:
+                pixel_styles[middle] = DOOR_SPINE_STYLE
+                if middle + 1 <= end:
+                    pixel_styles[middle + 1] = DOOR_SPINE_STYLE
+        events += 1
+
+    return (
+        pixel_tops, pixel_styles, pixel_keys, pixel_alongs,
+        adaptive_casts + edge_recasts, edge_recasts, events,
+    )
+
+
+def reference_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int) -> tuple[list[int], list[int]]:
+    tops, styles, _, _, _ = reference_adaptive_descriptor_view(player_x_q8, player_y_q8, player_angle)
+    return tops, styles
+
+
+def reference_strip_state(top: int, tile_y0: int) -> int:
+    """Host equivalent of ``compute_strip_state`` in the ROM."""
+    if tile_y0 + 7 < top:
+        return 0
+    bottom = 96 - top
+    if tile_y0 >= bottom:
+        return 1
+    if tile_y0 < top:
+        return 3 + (top - tile_y0)
+    if tile_y0 + 7 < bottom:
+        return 2
+    return 10 + (bottom - tile_y0)
+
+
+def reference_tile_signature_and_bytes(tops: list[int], styles: list[int], tile_y0: int) -> tuple[bytes, bytes]:
+    """Return the exact ten-byte signature and 16-byte composed tile."""
+    dark_mask = sum((style & 1) << (7 - pixel) for pixel, style in enumerate(styles))
+    signature = bytearray((tile_y0, dark_mask, *tops))
+    tile = bytearray(16)
+    for pixel, (top, style) in enumerate(zip(tops, styles)):
+        state = reference_strip_state(top, tile_y0)
+        mask = 0x80 >> pixel
+        for row in range(8):
+            region = microstrip_region(state, row)
+            color = 0 if region == "ceiling" else 1 if region == "floor" else wall_color(style, pixel, row)
+            top_edge = 3 <= state <= 10 and row == state - 3
+            bottom_edge = 11 <= state <= 18 and row == state - 11
+            if region == "wall" and (top_edge or bottom_edge):
+                color = 3
+            if color & 1:
+                tile[row * 2] |= mask
+            if color & 2:
+                tile[row * 2 + 1] |= mask
+    return bytes(signature), bytes(tile)
+
+
+def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, bytes, int, bool]:
+    """Byte-exact host model of the edge-microstrip tile compositor.
+
+    The ROM walks viewport columns first so dynamic-tile allocation order is
+    column-major even though the 32-byte BG map itself is row-major.  Every
+    padding cell is initialized to the ceiling tile so the complete 384-byte
+    DMA payload is deterministic on hardware whose WRAM power-on contents are
+    not an engine contract.
+    """
+    if len(tops) != PHYSICAL_COLUMNS or len(styles) != PHYSICAL_COLUMNS:
+        raise ValueError(f"expected {PHYSICAL_COLUMNS} physical-pixel descriptors")
+
+    dynamic = bytearray()
+    view_map = bytearray([CEILING_TILE] * (12 * 32))
+    overflow = False
+    atlas = tile_atlas_signature_map()
+
+    for tile_col in range(20):
+        first = tile_col * 8
+        col_tops = tops[first:first + 8]
+        col_styles = styles[first:first + 8]
+        min_top = min(col_tops)
+        max_top = max(col_tops)
+        dark_mask = sum((style & 1) << (7 - pixel) for pixel, style in enumerate(col_styles))
+        static_wall_tile = make_seam_tile_lookup()[dark_mask]
+
+        for tile_row in range(12):
+            y0 = tile_row * 8
+            if y0 + 7 < min_top:
+                tile_id = CEILING_TILE
+            elif y0 >= 96 - min_top:
+                tile_id = FLOOR_TILE
+            elif y0 >= max_top and y0 + 7 < 96 - max_top and static_wall_tile:
+                tile_id = static_wall_tile
+            else:
+                signature, tile = reference_tile_signature_and_bytes(col_tops, col_styles, y0)
+                atlas_id = atlas.get(signature)
+                if atlas_id is not None:
+                    tile_id = atlas_id
+                else:
+                    tile_id = len(dynamic) // 16
+                    if tile_id >= DYNAMIC_TILE_CAPACITY:
+                        overflow = True
+                        tile_id = WALL_TILE_BASE
+                    else:
+                        dynamic.extend(tile)
+            view_map[tile_row * 32 + tile_col] = tile_id
+
+    return bytes(dynamic), bytes(view_map), len(dynamic) // 16, overflow
+
+def emit_mul_u8(a: Assembler) -> None:
+    """B*C -> HL through a four-bank exact MBC5 product table.
+
+    DDA components are bounded to 0..127, so C selects one of 128 complete
+    256-entry product rows.  This replaces an eight-iteration shift/add loop
+    without changing a single arithmetic result.
+    """
+    a.label("mul_u8")
+    a.ld_r_r("a", "c")
+    for _ in range(5): a.cb("srl", "a")
+    a.add_a_n(PRODUCT_LUT_BASE_BANK); a.ld_abs_a(0x2000)
+    # Address = $4000 + (C&31)*512 + B*2.
+    a.ld_r_r("a", "c"); a.and_n(0x1F); a.add_a_r("a"); a.ld_r_r("d", "a")
+    a.ld_r_r("a", "b"); a.add_a_r("a"); a.ld_r_r("l", "a")
+    a.ld_r_n("a", 0); a.adc_a_n(0); a.or_r("d"); a.or_n(0x40); a.ld_r_r("h", "a")
+    a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    a.ld_r_r("h", "d"); a.ld_r_r("l", "e")
+    a.ret()
+
+
+def emit_div_u16_u8_sat(a: Assembler) -> None:
+    """HL/B -> A, saturated to 255. B must be nonzero for normal division."""
+    a.label("div_u16_u8_sat")
+    a.ld_r_r("a", "b"); a.or_r("a"); a.jr("div_sat", "z")
+    a.ld_r_r("a", "h"); a.cp_r("b"); a.jr("div_sat", "nc")
+    a.ld_r_r("a", "h"); a.ld_r_r("c", "l")
+    a.ld_r_n("d", 0); a.ld_r_n("e", 8)
+    a.label("div_loop")
+    a.cb("sla", "c"); a.rla(); a.cb("sla", "d")
+    a.cp_r("b"); a.jr("div_no_sub", "c")
+    a.sub_r("b"); a.inc_r("d")
+    a.label("div_no_sub")
+    a.dec_r("e"); a.jr("div_loop", "nz")
+    a.ld_r_r("a", "d"); a.ret()
+    a.label("div_sat")
+    a.ld_r_n("a", 0xFF); a.ret()
+
+
+def emit_div_u16_u8_sat9(a: Assembler) -> None:
+    """HL/B -> 9-bit quotient as PROJECTION_PAGE:A, saturated to 511."""
+    a.label("div_u16_u8_sat9")
+    a.xor_r("a"); a.ld_abs_a(PROJECTION_PAGE)
+    a.ld_r_r("a", "b"); a.or_r("a"); a.jr("div9_sat", "z")
+    # A quotient below 256 can use the compact existing divider directly.
+    a.ld_r_r("a", "h"); a.cp_r("b"); a.jp("div_u16_u8_sat", "c")
+    # Subtract B*256.  The residual quotient is the low byte and the table
+    # page records the implicit +256.  A second full page saturates to 511.
+    a.sub_r("b"); a.ld_r_r("h", "a"); a.cp_r("b"); a.jr("div9_sat", "nc")
+    a.ld_r_n("a", 1); a.ld_abs_a(PROJECTION_PAGE)
+    a.jp("div_u16_u8_sat")
+    a.label("div9_sat")
+    a.ld_r_n("a", 1); a.ld_abs_a(PROJECTION_PAGE)
+    a.ld_r_n("a", 0xFF); a.ret()
+
+
+def emit_palette_init(a: Assembler) -> None:
+    """Upload all eight BG palettes and the two OBJ palettes in use."""
+    a.label("init_palettes")
+    a.ld_r_n("a", 0x80); a.ldh_n_a(BGPI)
+    a.ld_rr_label("hl", "bg_palettes"); a.ld_r_n("b", 64)
+    a.label("init_bg_palette_loop")
+    a.ldi_a_hl(); a.ldh_n_a(BGPD); a.dec_r("b"); a.jr("init_bg_palette_loop", "nz")
+    a.ld_r_n("a", 0x80); a.ldh_n_a(OBPI)
+    a.ld_rr_label("hl", "obj_palettes"); a.ld_r_n("b", 16)
+    a.label("init_obj_palette_loop")
+    a.ldi_a_hl(); a.ldh_n_a(OBPD); a.dec_r("b"); a.jr("init_obj_palette_loop", "nz")
+    a.ret()
+
+
+def emit_vram_init(a: Assembler) -> None:
+    a.label("init_vram")
+    # The map upload covers all 32 bytes of each of the twelve viewport rows.
+    # Initialize the hidden padding once instead of relying on WRAM power-on
+    # contents that happen to be zero in the project harness.
+    a.ld_rr_nn("hl", VIEW_MAP); a.ld_rr_nn("bc", 12 * 32); a.ld_r_n("d", CEILING_TILE)
+    a.label("init_view_map_loop")
+    a.ld_r_r("a", "d"); a.ldi_hl_a(); a.dec_rr("bc")
+    a.ld_r_r("a", "b"); a.or_r("c"); a.jr("init_view_map_loop", "nz")
+    # Bank 0: shared static viewport tiles, UI tiles and tile maps.
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
+    a.ld_rr_label("hl", "tile_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(TILE_ATLAS_TILES)); a.call("copy_bc")
+    a.ld_rr_label("hl", "ui_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
+    a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
+    # Bank 1 mirrors viewport tiles and holds weapon OBJ tiles plus attributes.
+    a.ld_r_n("a", 1); a.ldh_n_a(VBK)
+    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
+    a.ld_rr_label("hl", "tile_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(TILE_ATLAS_TILES)); a.call("copy_bc")
+    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
+    a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
+    a.xor_r("a"); a.ldh_n_a(VBK); a.ret()
+
+
+def emit_dma(a: Assembler) -> None:
+    a.label("upload_dynamic_tiles")
+    a.ld_a_abs(DYN_COUNT); a.or_r("a"); a.ret("z")
+    a.ld_r_r("b", "a")
+    a.ld_r_n("a", 0xC0); a.ldh_n_a(HDMA1)
+    a.xor_r("a"); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA3); a.ldh_n_a(HDMA4)
+    a.ld_r_r("a", "b"); a.dec_r("a"); a.ldh_n_a(HDMA5)
+    a.ret()
+
+    a.label("upload_view_map")
+    # Tile IDs always live in VRAM bank 0; bank 1 holds CGB attributes.
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.ld_r_n("a", 0xC6); a.ldh_n_a(HDMA1)
+    a.xor_r("a"); a.ldh_n_a(HDMA2)
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.or_r("a"); a.jr("upload_map_9800", "z")
+    a.ld_r_n("a", 0x1C); a.jr("upload_map_dest_ready")
+    a.label("upload_map_9800")
+    a.ld_r_n("a", 0x18)
+    a.label("upload_map_dest_ready")
+    a.ldh_n_a(HDMA3); a.xor_r("a"); a.ldh_n_a(HDMA4)
+    a.ld_r_n("a", 0x17); a.ldh_n_a(HDMA5)  # 24 blocks = 384 bytes
+    a.ret()
+
+    a.label("upload_initial_both_pages")
+    # Dynamic tile pixels live in the VRAM bank selected by each page's
+    # preloaded attribute map. Tile-number maps themselves always live in
+    # VRAM bank 0; writing them with VBK=1 would corrupt CGB attributes.
+    a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
+    a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE)  # hidden page = 0 -> 9800
+    a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
+    a.ld_r_n("a", 1); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
+    a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE)     # hidden page = 1 -> 9C00
+    a.ldh_n_a(VBK); a.call("upload_view_map")
+    a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.ldh_n_a(VBK); a.ret()
+
+    a.label("upload_hidden_page")
+    a.call("wait_vblank")
+    # Upload dynamic pixels to the hidden page's selected tile-data bank.
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
+    a.call("upload_dynamic_tiles")
+    # Upload tile numbers to the hidden BG map in VRAM bank 0, preserving
+    # the static attribute maps in VRAM bank 1.
+    a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
+    a.call("update_muzzle_oam")
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
+    a.or_r("a"); a.jr("display_page_zero", "z")
+    a.ld_r_n("a", 0x9B); a.ldh_n_a(LCDC); a.jr("display_page_done")
+    a.label("display_page_zero")
+    a.ld_r_n("a", 0x93); a.ldh_n_a(LCDC)
+    a.label("display_page_done")
+    a.xor_r("a"); a.ldh_n_a(VBK); a.ret()
+
+
+def emit_dda(a: Assembler) -> None:
+    a.label("prepare_frame_boundaries")
+    # Distance from the player fraction to each side of its current cell. The
+    # four values are pose-invariant across every ray in one visual update.
+    a.ld_a_abs(PLAYER_XL); a.ld_abs_a(FRAME_X_NEG_L); a.xor_r("a"); a.ld_abs_a(FRAME_X_NEG_H)
+    a.ld_a_abs(PLAYER_XL); a.cpl(); a.inc_r("a"); a.ld_abs_a(FRAME_X_POS_L)
+    a.ld_r_n("a", 0); a.jr("frame_x_pos_high_ready", "nz"); a.inc_r("a")
+    a.label("frame_x_pos_high_ready"); a.ld_abs_a(FRAME_X_POS_H)
+    a.ld_a_abs(PLAYER_YL); a.ld_abs_a(FRAME_Y_NEG_L); a.xor_r("a"); a.ld_abs_a(FRAME_Y_NEG_H)
+    a.ld_a_abs(PLAYER_YL); a.cpl(); a.inc_r("a"); a.ld_abs_a(FRAME_Y_POS_L)
+    a.ld_r_n("a", 0); a.jr("frame_y_pos_high_ready", "nz"); a.inc_r("a")
+    a.label("frame_y_pos_high_ready"); a.ld_abs_a(FRAME_Y_POS_H); a.ret()
+
+    a.label("dda_setup")
+    # Map coordinates.
+    a.ld_a_abs(PLAYER_XH); a.ld_abs_a(DDA_MAP_X)
+    a.ld_a_abs(PLAYER_YH); a.ld_abs_a(DDA_MAP_Y)
+
+    # One sequential four-byte fetch replaces two tables plus sign decoding.
+    load_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
+    a.add_hl_rr("hl"); a.add_hl_rr("hl")
+    a.ld_rr_label("de", "ray_vectors_packed"); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_abs_a(DDA_ABS_X)
+    a.ldi_a_hl(); a.ld_abs_a(DDA_ABS_Y)
+    a.ldi_a_hl(); a.ld_abs_a(DDA_STEP_X)
+    a.ld_a_hl(); a.ld_abs_a(DDA_STEP_Y)
+
+    # Initial distance to next X boundary in Q8.8.
+    a.ld_a_abs(DDA_STEP_X); a.cp_n(1); a.jr("dda_next_x_positive", "z")
+    a.cp_n(0xFF); a.jr("dda_next_x_negative", "z")
+    a.ld_r_n("a", 0xFF); a.ld_abs_a(DDA_NEXT_X_L); a.ld_r_n("a", 0x7F); a.ld_abs_a(DDA_NEXT_X_H); a.jr("dda_next_x_done")
+    a.label("dda_next_x_positive")
+    a.ld_a_abs(FRAME_X_POS_L); a.ld_abs_a(DDA_NEXT_X_L); a.ld_a_abs(FRAME_X_POS_H); a.ld_abs_a(DDA_NEXT_X_H); a.jr("dda_next_x_done")
+    a.label("dda_next_x_negative")
+    a.ld_a_abs(FRAME_X_NEG_L); a.ld_abs_a(DDA_NEXT_X_L); a.ld_a_abs(FRAME_X_NEG_H); a.ld_abs_a(DDA_NEXT_X_H)
+    a.label("dda_next_x_done")
+
+    # Initial distance to next Y boundary.
+    a.ld_a_abs(DDA_STEP_Y); a.cp_n(1); a.jr("dda_next_y_positive", "z")
+    a.cp_n(0xFF); a.jr("dda_next_y_negative", "z")
+    a.ld_r_n("a", 0xFF); a.ld_abs_a(DDA_NEXT_Y_L); a.ld_r_n("a", 0x7F); a.ld_abs_a(DDA_NEXT_Y_H); a.jr("dda_next_y_done")
+    a.label("dda_next_y_positive")
+    a.ld_a_abs(FRAME_Y_POS_L); a.ld_abs_a(DDA_NEXT_Y_L); a.ld_a_abs(FRAME_Y_POS_H); a.ld_abs_a(DDA_NEXT_Y_H); a.jr("dda_next_y_done")
+    a.label("dda_next_y_negative")
+    a.ld_a_abs(FRAME_Y_NEG_L); a.ld_abs_a(DDA_NEXT_Y_L); a.ld_a_abs(FRAME_Y_NEG_H); a.ld_abs_a(DDA_NEXT_Y_H)
+    a.label("dda_next_y_done")
+
+    # Special axial rays avoid product overflow/sentinel arithmetic.
+    a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jr("dda_error_x_nonzero", "nz")
+    a.ld_r_n("a", 0xFF); a.ld_abs_a(DDA_ERR_L); a.ld_r_n("a", 0x7F); a.ld_abs_a(DDA_ERR_H); a.jr("dda_error_done")
+    a.label("dda_error_x_nonzero")
+    a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jr("dda_error_general", "nz")
+    a.xor_r("a"); a.ld_abs_a(DDA_ERR_L); a.ld_r_n("a", 0x80); a.ld_abs_a(DDA_ERR_H); a.jr("dda_error_done")
+
+    a.label("dda_error_general")
+    # X product = nextX * absY.
+    a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_ABS_Y); a.ld_r_r("c", "a"); a.call("mul_u8")
+    a.ld_a_abs(DDA_NEXT_X_H); a.or_r("a"); a.jr("dda_xprod_no_high", "z")
+    a.ld_a_abs(DDA_ABS_Y); a.add_a_r("h"); a.ld_r_r("h", "a")
+    a.label("dda_xprod_no_high")
+    a.ld_r_r("a", "l"); a.ld_abs_a(DDA_ERR_L); a.ld_r_r("a", "h"); a.ld_abs_a(DDA_ERR_H)
+    # Y product, then error = X - Y.
+    a.ld_a_abs(DDA_NEXT_Y_L); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_ABS_X); a.ld_r_r("c", "a"); a.call("mul_u8")
+    a.ld_a_abs(DDA_NEXT_Y_H); a.or_r("a"); a.jr("dda_yprod_no_high", "z")
+    a.ld_a_abs(DDA_ABS_X); a.add_a_r("h"); a.ld_r_r("h", "a")
+    a.label("dda_yprod_no_high")
+    a.ld_a_abs(DDA_ERR_L); a.sub_r("l"); a.ld_abs_a(DDA_ERR_L)
+    a.ld_a_abs(DDA_ERR_H); a.sbc_a_r("h"); a.ld_abs_a(DDA_ERR_H)
+    a.label("dda_error_done")
+    a.xor_r("a"); a.ld_abs_a(DDA_CROSSINGS); a.ret()
+
+    a.label("dda_read_cell")
+    a.ld_a_abs(DDA_MAP_Y); a.cb("swap", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_MAP_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0xD0)
+    a.ld_a_hl(); a.ret()
+
+    a.label("dda_cast")
+    a.call("dda_setup")
+    a.label("dda_loop")
+    # Choose X on negative or zero signed error; Y on positive error.
+    a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("dda_step_y", "z")
+    a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("dda_step_x", "z")
+    a.ld_a_abs(DDA_ERR_H); a.cb("bit", "a", 7); a.jp("dda_step_x", "nz")
+    a.or_r("a"); a.jp("dda_step_y", "nz")
+    a.ld_a_abs(DDA_ERR_L); a.or_r("a"); a.jp("dda_step_y", "nz")
+
+    a.label("dda_step_x")
+    a.ld_a_abs(DDA_STEP_X); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_MAP_X); a.add_a_r("b"); a.ld_abs_a(DDA_MAP_X)
+    a.xor_r("a"); a.ld_abs_a(DDA_AXIS)
+    a.ld_a_abs(DDA_NEXT_X_L); a.ld_abs_a(DDA_DIST_L); a.ld_a_abs(DDA_NEXT_X_H); a.ld_abs_a(DDA_DIST_H)
+    a.call("dda_post_step"); a.ret("nz")
+    a.ld_a_abs(DDA_NEXT_X_H); a.inc_r("a"); a.ld_abs_a(DDA_NEXT_X_H)
+    a.ld_a_abs(DDA_ABS_Y); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_ERR_H); a.add_a_r("b"); a.ld_abs_a(DDA_ERR_H)
+    a.jp("dda_loop")
+
+    a.label("dda_step_y")
+    a.ld_a_abs(DDA_STEP_Y); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_MAP_Y); a.add_a_r("b"); a.ld_abs_a(DDA_MAP_Y)
+    a.ld_r_n("a", 1); a.ld_abs_a(DDA_AXIS)
+    a.ld_a_abs(DDA_NEXT_Y_L); a.ld_abs_a(DDA_DIST_L); a.ld_a_abs(DDA_NEXT_Y_H); a.ld_abs_a(DDA_DIST_H)
+    a.call("dda_post_step"); a.ret("nz")
+    a.ld_a_abs(DDA_NEXT_Y_H); a.inc_r("a"); a.ld_abs_a(DDA_NEXT_Y_H)
+    a.ld_a_abs(DDA_ABS_X); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_ERR_H); a.sub_r("b"); a.ld_abs_a(DDA_ERR_H)
+    a.jp("dda_loop")
+
+    a.label("dda_post_step")
+    a.ld_a_abs(DDA_CROSSINGS); a.inc_r("a"); a.ld_abs_a(DDA_CROSSINGS); a.cp_n(32); a.jr("dda_force_hit", "nc")
+    a.call("dda_read_cell"); a.or_r("a"); a.jr("dda_hit", "nz")
+    a.xor_r("a"); a.ret()
+    a.label("dda_force_hit")
+    a.ld_r_n("a", 1)
+    a.label("dda_hit")
+    a.ld_abs_a(DDA_MATERIAL); a.or_r("a"); a.ret()
+
+
+def emit_projection_and_casting(a: Assembler) -> None:
+    a.label("project_hit")
+    # Q5 distance: D32 = round(axis distance / 8), saturated to 511.
+    # The additional fractional bit materially reduces near-wall height
+    # quantization while keeping the product inside 16 bits.
+    a.ld_a_abs(DDA_DIST_L); a.add_a_n(4); a.ld_r_r("l", "a")
+    a.ld_a_abs(DDA_DIST_H); a.adc_a_n(0); a.ld_r_r("h", "a")
+    for _ in range(3):
+        a.cb("srl", "h"); a.cb("rr", "l")
+    a.ld_r_r("a", "h"); a.cp_n(2); a.jr("project_d32_sat", "nc")
+    a.ld_abs_a(D32_HIGH); a.ld_r_r("b", "l"); a.jr("project_d32_ready")
+    a.label("project_d32_sat")
+    a.ld_r_n("a", 1); a.ld_abs_a(D32_HIGH); a.ld_r_n("b", 0xFF)
+    a.label("project_d32_ready")
+    a.ld_r_r("a", "b"); a.ld_abs_a(D32_LOW)
+    # Select the component perpendicular to the wall exactly as the former
+    # arithmetic path did.  The table's 512-byte slices are ordered by
+    # component*18 + (correction-110).
+    a.ld_a_abs(DDA_AXIS); a.or_r("a"); a.jr("project_component_y", "nz")
+    a.ld_a_abs(DDA_ABS_X); a.jr("project_component_ready")
+    a.label("project_component_y"); a.ld_a_abs(DDA_ABS_Y)
+    a.label("project_component_ready")
+    a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
+    for _ in range(4): a.add_hl_rr("hl")
+    a.add_hl_rr("de"); a.add_hl_rr("de")
+    a.ld_a_abs(DDA_CORRECTION); a.sub_n(PROJECTION_LUT_CORRECTION_MIN); a.ld_abs_a(LUT_CORRECTION)
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
+    a.ld_r_r("a", "l"); a.ld_abs_a(LUT_SLICE_LOW)
+    # Bank = 2 + slice/32.  The selected bank is restored to bank 1 before
+    # any conventional engine data in $4000-$7FFF is touched again.
+    for _ in range(5): a.cb("srl", "h"); a.cb("rr", "l")
+    a.ld_r_r("a", "l"); a.add_a_n(PROJECTION_LUT_BASE_BANK); a.ld_abs_a(0x2000)
+    # Address = $4000 + (slice&31)*512 + D32.
+    a.ld_a_abs(LUT_SLICE_LOW); a.and_n(0x1F); a.add_a_r("a"); a.or_n(0x40); a.ld_r_r("h", "a")
+    a.ld_a_abs(D32_HIGH); a.or_r("h"); a.ld_r_r("h", "a")
+    a.ld_a_abs(D32_LOW); a.ld_r_r("l", "a"); a.ld_a_hl(); a.ld_abs_a(TOP_RESULT)
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+
+    # Exact wall-side style.
+    a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("style_door", "z"); a.cp_n(2); a.jr("style_tech", "z")
+    a.ld_a_abs(DDA_AXIS); a.jr("style_store")
+    a.label("style_tech"); a.ld_a_abs(DDA_AXIS); a.add_a_n(2); a.jr("style_store")
+    a.label("style_door"); a.ld_r_n("a", 4)
+    a.label("style_store"); a.ld_abs_a(STYLE_RESULT)
+
+    # Compact face identity: axis | material | wall-plane coordinate.
+    a.ld_a_abs(DDA_AXIS); a.or_r("a"); a.jr("face_axis_y", "nz")
+    a.ld_a_abs(DDA_MAP_X); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_STEP_X); a.cp_n(0xFF); a.jr("face_x_plane_ready", "nz"); a.inc_r("b")
+    a.label("face_x_plane_ready"); a.ld_a_abs(DDA_MAP_Y); a.ld_abs_a(ALONG_RESULT); a.xor_r("a"); a.ld_r_r("d", "a"); a.jr("face_pack")
+    a.label("face_axis_y")
+    a.ld_a_abs(DDA_MAP_Y); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_STEP_Y); a.cp_n(0xFF); a.jr("face_y_plane_ready", "nz"); a.inc_r("b")
+    a.label("face_y_plane_ready"); a.ld_a_abs(DDA_MAP_X); a.ld_abs_a(ALONG_RESULT); a.ld_r_n("d", 0x80)
+    a.label("face_pack")
+    a.ld_a_abs(DDA_MATERIAL); a.and_n(3)
+    for _ in range(5): a.add_a_r("a")
+    a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.and_n(0x1F); a.or_r("c"); a.or_r("d"); a.ld_abs_a(FACE_RESULT); a.ret()
+
+    a.label("cast_one_v2"); a.call("dda_cast"); a.call("project_hit"); a.ret()
+
+    a.label("cast_indexed")  # Public self-contained probe entry.
+    a.call("prepare_frame_boundaries"); a.jp("cast_indexed_prepared")
+    a.label("cast_indexed_prepared")  # CAST_INDEX selects the ray
+    a.ld_a_abs(CAST_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "ray_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
+    a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("de")
+    a.ld_r_r("a", "h"); a.and_n(0x03); a.ld_r_r("h", "a"); store_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
+    a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "ray_corrections"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DDA_CORRECTION)
+    a.call("cast_one_v2"); a.ret()
+
+    a.label("cast_physical_indexed")  # Public self-contained probe entry.
+    a.call("prepare_frame_boundaries"); a.jp("cast_physical_indexed_prepared")
+    a.label("cast_physical_indexed_prepared")  # PIXEL_INDEX selects one of 160 columns
+    a.ld_a_abs(PIXEL_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("a", 0); a.adc_a_n(0); a.ld_r_r("d", "a")
+    a.ld_rr_label("hl", "physical_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
+    a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("de")
+    a.ld_r_r("a", "h"); a.and_n(0x03); a.ld_r_r("h", "a"); store_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
+    a.ld_a_abs(PIXEL_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "physical_corrections"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DDA_CORRECTION)
+    a.call("cast_one_v2"); a.ret()
+
+    a.label("cast_and_store")  # input A ray index
+    a.ld_abs_a(CAST_INDEX)
+    a.ld_a_abs(ADAPTIVE_CASTS); a.inc_r("a"); a.ld_abs_a(ADAPTIVE_CASTS)
+    a.call("cast_indexed_prepared")
+    a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a(); a.ret()
+
+    a.label("cast_physical_and_store")
+    a.ld_a_abs(EDGE_RECASTS); a.inc_r("a"); a.ld_abs_a(EDGE_RECASTS)
+    a.call("cast_physical_indexed_prepared")
+    a.ld_a_abs(PIXEL_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    for address, result in (
+        (PIXEL_TOPS, TOP_RESULT), (PIXEL_STYLES, STYLE_RESULT),
+        (PIXEL_KEYS, FACE_RESULT), (PIXEL_ALONG, ALONG_RESULT),
+    ):
+        a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_abs(result); a.ld_hl_a()
+    a.ret()
+
+    a.label("cast_all")
+    a.call("prepare_frame_boundaries")
+    a.xor_r("a"); a.ld_abs_a(ADAPTIVE_CASTS); a.call("cast_and_store")
+    a.ld_r_n("a", 2); a.ld_abs_a(ADAPTIVE_INDEX)
+    a.label("cast_anchor_loop")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(80); a.jr("cast_anchor_loop", "c")
+    a.ld_r_n("a", 79); a.call("cast_and_store")
+    a.ld_r_n("a", 1); a.ld_abs_a(ADAPTIVE_INDEX)
+    a.label("adaptive_fill_loop")
+    # Compare left/right face keys.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
+    # Same plane/material: require identical or adjacent along-plane cells.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_along_positive", "nc"); a.cpl(); a.inc_r("a")
+    a.label("adaptive_along_positive"); a.cp_n(2); a.jp("adaptive_cast_mid", "nc")
+    # Quantized projection is only approximately affine.  Require the two
+    # anchors to differ by no more than two top-edge pixels; this preserves
+    # the inexpensive midpoint path while eliminating large near-wall errors.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_top_positive", "nc"); a.cpl(); a.inc_r("a")
+    a.label("adaptive_top_positive"); a.cp_n(3); a.jp("adaptive_cast_mid", "nc")
+    # Affine midpoint of the two integer top edges.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.add_a_r("b"); a.inc_r("a"); a.cb("srl", "a"); a.ld_abs_a(TOP_RESULT)
+    # Copy left style/key/along to midpoint.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(STYLE_RESULT)
+    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(FACE_RESULT)
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ALONG_RESULT)
+    # Store the interpolated descriptor without incrementing cast count.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
+    a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
+    a.label("adaptive_fill_done")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
+    a.call("build_pixel_descriptors"); a.call("decorate_pixel_styles"); a.ret()
+
+    a.label("build_pixel_descriptors")
+    a.xor_r("a"); a.ld_abs_a(PAIR_INDEX); a.ld_abs_a(EDGE_RECASTS)
+    a.label("pixel_pair_loop")
+    # Current pair-centre top.
+    a.ld_a_abs(PAIR_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(TEMP_TOP)
+    # Left physical top = round((3*current + previous) / 4).
+    a.ld_a_abs(PAIR_INDEX); a.or_r("a"); a.jr("pixel_left_has_previous", "nz")
+    a.ld_a_abs(TEMP_TOP); a.ld_r_r("b", "a"); a.jr("pixel_left_previous_ready")
+    a.label("pixel_left_has_previous")
+    a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.label("pixel_left_previous_ready")
+    a.ld_a_abs(TEMP_TOP); a.ld_r_r("c", "a"); a.add_a_r("c"); a.add_a_r("c"); a.add_a_r("b"); a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(PAIR_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ld_hl_a()
+    # Right physical top = round((3*current + following) / 4).
+    a.ld_a_abs(PAIR_INDEX); a.cp_n(RAYS - 1); a.jr("pixel_right_has_following", "nz")
+    a.ld_a_abs(TEMP_TOP); a.ld_r_r("b", "a"); a.jr("pixel_right_following_ready")
+    a.label("pixel_right_has_following")
+    a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.label("pixel_right_following_ready")
+    a.ld_a_abs(TEMP_TOP); a.ld_r_r("c", "a"); a.add_a_r("c"); a.add_a_r("c"); a.add_a_r("b"); a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(PAIR_INDEX); a.add_a_r("a"); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ld_hl_a()
+    # Geometry style, key and along-cell identity are initially duplicated.
+    for source, destination in (
+        (RAY_STYLES, PIXEL_STYLES), (RAY_KEYS, PIXEL_KEYS),
+        (RAY_ALONG, PIXEL_ALONG),
+    ):
+        a.ld_a_abs(PAIR_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", source); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+        a.ld_a_abs(PAIR_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", destination); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_hl_a()
+    a.ld_a_abs(PAIR_INDEX); a.inc_r("a"); a.ld_abs_a(PAIR_INDEX); a.cp_n(RAYS); a.jp("pixel_pair_loop", "c")
+
+    # Recast only the two physical pixels adjacent to a pair-level face break.
+    a.xor_r("a"); a.ld_abs_a(EDGE_INDEX)
+    a.label("edge_recast_loop")
+    a.ld_a_abs(EDGE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("b", "a"); a.ld_a_hl(); a.cp_r("b"); a.jr("edge_recast_skip", "z")
+    a.ld_a_abs(EDGE_INDEX); a.add_a_r("a"); a.inc_r("a"); a.ld_abs_a(PIXEL_INDEX); a.call("cast_physical_and_store")
+    a.ld_a_abs(EDGE_INDEX); a.add_a_r("a"); a.add_a_n(2); a.ld_abs_a(PIXEL_INDEX); a.call("cast_physical_and_store")
+    a.label("edge_recast_skip")
+    a.ld_a_abs(EDGE_INDEX); a.inc_r("a"); a.ld_abs_a(EDGE_INDEX); a.cp_n(RAYS - 1); a.jp("edge_recast_loop", "c"); a.ret()
+
+    a.label("decorate_pixel_styles")
+    a.xor_r("a"); a.ld_abs_a(EVENT_COUNT); a.ld_r_n("a", 1); a.ld_abs_a(EVENT_INDEX)
+    a.label("event_boundary_loop")
+    # Compare adjacent face keys.
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_same_face", "z")
+    # Face break: darken one physical pixel on each side when >=16 px tall.
+    for delta in (-1, 0):
+        a.ld_a_abs(EVENT_INDEX)
+        if delta < 0: a.dec_r("a")
+        a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); skip = f"event_face_lod_skip_{delta + 1}"; a.jr(skip, "nc")
+        a.ld_a_abs(EVENT_INDEX)
+        if delta < 0: a.dec_r("a")
+        a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a(); a.label(skip)
+    a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT); a.jr("event_boundary_done")
+    a.label("event_same_face")
+    # A change in along-face cell coordinate is a world-anchored panel seam.
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_boundary_done", "z")
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("event_boundary_done", "nc")
+    a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x40); a.ld_r_n("a", CREASE_STYLE); a.jr("event_cell_style_ready", "nz"); a.ld_r_n("a", TECH_RIB_STYLE)
+    a.label("event_cell_style_ready"); a.ld_r_r("b", "a"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ld_hl_a()
+    a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT)
+    a.label("event_boundary_done")
+    a.ld_a_abs(EVENT_INDEX); a.inc_r("a"); a.ld_abs_a(EVENT_INDEX); a.cp_n(PHYSICAL_COLUMNS); a.jp("event_boundary_loop", "c")
+
+    # Derive door frames and a run-centred spine from contiguous material-3
+    # pixels. This is independent of screen-tile phase.
+    a.xor_r("a"); a.ld_abs_a(EVENT_INDEX)
+    a.label("door_scan_loop")
+    a.ld_a_abs(EVENT_INDEX); a.cp_n(PHYSICAL_COLUMNS); a.ret("nc")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x60); a.jp("door_scan_advance", "nz")
+    a.ld_a_abs(EVENT_INDEX); a.ld_abs_a(DOOR_RUN_START)
+    a.label("door_find_end")
+    a.ld_a_abs(EVENT_INDEX); a.inc_r("a"); a.ld_abs_a(EVENT_INDEX); a.cp_n(PHYSICAL_COLUMNS); a.jr("door_end_ready", "nc")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x60); a.jr("door_find_end", "z")
+    a.label("door_end_ready")
+    a.ld_a_abs(EVENT_INDEX); a.ld_abs_a(DOOR_RUN_END)
+    # Frame at run start.
+    a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("door_start_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
+    a.label("door_start_lod_done")
+    # Frame at inclusive run end.
+    a.ld_a_abs(DOOR_RUN_END); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("door_end_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
+    a.label("door_end_lod_done")
+    # Require a three-pixel run before adding its centre spine.
+    a.ld_a_abs(DOOR_RUN_END); a.ld_r_r("b", "a"); a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.cp_n(3); a.jr("door_event_count", "c")
+    a.dec_r("a"); a.cb("srl", "a"); a.add_a_r("c"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(33); a.jr("door_event_count", "nc")
     a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", DOOR_SPINE_STYLE); a.ldi_hl_a(); a.ld_hl_a()
     a.label("door_event_count"); a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT); a.jp("door_scan_loop")
     a.label("door_scan_advance"); a.ld_a_abs(EVENT_INDEX); a.inc_r("a"); a.ld_abs_a(EVENT_INDEX); a.jp("door_scan_loop")
