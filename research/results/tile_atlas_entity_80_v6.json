@@ -1,0 +1,48 @@
+{
+  "corpus_views": 24384,
+  "dynamic_tile_instances": 724362,
+  "unique_signatures": 28090,
+  "atlas_tile_base": 119,
+  "available_atlas_tile_ids": 121,
+  "elapsed_seconds": 80.35574099100086,
+  "atlas_patterns": 80,
+  "vram_tile_ids": 80,
+  "freed_tile_ids": 41,
+  "signature_entries": 255,
+  "covered_instances": 281842,
+  "coverage_pct": 38.90899853940433,
+  "corpus_mean_dynamic_tiles": 18.14796587926509,
+  "corpus_max_dynamic_tiles": 58,
+  "corpus_overflow_views": 0,
+  "max_bucket_entries": 9,
+  "asset_bytes": 4597,
+  "assets": {
+    "tile_atlas_tiles.bin": {
+      "bytes": 1280,
+      "sha256": "1f4c45749e0101709e8c153e12e71a5600f16260893e8c8e2cf24df50a993a3b"
+    },
+    "tile_atlas_bucket_start.bin": {
+      "bytes": 256,
+      "sha256": "150111e08cbc40c567ed73280d0cba3b851d17979fc40933de2e6bcf3fdff86d"
+    },
+    "tile_atlas_bucket_count.bin": {
+      "bytes": 256,
+      "sha256": "38a1e2a81c810c644e114b27e498216ac403418bda59a88de18054671c6fe411"
+    },
+    "tile_atlas_entries.bin": {
+      "bytes": 2805,
+      "sha256": "23f0899a5a1a93963ca8893c0468c46a9d5e73fb6d8c24b756ffd0374177306e"
+    }
+  },
+  "driven_route": {
+    "rom_sha256": "ebae1f04e32a795c30715d18a798f95c6c01b6c53f27f9771832c87d6f3b2ae9",
+    "vram_profile": "entity-heavy",
+    "updates": 27,
+    "mean_cycles": 972626.9629629629,
+    "max_cycles": 1124336,
+    "min_updates_per_second": 7.460944059427075,
+    "mean_dynamic_tiles": 32.0,
+    "max_dynamic_tiles": 50,
+    "gdma_vblank_violations": 0
+  }
+}

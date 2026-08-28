@@ -24,7 +24,11 @@ C = 0x10
 P1 = 0xFF00
 IF = 0xFF0F
 LCDC = 0xFF40
+STAT = 0xFF41
+SCX = 0xFF43
 LY = 0xFF44
+LYC = 0xFF45
+DMA = 0xFF46
 KEY1 = 0xFF4D
 VBK = 0xFF4F
 HDMA1 = 0xFF51
@@ -93,6 +97,7 @@ class CGB:
         self.commit_events: list[dict[str, object]] = []
         self.gdma_vblank_violations = 0
         self.interrupt_events: list[dict[str, int]] = []
+        self.scx_events: list[dict[str, int]] = []
         self._pending_commit_event_indexes: list[int] = []
         self.last_lcdc = 0x91
         self.io[LCDC & 0x7F] = 0x91
@@ -208,6 +213,16 @@ class CGB:
         if addr == LY:
             self.ly = 0
             self.ppu_dots = 0
+            return
+        if addr == DMA:
+            self.io[DMA & 0x7F] = value
+            source = value << 8
+            for index in range(0xA0):
+                self.oam[index] = self.read8(source + index)
+            return
+        if addr == SCX:
+            self.io[SCX & 0x7F] = value
+            self.scx_events.append({"value": value, "frame": self.frame_count, "ly": self.ly})
             return
         if addr == LCDC:
             old = self.io[LCDC & 0x7F]
@@ -387,6 +402,8 @@ class CGB:
                 self.ly += 1
                 if self.ly == 144:
                     self.io[IF & 0x7F] |= 0x01
+                if self.ly == self.io[LYC & 0x7F] and self.io[STAT & 0x7F] & 0x40:
+                    self.io[IF & 0x7F] |= 0x02
                 if self.ly >= 154:
                     self.ly = 0
                     self.frame_count += 1

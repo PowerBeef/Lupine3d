@@ -1,0 +1,46 @@
+{
+  "name": "living_world",
+  "world_mode": "living",
+  "actions": [
+    {
+      "pose": [3200, 3456, 0],
+      "updates": 1,
+      "capture": "sentinel_visible",
+      "expect": {"sentinel_health": 3, "sentinel_visible": 1}
+    },
+    {
+      "buttons": ["a"],
+      "updates": 1,
+      "capture": "sentinel_hit_one",
+      "expect": {"sentinel_health": 2}
+    },
+    {"buttons": [], "updates": 1},
+    {
+      "buttons": ["a"],
+      "updates": 1,
+      "capture": "sentinel_hit_two",
+      "expect": {"sentinel_health": 1}
+    },
+    {"buttons": [], "updates": 1},
+    {
+      "buttons": ["a"],
+      "updates": 1,
+      "capture": "sentinel_dead",
+      "expect": {"sentinel_health": 0, "sentinel_state": 5, "pickup_active": 1, "exit_active": 1}
+    },
+    {
+      "pose": [3456, 3456, 0],
+      "buttons": [],
+      "updates": 1,
+      "capture": "pickup_collected",
+      "expect": {"pickup_active": 0, "pickup_collected": 1}
+    },
+    {
+      "pose": [3712, 3456, 128],
+      "buttons": [],
+      "updates": 1,
+      "capture": "level_complete",
+      "expect": {"level_complete": 1}
+    }
+  ]
+}

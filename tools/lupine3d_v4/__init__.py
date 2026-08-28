@@ -1,4 +1,4 @@
-"""Stable implementation modules for the Lupine 3D v0.4/v0.5 engine.
+"""Stable implementation modules for the current Lupine 3D engine.
 
 The top-level tools/build_rom.py module remains the compatibility facade used
 by tests, research tools, and release scripts. This package separates memory

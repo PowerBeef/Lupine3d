@@ -1,0 +1,46 @@
+{
+  "format": "lupine-level-v1",
+  "name": "Sentinel Outpost",
+  "width": 16,
+  "height": 16,
+  "rows": [
+    "1111111111111111",
+    "1000000000000001",
+    "1011110111110101",
+    "1010000100010101",
+    "1010220103010101",
+    "1010000000010101",
+    "1010111111010101",
+    "1000100000010001",
+    "1110101111011101",
+    "1000101000010001",
+    "1011101011110101",
+    "1000001000000101",
+    "1011111111100101",
+    "1000000000000001",
+    "1000000000000001",
+    "1111111111111111"
+  ],
+  "player_spawn": {"x_q8": 384, "y_q8": 384, "angle": 0},
+  "doors": [
+    {"x": 9, "y": 4, "orientation": "vertical"}
+  ],
+  "entities": [
+    {
+      "kind": "sentinel",
+      "x_q8": 3456,
+      "y_q8": 3456,
+      "health": 3,
+      "activation_radius_q4": 96
+    }
+  ],
+  "pickups": [
+    {"kind": "medkit", "source": "sentinel_drop", "value": 25}
+  ],
+  "triggers": [
+    {"kind": "activate_exit", "condition": "sentinel_dead"}
+  ],
+  "exit": {"x": 14, "y": 13},
+  "palette_profile": "outpost",
+  "vram_profile": "entity-heavy"
+}

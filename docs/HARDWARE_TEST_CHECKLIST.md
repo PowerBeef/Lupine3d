@@ -1,4 +1,4 @@
-# Lupine 3D v0.5.0 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.6.0 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.5.0 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.5.0_SHA256SUMS.txt` |
+| ROM version | 0.6.0 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.6.0_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -32,6 +32,12 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] Collision blocks every outer wall.
 - [ ] A produces shot sound and visible muzzle flash.
 - [ ] B opens the door when directly ahead.
+- [ ] The door retracts over eight visible updates and blocks passage until fully open.
+- [ ] Sentinel far and near LODs render without tile corruption.
+- [ ] Sentinel strips disappear behind walls and return when line of sight clears.
+- [ ] Sentinel patrol, chase, attack, hurt and death states are observable.
+- [ ] Three centred shots kill the Sentinel and reveal its medkit.
+- [ ] The medkit can be collected and the activated exit completes the level.
 - [ ] Very short A/B taps are not lost during visually complex updates.
 - [ ] Weapon/crosshair remain stable.
 - [ ] Page flips show no tearing or mixed old/new tiles.
@@ -92,8 +98,13 @@ Watch for:
 - [ ] corruption only every other frame;
 - [ ] lower-screen corruption near the end of VBlank;
 - [ ] weapon or muzzle OAM instability.
+- [ ] Sentinel or pickup disappearance caused by the 40-object limit.
+- [ ] horizontal sprite loss caused by exceeding 10 objects on one scanline.
 
 The measured research maximum is 58 dynamic tiles; the hard cap is 96. Any apparent overflow on hardware is a release blocker even if the host corpus passes.
+
+The driven Living World maximum is 26 visible OAM entries and five objects on
+one scanline. Any entity loss below those values is also a release blocker.
 
 ## Gate D — timing-sensitive observations
 
@@ -115,11 +126,22 @@ If this gate fails, conservative fallbacks include reducing the dynamic-tile cap
 - [ ] Service-panel details read vertically and do not visually reconnect unrelated walls.
 - [ ] X/Y side lighting is visible but not excessively dark.
 - [ ] Door remains visually distinct.
+- [ ] Door retraction reads as motion rather than tile corruption.
+- [ ] Sentinel silhouette, core and hurt frame remain legible at native size.
+- [ ] Coarse eight-pixel wall clipping does not produce objectionable popping.
 - [ ] Far wall edges do not disappear into the background.
 - [ ] HUD digits are legible.
 - [ ] Crosshair and muzzle flash are visible.
 - [ ] Weapon highlights remain distinct.
 - [ ] Motion does not create objectionable temporal flicker on the original LCD.
+
+For an experimental reprojection build (`LUPINE3D_REPROJECTION=1`):
+
+- [ ] turning shifts the world by no more than four pixels between exact frames;
+- [ ] no uninitialized tiles appear at either viewport edge;
+- [ ] the HUD remains stationary below scanline 96;
+- [ ] exact frame publication does not create objectionable snap-back;
+- [ ] compare preference and LCD behavior against the default build.
 
 Palette changes require a new ROM SHA and complete retest.
 

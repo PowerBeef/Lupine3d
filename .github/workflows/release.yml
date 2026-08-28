@@ -29,8 +29,8 @@ jobs:
       - name: Verify tag matches VERSION
         run: test "$GITHUB_REF_NAME" = "v$(cat VERSION)"
 
-      - name: Regenerate exact atlas
-        run: make research-atlas
+      - name: Regenerate both exact VRAM-profile atlases
+        run: make research-atlas-all
 
       - name: Build, verify, and clean-room package
         run: python tools/package_release.py --output-dir dist --regenerate-previews

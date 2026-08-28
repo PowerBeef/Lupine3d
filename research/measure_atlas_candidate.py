@@ -16,8 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("atlas_dir", type=Path)
+    parser.add_argument("--profile", choices=("renderer-heavy", "entity-heavy"),
+                        default="renderer-heavy")
     args = parser.parse_args()
-    os.environ["LUPINE3D_TILE_ATLAS_DIR"] = str(args.atlas_dir.resolve())
+    if args.profile == "renderer-heavy":
+        os.environ["LUPINE3D_TILE_ATLAS_DIR"] = str(args.atlas_dir.resolve())
+        os.environ["LUPINE3D_LEVEL"] = str((ROOT / "levels" / "renderer_benchmark.json").resolve())
+    else:
+        os.environ["LUPINE3D_ENTITY_ATLAS_DIR"] = str(args.atlas_dir.resolve())
     sys.path.insert(0, str(ROOT / "tools"))
 
     # Import only after selecting the candidate asset directory: layout.py
@@ -29,6 +35,8 @@ def main() -> None:
     cgb = CGB(rom, assembler.labels)
     cgb.run(until_pc=assembler.labels["main_loop"], max_steps=5_000_000)
     scenario = json.loads((ROOT / "playtests" / "coherence_tour.json").read_text(encoding="utf-8"))
+    world_mode = str(scenario.get("world_mode", "empty")).lower()
+    cgb.write8(br.WORLD_MODE, br.WORLD_MODE_EMPTY if world_mode == "empty" else br.WORLD_MODE_LIVING)
     masks = {"right": 0x01, "left": 0x02, "up": 0x04, "down": 0x08, "a": 0x10, "b": 0x20}
     cycles: list[int] = []
     dynamic_counts: list[int] = []
@@ -50,6 +58,7 @@ def main() -> None:
 
     result = {
         "rom_sha256": hashlib.sha256(rom).hexdigest(),
+        "vram_profile": args.profile,
         "updates": len(cycles),
         "mean_cycles": statistics.fmean(cycles),
         "max_cycles": max(cycles),

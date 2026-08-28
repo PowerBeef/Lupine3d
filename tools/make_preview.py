@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
-"""Render current-version still/GIF previews and a v0.1 comparison."""
+"""Render current Living World still and GIF previews."""
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as v2  # noqa: E402
-import build_rom_v1 as v1  # noqa: E402
 from sm83emu import CGB  # noqa: E402
 
 
@@ -38,36 +37,33 @@ def nearest(image: Image.Image, scale: int = 4) -> Image.Image:
     return image.resize((image.width * scale, image.height * scale), Image.Resampling.NEAREST)
 
 
-def comparison_image(v1_image: Image.Image, v2_image: Image.Image) -> Image.Image:
-    label_h = 20
-    canvas = Image.new("RGB", (320, 144 + label_h), (12, 12, 15))
-    canvas.paste(v1_image, (0, label_h))
-    canvas.paste(v2_image, (160, label_h))
-    draw = ImageDraw.Draw(canvas)
-    font = ImageFont.load_default()
-    draw.text((5, 5), "v0.1.0 — 40 columns", font=font, fill=(240, 240, 240))
-    draw.text((165, 5), "v0.5.0 — exact + responsive", font=font, fill=(240, 240, 240))
-    return canvas.resize((canvas.width * 3, canvas.height * 3), Image.Resampling.NEAREST)
-
-
 def main() -> None:
     v2_rom, v2_assembler, _ = v2.make_rom()
-    v1_rom, v1_assembler, _ = v1.make_rom()
     v2.BUILD.mkdir(parents=True, exist_ok=True)
 
     cgb = CGB(v2_rom, v2_assembler.labels)
     cgb.button_provider = preview_input
     frames: list[Image.Image] = []
-    raw_frames: list[Image.Image] = []
     for target in range(1, 31):
         cgb.run(until_swaps=target, max_steps=6_000_000)
         raw = cgb.render_screen()
-        raw_frames.append(raw)
         frames.append(nearest(raw))
 
+    # A separate authored pose makes the main project image describe the
+    # current engine: wall composition, the 16x32 Sentinel and foreground UI.
+    hero = CGB(v2_rom, v2_assembler.labels)
+    hero.run(until_pc=v2_assembler.labels["main_loop"], max_steps=2_000_000)
+    hero.write16(v2.PLAYER_XL, 0x0C80)
+    hero.write16(v2.PLAYER_YL, 0x0D80)
+    hero.write8(v2.ANGLE, 0)
+    hero.run(until_swaps=1, max_steps=3_000_000)
+    hero_image = nearest(hero.render_screen())
+
     still_path = v2.BUILD / "lupine3d_preview_4x.png"
+    docs_still_path = ROOT / "docs" / "images" / "lupine3d_preview_4x.png"
     gif_path = v2.BUILD / "lupine3d_preview.gif"
-    frames[0].save(still_path, optimize=True)
+    hero_image.save(still_path, optimize=True)
+    hero_image.save(docs_still_path, optimize=True)
     paletted = [frame.quantize(colors=64) for frame in frames]
     paletted[0].save(
         gif_path,
@@ -79,15 +75,9 @@ def main() -> None:
         disposal=2,
     )
 
-    old = CGB(v1_rom, v1_assembler.labels)
-    old.button_provider = preview_input
-    old.run(until_swaps=10, max_steps=6_000_000)
-    compare_path = v2.BUILD / "lupine3d_v010_v050_comparison.png"
-    comparison_image(old.render_screen(), raw_frames[9]).save(compare_path, optimize=True)
-
     print(f"Wrote {still_path}")
+    print(f"Wrote {docs_still_path}")
     print(f"Wrote {gif_path}")
-    print(f"Wrote {compare_path}")
 
 
 if __name__ == "__main__":

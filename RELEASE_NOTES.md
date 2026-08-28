@@ -1,6 +1,34 @@
-# Lupine 3D 0.5.0
+# Lupine 3D 0.6.0 — Living World
 
-## Responsive, inspectable engine core
+This release turns the renderer core into a playable vertical slice while preserving the accepted empty-world pixels exactly.
+
+### Geometry and rendering
+
+- Added corrected-perpendicular `RAY_DEPTH[80]` and build-time `RAY_SEGMENT[80]` certificates.
+- Made adaptive interpolation segment-aware and added exact physical recasts at ambiguous surface boundaries.
+- Added renderer-heavy (121 patterns) and entity-heavy (80 patterns) level-selectable VRAM profiles. The entity profile frees 41 tile IDs and remains overflow-free across 24,384 corpus views.
+- Added a hybrid OAM billboard path with 8×16 far and 16×32 near LODs plus per-strip wall-depth clipping.
+- Added atomic 160-byte shadow-OAM publication, permanent weapon/UI reservations, and budget-aware deferral beside worst-case GDMA.
+- Added an optional compile-time ±4-pixel VBlank turn-reprojection experiment with guard tiles and a scanline-96 HUD reset.
+
+### Living World slice
+
+- Added an authored JSON level pipeline with map materials, spawn points, doors, pickups, triggers, exit, palette and VRAM profiles.
+- Added one original Sentinel with dormant, patrol, chase, attack, hurt and dead states.
+- Added exact-grid line of sight, low-frequency AI, hitscan damage, player damage, death, medkit drop, exit activation and level completion.
+- Added axis-separated radius collision and an eight-step door that remains solid until its projected panel fully retracts.
+
+### Verification and tooling
+
+- Expanded the suite to 34 tests, including both VRAM profiles, depth/segment identity, OAM limits, clipping, AI/combat, door timing and the reprojection build.
+- Added a second driven playtest that completes the Sentinel combat/drop/pickup/exit loop.
+- Preserved all nine frozen empty-world RGB captures byte-for-byte.
+- Retained the 41-pixel exceptional-tail certificate after a full 3.9-million-column correction experiment improved only one column and did not justify runtime complexity.
+- Updated clean-room packaging, CI evidence, preview generation and documentation for the current implementation.
+
+Original Game Boy Color and independent-emulator certification remain pending.
+
+## 0.5.0 — Responsive, inspectable engine core
 
 v0.5.0 preserves every accepted v0.3 RGB capture and the v0.4 rendering
 architecture while making input, research, and maintenance safer.

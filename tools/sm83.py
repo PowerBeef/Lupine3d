@@ -220,6 +220,8 @@ class Assembler:
         off = len(self.code) + 1
         self._emit((op, 0, 0), f"call {cond + ',' if cond else ''}{label}")
         self.fixups.append(Fixup(off, label, "abs16"))
+    def call_abs(self, address: int) -> None:
+        self._emit((0xCD, address & 0xFF, address >> 8), f"call ${address:04X}")
 
     def resolve(self) -> bytes:
         out = bytearray(self.code)

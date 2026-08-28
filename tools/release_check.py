@@ -127,14 +127,20 @@ def main() -> None:
     atlas_research = json.loads(atlas_research_path.read_text(encoding="utf-8"))
     pareto_path = ROOT / "research" / "results" / "tile_atlas_pareto_v5.json"
     tail_path = ROOT / "research" / "results" / "tail_failures_v4.json"
-    if not pareto_path.exists() or not tail_path.exists():
-        raise SystemExit("missing v0.5 atlas/tail research; run `make research-atlas-pareto research-tail`")
+    entity_atlas_path = ROOT / "research" / "results" / "tile_atlas_entity_80_v6.json"
+    if not pareto_path.exists() or not tail_path.exists() or not entity_atlas_path.exists():
+        raise SystemExit("missing atlas/tail research; run `make research-atlas-all research-atlas-pareto research-tail`")
     pareto = json.loads(pareto_path.read_text(encoding="utf-8"))
     tail = json.loads(tail_path.read_text(encoding="utf-8"))
+    entity_atlas = json.loads(entity_atlas_path.read_text(encoding="utf-8"))
     playtest_path = ROOT / "build" / "playtest" / "coherence_tour" / "report.json"
     if not playtest_path.exists():
         raise SystemExit("missing driven playtest report; run `make playtest`")
     playtest = json.loads(playtest_path.read_text(encoding="utf-8"))
+    world_playtest_path = ROOT / "build" / "playtest" / "living_world" / "report.json"
+    if not world_playtest_path.exists():
+        raise SystemExit("missing Living World playtest report; run `make playtest-world`")
+    world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
 
     discovered_tests = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
     automated_tests = discovered_tests.countTestCases()
@@ -152,16 +158,19 @@ def main() -> None:
         "adaptive_wall_identity_zero_mismatches": research["adaptive_spans"]["wall_key_mismatches_vs_full_exact"] == 0,
         "adaptive_style_zero_mismatches": research["adaptive_spans"]["style_mismatches_vs_full_exact"] == 0,
         "dynamic_tile_corpus_zero_overflow": research["boundary_tile_renderer"]["overflow_views"] == 0,
-        "v3_dynamic_tile_stress_zero_overflow": v3_research["v0.3.0"]["overflow_views"] == 0,
+        "current_dynamic_tile_stress_zero_overflow": v3_research["current"]["overflow_views"] == 0,
         "v3_mean_geometry_error_improved": v3_research["improvement"]["mean_top_error_reduction_pct"] > 20.0,
         "v3_wrong_segments_improved": v3_research["improvement"]["wrong_segment_reduction_pct"] > 25.0,
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
         "driven_playtest_exact_v030_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
-        "driven_playtest_mean_under_930k": float(playtest["summary"]["mean_cycles"]) < 930_000,
+        "driven_playtest_mean_under_1m": float(playtest["summary"]["mean_cycles"]) < 1_000_000,
         "driven_playtest_max_under_1_150k": int(playtest["summary"]["max_cycles"]) < 1_150_000,
         "atlas_exact_signature_entries_255": atlas_research["signature_entries"] == 255,
         "atlas_patterns_fit_vram_121": atlas_research["atlas_patterns"] == 121,
+        "entity_atlas_patterns_fit_vram_80": entity_atlas["atlas_patterns"] == 80,
+        "entity_atlas_frees_41_ids": entity_atlas["freed_tile_ids"] == 41,
+        "entity_atlas_corpus_zero_overflow": entity_atlas["corpus_overflow_views"] == 0,
         "atlas_pareto_full_cache_fastest": min(
             pareto["candidates"], key=lambda item: item["driven_route"]["mean_cycles"]
         )["atlas_patterns"] == 121,
@@ -172,7 +181,19 @@ def main() -> None:
         "vblank_input_sampling_enabled": bool(v2_manifest["vblank_input_sampling"]),
         "input_edge_latching_enabled": bool(v2_manifest["input_edge_latching"]),
         "interrupts_do_not_mutate_render_pose": not bool(v2_manifest["render_pose_mutated_by_interrupts"]),
-        f"automated_test_inventory_{automated_tests}": automated_tests >= 27,
+        "ray_depth_buffer_80_bytes": int(v2_manifest["ray_depth_buffer_bytes"]) == 80,
+        "ray_segment_buffer_80_bytes": int(v2_manifest["ray_segment_buffer_bytes"]) == 80,
+        "segment_aware_reconstruction": bool(v2_manifest["segment_aware_reconstruction"]),
+        "entity_heavy_profile_active": v2_manifest["vram_profile"] == "entity-heavy",
+        "living_world_playtest_passed": bool(world_playtest["summary"]["passed"]),
+        "living_world_oam_total_safe": int(world_playtest["summary"]["max_visible_oam"]) <= 40,
+        "living_world_oam_scanline_safe": int(world_playtest["summary"]["max_oam_per_scanline"]) <= 10,
+        "living_world_zero_unsafe_gdma": world_playtest["summary"]["gdma_vblank_violations"] == 0,
+        "living_world_level_completed": any(
+            update.get("world_state", {}).get("level_complete") == 1
+            for update in world_playtest["updates"]
+        ),
+        f"automated_test_inventory_{automated_tests}": automated_tests >= 34,
         "material_full_width_contrast_bands_zero": int(v2_manifest["full_width_contrast_bands"]) == 0,
     }
     if not all(checks.values()):
@@ -202,7 +223,7 @@ def main() -> None:
         raise SystemExit(f"runtime validation failed: {failed}")
 
     v2_action_cgb.render_screen().save(v2.BUILD / "harness_action.png")
-    v2_action_cgb.render_screen().save(v2.BUILD / "harness_action_v050.png")
+    v2_action_cgb.render_screen().save(v2.BUILD / "harness_action_v060.png")
     v1_action_cgb.render_screen().save(v2.BUILD / "harness_action_v010.png")
 
     v2_routines = measure_routines(v2_rom, v2_assembler.labels, ("cast_all", "render_view"), CURRENT_VERSION)
@@ -238,6 +259,9 @@ def main() -> None:
             "direction_scale": v2_manifest["ray_vector_scale"],
             "projection_fractional_bits": v2_manifest["projection_fractional_bits"],
             "selective_edge_recasts": v2_manifest["selective_edge_recasts"],
+            "ray_depth_buffer_bytes": v2_manifest["ray_depth_buffer_bytes"],
+            "ray_segment_buffer_bytes": v2_manifest["ray_segment_buffer_bytes"],
+            "segment_aware_reconstruction": v2_manifest["segment_aware_reconstruction"],
             "compositor": v2_manifest["renderer"],
             "wall_material_names": v2_manifest["wall_material_names"],
             "wall_pattern_resolution_pairs": v2_manifest["wall_pattern_resolution_pairs"],
@@ -253,6 +277,14 @@ def main() -> None:
             "rom_banks": v2_manifest["rom_banks"],
             "projection_lut_bytes": v2_manifest["projection_lut_bytes"],
             "product_lut_bytes": v2_manifest["product_lut_bytes"],
+            "vram_profile": v2_manifest["vram_profile"],
+            "renderer_atlas_patterns": v2_manifest["renderer_atlas_patterns"],
+            "entity_atlas_patterns": v2_manifest["entity_atlas_patterns"],
+            "oam_reserved_ui_entries": v2_manifest["oam_reserved_ui_entries"],
+            "oam_entity_capacity": v2_manifest["oam_entity_capacity"],
+            "level_format": v2_manifest["level_format"],
+            "player_collision_radius_q8": v2_manifest["player_collision_radius_q8"],
+            "animated_door": v2_manifest["animated_door"],
             "vblank_input_sampling": v2_manifest["vblank_input_sampling"],
             "input_edge_latching": v2_manifest["input_edge_latching"],
             "estimated_maximum_gdma_microseconds": round(int(v2_manifest["maximum_commit_blocks"]) * 8.0, 3),
@@ -265,19 +297,22 @@ def main() -> None:
             "mean_top_edge_error_reduction_pct_vs_v0_2_2": round(v3_research["improvement"]["mean_top_error_reduction_pct"], 3),
             "wrong_segment_reduction_pct_vs_v0_2_2": round(v3_research["improvement"]["wrong_segment_reduction_pct"], 3),
             "mean_traversal_iteration_reduction_pct": round(research["traversal_work"]["mean_per_ray_iteration_reduction_pct"], 3),
-            "mean_total_casts": round(v3_research["v0.3.0"]["mean_total_casts"], 3),
-            "mean_edge_recasts": round(v3_research["v0.3.0"]["mean_edge_recasts"], 3),
-            "mean_dynamic_tiles": round(v3_research["v0.3.0"]["mean_dynamic_tiles"], 3),
+            "mean_total_casts": round(v3_research["current"]["mean_total_casts"], 3),
+            "mean_edge_recasts": round(v3_research["current"]["mean_edge_recasts"], 3),
+            "mean_dynamic_tiles": round(v3_research["current"]["mean_dynamic_tiles"], 3),
             "exact_atlas_patterns": atlas_research["atlas_patterns"],
             "exact_atlas_signatures": atlas_research["signature_entries"],
             "exact_atlas_coverage_pct": round(atlas_research["coverage_pct"], 3),
             "atlas_pareto_candidates": len(pareto["candidates"]),
+            "entity_atlas_patterns": entity_atlas["atlas_patterns"],
+            "entity_atlas_freed_tile_ids": entity_atlas["freed_tile_ids"],
             "tail_threshold_px": tail["threshold_px"],
             "tail_columns_at_or_above_threshold": tail["tail"]["columns_at_or_above_threshold"],
             "tail_columns_with_correct_segment": tail["tail"]["tail_columns_with_correct_segment"],
             "full_results": "research/results/rendering_v3_results.json",
         },
         "driven_playtest": playtest["summary"],
+        "living_world_playtest": world_playtest["summary"],
         "harness": {
             "scope": "project-specific deterministic SM83/CGB smoke-test harness; not an independent cycle-accurate emulator",
             "refresh_hz_used_for_estimates": round(REFRESH_HZ, 6),

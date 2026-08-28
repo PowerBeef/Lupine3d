@@ -77,6 +77,20 @@ def emit_palette_init(a: Assembler) -> None:
 
 
 def emit_vram_init(a: Assembler) -> None:
+    a.label("upload_profile_tiles")
+    a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("upload_active_profile_tiles", "z")
+    a.ld_r_n("a", BANKED_ATLAS_ROM_BANK); a.ld_abs_a(0x2000)
+    a.ld_rr_nn("hl", BANKED_ATLAS_TILES_ADDRESS); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(BANKED_ATLAS_TILES)); a.call("copy_bc")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.jr("upload_profile_entity_art")
+    a.label("upload_active_profile_tiles")
+    a.ld_rr_label("hl", "active_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(ACTIVE_ATLAS_TILES)); a.call("copy_bc")
+    a.label("upload_profile_entity_art")
+    # Entity patterns live only in bank 1. The same tile IDs remain free in
+    # bank 0 and can later host profile-specific effects.
+    a.ld_a_abs(VRAM_PROFILE); a.cp_n(VRAM_PROFILE_ENTITY); a.ret("nz")
+    a.ldh_a_n(VBK); a.and_n(1); a.ret("z")
+    a.ld_rr_label("hl", "entity_tiles"); a.ld_rr_nn("de", 0x8000 + ENTITY_TILE_BASE * 16); a.ld_rr_nn("bc", len(make_entity_tiles())); a.call("copy_bc"); a.ret()
+
     a.label("init_vram")
     # The map upload covers all 32 bytes of each of the twelve viewport rows.
     # Initialize the hidden padding once instead of relying on WRAM power-on
@@ -88,16 +102,14 @@ def emit_vram_init(a: Assembler) -> None:
     # Bank 0: shared static viewport tiles, UI tiles and tile maps.
     a.xor_r("a"); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
-    if TILE_ATLAS_TILES:
-        a.ld_rr_label("hl", "tile_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(TILE_ATLAS_TILES)); a.call("copy_bc")
+    a.call("upload_profile_tiles")
     a.ld_rr_label("hl", "ui_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
     a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     # Bank 1 mirrors viewport tiles and holds weapon OBJ tiles plus attributes.
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
-    if TILE_ATLAS_TILES:
-        a.ld_rr_label("hl", "tile_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(TILE_ATLAS_TILES)); a.call("copy_bc")
+    a.call("upload_profile_tiles")
     a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
@@ -146,7 +158,9 @@ def emit_dma(a: Assembler) -> None:
     # Upload tile numbers to the hidden BG map in VRAM bank 0, preserving
     # the static attribute maps in VRAM bank 1.
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
-    a.call("update_muzzle_oam")
+    a.call("update_muzzle_oam"); a.call("publish_oam_if_budget")
+    if ENABLE_MICRO_REPROJECTION:
+        a.call("reset_reprojection_for_commit")
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
     a.or_r("a"); a.jr("display_page_zero", "z")
     a.ld_r_n("a", 0x9B); a.ldh_n_a(LCDC); a.jr("display_page_done")
@@ -181,7 +195,10 @@ def emit_input_system(a: Assembler) -> None:
     a.label("vblank_isr")
     # The sampler uses only AF/BC. A minimal save set keeps the once-per-VBlank
     # latency tax small while retaining instruction-boundary transparency.
-    a.push("af"); a.push("bc"); a.call("sample_joypad_latched"); a.pop("bc"); a.pop("af"); a.reti()
+    a.push("af"); a.push("bc"); a.call("sample_joypad_latched")
+    if ENABLE_MICRO_REPROJECTION:
+        a.call("update_reprojection_vblank")
+    a.pop("bc"); a.pop("af"); a.reti()
 
     a.label("update_input")
     # Main-loop polling preserves the old immediate action semantics. DI also
@@ -207,18 +224,18 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(PRESSED); a.and_n(0x20); a.jr("no_open_door", "z"); a.call("open_door")
     a.label("no_open_door")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
-    a.ld_r_n("a", 3); a.ld_abs_a(FLASH); a.call("sound_shoot")
+    a.ld_r_n("a", 3); a.ld_abs_a(FLASH); a.call("sound_shoot"); a.call("player_fire_hitscan")
     a.label("no_shoot")
     a.ret()
 
     a.label("update_muzzle_oam")
     a.ld_a_abs(FLASH); a.or_r("a"); a.jr("muzzle_hidden", "z")
-    a.dec_r("a"); a.ld_abs_a(FLASH)
-    a.ld_r_n("a", 56 + 16); a.ld_abs_a(0xFE00 + 17 * 4)
-    a.ret()
-    a.label("muzzle_hidden")
-    a.xor_r("a"); a.ld_abs_a(0xFE00 + 17 * 4)
-    a.ret()
+    a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", 56 + 16); a.jr("muzzle_shadow_compare")
+    a.label("muzzle_hidden"); a.ld_r_n("b", 0)
+    a.label("muzzle_shadow_compare")
+    a.ld_a_abs(OAM_SHADOW + 17 * 4); a.cp_r("b"); a.ret("z")
+    a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + 17 * 4)
+    a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY); a.ret()
 
 
 def emit_dda(a: Assembler) -> None:
@@ -375,6 +392,22 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(D32_LOW); a.ld_r_r("l", "a"); a.ld_a_hl(); a.ld_abs_a(TOP_RESULT)
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
 
+    # Convert the exact projection class back into its conservative nearest
+    # corrected Q5 depth. This 256-byte certificate replaces a per-ray divide.
+    a.ld_a_abs(TOP_RESULT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
+
+    # A Living World door retracts over eight visual updates. Its collision
+    # cell remains authoritative until the panel has fully cleared the cell.
+    a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("door_projection_done", "z")
+    a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("door_projection_done", "nz")
+    a.ld_a_abs(DOOR_STATE); a.cp_n(1); a.jr("door_projection_done", "nz")
+    a.ld_a_abs(DOOR_FRACTION)
+    for _ in range(3): a.cb("srl", "a")
+    a.ld_r_r("b", "a"); a.ld_a_abs(TOP_RESULT); a.add_a_r("b"); a.cp_n(48); a.jr("door_projection_store", "c"); a.ld_r_n("a", 47)
+    a.label("door_projection_store"); a.ld_abs_a(TOP_RESULT)
+    a.label("door_projection_done")
+
     # Exact wall-side style.
     a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("style_door", "z"); a.cp_n(2); a.jr("style_tech", "z")
     a.ld_a_abs(DDA_AXIS); a.jr("style_store")
@@ -392,7 +425,25 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("face_pack")
     a.ld_a_abs(DDA_MATERIAL); a.and_n(3)
     for _ in range(5): a.add_a_r("a")
-    a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.and_n(0x1F); a.or_r("c"); a.or_r("d"); a.ld_abs_a(FACE_RESULT); a.ret()
+    a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.and_n(0x1F); a.or_r("c"); a.or_r("d"); a.ld_abs_a(FACE_RESULT)
+    a.call("lookup_segment_id"); a.ret()
+
+    a.label("lookup_segment_id")
+    # Side order matches the build-time table: west, east, north, south.
+    a.ld_a_abs(DDA_AXIS); a.or_r("a"); a.jr("segment_axis_y", "nz")
+    a.ld_a_abs(DDA_STEP_X); a.cp_n(0xFF); a.ld_r_n("a", 0); a.jr("segment_side_ready", "nz")
+    a.inc_r("a"); a.jr("segment_side_ready")
+    a.label("segment_axis_y")
+    a.ld_a_abs(DDA_STEP_Y); a.cp_n(0xFF); a.ld_r_n("a", 2); a.jr("segment_side_ready", "nz"); a.inc_r("a")
+    a.label("segment_side_ready")
+    a.ld_r_r("c", "a")
+    a.ld_a_abs(DDA_MAP_Y); a.cb("swap", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_MAP_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
+    a.add_hl_rr("hl"); a.add_hl_rr("hl")
+    a.ld_r_r("e", "c"); a.ld_r_n("d", 0); a.add_hl_rr("de")
+    a.ld_rr_nn("de", SEGMENT_TABLE_ROM_ADDRESS); a.add_hl_rr("de")
+    a.ld_r_n("a", SEGMENT_TABLE_ROM_BANK); a.ld_abs_a(0x2000); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ld_r_r("a", "b"); a.ld_abs_a(SEGMENT_RESULT); a.ret()
 
     a.label("cast_one_v2"); a.call("dda_cast"); a.call("project_hit"); a.ret()
 
@@ -428,7 +479,9 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a(); a.ret()
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a(); a.ret()
 
     a.label("cast_physical_and_store")
     a.ld_a_abs(EDGE_RECASTS); a.inc_r("a"); a.ld_abs_a(EDGE_RECASTS)
@@ -454,6 +507,10 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # Compare left/right face keys.
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
+    # Identical packed planes are not enough: disconnected exposed runs can
+    # share the same plane/material key. Segment IDs certify continuity.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
     # Same plane/material: require identical or adjacent along-plane cells.
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_along_positive", "nc"); a.cpl(); a.inc_r("a")
@@ -472,12 +529,20 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(STYLE_RESULT)
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(FACE_RESULT)
     a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ALONG_RESULT)
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
+    # Re-certify the interpolated top through the same conservative exact
+    # projection class used by cast rays. Averaging depths can otherwise move
+    # an occluder farther away than the nearer member of its top class.
+    a.ld_a_abs(TOP_RESULT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
     # Store the interpolated descriptor without incrementing cast count.
     a.ld_a_abs(ADAPTIVE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
     a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.label("adaptive_fill_done")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
@@ -517,7 +582,11 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # Recast only the two physical pixels adjacent to a pair-level face break.
     a.xor_r("a"); a.ld_abs_a(EDGE_INDEX)
     a.label("edge_recast_loop")
-    a.ld_a_abs(EDGE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("b", "a"); a.ld_a_hl(); a.cp_r("b"); a.jr("edge_recast_skip", "z")
+    a.ld_a_abs(EDGE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("b", "a"); a.ld_a_hl(); a.cp_r("b"); a.jr("edge_recast_compare_segment", "z")
+    a.jr("edge_recast_required")
+    a.label("edge_recast_compare_segment")
+    a.ld_a_abs(EDGE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("b", "a"); a.ld_a_hl(); a.cp_r("b"); a.jr("edge_recast_skip", "z")
+    a.label("edge_recast_required")
     a.ld_a_abs(EDGE_INDEX); a.add_a_r("a"); a.inc_r("a"); a.ld_abs_a(PIXEL_INDEX); a.call("cast_physical_and_store")
     a.ld_a_abs(EDGE_INDEX); a.add_a_r("a"); a.add_a_n(2); a.ld_abs_a(PIXEL_INDEX); a.call("cast_physical_and_store")
     a.label("edge_recast_skip")
@@ -643,13 +712,22 @@ def emit_renderer(a: Assembler) -> None:
 
     a.label("find_atlas_tile")
     a.ld_a_abs(SIGNATURE_HASH); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_label("hl", "tile_atlas_bucket_start"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_rr_label("hl", "tile_atlas_bucket_count"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ATLAS_ENTRY_COUNT); a.or_r("a"); a.jr("atlas_miss", "z")
+    a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("atlas_active_start", "z")
+    a.ld_r_n("a", BANKED_ATLAS_ROM_BANK); a.ld_abs_a(0x2000); a.ld_rr_nn("hl", BANKED_ATLAS_BUCKET_START_ADDRESS); a.jr("atlas_start_ready")
+    a.label("atlas_active_start"); a.ld_rr_label("hl", "active_atlas_bucket_start")
+    a.label("atlas_start_ready"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("atlas_active_count", "z")
+    a.ld_rr_nn("hl", BANKED_ATLAS_BUCKET_COUNT_ADDRESS); a.jr("atlas_count_ready")
+    a.label("atlas_active_count"); a.ld_rr_label("hl", "active_atlas_bucket_count")
+    a.label("atlas_count_ready"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ATLAS_ENTRY_COUNT); a.or_r("a"); a.jr("atlas_miss", "z")
     # HL = tile_atlas_entries + start * 11.
     a.ld_r_r("e", "b"); a.ld_r_n("d", 0); a.ld_r_r("h", "d"); a.ld_r_r("l", "e")
     for _ in range(3): a.add_hl_rr("hl")
     for _ in range(3): a.add_hl_rr("de")
-    a.ld_rr_label("de", "tile_atlas_entries"); a.add_hl_rr("de")
+    a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("atlas_active_entries", "z")
+    a.ld_rr_nn("de", BANKED_ATLAS_ENTRIES_ADDRESS); a.jr("atlas_entries_ready")
+    a.label("atlas_active_entries"); a.ld_rr_label("de", "active_atlas_entries")
+    a.label("atlas_entries_ready"); a.add_hl_rr("de")
     store_hl_abs(a, ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H)
     a.label("atlas_candidate_loop")
     load_hl_abs(a, ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H)
@@ -661,11 +739,16 @@ def emit_renderer(a: Assembler) -> None:
     a.label("atlas_compare_loop")
     a.ld_a_mem_rr("de"); a.inc_rr("de"); a.cp_r("(hl)"); a.jr("atlas_candidate_mismatch", "nz")
     a.inc_rr("hl"); a.dec_r("b"); a.jr("atlas_compare_loop", "nz")
-    a.ld_a_hl(); a.ret()
+    a.ld_a_hl(); a.jr("atlas_return")
     a.label("atlas_candidate_mismatch")
     load_hl_abs(a, ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H); a.ld_rr_nn("de", TILE_ATLAS_ENTRY_BYTES); a.add_hl_rr("de"); store_hl_abs(a, ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H)
     a.ld_a_abs(ATLAS_ENTRY_COUNT); a.dec_r("a"); a.ld_abs_a(ATLAS_ENTRY_COUNT); a.jr("atlas_candidate_loop", "nz")
-    a.label("atlas_miss"); a.xor_r("a"); a.ret()
+    a.label("atlas_miss"); a.xor_r("a")
+    a.label("atlas_return")
+    # The inactive profile metadata lives in a high MBC5 bank; all
+    # conventional engine data expects bank 1 on return.
+    a.ld_r_r("b", "a"); a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.ld_r_r("a", "b"); a.ret("z")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ld_r_r("a", "b"); a.ret()
 
     a.label("compose_dynamic_tile")
     load_hl_abs(a, DYN_PTR_L, DYN_PTR_H); store_hl_abs(a, COMPOSE_DST_L, COMPOSE_DST_H)

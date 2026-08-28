@@ -13,6 +13,7 @@ from lupine3d_v4.layout import *  # noqa: F401,F403
 from lupine3d_v4.resources import *  # noqa: F401,F403
 from lupine3d_v4.reference import *  # noqa: F401,F403
 from lupine3d_v4.emitter import *  # noqa: F401,F403
+from lupine3d_v4.living_world import *  # noqa: F401,F403
 
 def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     tables = make_tables()
@@ -24,35 +25,42 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("startup_wait_vblank")
     a.ldh_a_n(LY); a.cp_n(144); a.jr("startup_wait_vblank", "c")
     a.xor_r("a"); a.ldh_n_a(LCDC); a.ldh_n_a(SCX); a.ldh_n_a(SCY)
-    a.ld_rr_label("hl", "map_data"); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
-    a.ld_r_n("a", 0x80); a.ld_abs_a(PLAYER_XL); a.ld_abs_a(PLAYER_YL)
-    a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_XH); a.ld_abs_a(PLAYER_YH)
-    a.xor_r("a"); a.ld_abs_a(ANGLE); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
+    a.call("load_level")
+    a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     a.call("init_palettes"); a.call("init_vram"); a.call("init_oam"); a.call("init_audio")
-    a.call("cast_all"); a.call("render_view"); a.call("upload_initial_both_pages")
+    a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_initial_both_pages")
     a.ld_r_n("a", 0x93); a.ldh_n_a(LCDC)
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
-    a.ld_r_n("a", 1); a.ld_abs_a(0xFFFF); a.ei(); a.nop()
+    if ENABLE_MICRO_REPROJECTION:
+        a.ld_r_n("a", 96); a.ldh_n_a(LYC); a.ld_r_n("a", 0x40); a.ldh_n_a(STAT)
+        a.ld_r_n("a", 3); a.ld_abs_a(0xFFFF)
+    else:
+        a.ld_r_n("a", 1); a.ld_abs_a(0xFFFF)
+    a.ei(); a.nop()
     a.label("main_loop")
-    a.call("update_input"); a.call("cast_all"); a.call("render_view"); a.call("upload_hidden_page"); a.jp("main_loop")
+    a.call("update_input"); a.call("update_world"); a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
 
     # Runtime routines.
     v1.emit_copy_routine(a); v1.emit_wait_vblank(a); emit_palette_init(a)
-    emit_vram_init(a); v1.emit_oam_init(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
+    emit_level_loader(a); emit_vram_init(a); emit_oam_system(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
     # Legacy quarter-step helpers are retained only for the two-step door interaction.
     v1.emit_ray_helpers(a)
-    emit_mul_u8(a)
+    emit_mul_u8(a); emit_div_u16_u8_sat(a); emit_div_u16_u8_sat9(a); emit_signed_math(a)
     emit_dda(a); emit_projection_and_casting(a); emit_renderer(a)
-    v1.emit_movement(a)
+    emit_line_of_sight(a); emit_world_update(a); emit_entity_projection(a); emit_entity_renderer(a); emit_movement_v6(a); emit_reprojection(a)
 
     # Data section.
     a.align(16, text="data alignment")
-    a.label("map_data"); a.bytes(make_map(), "16x16 world map")
+    a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
+    a.label("map_data"); a.bytes(make_map(), "compiled 16x16 world map")
     a.label("ui_tiles"); a.bytes(make_ui_tiles(), "HUD / utility tiles 240-255")
     a.label("weapon_tiles"); a.bytes(make_weapon_tiles(), "32x32 weapon tiles 240-255")
     a.label("static_view_tiles"); a.bytes(make_static_view_tiles(), "ceiling/floor plus phase-free seam atlas")
-    a.label("tile_atlas_tiles"); a.bytes(TILE_ATLAS_TILES, "exact boundary-tile atlas mirrored in both VRAM banks")
+    a.label("active_atlas_tiles"); a.bytes(ACTIVE_ATLAS_TILES, "active profile exact tile atlas")
+    a.label("entity_tiles"); a.bytes(make_entity_tiles(), "Sentinel, pickup and hit-effect OBJ tiles")
+    a.label("oam_initial"); a.bytes(make_oam_shadow(), "weapon/UI-first atomic OAM shadow")
+    a.label("oam_dma_stub"); a.bytes(bytes((0x3E, 0xC8, 0xE0, OAM_DMA, 0x3E, 0x50, 0x3D, 0x20, 0xFD, 0xC9)), "HRAM OAM-DMA wait stub")
     a.label("tilemap_data"); a.bytes(make_tilemap(), "base 32x32 tile-number map")
     a.label("attrmap_page0"); a.bytes(make_attrmap(0), "page 0 CGB attributes")
     a.label("attrmap_page1"); a.bytes(make_attrmap(1), "page 1 CGB attributes")
@@ -84,10 +92,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("ray_corrections"); a.bytes(tables["ray_corrections"], "80 cosine correction factors")
     a.label("physical_offsets_q10"); a.bytes(tables["physical_offsets"], "160 signed physical-pixel offsets")
     a.label("physical_corrections"); a.bytes(tables["physical_corrections"], "160 physical-pixel cosine corrections")
+    a.label("top_depth_lut"); a.bytes(make_top_depth_lut(), "projected-top to conservative corrected Q5 depth")
     a.label("seam_tile_lookup"); a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
-    a.label("tile_atlas_bucket_start"); a.bytes(TILE_ATLAS_BUCKET_START, "signature-hash bucket starts")
-    a.label("tile_atlas_bucket_count"); a.bytes(TILE_ATLAS_BUCKET_COUNT, "signature-hash bucket counts")
-    a.label("tile_atlas_entries"); a.bytes(TILE_ATLAS_ENTRIES, "ten exact signature bytes plus tile ID")
+    a.label("active_atlas_bucket_start"); a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
+    a.label("active_atlas_bucket_count"); a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
+    a.label("active_atlas_entries"); a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
     microstrips = make_microstrips()
     style_block = MICRO_STATE_COUNT * 8 * 16
     a.label("microstrip_style_bases")
@@ -108,7 +117,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "engine_origin": a.origin,
         "engine_end": a.origin + len(code),
         "engine_size": len(code),
-        "renderer": "Q5 signed-error DDA + hybrid 160-column face-event compositor",
+        "renderer": "segment-certified Q5 DDA + hybrid wall/entity compositor",
         "framebuffer_bytes": 0,
         "dynamic_tile_capacity": DYNAMIC_TILE_CAPACITY,
         "dynamic_tile_buffer_bytes": DYNAMIC_TILE_CAPACITY * 16,
@@ -126,6 +135,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "ray_vector_scale": RAY_VECTOR_SCALE,
         "projection_fractional_bits": 5,
         "selective_edge_recasts": True,
+        "ray_depth_buffer_bytes": RAYS,
+        "ray_segment_buffer_bytes": RAYS,
+        "segment_aware_reconstruction": True,
         "viewport": list(VIEWPORT),
         "map": [16, 16],
         "wall_styles": STYLE_COUNT,
@@ -140,6 +152,20 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "palette_depth_ladder_enabled": False,
         "palette_depth_ladder_rejection": "ROM playtest exposed screen-space horizontal banding",
         "static_view_tiles": STATIC_VIEW_TILES,
+        "vram_profile": "entity-heavy" if ACTIVE_LEVEL.vram_profile == VRAM_PROFILE_ENTITY else "renderer-heavy",
+        "renderer_atlas_patterns": len(RENDERER_ATLAS_TILES) // 16,
+        "entity_atlas_patterns": len(ENTITY_ATLAS_TILES) // 16,
+        "entity_tile_ids": [ENTITY_TILE_BASE, HIT_EFFECT_TILE_BASE + 1],
+        "oam_shadow_bytes": OAM_BYTES,
+        "oam_reserved_ui_entries": ENTITY_OAM_FIRST,
+        "oam_entity_capacity": ENTITY_OAM_COUNT,
+        "sentinel_states": ["dormant", "patrol", "chase", "attack", "hurt", "dead"],
+        "level_format": "lupine-level-v1",
+        "active_level": ACTIVE_LEVEL.name,
+        "player_collision_radius_q8": PLAYER_RADIUS_Q8,
+        "animated_door": True,
+        "micro_reprojection_compiled": ENABLE_MICRO_REPROJECTION,
+        "micro_reprojection_limit_pixels": REPROJECT_LIMIT,
         "microstrip_states": MICRO_STATE_COUNT,
         "microstrip_rom_bytes": len(microstrips) + len(pair_microstrips),
         "hram_hot_state_bytes": HRAM_BYTES_USED,
@@ -167,16 +193,28 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom[0x0104:0x0134] = NINTENDO_LOGO
     rom[0x0134:0x0143] = b"LUPINE3D".ljust(15, b"\0")
     rom[0x0143] = 0xC0; rom[0x0144:0x0146] = b"00"; rom[0x0146] = 0
-    rom[0x0147] = 0x19; rom[0x0148] = 0x07; rom[0x0149] = 0; rom[0x014A] = 1; rom[0x014B] = 0x33; rom[0x014C] = 5
+    rom[0x0147] = 0x19; rom[0x0148] = 0x07; rom[0x0149] = 0; rom[0x014A] = 1; rom[0x014B] = 0x33; rom[0x014C] = 6
     rom[0x0150:0x0150 + len(engine)] = engine
     vblank_isr = assembler.labels["vblank_isr"]
     rom[0x0040:0x0043] = bytes((0xC3, vblank_isr & 0xFF, vblank_isr >> 8))
+    if ENABLE_MICRO_REPROJECTION:
+        stat_isr = assembler.labels["stat_isr"]
+        rom[0x0048:0x004B] = bytes((0xC3, stat_isr & 0xFF, stat_isr >> 8))
     projection_lut = make_projection_top_lut()
     lut_start = PROJECTION_LUT_BASE_BANK * 0x4000
     rom[lut_start:lut_start + len(projection_lut)] = projection_lut
     product_lut = make_product_lut()
     product_start = PRODUCT_LUT_BASE_BANK * 0x4000
     rom[product_start:product_start + len(product_lut)] = product_lut
+    banked_atlas_payload = b"".join((
+        BANKED_ATLAS_TILES, BANKED_ATLAS_BUCKET_START,
+        BANKED_ATLAS_BUCKET_COUNT, BANKED_ATLAS_ENTRIES,
+    ))
+    banked_atlas_start = BANKED_ATLAS_ROM_BANK * 0x4000
+    rom[banked_atlas_start:banked_atlas_start + len(banked_atlas_payload)] = banked_atlas_payload
+    segment_start = SEGMENT_TABLE_ROM_BANK * 0x4000
+    segment_table = make_segment_table()
+    rom[segment_start:segment_start + len(segment_table)] = segment_table
     chk = 0
     for value in rom[0x0134:0x014D]: chk = (chk - value - 1) & 0xFF
     rom[0x014D] = chk

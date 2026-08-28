@@ -40,21 +40,22 @@ TOP_LEVEL_FILES = (
     "VERSION",
     "requirements.txt",
 )
-TOP_LEVEL_DIRS = ("assets", "docs", "milestones", "playtests", "research", "tests", "tools")
+TOP_LEVEL_DIRS = ("assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
 BUILD_FILES = (
     "build_manifest.json",
     "harness_action.png",
-    "harness_action_v010.png",
-    "harness_action_v050.png",
+    "harness_action_v060.png",
     "lupine3d.gb",
     "lupine3d.lst",
     "lupine3d.sym",
     "lupine3d_preview.gif",
     "lupine3d_preview_4x.png",
-    "lupine3d_v010_v050_comparison.png",
     "playtest/coherence_tour/contact_sheet.png",
     "playtest/coherence_tour/playtest.gif",
     "playtest/coherence_tour/report.json",
+    "playtest/living_world/contact_sheet.png",
+    "playtest/living_world/playtest.gif",
+    "playtest/living_world/report.json",
     "verification_report.json",
 )
 IGNORED_PARTS = {".git", "__pycache__", ".pytest_cache", "dist"}
@@ -109,6 +110,7 @@ def ensure_required_outputs(root: Path) -> None:
             root / "research" / "results" / "rendering_v3_before_after.png",
             root / "research" / "results" / "tile_atlas_v4.json",
             root / "research" / "results" / "tile_atlas_pareto_v5.json",
+            root / "research" / "results" / "tile_atlas_entity_80_v6.json",
             root / "research" / "results" / "tail_failures_v4.json",
             root / "research" / "results" / "tail_failures_v4.csv",
             root / "research" / "results" / "tail_failures_v4.png",
@@ -140,6 +142,10 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     run([python, "research/geometry_v2_lab.py"], ROOT)
     run([python, "research/rendering_v3_lab.py"], ROOT)
     run([python, "tools/playtest.py"], ROOT)
+    run([
+        python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
+        "--output-dir", "build/playtest/living_world",
+    ], ROOT)
     run([python, "tools/release_check.py"], ROOT)
     if regenerate_previews:
         run([python, "tools/make_preview.py"], ROOT)
@@ -291,14 +297,15 @@ def package(
         "archive": f"{PROJECT_SLUG}_v{VERSION}_complete.zip",
         "preview_png": f"{PROJECT_SLUG}_v{VERSION}_preview.png",
         "preview_gif": f"{PROJECT_SLUG}_v{VERSION}_preview.gif",
-        "comparison": f"{PROJECT_SLUG}_v0.1.0_vs_v{VERSION}.png",
-        "rendering_comparison": f"{PROJECT_SLUG}_v0.2.2_vs_v{VERSION}_rendering.png",
         "playtest_contact_sheet": f"{PROJECT_SLUG}_v{VERSION}_playtest.png",
         "playtest_gif": f"{PROJECT_SLUG}_v{VERSION}_playtest.gif",
         "playtest_report": f"{PROJECT_SLUG}_v{VERSION}_playtest_report.json",
+        "living_world_contact_sheet": f"{PROJECT_SLUG}_v{VERSION}_living_world.png",
+        "living_world_gif": f"{PROJECT_SLUG}_v{VERSION}_living_world.gif",
+        "living_world_report": f"{PROJECT_SLUG}_v{VERSION}_living_world_report.json",
         "rendering_research": f"{PROJECT_SLUG}_v{VERSION}_rendering_research.json",
         "verification": f"{PROJECT_SLUG}_v{VERSION}_verification_report.json",
-        "renderer_design": f"{PROJECT_SLUG}_v{VERSION}_PERFORMANCE_V4.md",
+        "renderer_design": f"{PROJECT_SLUG}_v{VERSION}_LIVING_WORLD.md",
         "development_guide": f"{PROJECT_SLUG}_v{VERSION}_DEVELOPMENT.md",
         "clean_room": f"{PROJECT_SLUG}_v{VERSION}_clean_room_verification.json",
         "manifest": f"{PROJECT_SLUG}_v{VERSION}_release_manifest.json",
@@ -374,14 +381,15 @@ def package(
         "rom": ROOT / "build" / "lupine3d.gb",
         "preview_png": ROOT / "build" / "lupine3d_preview_4x.png",
         "preview_gif": ROOT / "build" / "lupine3d_preview.gif",
-        "comparison": ROOT / "build" / "lupine3d_v010_v050_comparison.png",
-        "rendering_comparison": ROOT / "research" / "results" / "rendering_v3_before_after.png",
         "playtest_contact_sheet": ROOT / "build" / "playtest" / "coherence_tour" / "contact_sheet.png",
         "playtest_gif": ROOT / "build" / "playtest" / "coherence_tour" / "playtest.gif",
         "playtest_report": ROOT / "build" / "playtest" / "coherence_tour" / "report.json",
+        "living_world_contact_sheet": ROOT / "build" / "playtest" / "living_world" / "contact_sheet.png",
+        "living_world_gif": ROOT / "build" / "playtest" / "living_world" / "playtest.gif",
+        "living_world_report": ROOT / "build" / "playtest" / "living_world" / "report.json",
         "rendering_research": ROOT / "research" / "results" / "rendering_v3_results.json",
         "verification": ROOT / "build" / "verification_report.json",
-        "renderer_design": ROOT / "docs" / "PERFORMANCE_V4.md",
+        "renderer_design": ROOT / "docs" / "LIVING_WORLD_V6.md",
         "development_guide": ROOT / "docs" / "DEVELOPMENT.md",
         "clean_room": clean_room_build_path,
     }
@@ -393,11 +401,12 @@ def package(
         output_dir / names["archive"],
         output_dir / names["preview_png"],
         output_dir / names["preview_gif"],
-        output_dir / names["comparison"],
-        output_dir / names["rendering_comparison"],
         output_dir / names["playtest_contact_sheet"],
         output_dir / names["playtest_gif"],
         output_dir / names["playtest_report"],
+        output_dir / names["living_world_contact_sheet"],
+        output_dir / names["living_world_gif"],
+        output_dir / names["living_world_report"],
         output_dir / names["rendering_research"],
         output_dir / names["verification"],
         output_dir / names["renderer_design"],

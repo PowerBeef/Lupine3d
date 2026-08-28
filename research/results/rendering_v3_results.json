@@ -12,37 +12,37 @@
     "wrong_material_pct": 0.032244504593175856,
     "mean_casts": 44.94385662729659
   },
-  "v0.3.0": {
-    "mean_px": 0.24306979576184784,
+  "current": {
+    "mean_px": 0.24306755107084618,
     "p95_px": 0.7943023017627127,
     "p99_px": 1.1357366624853427,
     "max_px": 41.0,
-    "wrong_segment_pct": 0.2562130905511811,
+    "wrong_segment_pct": 0.2541625656167979,
     "wrong_material_pct": 0.02094098589238845,
-    "mean_total_casts": 45.834522637795274,
-    "mean_edge_recasts": 2.285843175853018,
+    "mean_total_casts": 45.84420111548557,
+    "mean_edge_recasts": 2.295521653543307,
     "max_edge_recasts": 16,
-    "mean_material_events": 2.94750656167979,
+    "mean_material_events": 2.954601377952756,
     "max_material_events": 13,
-    "mean_split_pairs": 5.22067749343832,
-    "mean_dynamic_tiles": 17.41486220472441,
+    "mean_split_pairs": 5.223630249343832,
+    "mean_dynamic_tiles": 18.147883858267715,
     "max_dynamic_tiles": 58,
     "overflow_views": 0
   },
   "improvement": {
-    "mean_top_error_reduction_pct": 27.282661538131936,
+    "mean_top_error_reduction_pct": 27.28333306523303,
     "p95_top_error_reduction_pct": 36.76706843455246,
     "p99_top_error_reduction_pct": 41.83760543709629,
-    "wrong_segment_reduction_pct": 33.34666933386677,
+    "wrong_segment_reduction_pct": 33.88010935520438,
     "wrong_material_reduction_pct": 35.055643879173296
   },
   "representative_rom_cycles": {
     "pose_count": 6,
-    "mean_cast_cycles": 430478.0,
-    "max_cast_cycles": 495376,
-    "mean_render_cycles": 471503.3333333333,
-    "max_render_cycles": 623868,
-    "mean_cast_plus_render_cycles": 901981.3333333334,
-    "conservative_updates_per_second": 7.907693699944194
+    "mean_cast_cycles": 473268.0,
+    "max_cast_cycles": 538824,
+    "mean_render_cycles": 487816.0,
+    "max_render_cycles": 639392,
+    "mean_cast_plus_render_cycles": 961084.0,
+    "conservative_updates_per_second": 7.488919202668248
   }
 }

@@ -203,12 +203,15 @@ def write_payloads(payloads: dict[str, bytes], output_dir: Path) -> None:
         (output_dir / name).write_bytes(payloads[name])
 
 
-def measure_candidate(payloads: dict[str, bytes]) -> dict[str, object]:
+def measure_candidate(payloads: dict[str, bytes], profile: str) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="lupine-atlas-") as temporary:
         candidate = Path(temporary)
         write_payloads(payloads, candidate)
         process = subprocess.run(
-            [sys.executable, str(ROOT / "research" / "measure_atlas_candidate.py"), str(candidate)],
+            [
+                sys.executable, str(ROOT / "research" / "measure_atlas_candidate.py"),
+                str(candidate), "--profile", profile,
+            ],
             cwd=ROOT,
             env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
             check=True,
@@ -231,11 +234,12 @@ def base_report(corpus: Corpus) -> dict[str, object]:
 
 
 def generate(max_patterns: int = MAX_PATTERNS, *, output_dir: Path = ASSETS,
-             result_path: Path = RESULT, measure_cycles: bool = False) -> dict[str, object]:
+             result_path: Path = RESULT, measure_cycles: bool = False,
+             measure_profile: str = "renderer-heavy") -> dict[str, object]:
     corpus = collect_corpus()
     payloads, candidate = make_payloads(corpus, max_patterns)
     if measure_cycles:
-        candidate["driven_route"] = measure_candidate(payloads)
+        candidate["driven_route"] = measure_candidate(payloads, measure_profile)
     write_payloads(payloads, output_dir)
     result = {**base_report(corpus), **candidate}
     result_path.parent.mkdir(parents=True, exist_ok=True)
@@ -249,7 +253,7 @@ def pareto(pattern_counts: list[int], *, measure_cycles: bool = True) -> dict[st
     for count in sorted(set(pattern_counts)):
         payloads, candidate = make_payloads(corpus, count)
         if measure_cycles:
-            candidate["driven_route"] = measure_candidate(payloads)
+            candidate["driven_route"] = measure_candidate(payloads, "renderer-heavy")
         candidates.append(candidate)
         print(json.dumps(candidate), flush=True)
     report = {
@@ -271,13 +275,22 @@ def main() -> None:
     parser.add_argument("--pareto", action="store_true", help="benchmark cache sizes without changing production assets")
     parser.add_argument("--pattern-counts", type=parse_counts, default=[0, 32, 64, 80, 96, 121])
     parser.add_argument("--apply-patterns", type=int, help="replace production assets with this pattern budget")
+    parser.add_argument("--output-dir", type=Path, default=ASSETS,
+                        help="asset directory used outside Pareto mode")
+    parser.add_argument("--result-path", type=Path, default=RESULT,
+                        help="JSON report path used outside Pareto mode")
+    parser.add_argument("--measure-profile", choices=("renderer-heavy", "entity-heavy"),
+                        default="renderer-heavy", help="runtime profile for cycle measurement")
     parser.add_argument("--no-cycle-measure", action="store_true", help="skip emitted-ROM route measurements")
     args = parser.parse_args()
     if args.pareto:
         result = pareto(args.pattern_counts, measure_cycles=not args.no_cycle_measure)
     else:
         count = MAX_PATTERNS if args.apply_patterns is None else args.apply_patterns
-        result = generate(count, measure_cycles=not args.no_cycle_measure)
+        result = generate(
+            count, output_dir=args.output_dir, result_path=args.result_path,
+            measure_cycles=not args.no_cycle_measure, measure_profile=args.measure_profile,
+        )
     print(json.dumps(result, indent=2))
 
 

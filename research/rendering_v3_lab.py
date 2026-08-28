@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic v0.2.2 -> v0.3.0 geometry/material investigation.
+"""Deterministic retained-baseline -> current geometry/material investigation.
 
 The accuracy path compares both ROM models against a floating 160-column
 camera-plane oracle over the established 3,048-view corpus.  The visual path
@@ -181,7 +181,7 @@ def run() -> dict[str, object]:
             "wrong_material_pct": 100.0 * v2_wrong_materials / samples,
             "mean_casts": statistics.fmean(v2_casts),
         },
-        "v0.3.0": {
+        "current": {
             **new_stats,
             "wrong_segment_pct": 100.0 * v3_wrong_segments / samples,
             "wrong_material_pct": 100.0 * v3_wrong_materials / samples,
@@ -230,7 +230,7 @@ def make_comparison(path: Path) -> None:
     sheet = Image.new("RGB", (width, height), (12, 15, 21))
     draw = ImageDraw.Draw(sheet)
     draw.text((margin, 4), "v0.2.2 — pair materials", fill=(190, 198, 215))
-    draw.text((margin * 2 + 160 * scale, 4), "v0.3.0 — hybrid coherent renderer", fill=(229, 183, 96))
+    draw.text((margin * 2 + 160 * scale, 4), "current — hybrid coherent renderer", fill=(229, 183, 96))
     y = margin + label_height
     for pose in poses:
         before = render_rom_pose(v2, pose).resize((160 * scale, 144 * scale), Image.Resampling.NEAREST)
@@ -245,7 +245,7 @@ def make_comparison(path: Path) -> None:
 
 def write_csv(results: dict[str, object], path: Path) -> None:
     rows = []
-    for version in ("v0.2.2", "v0.3.0"):
+    for version in ("v0.2.2", "current"):
         data = results[version]
         rows.append({"version": version, **data})
     with path.open("w", newline="", encoding="utf-8") as handle:

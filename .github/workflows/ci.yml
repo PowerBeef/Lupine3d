@@ -35,7 +35,7 @@ jobs:
         run: make test
 
       - name: Run driven playtest and pixel oracle
-        run: make playtest
+        run: make playtest playtest-world
 
       - name: Upload ROM and verification evidence
         uses: actions/upload-artifact@v4
@@ -48,3 +48,5 @@ jobs:
             build/build_manifest.json
             build/playtest/coherence_tour/report.json
             build/playtest/coherence_tour/contact_sheet.png
+            build/playtest/living_world/report.json
+            build/playtest/living_world/contact_sheet.png

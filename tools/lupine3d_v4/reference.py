@@ -27,6 +27,8 @@ class ReferenceRayHit:
     style: int
     face_key: int
     along: int
+    depth_q5: int
+    segment_id: int
 
 
 def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
@@ -97,11 +99,16 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     else:
         plane, along = my + (1 if sy < 0 else 0), mx
     face_key = (axis << 7) | ((material & 3) << 5) | (plane & 31)
+    depth_q5 = make_top_depth_lut()[top]
+    side = (0 if sx > 0 else 1) if axis == 0 else (2 if sy > 0 else 3)
+    segment_table = make_segment_table()
+    segment_id = segment_table[(my * 16 + mx) * 4 + side]
     return ReferenceRayHit(
         ray_index=ray_index, angle_index=angle_index, dx=dx, dy=dy,
         map_x=mx, map_y=my, axis=axis, axis_distance_q8=distance,
         material=material, crossings=crossings, top=top, style=style,
         face_key=face_key, along=along & 0xFF,
+        depth_q5=depth_q5, segment_id=segment_id,
     )
 
 
@@ -135,32 +142,46 @@ def reference_full_descriptor_view(player_x_q8: int, player_y_q8: int, player_an
     )
 
 def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int,
-                                       grid: bytes | None = None) -> tuple[list[int], list[int], list[int], list[int], int]:
+                                       grid: bytes | None = None) -> tuple[list[int], list[int], list[int], list[int], int, list[int], list[int]]:
     """Apply the ROM's validated one-level affine span reconstruction."""
-    full_tops, full_styles, full_keys, full_alongs = reference_full_descriptor_view(player_x_q8, player_y_q8, player_angle, grid)
+    hits = [reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid) for i in range(RAYS)]
+    full_tops = [hit.top for hit in hits]
+    full_styles = [hit.style for hit in hits]
+    full_keys = [hit.face_key for hit in hits]
+    full_alongs = [hit.along for hit in hits]
+    full_depths = [hit.depth_q5 for hit in hits]
+    full_segments = [hit.segment_id for hit in hits]
     tops = [0] * RAYS
     styles = [0] * RAYS
     keys = [0] * RAYS
     alongs = [0] * RAYS
+    depths = [0] * RAYS
+    segments = [0] * RAYS
     cast_count = 0
     for i in range(0, RAYS, 2):
         tops[i], styles[i], keys[i], alongs[i] = full_tops[i], full_styles[i], full_keys[i], full_alongs[i]
+        depths[i], segments[i] = full_depths[i], full_segments[i]
         cast_count += 1
     tops[79], styles[79], keys[79], alongs[79] = full_tops[79], full_styles[79], full_keys[79], full_alongs[79]
+    depths[79], segments[79] = full_depths[79], full_segments[79]
     cast_count += 1
     for i in range(1, 78, 2):
         same_face = (
             keys[i - 1] == keys[i + 1]
+            and segments[i - 1] == segments[i + 1]
             and abs(alongs[i - 1] - alongs[i + 1]) <= 1
             and abs(tops[i - 1] - tops[i + 1]) <= 2
         )
         if same_face:
             tops[i] = (tops[i - 1] + tops[i + 1] + 1) // 2
             styles[i], keys[i], alongs[i] = styles[i - 1], keys[i - 1], alongs[i - 1]
+            depths[i] = make_top_depth_lut()[tops[i]]
+            segments[i] = segments[i - 1]
         else:
             tops[i], styles[i], keys[i], alongs[i] = full_tops[i], full_styles[i], full_keys[i], full_alongs[i]
+            depths[i], segments[i] = full_depths[i], full_segments[i]
             cast_count += 1
-    return tops, styles, keys, alongs, cast_count
+    return tops, styles, keys, alongs, cast_count, depths, segments
 
 
 def reference_pixel_descriptor_view(
@@ -174,13 +195,14 @@ def reference_pixel_descriptor_view(
     projected-height LOD.  The returned counters are total casts, edge recasts,
     and material events.
     """
-    tops, styles, keys, alongs, adaptive_casts = reference_adaptive_descriptor_view(
+    tops, styles, keys, alongs, adaptive_casts, depths, segments = reference_adaptive_descriptor_view(
         player_x_q8, player_y_q8, player_angle, grid
     )
     pixel_tops = [0] * PHYSICAL_COLUMNS
     pixel_styles = [0] * PHYSICAL_COLUMNS
     pixel_keys = [0] * PHYSICAL_COLUMNS
     pixel_alongs = [0] * PHYSICAL_COLUMNS
+    pixel_segments = [0] * PHYSICAL_COLUMNS
 
     for i in range(RAYS):
         current = tops[i]
@@ -192,10 +214,11 @@ def reference_pixel_descriptor_view(
             pixel_styles[output] = styles[i]
             pixel_keys[output] = keys[i]
             pixel_alongs[output] = alongs[i]
+            pixel_segments[output] = segments[i]
 
     edge_recasts = 0
     for i in range(RAYS - 1):
-        if keys[i] == keys[i + 1]:
+        if keys[i] == keys[i + 1] and segments[i] == segments[i + 1]:
             continue
         for pixel_index in (i * 2 + 1, i * 2 + 2):
             hit = reference_cast_physical_hit(player_x_q8, player_y_q8, player_angle, pixel_index, grid)
@@ -203,6 +226,7 @@ def reference_pixel_descriptor_view(
             pixel_styles[pixel_index] = hit.style
             pixel_keys[pixel_index] = hit.face_key
             pixel_alongs[pixel_index] = hit.along
+            pixel_segments[pixel_index] = hit.segment_id
             edge_recasts += 1
 
     events = 0
@@ -244,12 +268,12 @@ def reference_pixel_descriptor_view(
 
     return (
         pixel_tops, pixel_styles, pixel_keys, pixel_alongs,
-        adaptive_casts + edge_recasts, edge_recasts, events,
+        adaptive_casts + edge_recasts, edge_recasts, events, depths, segments,
     )
 
 
 def reference_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int) -> tuple[list[int], list[int]]:
-    tops, styles, _, _, _ = reference_adaptive_descriptor_view(player_x_q8, player_y_q8, player_angle)
+    tops, styles, *_ = reference_adaptive_descriptor_view(player_x_q8, player_y_q8, player_angle)
     return tops, styles
 
 

@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 import statistics
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -51,7 +54,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(rom[0x0147], 0x19)
         self.assertEqual(rom[0x0148], 0x07)
         self.assertEqual(rom[0x0149], 0x00)
-        self.assertEqual(rom[0x014C], 0x05)
+        self.assertEqual(rom[0x014C], 0x06)
         self.assertEqual(rom[0x0040], 0xC3)
         self.assertEqual(rom[0x0041] | (rom[0x0042] << 8), self.symbols["vblank_isr"])
         self.assertLessEqual(br.HRAM_BYTES_USED, 0x7F)
@@ -78,6 +81,16 @@ class Lupine3DTests(unittest.TestCase):
         self.assertTrue(self.manifest["vblank_input_sampling"])
         self.assertTrue(self.manifest["input_edge_latching"])
         self.assertFalse(self.manifest["render_pose_mutated_by_interrupts"])
+        self.assertEqual(self.manifest["ray_depth_buffer_bytes"], br.RAYS)
+        self.assertEqual(self.manifest["ray_segment_buffer_bytes"], br.RAYS)
+        self.assertTrue(self.manifest["segment_aware_reconstruction"])
+        self.assertEqual(self.manifest["vram_profile"], "entity-heavy")
+        self.assertEqual(self.manifest["entity_atlas_patterns"], 80)
+        self.assertEqual(self.manifest["renderer_atlas_patterns"], 121)
+        self.assertEqual(self.manifest["oam_reserved_ui_entries"], 18)
+        self.assertEqual(self.manifest["oam_entity_capacity"], 22)
+        self.assertEqual(self.manifest["level_format"], "lupine-level-v1")
+        self.assertTrue(self.manifest["animated_door"])
         self.assertEqual(self.manifest["sha256"], hashlib.sha256(rom).hexdigest())
 
     def test_build_is_deterministic_and_v1_oracle_is_frozen(self) -> None:
@@ -148,6 +161,8 @@ class Lupine3DTests(unittest.TestCase):
         expected = br.reference_adaptive_descriptor_view(px, py, angle)
         self.assertEqual((tops, styles, keys, alongs), expected[:4])
         self.assertEqual(cgb.read8(br.ADAPTIVE_CASTS), expected[4])
+        self.assertEqual(list(self.read_block(cgb, br.RAY_DEPTH, br.RAYS)), expected[5])
+        self.assertEqual(list(self.read_block(cgb, br.RAY_SEGMENT, br.RAYS)), expected[6])
         self.assertTrue(all(0 <= top <= 46 for top in tops))
         self.assertTrue(all(0 <= style < br.STYLE_COUNT for style in styles))
 
@@ -175,6 +190,9 @@ class Lupine3DTests(unittest.TestCase):
         atlas_end = atlas_start + len(br.TILE_ATLAS_TILES)
         self.assertEqual(bytes(cgb.vram[0][atlas_start:atlas_end]), br.TILE_ATLAS_TILES)
         self.assertEqual(bytes(cgb.vram[1][atlas_start:atlas_end]), br.TILE_ATLAS_TILES)
+        entity_start = br.ENTITY_TILE_BASE * 16
+        entity_end = entity_start + len(br.make_entity_tiles())
+        self.assertEqual(bytes(cgb.vram[1][entity_start:entity_end]), br.make_entity_tiles())
         visible_ids = [view_map[y * 32 + x] for y in range(12) for x in range(20)]
         atlas_limit = br.ATLAS_TILE_BASE + br.TILE_ATLAS_COUNT
         self.assertTrue(all(tile < count or br.CEILING_TILE <= tile < atlas_limit for tile in visible_ids))
@@ -189,6 +207,48 @@ class Lupine3DTests(unittest.TestCase):
             self.assertEqual(rebuilt_signature, signature)
             offset = (tile_id - br.ATLAS_TILE_BASE) * 16
             self.assertEqual(br.TILE_ATLAS_TILES[offset:offset + 16], rebuilt_tile)
+
+    def test_level_compiler_owns_map_spawns_profiles_and_surface_segments(self) -> None:
+        level = br.ACTIVE_LEVEL
+        self.assertEqual((level.width, level.height), (16, 16))
+        self.assertEqual(level.grid, self.grid)
+        self.assertEqual(len(level.header_bytes()), 20)
+        self.assertEqual(level.vram_profile, br.VRAM_PROFILE_ENTITY)
+        self.assertEqual(level.entities[0].kind, "sentinel")
+        self.assertEqual(level.pickups[0].source, "sentinel_drop")
+        self.assertEqual(len(level.segment_table), 16 * 16 * 4)
+        segment_start = br.SEGMENT_TABLE_ROM_BANK * 0x4000
+        self.assertEqual(
+            self.rom[segment_start:segment_start + len(level.segment_table)],
+            level.segment_table,
+        )
+        # Every non-zero certificate names a solid cell face, and exposed
+        # cells in the same uninterrupted material run share one stable ID.
+        for y in range(level.height):
+            for x in range(level.width):
+                base = (y * level.width + x) * 4
+                ids = level.segment_table[base:base + 4]
+                if any(ids):
+                    self.assertNotEqual(level.grid[y * level.width + x], 0)
+                if y + 1 < level.height and level.grid[y * 16 + x] == level.grid[(y + 1) * 16 + x] != 0:
+                    for side in (0, 1):
+                        first, second = ids[side], level.segment_table[base + 16 * 4 + side]
+                        if first and second:
+                            self.assertEqual(first, second)
+
+    def test_scene_vram_profiles_exchange_atlas_capacity_for_entity_tiles(self) -> None:
+        self.assertEqual(len(br.RENDERER_ATLAS_TILES) // 16, 121)
+        self.assertEqual(len(br.ENTITY_ATLAS_TILES) // 16, 80)
+        self.assertEqual(br.ENTITY_TILE_BASE - br.ATLAS_TILE_BASE, 80)
+        self.assertLessEqual(br.HIT_EFFECT_TILE_BASE + 2, br.ENTITY_TILE_LIMIT)
+
+        cgb = self.boot_to_main()
+        cgb.write8(br.VRAM_PROFILE, br.VRAM_PROFILE_RENDERER)
+        cgb.call_subroutine("init_vram", max_steps=500_000)
+        start = br.ATLAS_TILE_BASE * 16
+        end = start + len(br.RENDERER_ATLAS_TILES)
+        self.assertEqual(bytes(cgb.vram[0][start:end]), br.RENDERER_ATLAS_TILES)
+        self.assertEqual(bytes(cgb.vram[1][start:end]), br.RENDERER_ATLAS_TILES)
 
     def test_mbc5_projection_lut_layout_and_exact_boundary_samples(self) -> None:
         lut = br.make_projection_top_lut()
@@ -313,13 +373,13 @@ class Lupine3DTests(unittest.TestCase):
                 self.assertEqual(cgb.read8(br.DYN_OVERFLOW), 0)
                 self.assertEqual(self.read_block(cgb, br.DYNAMIC_TILES, len(dynamic)), dynamic)
                 self.assertEqual(self.read_block(cgb, br.VIEW_MAP, 384), view_map)
-        # v0.3.0's byte-exact reference corpus averaged 1,008,489 cycles for
-        # these two hot routines.  Keep a strict regression ceiling while
-        # leaving a small allowance for assembler-level maintenance changes.
+        # The entity-heavy profile deliberately trades roughly 2.3% wall
+        # throughput for 41 OBJ tile IDs. Depth and segment certificates are
+        # also produced in this path, so preserve a feature-aware ceiling.
         hot_path_mean = statistics.fmean(
             cast + render for cast, render in zip(cast_cycles, render_cycles)
         )
-        self.assertLess(hot_path_mean, 950_000)
+        self.assertLess(hot_path_mean, 980_000)
 
     def test_exhaustive_host_guardrails_for_adaptive_spans_and_capacity(self) -> None:
         max_top_delta = max_dynamic = max_casts = max_edge_casts = 0
@@ -385,6 +445,27 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual((events[1]["destination"], events[1]["blocks"], events[1]["bank"]), (0x9C00, 24, 0))
         self.assertEqual(bytes(cgb.vram[1][:1536]), self.read_block(cgb, br.DYNAMIC_TILES, 1536))
         self.assertEqual(bytes(cgb.vram[0][0x1C00:0x1C00 + 384]), self.read_block(cgb, br.VIEW_MAP, 384))
+
+    def test_oam_dma_is_atomic_and_defers_when_gdma_consumes_the_vblank(self) -> None:
+        cgb = self.boot_to_main()
+        marker = bytes((88, 96, br.PICKUP_TILE, 0x09))
+        for offset, value in enumerate(marker):
+            cgb.write8(br.OAM_SHADOW + br.ENTITY_OAM_FIRST * 4 + offset, value)
+        before = bytes(cgb.oam)
+        cgb.write8(br.OAM_DIRTY, 1)
+        cgb.write8(br.DYN_COUNT, br.DYNAMIC_TILE_CAPACITY)
+        cgb.call_subroutine("publish_oam_if_budget")
+        self.assertEqual(bytes(cgb.oam), before)
+        self.assertEqual(cgb.read8(br.OAM_DIRTY), 1)
+        self.assertEqual(cgb.read8(br.OAM_DEFERRED), 1)
+
+        cgb.write8(br.DYN_COUNT, 0)
+        cgb.call_subroutine("publish_oam_if_budget")
+        self.assertEqual(cgb.read8(br.OAM_DIRTY), 0)
+        self.assertEqual(
+            bytes(cgb.oam[br.ENTITY_OAM_FIRST * 4:br.ENTITY_OAM_FIRST * 4 + 4]),
+            marker,
+        )
 
     def test_repeated_visual_commits_are_coherent_and_alternate_pages(self) -> None:
         cgb = self.boot_to_main()
@@ -460,18 +541,127 @@ class Lupine3DTests(unittest.TestCase):
         cgb.button_provider = lambda iteration, _swaps: 0x04 if iteration <= 10 else 0
         cgb.run(until_swaps=10, max_steps=8_000_000)
         x = cgb.read16(br.PLAYER_XL)
-        self.assertGreaterEqual(x, 0x0100)
+        self.assertGreaterEqual(x, 0x0100 + br.PLAYER_RADIUS_Q8)
         self.assertEqual(x >> 8, 1)
 
-    def test_door_interaction_mutates_map(self) -> None:
+    def test_animated_door_preserves_collision_until_fully_open(self) -> None:
         cgb = self.boot_to_main()
         self.set_pose(cgb, 0x0880, 0x0480, 0)
         door_addr = br.MAP + 4 * 16 + 9
         self.assertEqual(cgb.read8(door_addr), 3)
+        cgb.call_subroutine("cast_all")
+        closed_top = cgb.read8(br.RAY_TOPS + 40)
+        cgb.write8(br.DOOR_STATE, 1)
+        cgb.write8(br.DOOR_FRACTION, 128)
+        cgb.call_subroutine("cast_all")
+        self.assertGreater(cgb.read8(br.RAY_TOPS + 40), closed_top)
+        cgb.write8(br.DOOR_STATE, 0)
+        cgb.write8(br.DOOR_FRACTION, 0)
         cgb.button_provider = lambda iteration, _swaps: 0x20 if iteration == 1 else 0
         cgb.run(until_swaps=1, max_steps=1_500_000)
-        self.assertEqual(cgb.read8(door_addr), 0)
+        self.assertEqual(cgb.read8(door_addr), 3)
+        self.assertEqual(cgb.read8(br.DOOR_STATE), 1)
+        self.assertEqual(cgb.read8(br.DOOR_FRACTION), 32)
         self.assertEqual(cgb.read8(0xFF14), 0xC4)
+        cgb.button_provider = lambda _iteration, _swaps: 0
+        cgb.run(until_swaps=8, max_steps=9_000_000)
+        self.assertEqual(cgb.read8(door_addr), 0)
+        self.assertEqual(cgb.read8(br.DOOR_STATE), 2)
+
+        # Empty-world mode remains the exact visual oracle and intentionally
+        # retains the original instant interaction semantics.
+        legacy = self.boot_to_main()
+        legacy.write8(br.WORLD_MODE, br.WORLD_MODE_EMPTY)
+        self.set_pose(legacy, 0x0880, 0x0480, 0)
+        legacy.button_provider = lambda iteration, _swaps: 0x20 if iteration == 1 else 0
+        legacy.run(until_swaps=1, max_steps=1_500_000)
+        self.assertEqual(legacy.read8(door_addr), 0)
+
+    def test_sentinel_projection_combat_drop_pickup_and_exit_vertical_slice(self) -> None:
+        cgb = self.boot_to_main()
+        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        cgb.call_subroutine("cast_all")
+        cgb.call_subroutine("render_entities")
+        self.assertEqual(cgb.read8(br.SENTINEL_VISIBLE), 1)
+        self.assertEqual(cgb.read8(br.SENTINEL_SCREEN_X), 80)
+        used = cgb.read8(br.SENTINEL_OAM_USED)
+        self.assertIn(used, (2, 4, 8))
+        self.assertLessEqual(br.ENTITY_OAM_FIRST + used, 40)
+
+        # The hitscan consumes the same projection/occlusion certificate that
+        # the player sees; three shots complete the authored combat loop.
+        for expected_health in (2, 1, 0):
+            cgb.call_subroutine("player_fire_hitscan")
+            self.assertEqual(cgb.read8(br.SENTINEL_HEALTH), expected_health)
+            if expected_health:
+                cgb.write8(br.SENTINEL_VISIBLE, 1)
+        self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_DEAD)
+        self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 1)
+        self.assertEqual(cgb.read8(br.EXIT_ACTIVE), 1)
+
+        cgb.write16(br.PLAYER_XL, cgb.read16(br.SENTINEL_XL))
+        cgb.write16(br.PLAYER_YL, cgb.read16(br.SENTINEL_YL))
+        cgb.call_subroutine("collect_pickup_and_exit")
+        self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 0)
+        self.assertEqual(cgb.read8(br.PICKUP_COLLECTED), 1)
+        cgb.write8(br.PLAYER_XH, cgb.read8(br.EXIT_CELL_X))
+        cgb.write8(br.PLAYER_YH, cgb.read8(br.EXIT_CELL_Y))
+        cgb.call_subroutine("collect_pickup_and_exit")
+        self.assertEqual(cgb.read8(br.LEVEL_COMPLETE), 1)
+
+    def test_sentinel_exact_los_chase_and_attack_run_on_simulation_ticks(self) -> None:
+        cgb = self.boot_to_main()
+        cgb.write8(br.SENTINEL_STATE, br.SENTINEL_PATROL)
+        self.set_pose(cgb, 0x0A80, 0x0D80, 0)
+        before_x = cgb.read16(br.SENTINEL_XL)
+        cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL)
+        cgb.call_subroutine("update_world")
+        self.assertEqual(cgb.read8(br.LOS_RESULT), 1)
+        self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_CHASE)
+        self.assertLess(cgb.read16(br.SENTINEL_XL), before_x)
+
+        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        health = cgb.read8(br.PLAYER_HEALTH)
+        cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL * 2)
+        cgb.write8(br.SENTINEL_COOLDOWN, 0)
+        cgb.call_subroutine("update_world")
+        self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_ATTACK)
+        self.assertLess(cgb.read8(br.PLAYER_HEALTH), health)
+
+        cgb.write16(br.SENTINEL_XL, 0x0104)
+        cgb.write16(br.SENTINEL_YL, 0x0180)
+        cgb.write8(br.LOS_DX, 3)
+        cgb.write8(br.LOS_DY, 0)
+        cgb.write8(br.LOS_SX, 0xFF)
+        cgb.call_subroutine("sentinel_chase_step")
+        self.assertEqual(cgb.read16(br.SENTINEL_XL), 0x0104)
+
+    def test_entity_wall_depth_clipping_and_scanline_budget(self) -> None:
+        cgb = self.boot_to_main()
+        self.set_pose(cgb, 0x0C80, 0x0D80, 0)
+        cgb.call_subroutine("cast_all")
+        cgb.call_subroutine("render_entities")
+        self.assertLess(cgb.read8(br.SENTINEL_DEPTH), cgb.read8(br.RAY_DEPTH + 40))
+        cgb.write8(br.DYN_COUNT, 0)
+        cgb.call_subroutine("publish_oam_if_budget")
+        visible_scanlines = [0] * 144
+        visible_total = 0
+        for index in range(40):
+            y = cgb.read8(0xFE00 + index * 4) - 16
+            x = cgb.read8(0xFE00 + index * 4 + 1) - 8
+            if x <= -8 or x >= 160 or y <= -8 or y >= 144:
+                continue
+            visible_total += 1
+            for scanline in range(max(0, y), min(144, y + 8)):
+                visible_scanlines[scanline] += 1
+        self.assertLessEqual(visible_total, 40)
+        self.assertLessEqual(max(visible_scanlines), 10)
+
+        # Put the actor past the solid east boundary. Projection remains in
+        # front of the camera but the wall-depth samples reject every strip.
+        cgb.write16(br.SENTINEL_XL, 0x1080)
+        cgb.call_subroutine("project_sentinel")
+        self.assertEqual(cgb.read8(br.SENTINEL_VISIBLE), 0)
 
     def test_fire_has_audio_and_visible_muzzle_feedback(self) -> None:
         cgb = self.boot_to_main()
@@ -480,6 +670,50 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(cgb.read8(0xFF14), 0xC7)
         self.assertGreater(cgb.read8(br.FLASH), 0)
         self.assertEqual(cgb.oam[17 * 4], 72)
+
+    def test_optional_vblank_micro_reprojection_is_clamped_and_hud_safe(self) -> None:
+        probe = r'''
+import json, sys
+from pathlib import Path
+root = Path.cwd()
+sys.path.insert(0, str(root / "tools"))
+import build_rom as br
+from sm83emu import CGB
+rom, assembler, manifest = br.make_rom()
+cgb = CGB(rom, assembler.labels)
+cgb.run(until_pc=assembler.labels["main_loop"], max_steps=2_000_000)
+cgb.button_provider = lambda _iteration, _swaps: 0x01
+cgb.run(until_swaps=2, max_steps=5_000_000)
+signed = [event["value"] - 256 if event["value"] & 0x80 else event["value"] for event in cgb.scx_events]
+guards = all(
+    cgb.read8(br.VIEW_MAP + row * 32 + 31) == cgb.read8(br.VIEW_MAP + row * 32)
+    and cgb.read8(br.VIEW_MAP + row * 32 + 20) == cgb.read8(br.VIEW_MAP + row * 32 + 19)
+    for row in range(12)
+)
+print(json.dumps({
+    "compiled": manifest["micro_reprojection_compiled"],
+    "minimum": min(signed), "maximum": max(signed),
+    "nonzero": any(signed), "final_scx": cgb.io[0x43],
+    "stat_interrupts": sum(event["bit"] == 1 for event in cgb.interrupt_events),
+    "hud_resets": sum(event["ly"] >= 96 and event["value"] == 0 for event in cgb.scx_events),
+    "guards": guards,
+}))
+'''
+        environment = dict(os.environ)
+        environment["LUPINE3D_REPROJECTION"] = "1"
+        completed = subprocess.run(
+            [sys.executable, "-c", probe], cwd=ROOT, env=environment,
+            check=True, capture_output=True, text=True, timeout=120,
+        )
+        result = json.loads(completed.stdout.strip().splitlines()[-1])
+        self.assertTrue(result["compiled"])
+        self.assertTrue(result["nonzero"])
+        self.assertGreater(result["stat_interrupts"], 0)
+        self.assertGreater(result["hud_resets"], 0)
+        self.assertGreaterEqual(result["minimum"], -br.REPROJECT_LIMIT)
+        self.assertLessEqual(result["maximum"], br.REPROJECT_LIMIT)
+        self.assertEqual(result["final_scx"], 0)
+        self.assertTrue(result["guards"])
 
     def test_deterministic_cycle_budget_and_update_floor(self) -> None:
         cgb = self.boot_to_main()

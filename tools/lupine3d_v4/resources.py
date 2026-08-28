@@ -51,6 +51,115 @@ def solid_tile(color: int) -> bytes:
     return tile_from_pixels([[color] * 8 for _ in range(8)])
 
 
+def _split_pixels(pixels: list[list[int]], width: int, height: int) -> bytes:
+    if len(pixels) != height or any(len(row) != width for row in pixels):
+        raise ValueError("pixel canvas dimensions do not match")
+    out = bytearray()
+    for tile_y in range(height // 8):
+        for tile_x in range(width // 8):
+            tile = [
+                row[tile_x * 8:(tile_x + 1) * 8]
+                for row in pixels[tile_y * 8:(tile_y + 1) * 8]
+            ]
+            out.extend(tile_from_pixels(tile))
+    return bytes(out)
+
+
+def _sentinel_near_frame(frame: int) -> bytes:
+    """Generate one original 16x32 Sentinel animation cel."""
+    px = [[0] * 16 for _ in range(32)]
+    hurt = frame == 3
+    attack = frame == 2
+    bob = frame & 1
+    body = 3 if hurt else 2
+    accent = 2 if hurt else 3
+    # Antennae and head.
+    px[1 + bob][7] = px[1 + bob][8] = accent
+    for y in range(3 + bob, 10 + bob):
+        left = 4 if y < 8 + bob else 5
+        right = 11 if y < 8 + bob else 10
+        for x in range(left, right + 1):
+            px[y][x] = 1 if x in (left, right) else body
+    px[6 + bob][6] = px[6 + bob][9] = accent
+    # Armoured torso and glowing core.
+    for y in range(11 + bob, 23 + bob):
+        inset = 1 if y in (11 + bob, 22 + bob) else 0
+        for x in range(3 + inset, 13 - inset):
+            px[y][x] = 1 if x in (3 + inset, 12 - inset) else body
+    for y in range(14 + bob, 19 + bob):
+        for x in range(6, 10):
+            px[y][x] = accent
+    # Attack frame extends one arm; walk frames alternate feet.
+    arm_y = 13 + bob
+    for x in range(0 if attack else 2, 4):
+        px[arm_y][x] = px[arm_y + 1][x] = accent if attack else body
+    for x in range(12, 16 if attack else 14):
+        px[arm_y][x] = px[arm_y + 1][x] = accent if attack else body
+    left_foot = 2 if frame == 1 else 4
+    right_foot = 12 if frame == 1 else 10
+    for y in range(23 + bob, 31):
+        for x in range(left_foot, left_foot + 3): px[y][x] = body
+        for x in range(right_foot - 2, right_foot + 1): px[y][x] = body
+    return _split_pixels(px, 16, 32)
+
+
+def _sentinel_far_frame(frame: int) -> bytes:
+    px = [[0] * 8 for _ in range(16)]
+    bob = frame & 1
+    for y in range(1 + bob, 6 + bob):
+        for x in range(2, 6): px[y][x] = 2
+    px[3 + bob][3] = px[3 + bob][4] = 3
+    for y in range(7 + bob, 13 + bob):
+        for x in range(1, 7): px[y][x] = 1 if x in (1, 6) else 2
+    px[9 + bob][3] = px[9 + bob][4] = 3
+    px[14][2 if frame else 3] = 2
+    px[14][5 if frame else 4] = 2
+    return _split_pixels(px, 8, 16)
+
+
+def make_entity_tiles() -> bytes:
+    """Entity-heavy profile payload occupying only the 41 freed tile IDs."""
+    out = bytearray()
+    for frame in range(SENTINEL_NEAR_FRAMES):
+        out.extend(_sentinel_near_frame(frame))
+    for frame in range(SENTINEL_FAR_FRAMES):
+        out.extend(_sentinel_far_frame(frame))
+
+    pickup = [[0] * 8 for _ in range(8)]
+    for y in range(2, 7):
+        for x in range(1, 7): pickup[y][x] = 1 if y in (2, 6) or x in (1, 6) else 2
+    for x, y in ((3, 3), (4, 3), (3, 4), (4, 4), (3, 5), (4, 5), (2, 4), (5, 4)):
+        pickup[y][x] = 3
+    out.extend(tile_from_pixels(pickup))
+
+    for phase in range(2):
+        effect = [[0] * 8 for _ in range(8)]
+        radius = 2 + phase
+        for x, y in ((4, 4 - radius), (4, 4 + radius - 1), (4 - radius, 4), (4 + radius - 1, 4),
+                     (4 - phase, 4 - phase), (4 + phase, 4 + phase)):
+            if 0 <= x < 8 and 0 <= y < 8: effect[y][x] = 3
+        out.extend(tile_from_pixels(effect))
+    expected_tiles = (HIT_EFFECT_TILE_BASE + 2) - ENTITY_TILE_BASE
+    assert len(out) == expected_tiles * 16
+    return bytes(out)
+
+
+def make_oam_shadow() -> bytes:
+    """Initial 40-entry OAM image with UI capacity permanently reserved."""
+    data = bytearray(OAM_BYTES)
+    # Existing 4x4 weapon grid keeps OAM indices 0..15 and guaranteed priority.
+    for row in range(4):
+        for col in range(4):
+            index = row * 4 + col
+            data[index * 4:index * 4 + 4] = bytes((
+                64 + row * 8 + 16, 64 + col * 8 + 8,
+                240 + row * 4 + col, 0x08,
+            ))
+    data[16 * 4:16 * 4 + 4] = bytes((44 + 16, 76 + 8, 254, 0x01))
+    data[17 * 4:17 * 4 + 4] = bytes((0, 76 + 8, 253, 0x01))
+    return bytes(data)
+
+
 def make_static_view_tiles() -> bytes:
     tiles = [solid_tile(0), solid_tile(1)]
     for dark_mask in STATIC_WALL_MASKS:
@@ -297,3 +406,22 @@ def make_product_lut() -> bytes:
             out[cursor + 1] = product >> 8
             cursor += 2
     return bytes(out)
+
+
+@lru_cache(maxsize=1)
+def make_top_depth_lut() -> bytes:
+    """Conservative corrected-depth certificate for each projected top.
+
+    Projection intentionally collapses several Q5 depths onto one integer
+    wall height. The nearest member of each exact equivalence class prevents
+    a billboard from leaking through a wall while avoiding a divider in every
+    ray. Values are still corrected perpendicular Q5 distances, not heights.
+    """
+    projection = make_tables()["projection_half"]
+    buckets: list[list[int]] = [[] for _ in range(256)]
+    for depth, half_height in enumerate(projection):
+        buckets[48 - half_height].append(depth)
+    result = bytearray(256)
+    for top, depths in enumerate(buckets):
+        result[top] = min(255, min(depths)) if depths else 255
+    return bytes(result)

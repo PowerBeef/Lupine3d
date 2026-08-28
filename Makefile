@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test research research-v3 research-atlas research-atlas-pareto research-tail verify playtest qa preview package clean
+.PHONY: all setup build test research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world qa preview package clean
 
 all: build
 
@@ -22,6 +22,14 @@ research-v3:
 research-atlas:
 	$(PYTHON) research/build_tile_atlas_v4.py
 
+research-atlas-entity:
+	$(PYTHON) research/build_tile_atlas_v4.py --apply-patterns 80 \
+		--output-dir assets/entity_atlas_80 \
+		--result-path research/results/tile_atlas_entity_80_v6.json \
+		--measure-profile entity-heavy
+
+research-atlas-all: research-atlas research-atlas-entity
+
 research-atlas-pareto:
 	$(PYTHON) research/build_tile_atlas_v4.py --pareto
 
@@ -34,7 +42,10 @@ verify: build test research
 playtest: build
 	$(PYTHON) tools/playtest.py
 
-qa: build test playtest research-v3
+playtest-world: build
+	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
+
+qa: build test playtest playtest-world research-v3
 
 preview: build
 	$(PYTHON) tools/make_preview.py
