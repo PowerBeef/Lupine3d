@@ -10,7 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Game%20Boy%20Color-5c2d91.svg)](#hardware-status)
 
-[**Build**](#quick-start) · [**Architecture**](docs/ARCHITECTURE.md) · [**Renderer**](docs/RENDERER_V3.md) · [**Contribute**](CONTRIBUTING.md)
+[**Build**](#quick-start) · [**Architecture**](docs/ARCHITECTURE.md) · [**Rendering**](#rendering-pipeline) · [**Verification**](#development-and-verification) · [**Contribute**](CONTRIBUTING.md)
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D running a first-person corridor scene on Game Boy Color">
 
@@ -20,9 +20,9 @@
 
 ---
 
-Lupine 3D is an original raycasting engine that turns the Game Boy Color's tile renderer into a coherent first-person world. It targets the real SM83 CPU, CGB VRAM banks, GDMA, OAM, joypad, and audio hardware—without a framebuffer or coprocessor.
+Lupine 3D is an original raycasting engine that turns the Game Boy Color's tile renderer into a coherent first-person world. The current **0.5.0** implementation runs on the SM83 CPU and uses CGB VRAM banks, GDMA, OAM, joypad, audio hardware, and an MBC5 cartridge—without a framebuffer or coprocessor.
 
-Version **0.5.0** preserves the v0.3 renderer pixel-for-pixel, keeps v0.4's **18.61%** performance gain, and adds VBlank-rate edge-latched input, a modular builder, tail-failure forensics, and an emitted-ROM atlas Pareto lab.
+The engine combines adaptive fixed-point raycasting, banked exact-arithmetic tables, a tile-native material compositor, atomic hidden-page presentation, and VBlank-rate edge-latched input. Its Python toolchain builds the cartridge deterministically and executes the emitted machine code in a cycle-aware playtest harness.
 
 > Inspired by the early-1990s corridor-shooter format, but built from original code, artwork, maps, sounds, and names. No Wolfenstein 3D assets or source are included.
 
@@ -33,7 +33,7 @@ Version **0.5.0** preserves the v0.3 renderer pixel-for-pixel, keeps v0.4's **18
 | CGB double-speed SM83 | 160×96 first-person viewport | 27 automated tests |
 | 4 MiB MBC5, no cartridge RAM | 80 adaptive samples → 160 columns | Nine exact RGB capture oracles |
 | Fixed-point signed-error DDA | Directional materials and face seams | 27-update driven playtest |
-| One-fresh-VBlank page commit | Hybrid static/dynamic tile compositor | Frozen v0.1 ROM hash |
+| One-fresh-VBlank page commit | Hybrid static/dynamic tile compositor | ROM SHA-256 regression oracle |
 
 ### What makes it unusual
 
@@ -47,32 +47,29 @@ Version **0.5.0** preserves the v0.3 renderer pixel-for-pixel, keeps v0.4's **18
 
 ## Performance and fidelity
 
-### v0.5 performance
+The current implementation is measured over a deterministic 27-update driven route with nine RGB capture poses.
 
-Measured over the same 27-update driven coherence route and frozen capture poses:
+| Runtime measurement | Current result |
+|---|---:|
+| Mean cycles/update | **910,156** |
+| Maximum cycles/update | **1,124,732** |
+| Minimum updates/s | **7.458** |
+| Exact RGB captures | **9 / 9** |
+| Maximum dynamic tiles | **54 / 96** |
+| Maximum ray casts | **59** |
+| Unsafe GDMA starts | **0** |
 
-| Measurement | v0.3.0 | v0.5.0 | Change |
-|---|---:|---:|---:|
-| Mean cycles/update | 1,118,243 | **910,156** | **−18.61%** |
-| Maximum cycles/update | 1,264,820 | **1,124,732** | **−11.08%** |
-| Minimum updates/s | 6.632 | **7.458** | **+12.45%** |
-| Exact capture pixels | reference | **9 / 9** | unchanged |
+Geometry fidelity is measured across **24,384 views** and **3,901,440 physical columns** against an independent floating camera-plane oracle.
 
-The route reaches at most 54 dynamic tiles and 59 casts, records zero unsafe GDMA starts, and stays within the 120-block single-VBlank cap.
+| Geometry measurement | Current result |
+|---|---:|
+| Mean wall-top error | **0.243 px** |
+| P95 wall-top error | **0.794 px** |
+| P99 wall-top error | **1.136 px** |
+| Wrong visible wall segment | **0.256%** |
+| Wrong material | **0.0209%** |
 
-### v0.3 geometry retained by v0.5
-
-The stress corpus covers **24,384 views** and **3,901,440 physical columns** against an independent floating camera-plane oracle.
-
-| Measurement | v0.2.2 | v0.3/v0.4/v0.5 |
-|---|---:|---:|
-| Mean wall-top error | 0.334 px | **0.243 px** |
-| P95 wall-top error | 1.256 px | **0.794 px** |
-| P99 wall-top error | 1.953 px | **1.136 px** |
-| Wrong visible wall segment | 0.384% | **0.256%** |
-| Wrong material | 0.0322% | **0.0209%** |
-
-These are project-harness and mathematical results—not original-hardware certification.
+These are project-harness and mathematical results, not original-hardware certification.
 
 ## Quick start
 
@@ -153,16 +150,14 @@ The viewport is represented by 80 compact `{top, style, face, along}` descriptor
 
 Every push and pull request builds the deterministic ROM, runs the full regression suite, executes the driven playtest, and checks the exact pixel oracle in GitHub Actions. CI retains the ROM, build manifest, telemetry report, and contact sheet as downloadable artifacts.
 
-The project deliberately keeps several independent anchors:
+The project deliberately keeps several independent verification anchors:
 
-- the exact v0.1.0 ROM SHA-256 oracle;
-- frozen v0.3.0 RGB pixels at nine capture poses;
+- an exact reference-ROM SHA-256 oracle;
+- frozen RGB pixels at nine capture poses;
 - a retained worst-case geometry certificate plus full tail-failure corpus;
 - independent geometry/material research models;
 - structural checks for cartridge layout, MBC5 banks, LUTs, GDMA safety, and tile reconstruction;
 - clean-room rebuilds of both the staged tree and extracted source archive.
-
-The frozen v0.1.0 generator remains in `tools/build_rom_v1.py`; its oracle ROM SHA-256 is `0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00`.
 
 ## Hardware status
 
@@ -175,8 +170,8 @@ Original Game Boy Color testing has not yet been completed in this environment. 
 | Document | Purpose |
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, renderer, and runtime layout |
-| [v0.4 performance](docs/PERFORMANCE_V4.md) | Optimization plan, experiments, and measured checkpoints |
-| [v0.3 renderer](docs/RENDERER_V3.md) | Geometry reconstruction and material pipeline |
+| [Performance engineering](docs/PERFORMANCE_V4.md) | Optimization experiments, measurements, and current budgets |
+| [Renderer design](docs/RENDERER_V3.md) | Geometry reconstruction and material pipeline |
 | [Development harness](docs/DEVELOPMENT.md) | SM83 execution, playtest scenarios, captures, and telemetry |
 | [Research decisions](docs/RESEARCH_AND_DECISIONS.md) | Hardware research and accepted/rejected techniques |
 | [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Emulator and original-device validation procedure |
@@ -186,7 +181,7 @@ Original Game Boy Color testing has not yet been completed in this environment. 
 
 Lupine 3D is an engine demonstration rather than a complete game. It already includes movement, turning, collision, doors, firing, HUD, weapon, crosshair, muzzle flash, and sound. Enemy/entity rendering, AI, damage, pickups, level progression, animated doors, floor/ceiling texture casting, and saving remain future work.
 
-The demo's enclosed 16×16 map lives in `make_map()` in `tools/build_rom_v1.py`; values `1` and `2` are wall materials, `3` is an openable door, and `0` is empty space.
+The demo uses an enclosed 16×16 map. Cell values `1` and `2` select wall materials, `3` is an openable door, and `0` is empty space.
 
 ## License
 
