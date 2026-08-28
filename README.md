@@ -7,16 +7,14 @@
 **Deterministic · framebuffer-free · engineered for real CGB hardware**
 
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/PowerBeef/Lupine3d?display_name=tag&sort=semver&label=release)](https://github.com/PowerBeef/Lupine3d/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/PowerBeef/Lupine3d/total?label=downloads)](https://github.com/PowerBeef/Lupine3d/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Game%20Boy%20Color-5c2d91.svg)](#hardware-status)
 
-[**Download**](https://github.com/PowerBeef/Lupine3d/releases/latest) · [**Build**](#quick-start) · [**Architecture**](docs/ARCHITECTURE.md) · [**Renderer**](docs/RENDERER_V3.md) · [**Contribute**](CONTRIBUTING.md)
+[**Build**](#quick-start) · [**Architecture**](docs/ARCHITECTURE.md) · [**Renderer**](docs/RENDERER_V3.md) · [**Contribute**](CONTRIBUTING.md)
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D running a first-person corridor scene on Game Boy Color">
 
-<sub>160×96 viewport · 4 MiB MBC5 ROM · 25 automated tests · nine exact visual oracles</sub>
+<sub>160×96 viewport · 4 MiB MBC5 ROM · 27 automated tests · nine exact visual oracles</sub>
 
 </div>
 
@@ -24,7 +22,7 @@
 
 Lupine 3D is an original raycasting engine that turns the Game Boy Color's tile renderer into a coherent first-person world. It targets the real SM83 CPU, CGB VRAM banks, GDMA, OAM, joypad, and audio hardware—without a framebuffer or coprocessor.
 
-Version **0.4.0** preserves the v0.3 renderer pixel-for-pixel while cutting the driven renderer's mean cost by **18.61%** through an HRAM hot-state ABI, an exact boundary-tile atlas, and banked MBC5 arithmetic tables.
+Version **0.5.0** preserves the v0.3 renderer pixel-for-pixel, keeps v0.4's **18.61%** performance gain, and adds VBlank-rate edge-latched input, a modular builder, tail-failure forensics, and an emitted-ROM atlas Pareto lab.
 
 > Inspired by the early-1990s corridor-shooter format, but built from original code, artwork, maps, sounds, and names. No Wolfenstein 3D assets or source are included.
 
@@ -32,7 +30,7 @@ Version **0.4.0** preserves the v0.3 renderer pixel-for-pixel while cutting the 
 
 | Engine | Rendering | Verification |
 |---|---|---|
-| CGB double-speed SM83 | 160×96 first-person viewport | 25 automated tests |
+| CGB double-speed SM83 | 160×96 first-person viewport | 27 automated tests |
 | 4 MiB MBC5, no cartridge RAM | 80 adaptive samples → 160 columns | Nine exact RGB capture oracles |
 | Fixed-point signed-error DDA | Directional materials and face seams | 27-update driven playtest |
 | One-fresh-VBlank page commit | Hybrid static/dynamic tile compositor | Frozen v0.1 ROM hash |
@@ -44,28 +42,29 @@ Version **0.4.0** preserves the v0.3 renderer pixel-for-pixel while cutting the 
 - **Tile-native composition** — static ceiling, floor, seam, and exact boundary-atlas tiles are reused; only the remaining boundary cells are generated.
 - **Banked exact arithmetic** — exhaustive projection and DDA product tables trade plentiful MBC5 ROM space for scarce CPU cycles without changing a pixel.
 - **Atomic presentation** — the hidden tile page and map are committed during one fresh VBlank, then flipped only after both GDMA transfers finish.
+- **Responsive input** — a minimal VBlank ISR latches held state and short button edges without mutating the camera during a render.
 - **Executable evidence** — the harness runs the emitted SM83 program, models bank switching and GDMA, drives the controls, and renders final BG/OBJ pixels.
 
 ## Performance and fidelity
 
-### v0.4 performance
+### v0.5 performance
 
 Measured over the same 27-update driven coherence route and frozen capture poses:
 
-| Measurement | v0.3.0 | v0.4.0 | Change |
+| Measurement | v0.3.0 | v0.5.0 | Change |
 |---|---:|---:|---:|
-| Mean cycles/update | 1,118,243 | **910,143** | **−18.61%** |
-| Maximum cycles/update | 1,264,820 | **1,124,736** | **−11.08%** |
+| Mean cycles/update | 1,118,243 | **910,156** | **−18.61%** |
+| Maximum cycles/update | 1,264,820 | **1,124,732** | **−11.08%** |
 | Minimum updates/s | 6.632 | **7.458** | **+12.45%** |
 | Exact capture pixels | reference | **9 / 9** | unchanged |
 
 The route reaches at most 54 dynamic tiles and 59 casts, records zero unsafe GDMA starts, and stays within the 120-block single-VBlank cap.
 
-### v0.3 geometry retained by v0.4
+### v0.3 geometry retained by v0.5
 
 The stress corpus covers **24,384 views** and **3,901,440 physical columns** against an independent floating camera-plane oracle.
 
-| Measurement | v0.2.2 | v0.3/v0.4 |
+| Measurement | v0.2.2 | v0.3/v0.4/v0.5 |
 |---|---:|---:|
 | Mean wall-top error | 0.334 px | **0.243 px** |
 | P95 wall-top error | 1.256 px | **0.794 px** |
@@ -143,6 +142,7 @@ The viewport is represented by 80 compact `{top, style, face, along}` descriptor
 - Projected-run door frames, centre spine, and material LOD
 - One-row top lip and floor-contact shadow on silhouette tiles
 - Exact boundary atlas with 255 signatures and 121 mirrored VRAM tiles
+- VBlank joypad sampling with OR-latched edges and stable main-loop snapshots
 - Hybrid one-/two-pixel boundary microstrips and a dynamic tile dictionary
 - Maximum 96 generated boundary tiles per frame
 - Separate CGB tile-data banks for the two visible pages
@@ -157,9 +157,10 @@ The project deliberately keeps several independent anchors:
 
 - the exact v0.1.0 ROM SHA-256 oracle;
 - frozen v0.3.0 RGB pixels at nine capture poses;
+- a retained worst-case geometry certificate plus full tail-failure corpus;
 - independent geometry/material research models;
 - structural checks for cartridge layout, MBC5 banks, LUTs, GDMA safety, and tile reconstruction;
-- clean-room rebuilds of both published archives.
+- clean-room rebuilds of both the staged tree and extracted source archive.
 
 The frozen v0.1.0 generator remains in `tools/build_rom_v1.py`; its oracle ROM SHA-256 is `0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00`.
 

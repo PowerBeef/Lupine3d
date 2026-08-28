@@ -1,12 +1,14 @@
-# Lupine 3D v0.4.0 Architecture
+# Lupine 3D v0.5.0 Architecture
 
 ## 1. Design target
 
-Lupine 3D v0.4.0 is a CGB-only first-person grid renderer for a 4 MiB MBC5 cartridge with no external RAM. It is designed around the actual SM83, CGB double-speed mode, two 8 KiB VRAM banks, two background maps, CGB tile attributes, GDMA, OAM, and four-channel audio hardware.
+Lupine 3D v0.5.0 is a CGB-only first-person grid renderer for a 4 MiB MBC5 cartridge with no external RAM. It is designed around the actual SM83, CGB double-speed mode, two 8 KiB VRAM banks, two background maps, CGB tile attributes, GDMA, OAM, interrupts, joypad, and four-channel audio hardware.
 
 The visible renderer remains the v0.3.0 160-column, Q5, selective-recast,
 hybrid-microstrip design. v0.4.0 adds a stable HRAM hot-state ABI, packed DDA
 records, an exact static boundary atlas, and exhaustive MBC5 arithmetic tables.
+v0.5.0 adds VBlank-rate edge-latched input and keeps camera mutation outside
+the interrupt path.
 See `RENDERER_V3.md` for the fidelity pipeline, `PERFORMANCE_V4.md` for the
 optimization architecture, and `DEVELOPMENT.md` for executable validation.
 
@@ -27,7 +29,7 @@ Release constraints:
 ## 2. Frame pipeline
 
 ```text
-read input / update gameplay
+atomically consume latched input / update gameplay
   ↓
 cast 41 mandatory anchor rays
   ↓
@@ -320,7 +322,8 @@ The dynamic tile buffer contains 96×16 = 1,536 bytes. The deterministic researc
 | VRAM region | Bank 0 | Bank 1 |
 |---|---|---|
 | tiles 0–95 | page 0 dynamic tiles | page 1 dynamic tiles |
-| tiles 96–102 | shared static viewport tiles | mirrored static viewport tiles |
+| tiles 96–118 | shared ceiling/floor/seam tiles | mirrored ceiling/floor/seam tiles |
+| tiles 119–239 | exact boundary atlas | mirrored exact boundary atlas |
 | tiles 240–255 | HUD/utility tiles | weapon OBJ tiles |
 
 ### 9.2 Tile maps and attributes
@@ -360,18 +363,27 @@ The final driven-tour maximum is smaller:
 54 tiles × 16 + 384 = 1,248 bytes / 78 blocks
 ```
 
-## 11. Main loop
+## 11. Input cadence and main loop
 
 ```text
-read joypad
-update pressed/held state, movement, door, fire, flash
+DI; sample joypad; atomically consume held/edge latches; EI
+update movement, door, fire, flash from the stable snapshot
 cast adaptive geometry
 compose hidden tiles/map
 wait for VBlank and commit
 repeat
 ```
 
-Input is sampled once per visual update. Player collision and door reach continue to use the stable v0.1.0 gameplay helpers, while wall visibility uses the exact v0.2.0 DDA.
+The VBlank vector at `$0040` jumps to a minimal ISR that saves AF/BC, samples
+the joypad, stores the latest held state, and ORs new rising edges into a
+latch. A press that begins and ends during the multi-VBlank render therefore
+survives until the next main-loop simulation boundary. The ISR never changes
+player position, angle, map state, or renderer state; every cast sees one
+stable pose. Main-loop polling remains in place to preserve immediate response
+when an update happens to begin between VBlanks.
+
+Player collision and door reach continue to use the stable v0.1.0 gameplay
+helpers, while wall visibility uses the exact signed-error DDA.
 
 ## 12. Memory map
 
@@ -399,8 +411,8 @@ Input is sampled once per visual update. Player collision and door reach continu
 
 ### HRAM
 
-`$FF80-$FFE7` is a generated 104-byte ABI for hot DDA, projection, adaptive,
-atlas, and compositor scalars. The builder rejects any allocation beyond
+`$FF80-$FFEA` is a generated 107-byte ABI for hot DDA, projection, adaptive,
+atlas, compositor, and input-latch scalars. The builder rejects any allocation beyond
 `$FFFE`, and the test suite verifies the emitted range. The stack begins at
 `$DFFF` and grows downward. The renderer does not use SRAM.
 
@@ -453,3 +465,9 @@ The geometry-first representation is intended to support later work:
 - floor/ceiling effects where budgets permit.
 
 Any extension should preserve face identity, dynamic-tile bounds, one-VBlank publication, and the frozen regression oracle.
+
+The atlas is explicitly tunable rather than assumed permanent. The measured
+Pareto sweep covers 0, 32, 64, 80, 96, and 121 patterns with real candidate
+ROMs. The full cache is retained for v0.5 because it is fastest; an 80-pattern
+profile is the current content-expansion option, freeing tile IDs 199–239 at a
+2.28% driven mean-cycle cost.

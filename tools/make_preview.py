@@ -46,7 +46,7 @@ def comparison_image(v1_image: Image.Image, v2_image: Image.Image) -> Image.Imag
     draw = ImageDraw.Draw(canvas)
     font = ImageFont.load_default()
     draw.text((5, 5), "v0.1.0 — 40 columns", font=font, fill=(240, 240, 240))
-    draw.text((165, 5), "v0.4.0 — exact + faster", font=font, fill=(240, 240, 240))
+    draw.text((165, 5), "v0.5.0 — exact + responsive", font=font, fill=(240, 240, 240))
     return canvas.resize((canvas.width * 3, canvas.height * 3), Image.Resampling.NEAREST)
 
 
@@ -82,7 +82,7 @@ def main() -> None:
     old = CGB(v1_rom, v1_assembler.labels)
     old.button_provider = preview_input
     old.run(until_swaps=10, max_steps=6_000_000)
-    compare_path = v2.BUILD / "lupine3d_v010_v040_comparison.png"
+    compare_path = v2.BUILD / "lupine3d_v010_v050_comparison.png"
     comparison_image(old.render_screen(), raw_frames[9]).save(compare_path, optimize=True)
 
     print(f"Wrote {still_path}")

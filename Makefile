@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test research research-v3 research-atlas verify playtest qa preview package clean
+.PHONY: all setup build test research research-v3 research-atlas research-atlas-pareto research-tail verify playtest qa preview package clean
 
 all: build
 
@@ -21,6 +21,12 @@ research-v3:
 
 research-atlas:
 	$(PYTHON) research/build_tile_atlas_v4.py
+
+research-atlas-pareto:
+	$(PYTHON) research/build_tile_atlas_v4.py --pareto
+
+research-tail:
+	$(PYTHON) research/tail_failure_lab.py
 
 verify: build test research
 	$(PYTHON) tools/release_check.py

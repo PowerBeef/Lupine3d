@@ -249,7 +249,11 @@ def write_csv(results: dict[str, object], path: Path) -> None:
         data = results[version]
         rows.append({"version": version, **data})
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=sorted({key for row in rows for key in row}))
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=sorted({key for row in rows for key in row}),
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(rows)
 

@@ -78,6 +78,8 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
             "last_dynamic_tiles": cgb.read8(v2.DYN_COUNT),
             "dynamic_tile_high_water": cgb.read8(v2.DYN_HIGH_WATER),
             "dynamic_tile_overflow": cgb.read8(v2.DYN_OVERFLOW),
+            "vblank_interrupts": sum(event["bit"] == 0 for event in cgb.interrupt_events),
+            "input_samples": cgb.read8(v2.INPUT_SAMPLE_COUNT),
         })
     return cgb, report
 
@@ -123,6 +125,12 @@ def main() -> None:
     if not atlas_research_path.exists():
         raise SystemExit("missing v0.4 atlas research; run `make research-atlas`")
     atlas_research = json.loads(atlas_research_path.read_text(encoding="utf-8"))
+    pareto_path = ROOT / "research" / "results" / "tile_atlas_pareto_v5.json"
+    tail_path = ROOT / "research" / "results" / "tail_failures_v4.json"
+    if not pareto_path.exists() or not tail_path.exists():
+        raise SystemExit("missing v0.5 atlas/tail research; run `make research-atlas-pareto research-tail`")
+    pareto = json.loads(pareto_path.read_text(encoding="utf-8"))
+    tail = json.loads(tail_path.read_text(encoding="utf-8"))
     playtest_path = ROOT / "build" / "playtest" / "coherence_tour" / "report.json"
     if not playtest_path.exists():
         raise SystemExit("missing driven playtest report; run `make playtest`")
@@ -154,7 +162,17 @@ def main() -> None:
         "driven_playtest_max_under_1_150k": int(playtest["summary"]["max_cycles"]) < 1_150_000,
         "atlas_exact_signature_entries_255": atlas_research["signature_entries"] == 255,
         "atlas_patterns_fit_vram_121": atlas_research["atlas_patterns"] == 121,
-        f"automated_test_inventory_{automated_tests}": automated_tests >= 25,
+        "atlas_pareto_full_cache_fastest": min(
+            pareto["candidates"], key=lambda item: item["driven_route"]["mean_cycles"]
+        )["atlas_patterns"] == 121,
+        "tail_corpus_all_large_errors_are_segment_events": (
+            tail["tail"]["columns_at_or_above_threshold"] > 0
+            and tail["tail"]["tail_columns_with_correct_segment"] == 0
+        ),
+        "vblank_input_sampling_enabled": bool(v2_manifest["vblank_input_sampling"]),
+        "input_edge_latching_enabled": bool(v2_manifest["input_edge_latching"]),
+        "interrupts_do_not_mutate_render_pose": not bool(v2_manifest["render_pose_mutated_by_interrupts"]),
+        f"automated_test_inventory_{automated_tests}": automated_tests >= 27,
         "material_full_width_contrast_bands_zero": int(v2_manifest["full_width_contrast_bands"]) == 0,
     }
     if not all(checks.values()):
@@ -175,6 +193,8 @@ def main() -> None:
         "scripted_two_transfers_per_commit": bool(v2_action["all_commits_two_transfers"]),
         "stationary_no_unsafe_gdma": v2_stationary["gdma_vblank_violations"] == 0,
         "scripted_no_unsafe_gdma": v2_action["gdma_vblank_violations"] == 0,
+        "stationary_vblank_input_interrupts": v2_stationary["vblank_interrupts"] > 0,
+        "scripted_vblank_input_interrupts": v2_action["vblank_interrupts"] > 0,
     }
     checks.update(runtime_checks)
     if not all(runtime_checks.values()):
@@ -182,7 +202,7 @@ def main() -> None:
         raise SystemExit(f"runtime validation failed: {failed}")
 
     v2_action_cgb.render_screen().save(v2.BUILD / "harness_action.png")
-    v2_action_cgb.render_screen().save(v2.BUILD / "harness_action_v040.png")
+    v2_action_cgb.render_screen().save(v2.BUILD / "harness_action_v050.png")
     v1_action_cgb.render_screen().save(v2.BUILD / "harness_action_v010.png")
 
     v2_routines = measure_routines(v2_rom, v2_assembler.labels, ("cast_all", "render_view"), CURRENT_VERSION)
@@ -233,6 +253,8 @@ def main() -> None:
             "rom_banks": v2_manifest["rom_banks"],
             "projection_lut_bytes": v2_manifest["projection_lut_bytes"],
             "product_lut_bytes": v2_manifest["product_lut_bytes"],
+            "vblank_input_sampling": v2_manifest["vblank_input_sampling"],
+            "input_edge_latching": v2_manifest["input_edge_latching"],
             "estimated_maximum_gdma_microseconds": round(int(v2_manifest["maximum_commit_blocks"]) * 8.0, 3),
             "estimated_vblank_microseconds": round(DOTS_PER_LINE * VBLANK_LINES / CGB_CLOCK_HZ * 1_000_000, 3),
         },
@@ -249,6 +271,10 @@ def main() -> None:
             "exact_atlas_patterns": atlas_research["atlas_patterns"],
             "exact_atlas_signatures": atlas_research["signature_entries"],
             "exact_atlas_coverage_pct": round(atlas_research["coverage_pct"], 3),
+            "atlas_pareto_candidates": len(pareto["candidates"]),
+            "tail_threshold_px": tail["threshold_px"],
+            "tail_columns_at_or_above_threshold": tail["tail"]["columns_at_or_above_threshold"],
+            "tail_columns_with_correct_segment": tail["tail"]["tail_columns_with_correct_segment"],
             "full_results": "research/results/rendering_v3_results.json",
         },
         "driven_playtest": playtest["summary"],

@@ -121,6 +121,8 @@ LCD frames spent rendering, but would not publish the single staging buffer
 earlier. Asynchronous HBlank DMA would require a second 1,920-byte staging
 buffer and still stalls the CPU for each block. Neither path offers a measured
 throughput win for this workload, so v0.4 keeps the simpler proven commit.
+This rejection applies to asynchronous *publication*, not to the minimal
+input-only VBlank sampler added in v0.5.
 
 ### Residual per-frame signature cache
 
@@ -134,3 +136,28 @@ The project harness now models the MBC5 nine-bit ROM-bank register and runs all
 ROM-vs-host probes through real bank switches. Original Game Boy Color and an
 independent cycle-accurate emulator remain required for hardware certification.
 Use `docs/HARDWARE_TEST_CHECKLIST.md`.
+
+## v0.5 follow-up measurements
+
+The v0.5 input ISR samples once per VBlank, latches rising edges, and never
+mutates camera or map state. On the same 27-update route it records 910,156
+mean cycles and a 1,124,732-cycle maximum, while all nine RGB captures and all
+GDMA ordering checks remain exact. Its work largely replaces time the old loop
+would later spend polling for VBlank, so wall-clock throughput is effectively
+unchanged.
+
+The exact-atlas Pareto tool builds and drives real candidate ROMs:
+
+| Patterns | Freed tile IDs | Corpus coverage | Driven mean cycles |
+|---:|---:|---:|---:|
+| 0 | 121 | 0.000% | 977,808 |
+| 32 | 89 | 29.056% | 951,775 |
+| 64 | 57 | 37.053% | 941,367 |
+| 80 | 41 | 38.909% | 930,959 |
+| 96 | 25 | 40.223% | 930,964 |
+| 121 | 0 | 41.377% | **910,156** |
+
+The non-monotonic 80/96 result comes from exact-signature bucket composition:
+more patterns can select a different 255-entry signature set and increase
+comparison work. v0.5 retains 121 patterns for speed and preserves 80 patterns
+as the measured content-capacity profile.

@@ -1,4 +1,4 @@
-# Lupine 3D v0.4.0 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D v0.5.0 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.4.0 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.4.0_SHA256SUMS.txt` |
+| ROM version | 0.5.0 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.5.0_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -32,6 +32,7 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] Collision blocks every outer wall.
 - [ ] A produces shot sound and visible muzzle flash.
 - [ ] B opens the door when directly ahead.
+- [ ] Very short A/B taps are not lost during visually complex updates.
 - [ ] Weapon/crosshair remain stable.
 - [ ] Page flips show no tearing or mixed old/new tiles.
 - [ ] Run for at least 30 minutes without lockup.
@@ -65,6 +66,8 @@ same VBlank:     LCDC map bit flips after both transfers
 - [ ] Walk into north, west, south, and east outer boundaries.
 - [ ] Open the door and walk through its former cell.
 - [ ] Fire repeatedly while moving/turning.
+- [ ] Alternate brief A/B taps while turning; verify one action per tap and no
+  stuck held state.
 - [ ] Observe for transient tiles, alternating attributes, or page tearing.
 - [ ] Leave the ROM running for at least 60 minutes.
 - [ ] Repeat on a second CGB or flash cartridge when available.

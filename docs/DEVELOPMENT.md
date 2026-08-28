@@ -33,13 +33,16 @@ and is intentionally excluded from release archives.
 | `make playtest` | Drive the default gameplay scenario and capture artifacts |
 | `make research-v3` | Run the retained v0.2.2/v0.3.0 fidelity corpus |
 | `make research-atlas` | Regenerate the v0.4 exact boundary atlas |
+| `make research-atlas-pareto` | Build and drive candidate atlas sizes without changing production assets |
+| `make research-tail` | Scan and preserve rare geometry-tail failures |
 | `make qa` | Build, test, playtest, and run the fidelity research gate |
 
 ## Playtest scenario format
 
 `tools/playtest.py` executes the emitted ROM in `tools/sm83emu.py`. Inputs are
-sampled at the ROM's real `main_loop` boundary; each scenario update ends only
-after the hidden page has been committed and displayed.
+sampled at the main-loop boundary and every VBlank. Rising edges are retained
+until the next stable simulation step; each scenario update ends only after
+the hidden page has been committed and displayed.
 
 ```json
 {
@@ -88,6 +91,29 @@ Outputs include individual PNGs, `playtest.gif`, `contact_sheet.png`, and
 commit blocks, and validation results.
 
 The harness models the MBC5 nine-bit ROM-bank register used by the exact
-projection/product tables. It remains project-scoped evidence, not a replacement for SameBoy/mGBA and
+projection/product tables, VBlank IF generation, interrupt dispatch, EI delay,
+RETI, and live joypad reads. It remains project-scoped evidence, not a replacement for SameBoy/mGBA and
 original Game Boy Color testing. Use `docs/HARDWARE_TEST_CHECKLIST.md` before a
 hardware-certified release.
+
+## Builder boundaries
+
+`tools/build_rom.py` is the stable compatibility facade and final linker. The
+v0.5 implementation is split under `tools/lupine3d_v4/`:
+
+- `layout.py`: hardware addresses, HRAM ABI, cartridge and renderer constants;
+- `resources.py`: tables, palettes, tiles, and generated resource bytes;
+- `reference.py`: host geometry and compositor oracles;
+- `emitter.py`: emitted SM83 routines.
+
+Research and tests should continue importing `build_rom`; the facade preserves
+the established public API while the implementation modules remain narrow.
+
+## Exceptional-tail workflow
+
+`research/tail_failure_lab.py` scans the full 24,384-view corpus and writes
+JSON, CSV, and a comparison sheet. Each retained event includes the pose,
+physical column, expected and actual segment identities, top values, material,
+cast counters, and local map neighborhood. The regression suite also freezes
+one known 41-pixel occlusion-discontinuity case so a future narrow fallback can
+be evaluated against a stable certificate rather than a single maximum number.

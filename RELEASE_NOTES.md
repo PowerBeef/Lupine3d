@@ -1,4 +1,36 @@
-# Lupine 3D 0.4.0
+# Lupine 3D 0.5.0
+
+## Responsive, inspectable engine core
+
+v0.5.0 preserves every accepted v0.3 RGB capture and the v0.4 rendering
+architecture while making input, research, and maintenance safer.
+
+### Engine changes
+
+- Added a minimal VBlank interrupt sampler. It records the latest held state
+  and OR-latches rising edges, while all movement and pose mutation remain in
+  the main loop.
+- Main-loop input consumption is atomic and uses a stable held-state snapshot.
+  A short press that begins and ends during a long render is therefore acted
+  on at the next simulation boundary instead of being lost.
+- Extended the project emulator with VBlank IF generation, interrupt dispatch,
+  EI delay, RETI behavior, and live joypad sampling.
+- Split the 90 KB ROM builder into layout, resources, reference-model, emitter,
+  and linker modules while preserving the public `build_rom` API.
+
+### Research and verification changes
+
+- Added a full tail-failure corpus with pose, physical column, expected/actual
+  face, top error, map neighborhood, CSV/JSON evidence, and a visual sheet.
+- Added an emitted-ROM exact-atlas Pareto study. The full 121-pattern cache is
+  retained because it remains fastest; the 80-pattern option frees 41 tile IDs
+  at a measured 2.28% mean-cycle cost.
+- Added regression certificates for the known 41-pixel tail case and for a
+  one-frame A-button pulse captured during rendering.
+- Expanded the suite from 25 to 27 tests. All nine RGB captures remain exact;
+  the driven mean is 910,156 cycles/update with zero unsafe GDMA starts.
+
+## v0.4.0 exact-fidelity performance architecture
 
 ## Exact-fidelity performance architecture
 

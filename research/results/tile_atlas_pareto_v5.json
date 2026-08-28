@@ -1,0 +1,257 @@
+{
+  "corpus_views": 24384,
+  "dynamic_tile_instances": 724362,
+  "unique_signatures": 28090,
+  "atlas_tile_base": 119,
+  "available_atlas_tile_ids": 121,
+  "elapsed_seconds": 131.2841403079983,
+  "correctness_contract": "all atlas hits are byte-exact; every miss uses the unchanged exact compositor",
+  "candidates": [
+    {
+      "atlas_patterns": 0,
+      "vram_tile_ids": 0,
+      "freed_tile_ids": 121,
+      "signature_entries": 0,
+      "covered_instances": 0,
+      "coverage_pct": 0.0,
+      "corpus_mean_dynamic_tiles": 29.7064468503937,
+      "corpus_max_dynamic_tiles": 64,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 0,
+      "asset_bytes": 512,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "6eb3edea0ff2e888af71b9142e6ce37844034beace8c2c0a790a8b9bc0613b09",
+        "updates": 27,
+        "mean_cycles": 977807.7037037037,
+        "max_cycles": 1124372,
+        "min_updates_per_second": 7.460705175867062,
+        "mean_dynamic_tiles": 39.925925925925924,
+        "max_dynamic_tiles": 62,
+        "gdma_vblank_violations": 0
+      }
+    },
+    {
+      "atlas_patterns": 32,
+      "vram_tile_ids": 32,
+      "freed_tile_ids": 89,
+      "signature_entries": 255,
+      "covered_instances": 210472,
+      "coverage_pct": 29.05619013697571,
+      "corpus_mean_dynamic_tiles": 21.074885170603675,
+      "corpus_max_dynamic_tiles": 60,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 10,
+      "asset_bytes": 3829,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 512,
+          "sha256": "d564d936bd0a33a45782c975e84d58cd946c8a6fc58c4d79fdce8f1758c281e6"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "6d46bbe75b1f60ac01796f35a20931c85510efc3519ae4f85ede62b3e2515ce6"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "b0871b483fbf46f0787e8e94f63d70b7522d925e72d58e45ba230c6f652354d3"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 2805,
+          "sha256": "9288547b53d87862db1c5fd246fc5a6d5de5f1bc64245b9de27c64b32b572d0b"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "2acb5a6831baa23db7a835e873fc2713e2fabd9a17722ba594e6b709d1b1fcfc",
+        "updates": 27,
+        "mean_cycles": 951774.9629629629,
+        "max_cycles": 1124612,
+        "min_updates_per_second": 7.4591130096424365,
+        "mean_dynamic_tiles": 33.7037037037037,
+        "max_dynamic_tiles": 54,
+        "gdma_vblank_violations": 0
+      }
+    },
+    {
+      "atlas_patterns": 64,
+      "vram_tile_ids": 64,
+      "freed_tile_ids": 57,
+      "signature_entries": 255,
+      "covered_instances": 268398,
+      "coverage_pct": 37.053020451100416,
+      "corpus_mean_dynamic_tiles": 18.699311023622048,
+      "corpus_max_dynamic_tiles": 58,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 9,
+      "asset_bytes": 4341,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 1024,
+          "sha256": "8a4863f11f1cd9bfdadb52ae7337fada3afbc2e5075e9b2cafe9e0da0d27087e"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "aa514b8c3c3d4d68802258c57d430e3f91f0e0bd55025e4aab458849685b442c"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "1cfdfc6bd8918b9398742d492e517ea5bcd4c234e3959c4fa1bdd446b563e852"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 2805,
+          "sha256": "1b85d259825ed313641c3c1dc97cf1bca7376367dec0932832193786cc41ef00"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "6f3159721c110a595b0ca3af3c5e479bb3e86f223368bff4ad1a4c04e4285feb",
+        "updates": 27,
+        "mean_cycles": 941366.8148148148,
+        "max_cycles": 1124592,
+        "min_updates_per_second": 7.45924566420533,
+        "mean_dynamic_tiles": 33.03703703703704,
+        "max_dynamic_tiles": 54,
+        "gdma_vblank_violations": 0
+      }
+    },
+    {
+      "atlas_patterns": 80,
+      "vram_tile_ids": 80,
+      "freed_tile_ids": 41,
+      "signature_entries": 255,
+      "covered_instances": 281842,
+      "coverage_pct": 38.90899853940433,
+      "corpus_mean_dynamic_tiles": 18.14796587926509,
+      "corpus_max_dynamic_tiles": 58,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 9,
+      "asset_bytes": 4597,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 1280,
+          "sha256": "1f4c45749e0101709e8c153e12e71a5600f16260893e8c8e2cf24df50a993a3b"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "150111e08cbc40c567ed73280d0cba3b851d17979fc40933de2e6bcf3fdff86d"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "38a1e2a81c810c644e114b27e498216ac403418bda59a88de18054671c6fe411"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 2805,
+          "sha256": "23f0899a5a1a93963ca8893c0468c46a9d5e73fb6d8c24b756ffd0374177306e"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "4bf812f88da8daa84760ef0508040daa29ce6cdbb492b1bf84bb24a990d147f4",
+        "updates": 27,
+        "mean_cycles": 930958.9629629629,
+        "max_cycles": 1124332,
+        "min_updates_per_second": 7.4609706029891525,
+        "mean_dynamic_tiles": 32.0,
+        "max_dynamic_tiles": 50,
+        "gdma_vblank_violations": 0
+      }
+    },
+    {
+      "atlas_patterns": 96,
+      "vram_tile_ids": 96,
+      "freed_tile_ids": 25,
+      "signature_entries": 255,
+      "covered_instances": 291357,
+      "coverage_pct": 40.22256827387411,
+      "corpus_mean_dynamic_tiles": 17.757750984251967,
+      "corpus_max_dynamic_tiles": 58,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 10,
+      "asset_bytes": 4853,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 1536,
+          "sha256": "684632d294ef60604525f168f93aa3ed579fee216f0578d6262f24d58dc43165"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "19e51175cafe1c1aba98de550fa69bd5809a56ff805c37dc72ab4680d5e2b834"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "f1e63454799328bfa1e5a5e89a2afe78a81263b98cbf1f61c9e5386765b84424"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 2805,
+          "sha256": "120da8372b4a960334ec8d76a592047b2216eae6670b2498fc0364fd91607073"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "1eaf7d35b410e6461df257a56056c4ad6a0b4ce2bbf7203233416866ccb74de9",
+        "updates": 27,
+        "mean_cycles": 930964.0,
+        "max_cycles": 1124584,
+        "min_updates_per_second": 7.459298727351625,
+        "mean_dynamic_tiles": 32.074074074074076,
+        "max_dynamic_tiles": 52,
+        "gdma_vblank_violations": 0
+      }
+    },
+    {
+      "atlas_patterns": 121,
+      "vram_tile_ids": 121,
+      "freed_tile_ids": 0,
+      "signature_entries": 255,
+      "covered_instances": 299718,
+      "coverage_pct": 41.376825399454965,
+      "corpus_mean_dynamic_tiles": 17.41486220472441,
+      "corpus_max_dynamic_tiles": 58,
+      "corpus_overflow_views": 0,
+      "max_bucket_entries": 11,
+      "asset_bytes": 5253,
+      "assets": {
+        "tile_atlas_tiles.bin": {
+          "bytes": 1936,
+          "sha256": "274e8d2154dbf1a749b71488de732d76d174768c3c964b755537e6a4f79f303e"
+        },
+        "tile_atlas_bucket_start.bin": {
+          "bytes": 256,
+          "sha256": "5eda3adf38a41ae0cad866548ce8cc5eb6d2135ba2672e8f9488dccbbb5e7423"
+        },
+        "tile_atlas_bucket_count.bin": {
+          "bytes": 256,
+          "sha256": "f9c139be4f415221c119d33565962f06a98eeafa4dc40441fd4002507f62cea5"
+        },
+        "tile_atlas_entries.bin": {
+          "bytes": 2805,
+          "sha256": "533cda4b684a0bc2eda5af885efecbb8d5f8b8a4f384498601a0a74852c3535f"
+        }
+      },
+      "driven_route": {
+        "rom_sha256": "e9ba62669d50c624a201ce8bb51fe3f3fb878f75b534392b3373564ae656bfc8",
+        "updates": 27,
+        "mean_cycles": 910155.8518518518,
+        "max_cycles": 1124732,
+        "min_updates_per_second": 7.458317181337421,
+        "mean_dynamic_tiles": 31.62962962962963,
+        "max_dynamic_tiles": 54,
+        "gdma_vblank_violations": 0
+      }
+    }
+  ]
+}

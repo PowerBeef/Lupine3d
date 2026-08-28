@@ -9,9 +9,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "research"))
 
 import build_rom as br  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
+import tail_failure_lab as tail_lab  # noqa: E402
 from sm83emu import CGB  # noqa: E402
 
 BASELINE_SHA256 = "0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00"
@@ -49,7 +51,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(rom[0x0147], 0x19)
         self.assertEqual(rom[0x0148], 0x07)
         self.assertEqual(rom[0x0149], 0x00)
-        self.assertEqual(rom[0x014C], 0x04)
+        self.assertEqual(rom[0x014C], 0x05)
+        self.assertEqual(rom[0x0040], 0xC3)
+        self.assertEqual(rom[0x0041] | (rom[0x0042] << 8), self.symbols["vblank_isr"])
         self.assertLessEqual(br.HRAM_BYTES_USED, 0x7F)
         self.assertTrue(all(0xFF80 <= address <= 0xFFFE for address in br.HRAM_LAYOUT.values()))
         header = 0
@@ -71,6 +75,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertTrue(self.manifest["projection_lut_exact"])
         self.assertEqual(self.manifest["product_lut_bytes"], br.PRODUCT_LUT_BYTES)
         self.assertTrue(self.manifest["product_lut_exact"])
+        self.assertTrue(self.manifest["vblank_input_sampling"])
+        self.assertTrue(self.manifest["input_edge_latching"])
+        self.assertFalse(self.manifest["render_pose_mutated_by_interrupts"])
         self.assertEqual(self.manifest["sha256"], hashlib.sha256(rom).hexdigest())
 
     def test_build_is_deterministic_and_v1_oracle_is_frozen(self) -> None:
@@ -348,6 +355,17 @@ class Lupine3DTests(unittest.TestCase):
         self.assertLess(statistics.fmean(cast_counts), 47.0)
         self.assertLess(statistics.fmean(dynamic_counts), 35.0)
 
+    def test_tail_failure_certificate_preserves_worst_case_evidence(self) -> None:
+        records, summary = tail_lab.inspect_pose(2688, 2944, 12)
+        record = next(item for item in records if item.physical_column == 153)
+        self.assertEqual(record.top_error_px, 41.0)
+        self.assertTrue(record.wrong_segment)
+        self.assertFalse(record.wrong_material)
+        self.assertEqual(record.actual_segment, "H:15:1-14:m1:N")
+        self.assertEqual(record.expected_segment, "H:12:7-10:m1:N")
+        self.assertEqual(record.map_neighborhood, ("00010", "11110", "00P00", "11100", "00000"))
+        self.assertEqual(summary["max_top_error_px"], 41.0)
+
     def test_full_120_block_commit_fits_one_vblank(self) -> None:
         cgb = self.boot_to_main()
         for i in range(br.DYNAMIC_TILE_CAPACITY * 16):
@@ -412,6 +430,29 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.ANGLE), 12)
         self.assertEqual(cgb.page_swaps, 7)
         self.assertEqual(cgb.io[0x40] & 0x08, 0x08)
+
+    def test_vblank_sampler_latches_a_press_during_a_long_render(self) -> None:
+        cgb = self.boot_to_main()
+        self.assertEqual(cgb.ie & 1, 1)
+        self.assertTrue(cgb.ime)
+        start_frame = cgb.frame_count
+        start_samples = cgb.read8(br.INPUT_SAMPLE_COUNT)
+        pulse_frame = start_frame + 2
+        cgb.button_provider = lambda _iteration, _swaps: 0x10 if cgb.frame_count == pulse_frame else 0
+
+        # The pulse occurs after input consumption and disappears before the
+        # visual update finishes. It must survive in the edge latch.
+        cgb.run(until_swaps=1, max_steps=3_000_000)
+        self.assertEqual(cgb.read8(br.FLASH), 0)
+        self.assertEqual(cgb.read8(br.INPUT_EDGE_LATCH) & 0x10, 0x10)
+        self.assertGreaterEqual((cgb.read8(br.INPUT_SAMPLE_COUNT) - start_samples) & 0xFF, 2)
+        self.assertTrue(any(event["bit"] == 0 for event in cgb.interrupt_events))
+
+        # The next stable simulation step consumes the preserved edge even
+        # though the button is no longer held.
+        cgb.run(until_swaps=2, max_steps=3_000_000)
+        self.assertGreater(cgb.read8(br.FLASH), 0)
+        self.assertEqual(cgb.read8(0xFF14), 0xC7)
 
     def test_collision_blocks_world_boundary(self) -> None:
         cgb = self.boot_to_main()

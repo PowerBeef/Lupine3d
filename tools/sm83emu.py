@@ -22,6 +22,7 @@ H = 0x20
 C = 0x10
 
 P1 = 0xFF00
+IF = 0xFF0F
 LCDC = 0xFF40
 LY = 0xFF44
 KEY1 = 0xFF4D
@@ -75,6 +76,7 @@ class CGB:
         self.sp = 0xFFFE
         self.pc = 0x0100
         self.ime = False
+        self._ime_enable_delay = 0
         self.halted = False
         self.double_speed = False
         self.cycles = 0
@@ -90,6 +92,7 @@ class CGB:
         self.gdma_events: list[dict[str, int | bool]] = []
         self.commit_events: list[dict[str, object]] = []
         self.gdma_vblank_violations = 0
+        self.interrupt_events: list[dict[str, int]] = []
         self._pending_commit_event_indexes: list[int] = []
         self.last_lcdc = 0x91
         self.io[LCDC & 0x7F] = 0x91
@@ -269,6 +272,10 @@ class CGB:
         self.write8((addr + 1) & 0xFFFF, (value >> 8) & 0xFF)
 
     def _read_p1(self) -> int:
+        # Input is an external signal, so expose provider changes at each
+        # electrical sample rather than only once per visual update.
+        if self.button_provider:
+            self.buttons = self.button_provider(self.main_iterations, self.page_swaps) & 0xFF
         select = self.io[P1 & 0x7F] & 0x30
         low = 0x0F
         if not (select & 0x10):
@@ -378,6 +385,8 @@ class CGB:
             while self.ppu_dots >= 456:
                 self.ppu_dots -= 456
                 self.ly += 1
+                if self.ly == 144:
+                    self.io[IF & 0x7F] |= 0x01
                 if self.ly >= 154:
                     self.ly = 0
                     self.frame_count += 1
@@ -429,6 +438,30 @@ class CGB:
 
     # ----- instruction execution ----------------------------------------
     def step(self) -> int:
+        pending = self.ie & self.io[IF & 0x7F] & 0x1F
+        if self.halted:
+            if pending:
+                self.halted = False
+            else:
+                self.steps += 1
+                self._tick(4)
+                return 4
+        if self.ime and pending:
+            bit = next(index for index in range(5) if pending & (1 << index))
+            vector = 0x40 + bit * 8
+            self.ime = False
+            self._ime_enable_delay = 0
+            self.io[IF & 0x7F] &= ~(1 << bit)
+            old_pc = self.pc
+            self.push16(old_pc)
+            self.pc = vector
+            self.interrupt_events.append({
+                "bit": bit, "vector": vector, "pc": old_pc,
+                "frame": self.frame_count, "ly": self.ly,
+            })
+            self.steps += 1
+            self._tick(20)
+            return 20
         if self.pc in self.breakpoints:
             self.breakpoints[self.pc](self)
         start_pc = self.pc
@@ -551,7 +584,7 @@ class CGB:
                 if self.condition(cond): self.push16(self.pc); self.pc = target; cycles = 24
                 else: cycles = 12
             elif op == 0xC9: self.pc = self.pop16(); cycles = 16
-            elif op == 0xD9: self.pc = self.pop16(); self.ime = True; cycles = 16
+            elif op == 0xD9: self.pc = self.pop16(); self.ime = True; self._ime_enable_delay = 0; cycles = 16
             elif op in (0xC0, 0xC8, 0xD0, 0xD8):
                 cond = (op >> 3) & 3
                 if self.condition(cond): self.pc = self.pop16(); cycles = 20
@@ -573,8 +606,8 @@ class CGB:
             elif op == 0xEA: self.write8(self.fetch16(), self.a); cycles = 16
             elif op == 0xFA: self.a = self.read8(self.fetch16()); cycles = 16
             elif op == 0xF9: self.sp = self.hl; cycles = 8
-            elif op == 0xF3: self.ime = False; cycles = 4
-            elif op == 0xFB: self.ime = True; cycles = 4
+            elif op == 0xF3: self.ime = False; self._ime_enable_delay = 0; cycles = 4
+            elif op == 0xFB: self._ime_enable_delay = 2; cycles = 4
             elif op == 0x76: self.halted = True; cycles = 4
             else:
                 label = next((name for name, addr in self.symbols.items() if addr == start_pc), "")
@@ -582,6 +615,10 @@ class CGB:
 
         self.steps += 1
         self._tick(cycles)
+        if self._ime_enable_delay:
+            self._ime_enable_delay -= 1
+            if not self._ime_enable_delay:
+                self.ime = True
         return cycles
 
     def call_subroutine(self, target: int | str, *, max_steps: int = 1_000_000,
