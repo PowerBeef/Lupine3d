@@ -262,7 +262,14 @@ def reference_pixel_descriptor_view(
             events += 1
         elif pixel_alongs[i - 1] != pixel_alongs[i] and pixel_tops[i] <= 40:
             material = (pixel_keys[i] >> 5) & 3
-            pixel_styles[i] = TECH_RIB_STYLE if material == 2 else CREASE_STYLE
+            if material == 2:
+                # Machinery panels receive a two-pixel structural rib.  It is
+                # attached to the world-cell boundary, so it moves with the
+                # wall rather than repeating in screen-tile coordinates.
+                pixel_styles[i - 1] = TECH_RIB_STYLE
+                pixel_styles[i] = TECH_RIB_STYLE
+            else:
+                pixel_styles[i] = CREASE_STYLE
             events += 1
 
     # Door features are derived from each contiguous projected run, so the
@@ -314,7 +321,20 @@ def reference_strip_state(top: int, tile_y0: int) -> int:
     return 10 + (bottom - tile_y0)
 
 
-def reference_tile_signature_and_bytes(tops: list[int], styles: list[int], tile_y0: int) -> tuple[bytes, bytes]:
+def surface_detail_mask(styles: list[int]) -> int:
+    """Return a full-width mask only for an unbroken machinery tile.
+
+    Boundary tiles deliberately omit the rail. This small distance/detail LOD
+    prevents the decorative feature from spilling across a material edge and
+    lets those already-expensive silhouettes keep using the exact atlas.
+    """
+    return 0xFF if SURFACE_DETAIL_ENABLED and all(2 <= style < 4 for style in styles) else 0
+
+
+def reference_tile_signature_and_bytes(
+    tops: list[int], styles: list[int], tile_y0: int,
+    detail_mask: int = 0,
+) -> tuple[bytes, bytes]:
     """Return the exact ten-byte signature and 16-byte composed tile."""
     dark_mask = sum((style & 1) << (7 - pixel) for pixel, style in enumerate(styles))
     signature = bytearray((tile_y0, dark_mask, *tops))
@@ -333,6 +353,9 @@ def reference_tile_signature_and_bytes(tops: list[int], styles: list[int], tile_
                 tile[row * 2] |= mask
             if color & 2:
                 tile[row * 2 + 1] |= mask
+    if tile_y0 == SURFACE_RAIL_Y0 and detail_mask:
+        tile[0] |= detail_mask
+        tile[2] &= (~detail_mask) & 0xFF
     return bytes(signature), bytes(tile)
 
 
@@ -360,6 +383,7 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
         min_top = min(col_tops)
         max_top = max(col_tops)
         dark_mask = sum((style & 1) << (7 - pixel) for pixel, style in enumerate(col_styles))
+        detail_mask = surface_detail_mask(col_styles)
         static_wall_tile = make_seam_tile_lookup()[dark_mask]
 
         for tile_row in range(12):
@@ -368,11 +392,18 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
                 tile_id = CEILING_TILE
             elif y0 >= 96 - min_top:
                 tile_id = FLOOR_TILE
-            elif y0 >= max_top and y0 + 7 < 96 - max_top and static_wall_tile:
+            elif (y0 == SURFACE_RAIL_Y0 and detail_mask == 0xFF
+                  and dark_mask in (0x00, 0xFF)
+                  and y0 >= max_top and y0 + 7 < 96 - max_top):
+                tile_id = SURFACE_RAIL_TILE_BASE + int(dark_mask == 0xFF)
+            elif (y0 >= max_top and y0 + 7 < 96 - max_top and static_wall_tile
+                  and not (y0 == SURFACE_RAIL_Y0 and detail_mask)):
                 tile_id = static_wall_tile
             else:
-                signature, tile = reference_tile_signature_and_bytes(col_tops, col_styles, y0)
-                atlas_id = atlas.get(signature)
+                signature, tile = reference_tile_signature_and_bytes(
+                    col_tops, col_styles, y0, detail_mask,
+                )
+                atlas_id = None if y0 == SURFACE_RAIL_Y0 and detail_mask else atlas.get(signature)
                 if atlas_id is not None:
                     tile_id = atlas_id
                 else:

@@ -76,6 +76,33 @@ def emit_palette_init(a: Assembler) -> None:
     a.ret()
 
 
+def emit_hud_system(a: Assembler) -> None:
+    """Emit the live two-digit health and objective-status readouts."""
+    a.label("update_hud_tiles")
+    # Clamp the display to two digits, then divide by ten with at most nine
+    # tiny subtractions. This runs once per completed visual update, in VBlank.
+    a.ld_a_abs(PLAYER_HEALTH); a.cp_n(100); a.jr("hud_health_clamped", "c")
+    a.ld_r_n("a", 99)
+    a.label("hud_health_clamped"); a.ld_r_n("b", 0)
+    a.label("hud_health_tens_loop"); a.cp_n(10); a.jr("hud_health_digits_ready", "c")
+    a.sub_n(10); a.inc_r("b"); a.jr("hud_health_tens_loop")
+    a.label("hud_health_digits_ready"); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "b"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("b", "a")
+    a.ld_r_r("a", "c"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    for base in (0x9800, 0x9C00):
+        a.ld_rr_nn("hl", base + HUD_ROW * 32 + HUD_HEALTH_TENS_X)
+        a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_r_r("a", "c"); a.ld_hl_a()
+
+    # 00 means the objective/exit remains locked; 01 means it is armed.
+    a.ld_r_n("b", HUD_DIGIT_BASE)
+    a.ld_a_abs(EXIT_ACTIVE); a.and_n(1); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
+    for base in (0x9800, 0x9C00):
+        a.ld_rr_nn("hl", base + HUD_ROW * 32 + HUD_STATUS_TENS_X)
+        a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_r_r("a", "c"); a.ld_hl_a()
+    a.ret()
+
+
 def emit_vram_init(a: Assembler) -> None:
     a.label("upload_profile_tiles")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("upload_active_profile_tiles", "z")
@@ -158,6 +185,12 @@ def emit_dma(a: Assembler) -> None:
     # Upload tile numbers to the hidden BG map in VRAM bank 0, preserving
     # the static attribute maps in VRAM bank 1.
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
+    # A pathological 120-block publication consumes the complete measured
+    # VBlank budget. Defer the tiny live-HUD write under the same conservative
+    # threshold used by OAM; the next ordinary frame catches it up.
+    a.ld_a_abs(DYN_COUNT); a.cp_n(REPROJECT_GDMA_THRESHOLD + 1); a.jr("upload_hud_deferred", "nc")
+    a.call("update_hud_tiles")
+    a.label("upload_hud_deferred")
     a.call("update_muzzle_oam"); a.call("publish_oam_if_budget")
     if ENABLE_MICRO_REPROJECTION:
         a.call("reset_reprojection_for_commit")
@@ -615,8 +648,17 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_boundary_done", "z")
     a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("event_boundary_done", "nc")
-    a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x40); a.ld_r_n("a", CREASE_STYLE); a.jr("event_cell_style_ready", "nz"); a.ld_r_n("a", TECH_RIB_STYLE)
-    a.label("event_cell_style_ready"); a.ld_r_r("b", "a"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ld_hl_a()
+    a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x40); a.jr("event_cell_single_crease", "nz")
+    # Material-2 cell transitions are authored machinery-panel boundaries.
+    # Darken the preceding physical pixel as well as the current one to form
+    # a substantial two-pixel rib without any screen-space repetition.
+    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", TECH_RIB_STYLE); a.ld_hl_a()
+    a.jr("event_cell_store_current")
+    a.label("event_cell_single_crease")
+    a.label("event_cell_store_current")
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
     a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT)
     a.label("event_boundary_done")
     a.ld_a_abs(EVENT_INDEX); a.inc_r("a"); a.ld_abs_a(EVENT_INDEX); a.cp_n(PHYSICAL_COLUMNS); a.jp("event_boundary_loop", "c")
@@ -662,6 +704,21 @@ def emit_renderer(a: Assembler) -> None:
         a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ld_a_mem_rr("de")
         a.or_r("c"); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.ret()
+
+    a.label("apply_surface_detail")
+    # Eye height is exactly half a wall, so screen row 48 is a stable world
+    # height for every projected surface. Machinery panels and doors receive
+    # a dark rail plus a bright lower edge without repeating in screen tiles.
+    if SURFACE_DETAIL_ENABLED:
+        a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.ret("nz")
+        a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.ret("nz"); a.ld_r_n("b", 0xFF)
+        load_hl_abs(a, COMPOSE_DST_L, COMPOSE_DST_H)
+        a.ld_a_hl(); a.or_r("b"); a.ld_hl_a()
+        a.inc_rr("hl"); a.inc_rr("hl")
+        a.ld_r_r("a", "b"); a.cpl(); a.ld_r_r("b", "a")
+        a.ld_a_hl(); a.and_r("b"); a.ld_hl_a(); a.ret()
+    else:
+        a.ret()
 
     a.label("compute_strip_state")  # input A top, output A state
     a.ld_r_r("b", "a")
@@ -781,10 +838,15 @@ def emit_renderer(a: Assembler) -> None:
     a.push("hl"); load_hl_abs(a, COMPOSE_DST_L, COMPOSE_DST_H); a.ld_r_r("d", "h"); a.ld_r_r("e", "l"); a.pop("hl"); a.call("or_16")
     a.label("compose_strip_done")
     a.pop("de"); a.pop("hl")
-    a.ld_a_abs(STRIP_KIND); a.inc_r("a"); a.ld_r_r("b", "a"); a.ld_a_abs(STRIP_PAIR); a.add_a_r("b"); a.ld_abs_a(STRIP_PAIR); a.cp_n(8); a.jp("compose_pair_loop", "nz"); a.ret()
+    a.ld_a_abs(STRIP_KIND); a.inc_r("a"); a.ld_r_r("b", "a"); a.ld_a_abs(STRIP_PAIR); a.add_a_r("b"); a.ld_abs_a(STRIP_PAIR); a.cp_n(8); a.jp("compose_pair_loop", "nz")
+    if SURFACE_DETAIL_ENABLED:
+        a.call("apply_surface_detail")
+    a.ret()
 
     a.label("scan_column")
-    a.ld_r_n("a", 0xFF); a.ld_abs_a(MIN_TOP); a.xor_r("a"); a.ld_abs_a(MAX_TOP); a.ld_abs_a(STYLE_DIFF); a.ld_abs_a(DARK_MASK)
+    a.ld_r_n("a", 0xFF); a.ld_abs_a(MIN_TOP); a.xor_r("a"); a.ld_abs_a(MAX_TOP); a.ld_abs_a(DARK_MASK)
+    if SURFACE_DETAIL_ENABLED:
+        a.ld_r_n("a", 2); a.ld_abs_a(DETAIL_MASK)
     load_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H); a.push("hl")
     load_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H); a.ld_r_r("d", "h"); a.ld_r_r("e", "l"); a.pop("hl")
     a.ld_a_mem_rr("de"); a.ld_abs_a(FIRST_STYLE); a.ld_r_n("a", 8); a.ld_abs_a(CLASSIFY_COUNT)
@@ -798,6 +860,12 @@ def emit_renderer(a: Assembler) -> None:
     # All light base styles resolve to colour 2 and all odd render styles to
     # colour 3. Build the exact eight-pixel dark mask for the static seam atlas.
     a.ld_a_abs(DARK_MASK); a.add_a_r("a"); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.and_n(1); a.or_r("c"); a.ld_abs_a(DARK_MASK)
+    # Retain bit 1 only while every physical pixel is machinery material 2.
+    # Mixed boundary/rib tiles conservatively omit the rail and keep using the
+    # established exact atlas; this is both coherent and much cheaper than a
+    # per-pixel decorative mask in the hot compositor scan.
+    if SURFACE_DETAIL_ENABLED:
+        a.ld_a_abs(DETAIL_MASK); a.and_r("b"); a.and_n(2); a.ld_abs_a(DETAIL_MASK)
     a.ld_a_abs(CLASSIFY_COUNT); a.dec_r("a"); a.ld_abs_a(CLASSIFY_COUNT); a.jr("scan_column_loop", "nz"); a.ret()
 
     a.label("classify_row")
@@ -806,6 +874,13 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_r_n("a", 96); a.sub_r("c"); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_Y0); a.cp_r("b"); a.jr("row_floor", "nc")
     a.ld_a_abs(MAX_TOP); a.ld_r_r("c", "a"); a.ld_a_abs(TILE_Y0); a.cp_r("c"); a.jr("row_dynamic", "c")
     a.ld_r_n("a", 96); a.sub_r("c"); a.ld_r_r("c", "a"); a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("c"); a.jr("row_dynamic", "nc")
+    if SURFACE_DETAIL_ENABLED:
+        a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.jr("row_static_lookup", "nz")
+        a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.jr("row_static_lookup", "nz")
+        a.ld_a_abs(DARK_MASK); a.or_r("a"); a.jr("row_surface_rail_light", "z"); a.cp_n(0xFF); a.jr("row_dynamic", "nz")
+        a.ld_r_n("a", SURFACE_RAIL_TILE_BASE + 1); a.ld_abs_a(TILE_ID_RESULT); a.xor_r("a"); a.ld_abs_a(DYNAMIC_FLAG); a.ret()
+        a.label("row_surface_rail_light"); a.ld_r_n("a", SURFACE_RAIL_TILE_BASE); a.ld_abs_a(TILE_ID_RESULT); a.xor_r("a"); a.ld_abs_a(DYNAMIC_FLAG); a.ret()
+    a.label("row_static_lookup")
     a.ld_a_abs(DARK_MASK); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "seam_tile_lookup"); a.add_hl_rr("de"); a.ld_a_hl(); a.or_r("a"); a.jr("row_dynamic", "z")
     a.ld_abs_a(TILE_ID_RESULT); a.xor_r("a"); a.ld_abs_a(DYNAMIC_FLAG); a.ret()
     a.label("row_ceiling"); a.ld_r_n("a", CEILING_TILE); a.ld_abs_a(TILE_ID_RESULT); a.xor_r("a"); a.ld_abs_a(DYNAMIC_FLAG); a.ret()
@@ -827,6 +902,12 @@ def emit_renderer(a: Assembler) -> None:
     a.label("render_row_loop")
     a.call("classify_row")
     a.ld_a_abs(DYNAMIC_FLAG); a.or_r("a"); a.jr("render_static_tile", "z")
+    # The exact atlas key describes silhouettes and light/shadow only. A
+    # decorated half-height tile therefore bypasses it and is composed exactly.
+    if SURFACE_DETAIL_ENABLED:
+        a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.jr("render_atlas_lookup", "nz")
+        a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.jr("render_dynamic_miss", "z")
+    a.label("render_atlas_lookup")
     a.call("build_tile_signature"); a.call("find_atlas_tile"); a.or_r("a"); a.jr("render_dynamic_miss", "z")
     a.ld_abs_a(TILE_ID_RESULT); a.jr("render_write_tile")
     a.label("render_dynamic_miss")

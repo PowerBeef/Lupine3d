@@ -1,0 +1,11 @@
+{
+  "01_entry.png": "5b947bae3e41ef350cca54dce48af7bd02ff7c57420b02b77379abfed44ac57c",
+  "02_entry_forward.png": "bb602483839931839c4155897a05e9420e92f66c1b74385e4c4ccafc28997ce9",
+  "03_corner_turn.png": "3ee72b101720407bbdae3aa18070c477c4a21d2b3f37ceb43de7e5f52511d2ad",
+  "04_corner_approach.png": "db9c7fbca5036a5bf725128f6f49ff4c422cb53398d1bf48fcf124bbadc921c8",
+  "05_door_closed.png": "da387c67d24b0e0de097979d9b6166fe7cfc4566fe77232c20048b037085199d",
+  "06_door_open.png": "ae5b5b45c6a0d617ab16bb3c9be58e58dae4f79ee0e72844ae6feb05b7814338",
+  "07_muzzle_flash.png": "14bfcf95f7b33d2599caccfe733a6c5aac0d235bf408011b9005a8588bacf8b4",
+  "08_material_junction.png": "d87e36043df5cf3d489e7616f7e7c497d1ade17dba4eb8fea4f79ce16a75e880",
+  "09_junction_pan.png": "c0a1a4675e293b27b7f401f5f1e5a4e61c9d06f7a1f6349e67691bf7b962e34d"
+}

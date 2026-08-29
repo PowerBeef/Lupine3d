@@ -163,7 +163,7 @@ def main() -> None:
         "v3_wrong_segments_improved": v3_research["improvement"]["wrong_segment_reduction_pct"] > 25.0,
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
-        "driven_playtest_exact_v030_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
+        "driven_playtest_exact_current_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
         "driven_playtest_mean_under_1m": float(playtest["summary"]["mean_cycles"]) < 1_000_000,
         "driven_playtest_max_under_1_150k": int(playtest["summary"]["max_cycles"]) < 1_150_000,
         "atlas_exact_signature_entries_255": atlas_research["signature_entries"] == 255,

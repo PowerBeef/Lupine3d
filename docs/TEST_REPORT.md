@@ -1,11 +1,11 @@
-# Lupine 3D 0.6.1 test report
+# Lupine 3D 0.6.2 test report
 
 **Software target:** CGB-only, 4 MiB MBC5, no cartridge RAM<br>
 **Physical hardware tested:** no
 
 ## Automated result
 
-All **35 tests pass**. They cover:
+All **36 tests pass**. They cover:
 
 - Nintendo logo, CGB/MBC5/ROM-size fields, version byte and checksums;
 - deterministic 4 MiB output and the frozen reference-ROM SHA-256 oracle;
@@ -13,6 +13,7 @@ All **35 tests pass**. They cover:
 - exact signed-error DDA against host probes;
 - exact 80-ray top/style/face/along/depth/segment records;
 - exact 160-column reconstruction, edge recasts and event grammar;
+- original HUD/weapon payloads, live two-page digits and world-height surface rails;
 - exact atlas signatures, both VRAM profiles and generated entity art;
 - the authored map, safe-spawn certificate, four-door table, compiled level header and stable surface segments;
 - generated tile bytes and complete 384-byte hidden map;
@@ -34,7 +35,7 @@ All **35 tests pass**. They cover:
 |---|---:|
 | Updates | 27 |
 | Captures | 9 |
-| Mean cycles/update | 972,632.148 |
+| Mean cycles/update | 972,658.815 |
 | Maximum cycles/update | 1,124,756 |
 | Minimum updates/s | 7.4582 |
 | Maximum dynamic tiles | 54 / 96 |
@@ -43,9 +44,9 @@ All **35 tests pass**. They cover:
 | Maximum OAM per scanline | 4 / 10 |
 | Unsafe GDMA starts | 0 |
 | Failed checks | 0 |
-| Frozen RGB captures | 9 / 9 exact |
+| Current RGB captures | 9 / 9 exact |
 
-This route runs in `WORLD_MODE_EMPTY`. It proves that the gameplay expansion does not change any accepted wall descriptor, tile byte, hidden map byte or final RGB pixel.
+This route runs in `WORLD_MODE_EMPTY`. It proves every wall descriptor, tile byte, hidden map byte and final 0.6.2 RGB pixel against the byte-exact host and capture oracles. The renderer-heavy profile's maximum cycle count and dynamic-tile high-water mark are unchanged by the presentation pass.
 
 ## Living World route
 
@@ -53,7 +54,7 @@ This route runs in `WORLD_MODE_EMPTY`. It proves that the gameplay expansion doe
 |---|---:|
 | Updates | 26 |
 | Captures | 12 |
-| Mean cycles/update | 788,468.769 |
+| Mean cycles/update | 831,711.077 |
 | Maximum cycles/update | 1,125,776 |
 | Minimum updates/s | 7.4514 |
 | Maximum dynamic tiles | 42 / 96 |
@@ -63,7 +64,7 @@ This route runs in `WORLD_MODE_EMPTY`. It proves that the gameplay expansion doe
 | Unsafe GDMA starts | 0 |
 | Failed checks/state assertions | 0 |
 
-The route begins at the certified safe spawn, independently opens the start airlock, rejects the still-locked exit, reaches the Sentinel, lands three edge-separated shots, verifies health transitions and death/drop/exit activation, collects the medkit, opens the unlocked exit door, observes the beacon, and enters the completion cell.
+The route begins at the certified safe spawn, independently opens the start airlock, rejects the still-locked exit, reaches the Sentinel, lands three edge-separated shots, verifies health transitions and death/drop/exit activation, collects the medkit, opens the unlocked exit door, observes the beacon, and enters the completion cell. The entity-heavy machinery rail adds 5.48% to this route's mean while preserving its 1,125,776-cycle maximum and 42-tile high-water mark.
 
 ## Research gates
 
@@ -75,7 +76,7 @@ The route begins at the certified safe spawn, independently opens the start airl
 - DDA product LUT: 65,536 exact bytes across four MBC5 banks;
 - rare tail: 1,566 columns at or above eight pixels, all segment-selection events;
 - rejected correction experiment: one changed/improved column out of 3,901,440;
-- resident engine: 30,973 bytes, ending at `$7A4D`;
+- resident engine: 31,053 bytes, ending at `$7A9D`;
 - hot HRAM: 111 bytes at `$FF80–$FFEE`, separate from the `$FFF4` DMA stub.
 
 ## Remaining acceptance work

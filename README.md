@@ -14,13 +14,13 @@
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D rendering the Sentinel enemy inside its Game Boy Color first-person world">
 
-<sub>160×96 viewport · 4 MiB MBC5 ROM · 35 automated tests · two driven playtest routes</sub>
+<sub>160×96 viewport · 4 MiB MBC5 ROM · 36 automated tests · two driven playtest routes</sub>
 
 </div>
 
 ---
 
-Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.1 “Hangar Breach”** implementation combines coherent wall geometry with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level.
+Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.2 “Iron & Ash”** implementation combines coherent wall geometry with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level. Its visual language draws on classic industrial-horror shooters while every shipped tile, sprite, map element, and interface graphic remains original to Lupine 3D.
 
 The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG pages, GDMA, OAM, VBlank interrupts, the joypad and audio hardware. There is no bitmap framebuffer, coprocessor, cartridge RAM, imported game code, or borrowed artwork.
 
@@ -32,7 +32,7 @@ The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG 
 | Corrected Q5 wall-depth buffer | Patrol, chase, attack, hurt, death | Deterministic Python ROM builder |
 | Build-time wall-segment IDs | Exact-grid line of sight | One-VBlank GDMA page publication |
 | Exact boundary-tile cache | Wall-clipped size-LOD billboards | Atomic shadow-OAM DMA |
-| World-anchored material grammar | Hitscan, damage, medkit and exit | VBlank-rate edge-latched input |
+| Oxidized panels, structural ribs and hazard doors | Hitscan, damage, medkit and exit | Live health/objective status panel |
 | Two scene-level VRAM profiles | Radius collision and four moving doors | Optional ±4 px turn reprojection |
 
 ### Hangar Breach
@@ -42,6 +42,12 @@ The included 16×16 level is a compact, original E1M1-inspired adaptation built 
 The start chamber is compiler-certified for player-radius clearance and enemy separation. Opening its airlock leads toward an unavoidable Sentinel encounter. The Sentinel patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies and drops a medkit. Its death unlocks—not automatically opens—the final door, behind which a pulsing world-space beacon marks the completion cell.
 
 The level, safe spawn, four door records, pickup, exit, material profile, and VRAM profile are authored in [`levels/living_world.json`](levels/living_world.json) and compiled into a compact bank-friendly payload.
+
+### Iron & Ash presentation
+
+The current art pass uses a restrained soot, gunmetal, oxidized-bulkhead, bone and warning-red palette. Machinery cells receive world-anchored double ribs at map-cell transitions and a sparse rail at the wall's true half-height; neither feature repeats in screen-tile space. Boundary tiles conservatively omit the rail, preventing detail from leaking across unrelated surfaces and preserving exact atlas performance.
+
+The foreground layer now includes an original twin-bore industrial weapon with visible gloves, a horned skull-faced Sentinel with distinct walk/attack/hurt silhouettes, a medical-crate pickup, a pulsing exit beacon, a corner reticle and a dense warning-rail status plate. Health and exit-objective digits are updated on both BG pages during safe VBlanks and deferred beside pathological 120-block commits.
 
 ## Rendering architecture
 
@@ -83,7 +89,7 @@ The isolated renderer-regression route contains 27 updates and nine frozen RGB c
 
 | Driven result | Empty-world oracle | Living World |
 |---|---:|---:|
-| Mean cycles/update | **972,632** | **788,469** |
+| Mean cycles/update | **972,659** | **831,711** |
 | Maximum cycles/update | **1,124,756** | **1,125,776** |
 | Minimum updates/s | **7.458** | **7.451** |
 | Maximum dynamic tiles | **54 / 96** | **42 / 96** |
@@ -91,7 +97,7 @@ The isolated renderer-regression route contains 27 updates and nine frozen RGB c
 | Maximum visible OAM entries | **18 / 40** | **26 / 40** |
 | Maximum objects on one scanline | **4 / 10** | **5 / 10** |
 | Unsafe GDMA starts | **0** | **0** |
-| Frozen RGB captures exact | **9 / 9** | State-driven captures |
+| Current RGB captures exact | **9 / 9** | State-driven captures |
 
 Geometry is also measured across **24,384 views** and **3,901,440 physical columns** against an independent floating camera-plane oracle.
 
@@ -123,7 +129,7 @@ Useful development targets:
 
 ```sh
 make build                 # deterministic 4 MiB cartridge image
-make test                  # 35 ROM/host differential tests
+make test                  # 36 ROM/host differential tests
 make playtest              # nine-capture exact empty-world oracle
 make playtest-world        # Sentinel combat and level-completion route
 make research-atlas-all    # regenerate both VRAM-profile caches
@@ -152,7 +158,7 @@ Short button presses are sampled and edge-latched every VBlank, even during a lo
 
 ## Verification
 
-Every push and pull request performs a deterministic ROM build, runs all 35 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
+Every push and pull request performs a deterministic ROM build, runs all 36 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
 
 The suite executes the generated SM83 program and verifies:
 
@@ -165,7 +171,7 @@ The suite executes the generated SM83 program and verifies:
 - independent normal/locked door state, pickup, exit beacon and completion;
 - VBlank input latching, optional reprojection bounds and HUD reset;
 - one-fresh-VBlank GDMA ordering and page alternation;
-- the frozen reference-ROM hash and exceptional-tail certificate.
+- the frozen reference-ROM hash, current 0.6.2 visual oracle and exceptional-tail certificate.
 
 The harness is project-specific and cycle-aware; it is not presented as an independent emulator.
 

@@ -1,4 +1,4 @@
-# Lupine 3D 0.6.1 architecture
+# Lupine 3D 0.6.2 architecture
 
 ## Design target
 
@@ -107,6 +107,12 @@ The renderer-heavy profile replaces 119–239 with its 121-pattern exact atlas a
 
 An 8×8 dynamic tile is built from one- or two-pixel vertical microstrips. Only cells containing a silhouette, height change or style transition are dynamic. The hard buffer is 96 patterns / 1,536 bytes.
 
+### Surface grammar
+
+The base fills remain phase-free: orientation selects light or shadow, while detail is attached to actual geometry. Face breaks receive two-sided creases, machinery cell transitions receive two-pixel structural ribs, and door runs derive their frames and centre spine from the projected door extent.
+
+The entity-heavy profile replaces two rare seam masks with light/shadow machinery-rail tiles. Because eye height is exactly half a wall, screen row 48 represents the same world height at every distance. A rail is emitted only when all eight pixels in that tile belong to one uninterrupted material-2 panel; mixed boundary tiles omit it. The renderer-heavy profile retains the two rare seam masks and emits no rail logic, keeping its measured hot path effectively unchanged.
+
 ## VRAM pages and publication
 
 | VRAM resource | Bank 0 | Bank 1 |
@@ -118,6 +124,8 @@ An 8×8 dynamic tile is built from one- or two-pixel vertical microstrips. Only 
 | Tiles 240–255 | HUD utilities | Weapon OBJ art |
 
 Tile numbers are always uploaded with `VBK=0`. A completed page uses at most 96 dynamic GDMA blocks plus 24 map blocks. LCDC bit 3 changes only after both transfers start in the same VBlank.
+
+The lower 48-pixel HUD uses a warning separator and dark-metal status plate. Two-digit health and `00`/`01` exit-objective fields are written to both BG maps. As with shadow OAM, the eight tile-number writes are deferred when `DYN_COUNT > 72`, preserving the certified worst-case VBlank publication.
 
 ## Living World memory and OAM
 
@@ -145,4 +153,4 @@ The default remains disabled until independent emulator and original-CGB LCD tes
 
 ## Generated engine footprint
 
-The current resident engine is approximately 31 KiB and still fits banks 0/1. Hot HRAM uses 111 bytes. The ROM remains 4 MiB so the arithmetic tables and both scene profiles coexist with substantial capacity for banked content.
+The current resident engine is 31,053 bytes, ending at `$7A9D`, and still fits banks 0/1. Hot HRAM uses 111 bytes. The ROM remains 4 MiB so the arithmetic tables and both scene profiles coexist with substantial capacity for banked content.

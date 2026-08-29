@@ -339,6 +339,9 @@ STRIP_KIND = GEN_PAIR_COUNT
 D32_LOW = TEMP_CODE
 LUT_CORRECTION = PROJECTION_PAGE
 LUT_SLICE_LOW = SIGNATURE_COUNT
+# The old STYLE_DIFF byte was allocated but never consumed.  Reuse it as the
+# per-tile mask for world-height surface rails, preserving the tight HRAM ABI.
+DETAIL_MASK = STYLE_DIFF
 
 # Renderer constants / tile IDs.
 RAYS = 80
@@ -357,15 +360,24 @@ RENDER_STYLE_COUNT = 6
 CREASE_STYLE = 5
 DOOR_SPINE_STYLE = CREASE_STYLE
 TECH_RIB_STYLE = CREASE_STYLE
+SURFACE_RAIL_Y0 = 48
+SURFACE_DETAIL_ENABLED = ACTIVE_LEVEL.vram_profile == 1
 MICRO_STATE_COUNT = 19
-STATIC_WALL_MASKS = (
+_COMMON_STATIC_WALL_MASKS = (
     0x00, 0xFF,
     0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
     0xC0, 0x60, 0x30, 0x18, 0x0C, 0x06, 0x03,
-    0x81, 0x99, 0x91, 0x89,
+    0x81, 0x99,
 )
-STATIC_VIEW_TILES = 2 + len(STATIC_WALL_MASKS)
-ATLAS_TILE_BASE = WALL_TILE_BASE + len(STATIC_WALL_MASKS)
+STATIC_WALL_MASKS = (
+    _COMMON_STATIC_WALL_MASKS
+    if SURFACE_DETAIL_ENABLED
+    else _COMMON_STATIC_WALL_MASKS + (0x91, 0x89)
+)
+SURFACE_RAIL_VARIANTS = 2 if SURFACE_DETAIL_ENABLED else 0
+SURFACE_RAIL_TILE_BASE = WALL_TILE_BASE + len(STATIC_WALL_MASKS)
+STATIC_VIEW_TILES = 2 + len(STATIC_WALL_MASKS) + SURFACE_RAIL_VARIANTS
+ATLAS_TILE_BASE = SURFACE_RAIL_TILE_BASE + SURFACE_RAIL_VARIANTS
 FOV_DEGREES = 60.5
 RAY_VECTOR_SCALE = 127
 
@@ -447,11 +459,11 @@ def make_segment_table() -> bytes:
 # in screen-tile coordinates.  Render-only styles 5..7 represent a dark
 # crease, a run-centred door spine, and a narrow technology rib.
 WALL_MATERIAL_NAMES = (
-    "warm plaster - light face",
-    "warm plaster - shadow face",
-    "vertical tech panel - light face",
-    "vertical tech panel - shadow face",
-    "reinforced door panel",
+    "oxidized bulkhead - light face",
+    "oxidized bulkhead - shadow face",
+    "inset machinery panel - light face",
+    "inset machinery panel - shadow face",
+    "reinforced hazard door",
 )
 
 WALL_BASE_COLORS = (2, 3, 2, 3, 2)
@@ -488,6 +500,13 @@ EXIT_BEACON_FRAMES = 2
 ENTITY_TILE_LIMIT = 240
 if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")
+
+HUD_DIGIT_BASE = 241
+HUD_HEALTH_TENS_X = 2
+HUD_HEALTH_ONES_X = 3
+HUD_STATUS_TENS_X = 16
+HUD_STATUS_ONES_X = 17
+HUD_ROW = 14
 
 ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"
 REPROJECT_LIMIT = 4

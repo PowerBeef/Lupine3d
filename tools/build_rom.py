@@ -14,6 +14,10 @@ from lupine3d_v4.resources import *  # noqa: F401,F403
 from lupine3d_v4.reference import *  # noqa: F401,F403
 from lupine3d_v4.emitter import *  # noqa: F401,F403
 from lupine3d_v4.living_world import *  # noqa: F401,F403
+# living_world re-exports the compatibility layout namespace. Reassert the
+# current art generators after that import so the frozen v0.1 helpers cannot
+# shadow the active industrial-gothic UI and weapon assets.
+from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles  # noqa: E402
 
 def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     tables = make_tables()
@@ -28,7 +32,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("load_level")
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
-    a.call("init_palettes"); a.call("init_vram"); a.call("init_oam"); a.call("init_audio")
+    a.call("init_palettes"); a.call("init_vram"); a.call("update_hud_tiles"); a.call("init_oam"); a.call("init_audio")
     a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_initial_both_pages")
     a.ld_r_n("a", 0x93); a.ldh_n_a(LCDC)
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
@@ -42,7 +46,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("update_input"); a.call("update_world"); a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
 
     # Runtime routines.
-    v1.emit_copy_routine(a); v1.emit_wait_vblank(a); emit_palette_init(a)
+    v1.emit_copy_routine(a); v1.emit_wait_vblank(a); emit_palette_init(a); emit_hud_system(a)
     emit_level_loader(a); emit_vram_init(a); emit_oam_system(a); emit_door_system(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
     # Legacy quarter-step helpers are retained only for the two-step door interaction.
     v1.emit_ray_helpers(a)
@@ -66,24 +70,21 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("attrmap_page0"); a.bytes(make_attrmap(0), "page 0 CGB attributes")
     a.label("attrmap_page1"); a.bytes(make_attrmap(1), "page 1 CGB attributes")
 
-    wall_light, wall_dark = rgb15(26, 17, 8), rgb15(16, 9, 5)
+    wall_light, wall_dark = rgb15(24, 18, 10), rgb15(12, 7, 5)
     bg_palette_values = [
-        rgb15(2, 4, 10), rgb15(7, 8, 11), wall_light, wall_dark,
-        rgb15(1, 2, 3), rgb15(7, 8, 9), rgb15(29, 27, 20), rgb15(31, 5, 4),
-        rgb15(3, 5, 11), rgb15(8, 8, 10), wall_light, wall_dark,
-        rgb15(4, 6, 12), rgb15(9, 8, 9), wall_light, wall_dark,
-        rgb15(5, 7, 13), rgb15(10, 8, 8), wall_light, wall_dark,
-        rgb15(6, 8, 14), rgb15(11, 8, 7), wall_light, wall_dark,
-        rgb15(7, 9, 15), rgb15(12, 8, 6), wall_light, wall_dark,
-        rgb15(7, 9, 15), rgb15(12, 8, 6), wall_light, wall_dark,
+        rgb15(2, 3, 4), rgb15(8, 7, 6), wall_light, wall_dark,
+        rgb15(1, 1, 1), rgb15(6, 5, 5), rgb15(27, 24, 17), rgb15(27, 3, 3),
+        rgb15(3, 4, 5), rgb15(8, 8, 7), wall_light, wall_dark,
+        rgb15(4, 5, 6), rgb15(9, 8, 7), wall_light, wall_dark,
+        rgb15(5, 6, 7), rgb15(10, 9, 7), wall_light, wall_dark,
+        rgb15(6, 7, 8), rgb15(11, 9, 7), wall_light, wall_dark,
+        rgb15(7, 8, 9), rgb15(12, 10, 7), wall_light, wall_dark,
+        rgb15(7, 8, 9), rgb15(12, 10, 7), wall_light, wall_dark,
     ]
     obj_palette_values = [
-        rgb15(0, 0, 0), rgb15(6, 7, 9), rgb15(16, 18, 20), rgb15(30, 29, 24),
-        rgb15(0, 0, 0), rgb15(31, 10, 0), rgb15(31, 24, 1), rgb15(31, 31, 25),
+        rgb15(0, 0, 0), rgb15(8, 5, 3), rgb15(15, 16, 15), rgb15(28, 25, 18),
+        rgb15(0, 0, 0), rgb15(24, 3, 2), rgb15(31, 19, 1), rgb15(30, 29, 22),
     ]
-    a.label("bg_palettes"); a.bytes(words_le(bg_palette_values), "eight CGB BG palettes")
-    a.label("obj_palettes"); a.bytes(words_le(obj_palette_values), "two CGB OBJ palettes")
-
     a.align(256, text="legacy movement table alignment")
     for name in ("step_dx", "step_dy", "move_dx", "move_dy"):
         a.label(name); a.bytes(tables[name], name)
@@ -112,6 +113,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     for style in range(2):
         a.label(f"pair_microstrips_style_{style}")
         a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+    # Palettes are cold startup data. Keeping them after the aligned hot tables
+    # avoids wasting a complete 1 KiB alignment page as the resident art/UI
+    # vocabulary grows.
+    a.label("bg_palettes"); a.bytes(words_le(bg_palette_values), "eight CGB BG palettes")
+    a.label("obj_palettes"); a.bytes(words_le(obj_palette_values), "two CGB OBJ palettes")
 
     code = a.resolve()
     metadata = {
@@ -147,6 +153,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "wall_pattern_resolution_pairs": [1, 1],
         "full_width_contrast_bands": 0,
         "world_anchored_face_events": True,
+        "world_height_surface_rails": SURFACE_DETAIL_ENABLED,
+        "surface_detail_profile": "entity-heavy" if SURFACE_DETAIL_ENABLED else "phase-free renderer",
+        "live_hud_fields": ["health", "exit_objective"],
         "vblank_input_sampling": True,
         "input_edge_latching": True,
         "render_pose_mutated_by_interrupts": False,

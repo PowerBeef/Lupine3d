@@ -98,6 +98,8 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(self.manifest["safe_spawn_radius_cells"], 5)
         self.assertTrue(self.manifest["exit_beacon"])
         self.assertTrue(self.manifest["animated_door"])
+        self.assertTrue(self.manifest["world_height_surface_rails"])
+        self.assertEqual(self.manifest["live_hud_fields"], ["health", "exit_objective"])
         self.assertEqual(self.manifest["sha256"], hashlib.sha256(rom).hexdigest())
 
     def test_build_is_deterministic_and_v1_oracle_is_frozen(self) -> None:
@@ -155,6 +157,53 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(len(br.make_seam_tile_lookup()), 256)
         self.assertEqual(br.make_seam_tile_lookup()[0], br.WALL_TILE_BASE)
         self.assertTrue(all(len(set(row)) == 1 for pattern in br.WALL_PATTERNS for row in pattern))
+
+    def test_industrial_hud_and_world_height_surface_grammar(self) -> None:
+        self.assertEqual(len(br.make_ui_tiles()), 16 * 16)
+        self.assertEqual(len(br.make_weapon_tiles()), 16 * 16)
+        self.assertEqual(br.ATLAS_TILE_BASE, 119)
+        self.assertEqual(br.STATIC_VIEW_TILES, 23)
+        self.assertEqual(br.surface_detail_mask([0] * 8), 0)
+        self.assertEqual(br.surface_detail_mask([2] * 8), 0xFF)
+        self.assertEqual(br.surface_detail_mask([3] * 8), 0xFF)
+
+        static = br.make_static_view_tiles()
+        rail_offset = (br.SURFACE_RAIL_TILE_BASE - br.CEILING_TILE) * 16
+        expected_light = br.reference_tile_signature_and_bytes(
+            [0] * 8, [2] * 8, br.SURFACE_RAIL_Y0, 0xFF,
+        )[1]
+        expected_dark = br.reference_tile_signature_and_bytes(
+            [0] * 8, [3] * 8, br.SURFACE_RAIL_Y0, 0xFF,
+        )[1]
+        self.assertEqual(static[rail_offset:rail_offset + 16], expected_light)
+        self.assertEqual(static[rail_offset + 16:rail_offset + 32], expected_dark)
+
+        tilemap = br.make_tilemap()
+        self.assertTrue(all(tilemap[12 * 32 + x] == 255 for x in range(20)))
+        for y in (13, 15, 16, 17):
+            self.assertTrue(all(tilemap[y * 32 + x] == br.FLOOR_TILE for x in range(20)))
+        hud_slots = {1, 2, 3, 9, 15, 16, 17}
+        self.assertTrue(all(
+            tilemap[14 * 32 + x] == br.FLOOR_TILE
+            for x in range(20) if x not in hud_slots
+        ))
+        self.assertEqual(tilemap[14 * 32 + 1], 251)
+        self.assertEqual(tilemap[14 * 32 + 9], 240)
+        self.assertEqual(tilemap[14 * 32 + 15], 252)
+
+        # Exercise the actual ROM routine and both page maps. LCD-off makes
+        # this a deterministic VRAM-content check rather than a mode-timing test.
+        cgb = self.boot_to_main()
+        cgb.write8(0xFF40, 0)
+        cgb.write8(br.PLAYER_HEALTH, 7)
+        cgb.write8(br.EXIT_ACTIVE, 1)
+        cgb.call_subroutine("update_hud_tiles")
+        for map_offset in (0x1800, 0x1C00):
+            base = map_offset + br.HUD_ROW * 32
+            self.assertEqual(cgb.vram[0][base + br.HUD_HEALTH_TENS_X], br.HUD_DIGIT_BASE)
+            self.assertEqual(cgb.vram[0][base + br.HUD_HEALTH_ONES_X], br.HUD_DIGIT_BASE + 7)
+            self.assertEqual(cgb.vram[0][base + br.HUD_STATUS_TENS_X], br.HUD_DIGIT_BASE)
+            self.assertEqual(cgb.vram[0][base + br.HUD_STATUS_ONES_X], br.HUD_DIGIT_BASE + 1)
 
     def test_boot_matches_descriptor_and_microstrip_host_models(self) -> None:
         cgb = self.boot_to_main()
@@ -317,6 +366,8 @@ class Lupine3DTests(unittest.TestCase):
         probes = [
             (0x0180, 0x0180, 0, 0),
             (0x0180, 0x0180, 0, 39),
+            (0x0180, 0x0180, 16, 0),
+            (0x0180, 0x0180, 48, 79),
             (0x0680, 0x0180, 72, 39),
             (0x0680, 0x0180, 64, 59),
             (0x0880, 0x0380, 16, 79),

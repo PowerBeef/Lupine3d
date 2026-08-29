@@ -92,9 +92,10 @@ Every update checks:
 
 When `pixel_oracle` is present, each named capture is also hashed as raw RGB
 pixels and compared with the referenced JSON map. The default coherence tour
-uses `playtests/v030_capture_pixels.json`; this makes any visible departure
-from the accepted v0.3.0 fidelity fail the playtest independently of PNG
-compression metadata.
+uses `playtests/v062_capture_pixels.json`; this makes any visible departure
+from the accepted current presentation fail the playtest independently of PNG
+compression metadata. Older oracle files remain historical evidence rather
+than the active acceptance target.
 
 Outputs include individual PNGs, `playtest.gif`, `contact_sheet.png`, and
 `report.json` with per-update cycles, pose, casts, material events, tile count,
@@ -125,7 +126,7 @@ drop, and one empty exit cell. Current `lupine-level-v2` gameplay levels also
 require safe-spawn metadata and one Sentinel-locked exit door.
 
 `make playtest` intentionally rebuilds with `levels/renderer_benchmark.json`
-before checking the nine frozen pixel oracles. `make playtest-world` rebuilds
+before checking the nine current pixel oracles. `make playtest-world` rebuilds
 the normal Hangar Breach ROM. This isolates renderer regression evidence from
 deliberate gameplay-map revisions.
 

@@ -24,7 +24,7 @@
     "max_edge_recasts": 16,
     "mean_material_events": 2.954601377952756,
     "max_material_events": 13,
-    "mean_split_pairs": 5.223630249343832,
+    "mean_split_pairs": 5.234744094488189,
     "mean_dynamic_tiles": 17.414780183727036,
     "max_dynamic_tiles": 58,
     "overflow_views": 0
@@ -38,11 +38,11 @@
   },
   "representative_rom_cycles": {
     "pose_count": 6,
-    "mean_cast_cycles": 473268.0,
-    "max_cast_cycles": 538824,
-    "mean_render_cycles": 477782.6666666667,
-    "max_render_cycles": 633160,
-    "mean_cast_plus_render_cycles": 951050.6666666666,
-    "conservative_updates_per_second": 7.53081773653744
+    "mean_cast_cycles": 473324.6666666667,
+    "max_cast_cycles": 538920,
+    "mean_render_cycles": 477542.6666666667,
+    "max_render_cycles": 632920,
+    "mean_cast_plus_render_cycles": 950867.3333333334,
+    "conservative_updates_per_second": 7.532224233543086
   }
 }

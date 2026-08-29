@@ -1,7 +1,7 @@
 {
   "name": "coherence_tour",
   "world_mode": "empty",
-  "pixel_oracle": "v030_capture_pixels.json",
+  "pixel_oracle": "v062_capture_pixels.json",
   "actions": [
     {"pose": [384, 384, 0], "updates": 1, "capture": "entry"},
     {"buttons": ["up"], "updates": 5, "capture": "entry_forward"},

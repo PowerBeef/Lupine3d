@@ -1,4 +1,38 @@
-# Lupine 3D 0.6.1 — Hangar Breach
+# Lupine 3D 0.6.2 — Iron & Ash
+
+This release gives Hangar Breach an original industrial-horror presentation pass while keeping the renderer-heavy timing contract intact.
+
+### Original art and interface
+
+- Rebuilt the CGB palettes around soot, concrete, oxidized metal, bone highlights and warning red.
+- Replaced the foreground art with an original twin-bore weapon, visible gloves, asymmetric muzzle bloom and corner reticle.
+- Redrew every Sentinel LOD/frame with a horned sensor crown, skull mask, layered armour, reactor core and clearer attack/hurt silhouettes.
+- Reworked the medkit into a medical crate and refined the pulsing world-space exit beacon.
+- Added a dark-metal status plate with original health/objective icons, Lupine badge and live two-digit fields mirrored across both BG pages.
+
+### Surface grammar and performance
+
+- Authored machinery-panel cells throughout Hangar Breach without changing its collision or progression topology.
+- Added world-cell double ribs and a world-height machinery rail that never repeats in screen-tile space.
+- Made the rail an entity-heavy profile feature: two rare seam IDs become light/shadow rail tiles, while renderer-heavy scenes retain those seams and omit all rail hot-path work.
+- Conservatively remove the rail from mixed material/rib boundary tiles, preventing visual leakage and retaining exact-atlas hits.
+- Deferred live-HUD VRAM writes beside publications above the established 72-block threshold, preserving the forced 120-block VBlank guarantee.
+- Relocated cold palette data after the aligned hot tables, avoiding a wasted 1 KiB alignment page.
+
+### Verification
+
+- Added a 0.6.2 nine-capture RGB oracle for the intentional presentation change.
+- Expanded the suite to 36 tests with exact surface-rail tiles, UI payload, status-map and emitted HUD-routine checks.
+- Renderer-heavy route: 972,658.815 mean cycles, 1,124,756 maximum, 54 dynamic tiles, and nine of nine RGB captures exact.
+- Living World route: 831,711.077 mean cycles, 1,125,776 maximum, 42 dynamic tiles, zero unsafe GDMA starts, and all combat/door/exit state assertions passing.
+
+All art and interface assets in this release are original to Lupine 3D; no artwork or game data was imported from another title.
+
+Original Game Boy Color and independent-emulator certification remain pending.
+
+---
+
+## 0.6.1 — Hangar Breach
 
 This revision replaces the research maze with a compact E1M1-inspired level and promotes doors, spawning and exiting into explicit engine systems.
 

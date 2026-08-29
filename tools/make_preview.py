@@ -53,8 +53,10 @@ def main() -> None:
     # current engine: wall composition, the 16x32 Sentinel and foreground UI.
     hero = CGB(v2_rom, v2_assembler.labels)
     hero.run(until_pc=v2_assembler.labels["main_loop"], max_steps=2_000_000)
-    hero.write16(v2.PLAYER_XL, 0x0C80)
-    hero.write16(v2.PLAYER_YL, 0x0D80)
+    # Face the Sentinel across the machinery hall so the repository hero
+    # image communicates the complete current slice, not an empty start wall.
+    hero.write16(v2.PLAYER_XL, 0x0980)
+    hero.write16(v2.PLAYER_YL, 0x0880)
     hero.write8(v2.ANGLE, 0)
     hero.run(until_swaps=1, max_steps=3_000_000)
     hero_image = nearest(hero.render_screen())

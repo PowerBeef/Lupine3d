@@ -65,55 +65,211 @@ def _split_pixels(pixels: list[list[int]], width: int, height: int) -> bytes:
     return bytes(out)
 
 
+def make_ui_tiles() -> bytes:
+    """Create an original industrial-gothic HUD in the fixed 16-tile budget."""
+    tiles: list[bytes] = []
+
+    # 240: a compact lupine visor badge. It gives the status bar a character
+    # focal point without borrowing another game's face or artwork.
+    badge = [[0] * 8 for _ in range(8)]
+    for y in range(1, 7):
+        for x in range(1, 7):
+            badge[y][x] = 1
+    for x, y in ((1, 1), (6, 1), (2, 2), (5, 2), (2, 3), (5, 3),
+                 (3, 3), (4, 3), (3, 4), (4, 4), (2, 5), (5, 5),
+                 (3, 6), (4, 6)):
+        badge[y][x] = 2
+    badge[3][2] = badge[3][5] = 3
+    badge[5][3] = badge[5][4] = 3
+    tiles.append(tile_from_pixels(badge))
+
+    # 241..250: compact bone-coloured digits with a one-pixel metal shadow.
+    for digit in "0123456789":
+        px = [[0] * 8 for _ in range(8)]
+        glyph = v1.DIGITS[digit]
+        for gy, row in enumerate(glyph):
+            for gx, on in enumerate(row):
+                if on == "1":
+                    x, y = gx + 2, gy + 1
+                    if x + 1 < 8 and y + 1 < 8:
+                        px[y + 1][x + 1] = 1
+                    px[y][x] = 2
+        tiles.append(tile_from_pixels(px))
+
+    # 251: blood-red medical plate with a pale cross.
+    health = [[0] * 8 for _ in range(8)]
+    for y in range(1, 7):
+        for x in range(1, 7):
+            health[y][x] = 3 if x in (1, 6) or y in (1, 6) else 1
+    for x, y in ((3, 2), (4, 2), (3, 3), (4, 3), (2, 3), (5, 3),
+                 (2, 4), (3, 4), (4, 4), (5, 4), (3, 5), (4, 5)):
+        health[y][x] = 2
+    tiles.append(tile_from_pixels(health))
+
+    # 252: objective-lock housing. The adjacent live 00/01 readout reports
+    # whether the exit has been armed by completing the combat objective.
+    objective = [[0] * 8 for _ in range(8)]
+    for y in range(1, 7):
+        objective[y][1] = objective[y][6] = 3
+    for x in range(1, 7):
+        objective[1][x] = objective[6][x] = 3
+    for x, y in ((3, 2), (4, 2), (4, 3), (5, 3), (4, 4), (5, 4),
+                 (3, 5), (4, 5)):
+        objective[y][x] = 2
+    tiles.append(tile_from_pixels(objective))
+
+    # 253: asymmetric muzzle bloom, deliberately chunkier at its hot core.
+    star = [[0] * 8 for _ in range(8)]
+    for x, y in ((3, 0), (4, 0), (2, 1), (5, 1), (3, 2), (4, 2),
+                 (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3), (7, 3),
+                 (1, 4), (2, 4), (3, 4), (4, 4), (5, 4), (6, 4),
+                 (2, 5), (5, 5), (1, 6), (6, 6), (4, 7)):
+        star[y][x] = 3 if 2 <= x <= 5 and 2 <= y <= 5 else 2
+    star[3][3] = star[3][4] = star[4][3] = star[4][4] = 3
+    tiles.append(tile_from_pixels(star))
+
+    # 254: four-corner combat reticle with a clear centre pixel window.
+    cross = [[0] * 8 for _ in range(8)]
+    for x, y in ((1, 1), (2, 1), (1, 2), (5, 1), (6, 1), (6, 2),
+                 (1, 5), (1, 6), (2, 6), (6, 5), (5, 6), (6, 6),
+                 (3, 0), (4, 0), (0, 3), (0, 4), (7, 3), (7, 4),
+                 (3, 7), (4, 7)):
+        cross[y][x] = 2
+    cross[3][3] = cross[3][4] = cross[4][3] = cross[4][4] = 3
+    tiles.append(tile_from_pixels(cross))
+
+    # 255: alternating warning stripe used as the viewport/status threshold.
+    separator = [[0] * 8 for _ in range(8)]
+    for y in range(8):
+        for x in range(8):
+            separator[y][x] = 1 if y in (0, 7) else (2 if ((x + y) // 2) & 1 else 3)
+    tiles.append(tile_from_pixels(separator))
+
+    assert len(tiles) == 16
+    return b"".join(tiles)
+
+
+def make_weapon_tiles() -> bytes:
+    """Create a 32x32 original twin-bore industrial sidearm and gloves."""
+    px = [[0] * 32 for _ in range(32)]
+
+    # Two dark bores and a compact front sight make the first-person shape
+    # legible immediately, even on the unscaled CGB display.
+    px[3][15] = px[3][16] = 3
+    for left in (10, 17):
+        for y in range(5, 11):
+            for x in range(left, left + 5):
+                edge = x in (left, left + 4) or y in (5, 10)
+                px[y][x] = 2 if edge else 1
+        px[6][left + 2] = 0
+        px[7][left + 2] = 1
+
+    # Broad riveted receiver, deliberately tapered toward the player.
+    for y in range(11, 21):
+        spread = (y - 11) // 3
+        left, right = 8 - spread, 24 + spread
+        for x in range(left, right):
+            px[y][x] = 1 if x in (left, right - 1) or y in (11, 20) else 2
+    for x in range(11, 21):
+        px[12][x] = 3
+    for x, y in ((9, 14), (22, 14), (7, 18), (24, 18)):
+        px[y][x] = 3
+    for y in range(15, 19):
+        px[y][14] = px[y][17] = 1
+
+    # The central pistol grip continues behind the hands.
+    for y in range(20, 32):
+        inset = (y - 20) // 5
+        for x in range(12 + inset, 20 - inset):
+            px[y][x] = 1 if x in (12 + inset, 19 - inset) else 2
+    for y in (23, 27):
+        for x in range(14, 18):
+            px[y][x] = 1
+
+    # Warm gloves and pale cuffs approach from the lower corners and overlap
+    # the receiver. This overlap is what makes the sprite read as held rather
+    # than as a freestanding machine.
+    for y in range(21, 32):
+        t = y - 21
+        left_edge, left_inner = max(0, 8 - t), 14
+        right_inner, right_edge = 18, min(32, 24 + t)
+        for x in range(left_edge, left_inner):
+            px[y][x] = 1 if x in (left_edge, left_inner - 1) else 3
+        for x in range(right_inner, right_edge):
+            px[y][x] = 1 if x in (right_inner, right_edge - 1) else 3
+    for x in range(7, 14):
+        px[21][x] = px[22][x] = 2
+    for x in range(18, 25):
+        px[21][x] = px[22][x] = 2
+    for x, y in ((5, 26), (8, 25), (10, 28), (26, 26), (23, 25), (21, 28)):
+        px[y][x] = 2
+
+    return _split_pixels(px, 32, 32)
+
+
 def _sentinel_near_frame(frame: int) -> bytes:
-    """Generate one original 16x32 Sentinel animation cel."""
+    """Generate one original skull-faced industrial Sentinel animation cel."""
     px = [[0] * 16 for _ in range(32)]
     hurt = frame == 3
     attack = frame == 2
     bob = frame & 1
-    body = 3 if hurt else 2
-    accent = 2 if hurt else 3
-    # Antennae and head.
-    px[1 + bob][7] = px[1 + bob][8] = accent
-    for y in range(3 + bob, 10 + bob):
-        left = 4 if y < 8 + bob else 5
-        right = 11 if y < 8 + bob else 10
-        for x in range(left, right + 1):
-            px[y][x] = 1 if x in (left, right) else body
-    px[6 + bob][6] = px[6 + bob][9] = accent
-    # Armoured torso and glowing core.
+    armour = 3 if hurt else 2
+    bone = 2 if hurt else 3
+
+    # Horned sensor crown and skull mask.
+    for x, y in ((2, 1 + bob), (3, 2 + bob), (13, 1 + bob), (12, 2 + bob),
+                 (5, 2 + bob), (10, 2 + bob)):
+        px[y][x] = 1
+    for y in range(3 + bob, 11 + bob):
+        inset = 1 if y in (3 + bob, 10 + bob) else 0
+        for x in range(4 + inset, 12 - inset):
+            px[y][x] = 1 if x in (4 + inset, 11 - inset) else bone
+    px[6 + bob][6] = px[6 + bob][9] = 2
+    px[8 + bob][7] = px[8 + bob][8] = 1
+    px[9 + bob][6] = px[9 + bob][9] = 1
+
+    # Layered shoulder plates, ribbed torso, and luminous reactor core.
     for y in range(11 + bob, 23 + bob):
         inset = 1 if y in (11 + bob, 22 + bob) else 0
-        for x in range(3 + inset, 13 - inset):
-            px[y][x] = 1 if x in (3 + inset, 12 - inset) else body
-    for y in range(14 + bob, 19 + bob):
-        for x in range(6, 10):
-            px[y][x] = accent
-    # Attack frame extends one arm; walk frames alternate feet.
+        for x in range(2 + inset, 14 - inset):
+            px[y][x] = 1 if x in (2 + inset, 13 - inset) else armour
+    for y in (13 + bob, 17 + bob, 21 + bob):
+        for x in range(4, 12):
+            px[y][x] = bone
+    for y in range(14 + bob, 20 + bob):
+        px[y][7] = px[y][8] = 3
+
+    # Attack frame opens both weapon arms; walk frames alternate talons.
     arm_y = 13 + bob
-    for x in range(0 if attack else 2, 4):
-        px[arm_y][x] = px[arm_y + 1][x] = accent if attack else body
-    for x in range(12, 16 if attack else 14):
-        px[arm_y][x] = px[arm_y + 1][x] = accent if attack else body
+    for x in range(0 if attack else 1, 3):
+        px[arm_y][x] = px[arm_y + 1][x] = bone if attack else armour
+    for x in range(13, 16 if attack else 15):
+        px[arm_y][x] = px[arm_y + 1][x] = bone if attack else armour
+    if attack:
+        px[arm_y][0] = px[arm_y][15] = 3
     left_foot = 2 if frame == 1 else 4
     right_foot = 12 if frame == 1 else 10
     for y in range(23 + bob, 31):
-        for x in range(left_foot, left_foot + 3): px[y][x] = body
-        for x in range(right_foot - 2, right_foot + 1): px[y][x] = body
+        for x in range(left_foot, left_foot + 3): px[y][x] = 1 if y in (26, 30) else armour
+        for x in range(right_foot - 2, right_foot + 1): px[y][x] = 1 if y in (26, 30) else armour
+    if hurt:
+        for x, y in ((1, 7), (14, 12), (4, 18), (11, 24)):
+            px[y][x] = 3
     return _split_pixels(px, 16, 32)
 
 
 def _sentinel_far_frame(frame: int) -> bytes:
     px = [[0] * 8 for _ in range(16)]
     bob = frame & 1
-    for y in range(1 + bob, 6 + bob):
-        for x in range(2, 6): px[y][x] = 2
-    px[3 + bob][3] = px[3 + bob][4] = 3
-    for y in range(7 + bob, 13 + bob):
-        for x in range(1, 7): px[y][x] = 1 if x in (1, 6) else 2
-    px[9 + bob][3] = px[9 + bob][4] = 3
-    px[14][2 if frame else 3] = 2
-    px[14][5 if frame else 4] = 2
+    px[0 + bob][1] = px[0 + bob][6] = 1
+    for y in range(2 + bob, 7 + bob):
+        for x in range(2, 6): px[y][x] = 1 if x in (2, 5) else 3
+    px[4 + bob][3] = px[4 + bob][4] = 2
+    for y in range(8 + bob, 14 + bob):
+        for x in range(1, 7): px[y][x] = 1 if x in (1, 6) or y in (8 + bob, 12 + bob) else 2
+    px[10 + bob][3] = px[10 + bob][4] = 3
+    px[15][2 if frame else 3] = 2
+    px[15][5 if frame else 4] = 2
     return _split_pixels(px, 8, 16)
 
 
@@ -127,9 +283,11 @@ def make_entity_tiles() -> bytes:
 
     pickup = [[0] * 8 for _ in range(8)]
     for y in range(2, 7):
-        for x in range(1, 7): pickup[y][x] = 1 if y in (2, 6) or x in (1, 6) else 2
+        for x in range(1, 7): pickup[y][x] = 1 if y in (2, 6) or x in (1, 6) else 3
     for x, y in ((3, 3), (4, 3), (3, 4), (4, 4), (3, 5), (4, 5), (2, 4), (5, 4)):
         pickup[y][x] = 3
+    pickup[1][3] = pickup[1][4] = 2
+    pickup[4][3] = pickup[4][4] = pickup[3][3] = pickup[5][3] = 2
     out.extend(tile_from_pixels(pickup))
 
     for phase in range(2):
@@ -140,15 +298,15 @@ def make_entity_tiles() -> bytes:
             if 0 <= x < 8 and 0 <= y < 8: effect[y][x] = 3
         out.extend(tile_from_pixels(effect))
 
-    # One high-contrast diegetic exit beacon consumes the final tile freed by
-    # the 80-pattern entity profile. The chevron remains legible at 8x8 and
-    # uses OBJ palette 1's warning colours rather than a screen-space label.
+    # A high-contrast diegetic exit beacon consumes the final two tiles freed
+    # by the entity profile. The armoured chevron remains legible at 8x8.
     for phase in range(EXIT_BEACON_FRAMES):
         beacon = [[0] * 8 for _ in range(8)]
+        border = 2 + phase
         for x in range(1, 7):
-            beacon[1][x] = beacon[6][x] = 2 + phase
+            beacon[1][x] = beacon[6][x] = border
         for y in range(1, 7):
-            beacon[y][1] = beacon[y][6] = 2 + phase
+            beacon[y][1] = beacon[y][6] = border
         for x, y in ((3, 2), (4, 2), (4, 3), (5, 3), (4, 4), (5, 4), (3, 5), (4, 5)):
             beacon[y][x] = 3
         out.extend(tile_from_pixels(beacon))
@@ -178,6 +336,13 @@ def make_static_view_tiles() -> bytes:
     tiles = [solid_tile(0), solid_tile(1)]
     for dark_mask in STATIC_WALL_MASKS:
         pixels = [[3 if dark_mask & (0x80 >> x) else 2 for x in range(8)] for _ in range(8)]
+        tiles.append(tile_from_pixels(pixels))
+    # The two common full-width machinery-rail cases are static. Mixed
+    # material/orientation tiles still fall through to the exact compositor.
+    for base in ((2, 3) if SURFACE_DETAIL_ENABLED else ()):
+        pixels = [[base] * 8 for _ in range(8)]
+        pixels[0] = [3] * 8
+        pixels[1] = [2] * 8
         tiles.append(tile_from_pixels(pixels))
     assert len(tiles) == STATIC_VIEW_TILES
     return b"".join(tiles)
@@ -270,16 +435,24 @@ def tile_atlas_signature_map() -> dict[bytes, int]:
 
 def make_tilemap() -> bytes:
     data = bytearray([CEILING_TILE] * 1024)
-    # Keep the lower HUD contract from v0.1.0.
+    # The 96-pixel viewport terminates in a warning rail. The lower status row
+    # contains live health on the left, the original Lupine badge in the
+    # centre, and the exit-objective state on the right.
     for x in range(20):
         data[12 * 32 + x] = 255
+    # A solid dark-metal status plate uses an existing static tile, preserving
+    # the fixed sixteen-tile UI vocabulary while giving the readouts a dense,
+    # dashboard-like foundation.
+    for y in range(13, 18):
+        for x in range(20):
+            data[y * 32 + x] = FLOOR_TILE
     data[14 * 32 + 1] = 251
-    data[14 * 32 + 2] = 250
-    data[14 * 32 + 3] = 250
-    data[14 * 32 + 9] = 254
+    data[14 * 32 + HUD_HEALTH_TENS_X] = HUD_DIGIT_BASE + 9
+    data[14 * 32 + HUD_HEALTH_ONES_X] = HUD_DIGIT_BASE + 9
+    data[14 * 32 + 9] = 240
     data[14 * 32 + 15] = 252
-    data[14 * 32 + 16] = 241
-    data[14 * 32 + 17] = 249
+    data[14 * 32 + HUD_STATUS_TENS_X] = HUD_DIGIT_BASE
+    data[14 * 32 + HUD_STATUS_ONES_X] = HUD_DIGIT_BASE
     return bytes(data)
 
 
