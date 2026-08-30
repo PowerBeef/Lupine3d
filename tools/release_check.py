@@ -183,7 +183,10 @@ def main() -> None:
         "interrupts_do_not_mutate_render_pose": not bool(v2_manifest["render_pose_mutated_by_interrupts"]),
         "ray_depth_buffer_80_bytes": int(v2_manifest["ray_depth_buffer_bytes"]) == 80,
         "ray_segment_buffer_80_bytes": int(v2_manifest["ray_segment_buffer_bytes"]) == 80,
+        "pixel_segment_buffer_160_bytes": int(v2_manifest["pixel_segment_buffer_bytes"]) == 160,
         "segment_aware_reconstruction": bool(v2_manifest["segment_aware_reconstruction"]),
+        "material_geometry_decoupled": bool(v2_manifest["material_geometry_decoupled"]),
+        "horizon_locked_surface_rail_disabled": not bool(v2_manifest["world_height_surface_rails"]),
         "entity_heavy_profile_active": v2_manifest["vram_profile"] == "entity-heavy",
         "level_v2_safe_spawn_contract": (
             v2_manifest["level_format"] == "lupine-level-v2"
@@ -193,6 +196,12 @@ def main() -> None:
             int(v2_manifest["active_level_doors"]) == 4
             and int(v2_manifest["maximum_level_doors"]) == 4
         ),
+        "level_has_no_unreachable_walkable_cells": int(v2_manifest["unreachable_level_cells"]) == 0,
+        "level_sightline_at_most_six_cells": int(v2_manifest["maximum_level_sightline"]) <= 6,
+        "level_critical_path_has_three_turns": int(v2_manifest["critical_path_turns"]) >= 3,
+        "every_level_door_is_meaningful": int(v2_manifest["minimum_door_separation"]) >= 8,
+        "level_material_seams_counted_separately": int(v2_manifest["material_surface_seams"]) == 0,
+        "level_material_paint_has_no_singletons": int(v2_manifest["material_singleton_runs"]) == 0,
         "world_space_exit_beacon": bool(v2_manifest["exit_beacon"]),
         "living_world_playtest_passed": bool(world_playtest["summary"]["passed"]),
         "living_world_oam_total_safe": int(world_playtest["summary"]["max_visible_oam"]) <= 40,

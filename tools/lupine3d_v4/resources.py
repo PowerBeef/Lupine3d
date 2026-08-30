@@ -33,14 +33,15 @@ def wall_color(style: int, pair: int, y: int) -> int:
     """Return one phase-free/render-event 2bpp wall colour.
 
     ``pair`` is retained as a compatibility name for host callers; it is now
-    a physical pixel position.  Only the one-pixel technology rib has sparse
-    fasteners.  Because that rib is emitted at world-cell transitions, its
-    horizontal placement is stable in the level rather than on the screen.
+    a physical pixel position. Physical creases and the wider, run-centred
+    door spine deliberately occupy separate semantic styles.
     """
     if style < STYLE_COUNT:
         return WALL_BASE_COLORS[style]
-    if style == CREASE_STYLE:
+    if style in (CREASE_STYLE, DOOR_SPINE_STYLE):
         return 3
+    if style == TECH_RIB_STYLE:
+        return 2
     raise ValueError(f"unknown render style: {style}")
 
 
@@ -337,8 +338,7 @@ def make_static_view_tiles() -> bytes:
     for dark_mask in STATIC_WALL_MASKS:
         pixels = [[3 if dark_mask & (0x80 >> x) else 2 for x in range(8)] for _ in range(8)]
         tiles.append(tile_from_pixels(pixels))
-    # The two common full-width machinery-rail cases are static. Mixed
-    # material/orientation tiles still fall through to the exact compositor.
+    # The legacy rail variants are intentionally absent in Spatial Clarity.
     for base in ((2, 3) if SURFACE_DETAIL_ENABLED else ()):
         pixels = [[base] * 8 for _ in range(8)]
         pixels[0] = [3] * 8

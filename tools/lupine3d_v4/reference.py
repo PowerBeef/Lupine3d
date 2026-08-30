@@ -204,17 +204,62 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
     return tops, styles, keys, alongs, cast_count, depths, segments
 
 
+def decorate_surface_events(
+    tops: list[int], styles: list[int], keys: list[int], alongs: list[int],
+    segments: list[int],
+) -> tuple[list[int], int]:
+    """Classify presentation events without conflating paint and geometry."""
+    if not all(len(values) == PHYSICAL_COLUMNS for values in (tops, styles, keys, alongs, segments)):
+        raise ValueError(f"expected {PHYSICAL_COLUMNS} physical descriptors")
+    decorated = list(styles)
+    events = 0
+    for i in range(1, PHYSICAL_COLUMNS):
+        if segments[i - 1] != segments[i]:
+            if tops[i] <= 40:
+                decorated[i] = CREASE_STYLE
+            events += 1
+        elif keys[i - 1] != keys[i]:
+            events += 1
+        elif alongs[i - 1] != alongs[i]:
+            events += 1
+
+    i = 0
+    while i < PHYSICAL_COLUMNS:
+        if ((keys[i] >> 5) & 3) != 3:
+            i += 1
+            continue
+        start = i
+        while i < PHYSICAL_COLUMNS and ((keys[i] >> 5) & 3) == 3:
+            i += 1
+        end = i - 1
+        if tops[start] <= 40:
+            decorated[start] = CREASE_STYLE
+        if tops[end] <= 40:
+            decorated[end] = CREASE_STYLE
+        if end - start + 1 >= 3:
+            middle = (start + end) // 2
+            if tops[middle] <= 32:
+                decorated[middle] = DOOR_SPINE_STYLE
+                if middle + 1 <= end:
+                    decorated[middle + 1] = DOOR_SPINE_STYLE
+        events += 1
+    return decorated, events
+
+
 def reference_pixel_descriptor_view(
     player_x_q8: int, player_y_q8: int, player_angle: int, grid: bytes | None = None,
     door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
-) -> tuple[list[int], list[int], list[int], list[int], int, int, int]:
+) -> tuple[
+    list[int], list[int], list[int], list[int], int, int, int,
+    list[int], list[int], list[int],
+]:
     """Build the final 160 physical-pixel descriptor stream.
 
     Pair-centre samples are reconstructed at quarter intervals, then the two
     physical samples adjacent to every detected face discontinuity are recast
-    exactly.  Finally, face/cell events become render-only styles with simple
-    projected-height LOD.  The returned counters are total casts, edge recasts,
-    and material events.
+    exactly. Physical segment identity, not material paint, then controls hard
+    crease decoration. The returned counters are total casts, edge recasts,
+    and classified surface events.
     """
     tops, styles, keys, alongs, adaptive_casts, depths, segments = reference_adaptive_descriptor_view(
         player_x_q8, player_y_q8, player_angle, grid, door_states
@@ -252,53 +297,14 @@ def reference_pixel_descriptor_view(
             pixel_segments[pixel_index] = hit.segment_id
             edge_recasts += 1
 
-    events = 0
-    for i in range(1, PHYSICAL_COLUMNS):
-        if pixel_keys[i - 1] != pixel_keys[i]:
-            if pixel_tops[i - 1] <= 40:
-                pixel_styles[i - 1] = CREASE_STYLE
-            if pixel_tops[i] <= 40:
-                pixel_styles[i] = CREASE_STYLE
-            events += 1
-        elif pixel_alongs[i - 1] != pixel_alongs[i] and pixel_tops[i] <= 40:
-            material = (pixel_keys[i] >> 5) & 3
-            if material == 2:
-                # Machinery panels receive a two-pixel structural rib.  It is
-                # attached to the world-cell boundary, so it moves with the
-                # wall rather than repeating in screen-tile coordinates.
-                pixel_styles[i - 1] = TECH_RIB_STYLE
-                pixel_styles[i] = TECH_RIB_STYLE
-            else:
-                pixel_styles[i] = CREASE_STYLE
-            events += 1
-
-    # Door features are derived from each contiguous projected run, so the
-    # frame and spine remain attached to the door instead of repeating every
-    # eight screen pixels.
-    i = 0
-    while i < PHYSICAL_COLUMNS:
-        if ((pixel_keys[i] >> 5) & 3) != 3:
-            i += 1
-            continue
-        start = i
-        while i < PHYSICAL_COLUMNS and ((pixel_keys[i] >> 5) & 3) == 3:
-            i += 1
-        end = i - 1
-        if pixel_tops[start] <= 40:
-            pixel_styles[start] = CREASE_STYLE
-        if pixel_tops[end] <= 40:
-            pixel_styles[end] = CREASE_STYLE
-        if end - start + 1 >= 3:
-            middle = (start + end) // 2
-            if pixel_tops[middle] <= 32:
-                pixel_styles[middle] = DOOR_SPINE_STYLE
-                if middle + 1 <= end:
-                    pixel_styles[middle + 1] = DOOR_SPINE_STYLE
-        events += 1
+    pixel_styles, events = decorate_surface_events(
+        pixel_tops, pixel_styles, pixel_keys, pixel_alongs, pixel_segments,
+    )
 
     return (
         pixel_tops, pixel_styles, pixel_keys, pixel_alongs,
         adaptive_casts + edge_recasts, edge_recasts, events, depths, segments,
+        pixel_segments,
     )
 
 
@@ -322,13 +328,8 @@ def reference_strip_state(top: int, tile_y0: int) -> int:
 
 
 def surface_detail_mask(styles: list[int]) -> int:
-    """Return a full-width mask only for an unbroken machinery tile.
-
-    Boundary tiles deliberately omit the rail. This small distance/detail LOD
-    prevents the decorative feature from spilling across a material edge and
-    lets those already-expensive silhouettes keep using the exact atlas.
-    """
-    return 0xFF if SURFACE_DETAIL_ENABLED and all(2 <= style < 4 for style in styles) else 0
+    """Return the disabled legacy rail mask (retained for oracle ABI stability)."""
+    return 0
 
 
 def reference_tile_signature_and_bytes(

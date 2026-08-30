@@ -10,7 +10,7 @@
       "expect_doors": {"start_airlock": 0, "exit_lock": 0}
     },
     {
-      "pose": [896, 2880, 192],
+      "pose": [1152, 3136, 192],
       "buttons": ["b"],
       "updates": 1,
       "capture": "start_airlock_opening",
@@ -24,14 +24,28 @@
       "expect_doors": {"start_airlock": 2}
     },
     {
-      "pose": [3200, 2432, 64],
+      "pose": [896, 2432, 192],
+      "buttons": [],
+      "updates": 1,
+      "capture": "critical_turn"
+    },
+    {
+      "pose": [1728, 1920, 0],
       "buttons": ["b"],
       "updates": 1,
-      "capture": "exit_locked",
+      "capture": "zigzag_opening",
+      "expect_doors": {"zigzag_entry": 1}
+    },
+    {"buttons": [], "updates": 6},
+    {
+      "pose": [2432, 2688, 64],
+      "buttons": ["b"],
+      "updates": 1,
+      "capture": "exit_approach_locked",
       "expect_doors": {"exit_lock": 0}
     },
     {
-      "pose": [2432, 2176, 0],
+      "pose": [2176, 2176, 0],
       "buttons": [],
       "updates": 1,
       "capture": "sentinel_encounter",
@@ -63,14 +77,14 @@
       }
     },
     {
-      "pose": [3200, 2176, 0],
+      "pose": [2688, 2176, 0],
       "buttons": [],
       "updates": 1,
       "capture": "pickup_collected",
       "expect": {"pickup_active": 0, "pickup_collected": 1}
     },
     {
-      "pose": [3200, 2432, 64],
+      "pose": [2432, 2688, 64],
       "buttons": ["b"],
       "updates": 1,
       "capture": "exit_unlocking",
@@ -84,7 +98,7 @@
       "expect_doors": {"exit_lock": 2}
     },
     {
-      "pose": [3456, 3456, 64],
+      "pose": [2688, 3456, 64],
       "buttons": [],
       "updates": 1,
       "capture": "level_complete",

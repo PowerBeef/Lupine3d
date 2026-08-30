@@ -91,6 +91,9 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "ray_depth_exact": list(read_block(cgb, br.RAY_DEPTH, br.RAYS)) == pair[5],
         "ray_segments_exact": list(read_block(cgb, br.RAY_SEGMENT, br.RAYS)) == pair[6],
         "pixel_descriptors_exact": actual_pixel == pixel[:4],
+        "pixel_segments_exact": list(
+            read_block(cgb, br.PIXEL_SEGMENT, br.PHYSICAL_COLUMNS)
+        ) == pixel[9],
         "adaptive_cast_count_exact": cgb.read8(br.ADAPTIVE_CASTS) == pair[4],
         "edge_recast_count_exact": cgb.read8(br.EDGE_RECASTS) == pixel[5],
         "material_event_count_exact": cgb.read8(br.EVENT_COUNT) == pixel[6],

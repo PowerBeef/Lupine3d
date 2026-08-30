@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / "research"))
 import build_rom as br  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
 import tail_failure_lab as tail_lab  # noqa: E402
-from lupine3d_v4.levels import compile_level  # noqa: E402
+from lupine3d_v4.levels import build_segment_table, compile_level  # noqa: E402
 from sm83emu import CGB  # noqa: E402
 
 BASELINE_SHA256 = "0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00"
@@ -86,6 +86,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertFalse(self.manifest["render_pose_mutated_by_interrupts"])
         self.assertEqual(self.manifest["ray_depth_buffer_bytes"], br.RAYS)
         self.assertEqual(self.manifest["ray_segment_buffer_bytes"], br.RAYS)
+        self.assertEqual(self.manifest["pixel_segment_buffer_bytes"], br.PHYSICAL_COLUMNS)
         self.assertTrue(self.manifest["segment_aware_reconstruction"])
         self.assertEqual(self.manifest["vram_profile"], "entity-heavy")
         self.assertEqual(self.manifest["entity_atlas_patterns"], 80)
@@ -98,7 +99,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(self.manifest["safe_spawn_radius_cells"], 5)
         self.assertTrue(self.manifest["exit_beacon"])
         self.assertTrue(self.manifest["animated_door"])
-        self.assertTrue(self.manifest["world_height_surface_rails"])
+        self.assertFalse(self.manifest["world_height_surface_rails"])
+        self.assertTrue(self.manifest["material_geometry_decoupled"])
+        self.assertEqual(self.manifest["maximum_level_sightline"], 6)
         self.assertEqual(self.manifest["live_hud_fields"], ["health", "exit_objective"])
         self.assertEqual(self.manifest["sha256"], hashlib.sha256(rom).hexdigest())
 
@@ -158,25 +161,57 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(br.make_seam_tile_lookup()[0], br.WALL_TILE_BASE)
         self.assertTrue(all(len(set(row)) == 1 for pattern in br.WALL_PATTERNS for row in pattern))
 
-    def test_industrial_hud_and_world_height_surface_grammar(self) -> None:
+    def test_industrial_hud_and_spatial_clarity_grammar(self) -> None:
         self.assertEqual(len(br.make_ui_tiles()), 16 * 16)
         self.assertEqual(len(br.make_weapon_tiles()), 16 * 16)
         self.assertEqual(br.ATLAS_TILE_BASE, 119)
         self.assertEqual(br.STATIC_VIEW_TILES, 23)
         self.assertEqual(br.surface_detail_mask([0] * 8), 0)
-        self.assertEqual(br.surface_detail_mask([2] * 8), 0xFF)
-        self.assertEqual(br.surface_detail_mask([3] * 8), 0xFF)
+        self.assertEqual(br.surface_detail_mask([2] * 8), 0)
+        self.assertEqual(br.surface_detail_mask([3] * 8), 0)
+        self.assertEqual(br.SURFACE_RAIL_VARIANTS, 0)
+        self.assertNotEqual(br.CREASE_STYLE, br.DOOR_SPINE_STYLE)
+        self.assertNotEqual(br.CREASE_STYLE, br.TECH_RIB_STYLE)
 
-        static = br.make_static_view_tiles()
-        rail_offset = (br.SURFACE_RAIL_TILE_BASE - br.CEILING_TILE) * 16
-        expected_light = br.reference_tile_signature_and_bytes(
-            [0] * 8, [2] * 8, br.SURFACE_RAIL_Y0, 0xFF,
-        )[1]
-        expected_dark = br.reference_tile_signature_and_bytes(
-            [0] * 8, [3] * 8, br.SURFACE_RAIL_Y0, 0xFF,
-        )[1]
-        self.assertEqual(static[rail_offset:rail_offset + 16], expected_light)
-        self.assertEqual(static[rail_offset + 16:rail_offset + 32], expected_dark)
+        # An uninterrupted machinery wall has no special contrast line at the
+        # old eye-height row. Every interior tile row remains phase-free.
+        _, horizon_tile = br.reference_tile_signature_and_bytes(
+            [16] * 8, [2] * 8, br.SURFACE_RAIL_Y0,
+        )
+        rows = [horizon_tile[index:index + 2] for index in range(0, 16, 2)]
+        self.assertEqual(len(set(rows)), 1)
+
+        tops = [16] * br.PHYSICAL_COLUMNS
+        alongs = [0] * br.PHYSICAL_COLUMNS
+        same_segment = [1] * br.PHYSICAL_COLUMNS
+        material_keys = [0x20] * 80 + [0x40] * 80
+        material_styles = [0] * 80 + [2] * 80
+        decorated, events = br.decorate_surface_events(
+            tops, material_styles, material_keys, alongs, same_segment,
+        )
+        self.assertEqual(decorated, material_styles)
+        self.assertEqual(events, 1)
+
+        physical_segments = [1] * 80 + [2] * 80
+        decorated, _ = br.decorate_surface_events(
+            tops, [0] * br.PHYSICAL_COLUMNS, [0x20] * br.PHYSICAL_COLUMNS,
+            alongs, physical_segments,
+        )
+        self.assertNotEqual(decorated[79], br.CREASE_STYLE)
+        self.assertEqual(decorated[80], br.CREASE_STYLE)
+
+        door_keys = [0x20] * br.PHYSICAL_COLUMNS
+        door_segments = [1] * br.PHYSICAL_COLUMNS
+        for index in range(70, 90):
+            door_keys[index] = 0x60
+            door_segments[index] = 3
+        decorated, _ = br.decorate_surface_events(
+            tops, [0] * br.PHYSICAL_COLUMNS, door_keys, alongs, door_segments,
+        )
+        self.assertEqual(decorated[70], br.CREASE_STYLE)
+        self.assertEqual(decorated[79], br.DOOR_SPINE_STYLE)
+        self.assertEqual(decorated[80], br.DOOR_SPINE_STYLE)
+        self.assertEqual(decorated[89], br.CREASE_STYLE)
 
         tilemap = br.make_tilemap()
         self.assertTrue(all(tilemap[12 * 32 + x] == 255 for x in range(20)))
@@ -228,6 +263,10 @@ class Lupine3DTests(unittest.TestCase):
         pixel_keys = list(self.read_block(cgb, br.PIXEL_KEYS, br.PHYSICAL_COLUMNS))
         pixel_alongs = list(self.read_block(cgb, br.PIXEL_ALONG, br.PHYSICAL_COLUMNS))
         self.assertEqual((pixel_tops, pixel_styles, pixel_keys, pixel_alongs), pixels[:4])
+        self.assertEqual(
+            list(self.read_block(cgb, br.PIXEL_SEGMENT, br.PHYSICAL_COLUMNS)),
+            pixels[9],
+        )
         self.assertEqual(cgb.read8(br.EDGE_RECASTS), pixels[5])
         self.assertEqual(cgb.read8(br.ADAPTIVE_CASTS) + cgb.read8(br.EDGE_RECASTS), pixels[4])
         self.assertEqual(cgb.read8(br.EVENT_COUNT), pixels[6])
@@ -284,8 +323,8 @@ class Lupine3DTests(unittest.TestCase):
             self.rom[segment_start:segment_start + len(level.segment_table)],
             level.segment_table,
         )
-        # Every non-zero certificate names a solid cell face, and exposed
-        # cells in the same uninterrupted material run share one stable ID.
+        # Every non-zero certificate names a solid cell face. Static paint
+        # changes do not split a physically continuous plane.
         for y in range(level.height):
             for x in range(level.width):
                 base = (y * level.width + x) * 4
@@ -297,6 +336,20 @@ class Lupine3DTests(unittest.TestCase):
                         first, second = ids[side], level.segment_table[base + 16 * 4 + side]
                         if first and second:
                             self.assertEqual(first, second)
+        synthetic = bytes((1, 2, 0, 0, 0, 0, 0, 0))
+        synthetic_segments = build_segment_table(synthetic, 4, 2)
+        self.assertEqual(synthetic_segments[3], synthetic_segments[4 + 3])
+        self.assertNotEqual(synthetic_segments[3], 0)
+
+        report = level.readability
+        self.assertIsNotNone(report)
+        self.assertEqual(report.unreachable_cells, 0)
+        self.assertEqual(report.maximum_sightline, 6)
+        self.assertEqual(report.maximum_open_rectangle, (4, 3))
+        self.assertGreaterEqual(report.minimum_door_separation, 8)
+        self.assertGreaterEqual(report.critical_path_turns, 3)
+        self.assertEqual(report.material_seams, 0)
+        self.assertEqual(report.material_singleton_runs, 0)
 
     def test_level_v2_rejects_unsafe_spawns_bad_door_frames_and_missing_exit_lock(self) -> None:
         source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
@@ -315,6 +368,32 @@ class Lupine3DTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             for index, (mutated, message) in enumerate(mutations):
                 path = Path(directory) / f"invalid_{index}.json"
+                path.write_text(json.dumps(mutated), encoding="utf-8")
+                with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                    compile_level(path)
+
+    def test_level_v2_readability_gates_reject_voids_bypasses_and_long_sightlines(self) -> None:
+        source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
+        cases = []
+
+        sealed_void = json.loads(json.dumps(source))
+        row = list(sealed_void["rows"][1]); row[8] = "0"
+        sealed_void["rows"][1] = "".join(row)
+        cases.append((sealed_void, "unreachable"))
+
+        bypass = json.loads(json.dumps(source))
+        for x, y in ((1, 6), (1, 7), (2, 7)):
+            row = list(bypass["rows"][y]); row[x] = "0"; bypass["rows"][y] = "".join(row)
+        cases.append((bypass, "door"))
+
+        long_view = json.loads(json.dumps(source))
+        row = list(long_view["rows"][7]); row[9] = "0"
+        long_view["rows"][7] = "".join(row)
+        cases.append((long_view, "readability"))
+
+        with tempfile.TemporaryDirectory() as directory:
+            for index, (mutated, message) in enumerate(cases):
+                path = Path(directory) / f"unreadable_{index}.json"
                 path.write_text(json.dumps(mutated), encoding="utf-8")
                 with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                     compile_level(path)
@@ -364,17 +443,12 @@ class Lupine3DTests(unittest.TestCase):
     def test_rom_signed_error_dda_matches_host_probes(self) -> None:
         cgb = self.boot_to_main()
         probes = [
-            (0x0180, 0x0180, 0, 0),
-            (0x0180, 0x0180, 0, 39),
-            (0x0180, 0x0180, 16, 0),
-            (0x0180, 0x0180, 48, 79),
-            (0x0680, 0x0180, 72, 39),
-            (0x0680, 0x0180, 64, 59),
-            (0x0880, 0x0380, 16, 79),
-            (0x0880, 0x0380, 0, 79),
-            (0x08A0, 0x05C0, 193, 12),
-            (0x0D20, 0x0D80, 64, 12),
-            (0x0380, 0x0B80, 192, 39),
+            (0x0180, 0x0280, 0, 0),
+            (0x0180, 0x0280, 0, 39),
+            (0x0180, 0x0280, 32, 59),
+            (0x0880, 0x0680, 0, 0),
+            (0x0880, 0x0680, 0, 39),
+            (0x0480, 0x0C80, 192, 39),
         ]
         observed_styles = set()
         for x_q8, y_q8, angle, ray_index in probes:
@@ -448,6 +522,10 @@ class Lupine3DTests(unittest.TestCase):
                 pixel_keys = list(self.read_block(cgb, br.PIXEL_KEYS, br.PHYSICAL_COLUMNS))
                 pixel_alongs = list(self.read_block(cgb, br.PIXEL_ALONG, br.PHYSICAL_COLUMNS))
                 self.assertEqual((pixel_tops, pixel_styles, pixel_keys, pixel_alongs), pixels[:4])
+                self.assertEqual(
+                    list(self.read_block(cgb, br.PIXEL_SEGMENT, br.PHYSICAL_COLUMNS)),
+                    pixels[9],
+                )
                 self.assertEqual(cgb.read8(br.EDGE_RECASTS), pixels[5])
                 self.assertEqual(cgb.read8(br.EVENT_COUNT), pixels[6])
                 before = cgb.cycles
@@ -476,7 +554,7 @@ class Lupine3DTests(unittest.TestCase):
             for x in range(1, 15):
                 if self.grid[y * 16 + x] != 0:
                     continue
-                for angle in range(0, 256, 16):
+                for angle in range(0, 256, 8):
                     px, py = (x << 8) | 0x80, (y << 8) | 0x80
                     full = br.reference_full_descriptor_view(px, py, angle)
                     adaptive = br.reference_adaptive_descriptor_view(px, py, angle)
@@ -637,8 +715,8 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_animated_door_preserves_collision_until_fully_open(self) -> None:
         cgb = self.boot_to_main()
-        self.set_pose(cgb, 0x0380, 0x0B40, 192)
-        door_addr = br.MAP + 10 * 16 + 3
+        self.set_pose(cgb, 0x0480, 0x0C40, 192)
+        door_addr = br.MAP + 11 * 16 + 4
         door_record = br.DOOR_TABLE
         self.assertEqual(cgb.read8(door_addr), 3)
         cgb.call_subroutine("cast_all")
@@ -667,7 +745,7 @@ class Lupine3DTests(unittest.TestCase):
         # retains the original instant interaction semantics.
         legacy = self.boot_to_main()
         legacy.write8(br.WORLD_MODE, br.WORLD_MODE_EMPTY)
-        self.set_pose(legacy, 0x0380, 0x0B40, 192)
+        self.set_pose(legacy, 0x0480, 0x0C40, 192)
         legacy.button_provider = lambda iteration, _swaps: 0x20 if iteration == 1 else 0
         legacy.run(until_swaps=1, max_steps=1_500_000)
         self.assertEqual(legacy.read8(door_addr), 0)
@@ -676,7 +754,7 @@ class Lupine3DTests(unittest.TestCase):
         # distinct lock sound until the Sentinel-death condition is active.
         exit_cgb = self.boot_to_main()
         exit_record = br.DOOR_TABLE + 3 * br.DOOR_RECORD_BYTES
-        self.set_pose(exit_cgb, 0x0C80, 0x0980, 64)
+        self.set_pose(exit_cgb, 0x0980, 0x0A80, 64)
         exit_cgb.call_subroutine("open_door")
         self.assertEqual(exit_cgb.read8(exit_record + br.DOOR_STATE_OFFSET), 0)
         self.assertEqual(exit_cgb.read8(0xFF14), 0xC2)
@@ -688,10 +766,10 @@ class Lupine3DTests(unittest.TestCase):
         # Every authored threshold is reachable through the same coordinate
         # lookup, but mutates only its own record.
         interactions = (
-            (0, (0x0380, 0x0B40, 192), False),  # start airlock, from south
-            (1, (0x0380, 0x0840, 192), False),  # courtyard access, from south
-            (2, (0x07C0, 0x0880, 0), False),    # zig-zag entry, from west
-            (3, (0x0C80, 0x0980, 64), True),   # exit lock, from north
+            (0, (0x0480, 0x0C40, 192), False),  # start airlock, from south
+            (1, (0x0380, 0x0740, 192), False),  # courtyard access, from south
+            (2, (0x06C0, 0x0780, 0), False),    # zig-zag entry, from west
+            (3, (0x0980, 0x0A80, 64), True),    # exit lock, from north
         )
         for target_index, pose, unlock_exit in interactions:
             with self.subTest(door=br.ACTIVE_LEVEL.doors[target_index].name):
@@ -709,7 +787,7 @@ class Lupine3DTests(unittest.TestCase):
 
     def test_sentinel_projection_combat_drop_pickup_and_exit_vertical_slice(self) -> None:
         cgb = self.boot_to_main()
-        self.set_pose(cgb, 0x0980, 0x0880, 0)
+        self.set_pose(cgb, 0x0880, 0x0880, 0)
         cgb.call_subroutine("cast_all")
         cgb.call_subroutine("render_entities")
         self.assertEqual(cgb.read8(br.SENTINEL_VISIBLE), 1)
@@ -731,7 +809,7 @@ class Lupine3DTests(unittest.TestCase):
 
         # The active exit has a world-space billboard, not an unexplained
         # invisible completion cell.
-        self.set_pose(cgb, 0x0D80, 0x0B80, 64)
+        self.set_pose(cgb, 0x0A80, 0x0C80, 64)
         cgb.call_subroutine("cast_all")
         cgb.call_subroutine("render_entities")
         entity_tiles = [
@@ -756,7 +834,7 @@ class Lupine3DTests(unittest.TestCase):
     def test_sentinel_exact_los_chase_and_attack_run_on_simulation_ticks(self) -> None:
         cgb = self.boot_to_main()
         cgb.write8(br.SENTINEL_STATE, br.SENTINEL_PATROL)
-        self.set_pose(cgb, 0x0A80, 0x0880, 0)
+        self.set_pose(cgb, 0x0880, 0x0880, 0)
         before_x = cgb.read16(br.SENTINEL_XL)
         cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL)
         cgb.call_subroutine("update_world")
@@ -764,7 +842,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_CHASE)
         self.assertLess(cgb.read16(br.SENTINEL_XL), before_x)
 
-        self.set_pose(cgb, 0x0B80, 0x0880, 0)
+        self.set_pose(cgb, 0x0980, 0x0880, 0)
         health = cgb.read8(br.PLAYER_HEALTH)
         cgb.write8(br.INPUT_SAMPLE_COUNT, br.AI_TICK_INTERVAL * 2)
         cgb.write8(br.SENTINEL_COOLDOWN, 0)

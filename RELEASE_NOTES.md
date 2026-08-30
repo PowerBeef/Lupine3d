@@ -1,3 +1,27 @@
+# Lupine 3D 0.6.3 — Spatial Clarity
+
+This revision makes the authored world read as geometry rather than a collection of decorative screen marks.
+
+### Rendering grammar
+
+- Removed the eye-height machinery rail and its horizon-locked row-48 presentation path.
+- Decoupled physical surface segments from material paint; adjacent static materials now share one segment across a continuous exposed plane.
+- Added `PIXEL_SEGMENT[160]` so the emitted ROM and host oracle classify physical breaks from the same authoritative certificate.
+- Reduced true corners to a one-pixel dark crease, removed full-height cell ribs, and retained a wider run-centred door signal.
+
+### Level and tooling
+
+- Rebuilt Hangar Breach as a tighter room-and-corridor graph with meaningful door cuts, staged turns and a partitioned combat room.
+- Added compiler gates for unreachable walkable cells, weak doors, critical-path length/turns, sightline length, open-room span and material fragmentation.
+- Added a nine-frame spatial-coherence tour and refreshed the exact RGB oracle only after inspecting the generated contact sheet.
+- Expanded the suite to 37 tests and added exact 160-column segment checks to both the ROM differential tests and driven harness.
+
+The accepted map certificate is: 70 walkable cells, zero unreachable cells, 15 steps/five turns to the Sentinel, six-cell maximum sightline, 4×3 maximum open rectangle, an 11-cell minimum door cut, and zero paint seams/singleton runs on continuous surfaces.
+
+Original Game Boy Color and independent-emulator certification remain pending.
+
+---
+
 # Lupine 3D 0.6.2 — Iron & Ash
 
 This release gives Hangar Breach an original industrial-horror presentation pass while keeping the renderer-heavy timing contract intact.

@@ -14,13 +14,13 @@
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D rendering the Sentinel enemy inside its Game Boy Color first-person world">
 
-<sub>160×96 viewport · 4 MiB MBC5 ROM · 36 automated tests · two driven playtest routes</sub>
+<sub>160×96 viewport · 4 MiB MBC5 ROM · 37 automated tests · two driven playtest routes</sub>
 
 </div>
 
 ---
 
-Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.2 “Iron & Ash”** implementation combines coherent wall geometry with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level. Its visual language draws on classic industrial-horror shooters while every shipped tile, sprite, map element, and interface graphic remains original to Lupine 3D.
+Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.3 “Spatial Clarity”** implementation combines geometry-certified walls with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level. Its visual language draws on classic industrial-horror shooters while every shipped tile, sprite, map element, and interface graphic remains original to Lupine 3D.
 
 The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG pages, GDMA, OAM, VBlank interrupts, the joypad and audio hardware. There is no bitmap framebuffer, coprocessor, cartridge RAM, imported game code, or borrowed artwork.
 
@@ -32,20 +32,20 @@ The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG 
 | Corrected Q5 wall-depth buffer | Patrol, chase, attack, hurt, death | Deterministic Python ROM builder |
 | Build-time wall-segment IDs | Exact-grid line of sight | One-VBlank GDMA page publication |
 | Exact boundary-tile cache | Wall-clipped size-LOD billboards | Atomic shadow-OAM DMA |
-| Oxidized panels, structural ribs and hazard doors | Hitscan, damage, medkit and exit | Live health/objective status panel |
+| Geometry-only creases and distinct hazard doors | Hitscan, damage, medkit and exit | Live health/objective status panel |
 | Two scene-level VRAM profiles | Radius collision and four moving doors | Optional ±4 px turn reprojection |
 
 ### Hangar Breach
 
-The included 16×16 level is a compact, original E1M1-inspired adaptation built for Lupine's single-height grid. It preserves the recognizable rhythm of a protected southern start, staged corridors, a central zig-zag technology hall, an optional courtyard branch and a separate exit wing without importing Doom map data or artwork.
+The included 16×16 level is a compact room-and-corridor graph built specifically for Lupine's single-height projection. It moves through a protected southern start, a staged turn, a real zig-zag gate, a partitioned combat chamber, an optional branch and a separate exit wing.
 
-The start chamber is compiler-certified for player-radius clearance and enemy separation. Opening its airlock leads toward an unavoidable Sentinel encounter. The Sentinel patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies and drops a medkit. Its death unlocks—not automatically opens—the final door, behind which a pulsing world-space beacon marks the completion cell.
+The level compiler certifies zero unreachable walkable cells, a 15-step/five-turn critical path, a maximum six-cell sightline, a largest open rectangle of 4×3 cells, at least 11 cells isolated by every door, and zero exposed paint seams or singleton runs. Opening the start airlock leads through an unavoidable Sentinel encounter. The Sentinel patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies and drops a medkit. Its death unlocks—not automatically opens—the final door, behind which a pulsing world-space beacon marks the completion cell.
 
 The level, safe spawn, four door records, pickup, exit, material profile, and VRAM profile are authored in [`levels/living_world.json`](levels/living_world.json) and compiled into a compact bank-friendly payload.
 
-### Iron & Ash presentation
+### Spatial Clarity presentation
 
-The current art pass uses a restrained soot, gunmetal, oxidized-bulkhead, bone and warning-red palette. Machinery cells receive world-anchored double ribs at map-cell transitions and a sparse rail at the wall's true half-height; neither feature repeats in screen-tile space. Boundary tiles conservatively omit the rail, preventing detail from leaking across unrelated surfaces and preserving exact atlas performance.
+The current art pass uses a restrained soot, gunmetal, oxidized-bulkhead, bone and warning-red palette. Physical segment IDs now describe geometry independently from material paint. A true plane break receives one narrow dark crease, a material change remains a soft fill transition, ordinary cell boundaries receive no full-height rib, and projected door runs retain their wider framed centre signal. The former eye-height machinery rail is disabled, removing its horizon-locked stripe and its compositor cost.
 
 The foreground layer now includes an original twin-bore industrial weapon with visible gloves, a horned skull-faced Sentinel with distinct walk/attack/hurt silhouettes, a medical-crate pickup, a pulsing exit beacon, a corner reticle and a dense warning-rail status plate. Health and exit-objective digits are updated on both BG pages during safe VBlanks and deferred beside pathological 120-block commits.
 
@@ -64,7 +64,7 @@ flowchart TD
     H --> I
 ```
 
-Each two-pixel ray sample records projected top, style, face position, corrected perpendicular distance, and an authored continuous-surface ID. Segment identity prevents adaptive interpolation across disconnected walls; depth lets billboard strips reject themselves against the wall already occupying that screen region.
+Each two-pixel ray sample records projected top, style, face position, corrected perpendicular distance, and an authored continuous-surface ID. Segment identity prevents adaptive interpolation across disconnected walls; it is also expanded to all 160 physical columns before presentation events are classified. Depth lets billboard strips reject themselves against the wall already occupying that screen region.
 
 The wall compositor reuses static ceiling, floor and seam tiles, consults an exact corpus-trained boundary atlas, and generates only the remaining boundary cells. A miss is never approximate—it falls through to the exact compositor.
 
@@ -85,15 +85,15 @@ OAM entries 0–17 are permanently reserved for the weapon, muzzle flash and cro
 
 ## Measured behavior
 
-The isolated renderer-regression route contains 27 updates and nine frozen RGB captures. The Hangar Breach route drives the safe start, normal and locked doors, combat, pickup, exit beacon and level completion.
+The spatial-coherence route contains nine inspected, frozen RGB captures. The Hangar Breach route drives the safe start, meaningful normal and locked doors, combat, pickup, exit beacon and level completion.
 
 | Driven result | Empty-world oracle | Living World |
 |---|---:|---:|
-| Mean cycles/update | **972,659** | **831,711** |
-| Maximum cycles/update | **1,124,756** | **1,125,776** |
-| Minimum updates/s | **7.458** | **7.451** |
-| Maximum dynamic tiles | **54 / 96** | **42 / 96** |
-| Maximum total ray casts | **59** | **56** |
+| Mean cycles/update | **842,190** | **821,901** |
+| Maximum cycles/update | **1,126,232** | **1,125,632** |
+| Minimum updates/s | **7.448** | **7.452** |
+| Maximum dynamic tiles | **40 / 96** | **40 / 96** |
+| Maximum total ray casts | **56** | **56** |
 | Maximum visible OAM entries | **18 / 40** | **26 / 40** |
 | Maximum objects on one scanline | **4 / 10** | **5 / 10** |
 | Unsafe GDMA starts | **0** | **0** |
@@ -129,7 +129,7 @@ Useful development targets:
 
 ```sh
 make build                 # deterministic 4 MiB cartridge image
-make test                  # 36 ROM/host differential tests
+make test                  # 37 ROM/host differential tests
 make playtest              # nine-capture exact empty-world oracle
 make playtest-world        # Sentinel combat and level-completion route
 make research-atlas-all    # regenerate both VRAM-profile caches
@@ -158,20 +158,20 @@ Short button presses are sampled and edge-latched every VBlank, even during a lo
 
 ## Verification
 
-Every push and pull request performs a deterministic ROM build, runs all 36 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
+Every push and pull request performs a deterministic ROM build, runs all 37 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
 
 The suite executes the generated SM83 program and verifies:
 
 - cartridge headers, checksums, bank layout and deterministic ROM bytes;
 - exact 80-ray descriptors, depth and segment buffers;
-- exact 160-column reconstruction, dynamic tiles and hidden tile map;
+- exact 160-column reconstruction, physical segments, dynamic tiles and hidden tile map;
 - both exact atlas payloads and the complete authored level;
 - OAM total/per-scanline limits, wall occlusion and deferred DMA;
-- safe-spawn validation, collision, line of sight, AI and combat;
+- safe-spawn and spatial-readability validation, collision, line of sight, AI and combat;
 - independent normal/locked door state, pickup, exit beacon and completion;
 - VBlank input latching, optional reprojection bounds and HUD reset;
 - one-fresh-VBlank GDMA ordering and page alternation;
-- the frozen reference-ROM hash, current 0.6.2 visual oracle and exceptional-tail certificate.
+- the frozen reference-ROM hash, current 0.6.3 visual oracle and exceptional-tail certificate.
 
 The harness is project-specific and cycle-aware; it is not presented as an independent emulator.
 

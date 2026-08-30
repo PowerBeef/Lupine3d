@@ -89,6 +89,10 @@ PIXEL_TOPS = 0xD400
 PIXEL_STYLES = 0xD4A0
 PIXEL_KEYS = 0xD540
 PIXEL_ALONG = 0xD5E0
+# Physical-segment identity is expanded alongside the other 160-column
+# descriptors. Decoration uses this authoritative geometry certificate rather
+# than inferring corners from a face key that also contains paint material.
+PIXEL_SEGMENT = 0xD800
 
 # Authoritative two-pixel wall occlusion data. Depth is corrected
 # perpendicular distance in Q5 tiles, saturated to 255; segment is a
@@ -339,8 +343,8 @@ STRIP_KIND = GEN_PAIR_COUNT
 D32_LOW = TEMP_CODE
 LUT_CORRECTION = PROJECTION_PAGE
 LUT_SLICE_LOW = SIGNATURE_COUNT
-# The old STYLE_DIFF byte was allocated but never consumed.  Reuse it as the
-# per-tile mask for world-height surface rails, preserving the tight HRAM ABI.
+# Reserved compositor detail byte. Spatial Clarity deliberately leaves it
+# inactive; eye-height surface rails proved to be a false horizon cue.
 DETAIL_MASK = STYLE_DIFF
 
 # Renderer constants / tile IDs.
@@ -356,12 +360,14 @@ CEILING_TILE = 96
 FLOOR_TILE = 97
 WALL_TILE_BASE = 98
 STYLE_COUNT = 5
-RENDER_STYLE_COUNT = 6
+RENDER_STYLE_COUNT = 8
 CREASE_STYLE = 5
-DOOR_SPINE_STYLE = CREASE_STYLE
-TECH_RIB_STYLE = CREASE_STYLE
+# Separate semantic IDs keep the presentation grammar explicit even though
+# the two dark event styles share the existing light/dark microstrip tables.
+TECH_RIB_STYLE = 6
+DOOR_SPINE_STYLE = 7
 SURFACE_RAIL_Y0 = 48
-SURFACE_DETAIL_ENABLED = ACTIVE_LEVEL.vram_profile == 1
+SURFACE_DETAIL_ENABLED = False
 MICRO_STATE_COUNT = 19
 _COMMON_STATIC_WALL_MASKS = (
     0x00, 0xFF,
@@ -455,9 +461,9 @@ def make_segment_table() -> bytes:
 
 # Geometry styles 0..4 remain the exact DDA side/material contract.  In v0.3
 # their base fills are deliberately phase-free: surface structure is attached
-# to face/cell events in the 160-column descriptor pass instead of repeating
-# in screen-tile coordinates.  Render-only styles 5..7 represent a dark
-# crease, a run-centred door spine, and a narrow technology rib.
+# to geometry events in the 160-column descriptor pass instead of repeating
+# in screen-tile coordinates. Render-only styles 5..7 identify a dark crease,
+# a reserved soft technology detail, and a run-centred door spine.
 WALL_MATERIAL_NAMES = (
     "oxidized bulkhead - light face",
     "oxidized bulkhead - shadow face",

@@ -22,11 +22,11 @@
     "mean_total_casts": 45.84420111548557,
     "mean_edge_recasts": 2.295521653543307,
     "max_edge_recasts": 16,
-    "mean_material_events": 2.954601377952756,
-    "max_material_events": 13,
-    "mean_split_pairs": 5.234744094488189,
-    "mean_dynamic_tiles": 17.414780183727036,
-    "max_dynamic_tiles": 58,
+    "mean_material_events": 3.784776902887139,
+    "max_material_events": 25,
+    "mean_split_pairs": 3.489419291338583,
+    "mean_dynamic_tiles": 17.0189468503937,
+    "max_dynamic_tiles": 60,
     "overflow_views": 0
   },
   "improvement": {
@@ -38,11 +38,11 @@
   },
   "representative_rom_cycles": {
     "pose_count": 6,
-    "mean_cast_cycles": 473324.6666666667,
-    "max_cast_cycles": 538920,
-    "mean_render_cycles": 477542.6666666667,
-    "max_render_cycles": 632920,
-    "mean_cast_plus_render_cycles": 950867.3333333334,
-    "conservative_updates_per_second": 7.532224233543086
+    "mean_cast_cycles": 501340.0,
+    "max_cast_cycles": 566372,
+    "mean_render_cycles": 456333.3333333333,
+    "max_render_cycles": 580632,
+    "mean_cast_plus_render_cycles": 957673.3333333334,
+    "conservative_updates_per_second": 7.8209042055290565
   }
 }

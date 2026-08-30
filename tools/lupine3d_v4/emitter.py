@@ -526,6 +526,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     for address, result in (
         (PIXEL_TOPS, TOP_RESULT), (PIXEL_STYLES, STYLE_RESULT),
         (PIXEL_KEYS, FACE_RESULT), (PIXEL_ALONG, ALONG_RESULT),
+        (PIXEL_SEGMENT, SEGMENT_RESULT),
     ):
         a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_abs(result); a.ld_hl_a()
     a.ret()
@@ -609,7 +610,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # Geometry style, key and along-cell identity are initially duplicated.
     for source, destination in (
         (RAY_STYLES, PIXEL_STYLES), (RAY_KEYS, PIXEL_KEYS),
-        (RAY_ALONG, PIXEL_ALONG),
+        (RAY_ALONG, PIXEL_ALONG), (RAY_SEGMENT, PIXEL_SEGMENT),
     ):
         a.ld_a_abs(PAIR_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", source); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
         a.ld_a_abs(PAIR_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", destination); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_hl_a()
@@ -631,34 +632,26 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("decorate_pixel_styles")
     a.xor_r("a"); a.ld_abs_a(EVENT_COUNT); a.ld_r_n("a", 1); a.ld_abs_a(EVENT_INDEX)
     a.label("event_boundary_loop")
-    # Compare adjacent face keys.
-    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_same_face", "z")
-    # Face break: darken one physical pixel on each side when >=16 px tall.
-    for delta in (-1, 0):
-        a.ld_a_abs(EVENT_INDEX)
-        if delta < 0: a.dec_r("a")
-        a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); skip = f"event_face_lod_skip_{delta + 1}"; a.jr(skip, "nc")
-        a.ld_a_abs(EVENT_INDEX)
-        if delta < 0: a.dec_r("a")
-        a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a(); a.label(skip)
+    # Physical segment identity is the geometry certificate. Material bits in
+    # the face key are presentation only and may not create hard corners.
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_same_segment", "z")
+    # A true physical break receives one dark pixel when >=16 px tall.
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("event_physical_lod_skip", "nc")
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
+    a.label("event_physical_lod_skip")
     a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT); a.jr("event_boundary_done")
-    a.label("event_same_face")
-    # A change in along-face cell coordinate is a world-anchored panel seam.
+    a.label("event_same_segment")
+    # A material transition on one continuous plane is a soft seam. Count it
+    # for diagnostics, but do not overwrite either physical pixel's style.
+    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_same_material", "z")
+    a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT); a.jr("event_boundary_done")
+    a.label("event_same_material")
+    # Cell boundaries remain classified for future sparse fasteners, but the
+    # clarity pass deliberately emits no full-height technology rib.
     a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jr("event_boundary_done", "z")
-    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("event_boundary_done", "nc")
-    a.ld_rr_nn("hl", PIXEL_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.and_n(0x60); a.cp_n(0x40); a.jr("event_cell_single_crease", "nz")
-    # Material-2 cell transitions are authored machinery-panel boundaries.
-    # Darken the preceding physical pixel as well as the current one to form
-    # a substantial two-pixel rib without any screen-space repetition.
-    a.ld_a_abs(EVENT_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", TECH_RIB_STYLE); a.ld_hl_a()
-    a.jr("event_cell_store_current")
-    a.label("event_cell_single_crease")
-    a.label("event_cell_store_current")
-    a.ld_a_abs(EVENT_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
     a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT)
     a.label("event_boundary_done")
     a.ld_a_abs(EVENT_INDEX); a.inc_r("a"); a.ld_abs_a(EVENT_INDEX); a.cp_n(PHYSICAL_COLUMNS); a.jp("event_boundary_loop", "c")
@@ -706,9 +699,8 @@ def emit_renderer(a: Assembler) -> None:
     a.ret()
 
     a.label("apply_surface_detail")
-    # Eye height is exactly half a wall, so screen row 48 is a stable world
-    # height for every projected surface. Machinery panels and doors receive
-    # a dark rail plus a bright lower edge without repeating in screen tiles.
+    # Spatial Clarity compiles this as a no-op. The dormant branch is retained
+    # only to keep experimental renderer-profile builds reproducible.
     if SURFACE_DETAIL_ENABLED:
         a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.ret("nz")
         a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.ret("nz"); a.ld_r_n("b", 0xFF)

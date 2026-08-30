@@ -1,16 +1,16 @@
 {
   "name": "coherence_tour",
   "world_mode": "empty",
-  "pixel_oracle": "v062_capture_pixels.json",
+  "pixel_oracle": "v063_capture_pixels.json",
   "actions": [
-    {"pose": [384, 384, 0], "updates": 1, "capture": "entry"},
-    {"buttons": ["up"], "updates": 5, "capture": "entry_forward"},
-    {"buttons": ["right"], "updates": 7, "capture": "corner_turn"},
-    {"buttons": ["up"], "updates": 4, "capture": "corner_approach"},
-    {"pose": [2176, 1152, 0], "updates": 1, "capture": "door_closed"},
-    {"buttons": ["b"], "updates": 1, "capture": "door_open"},
-    {"buttons": ["a"], "updates": 1, "capture": "muzzle_flash"},
-    {"pose": [2176, 1408, 144], "updates": 1, "capture": "material_junction"},
-    {"buttons": ["left"], "updates": 6, "capture": "junction_pan"}
+    {"pose": [1152, 3456, 192], "updates": 1, "capture": "protected_start"},
+    {"pose": [1152, 3136, 192], "updates": 1, "capture": "airlock_approach"},
+    {"buttons": ["b"], "updates": 1, "capture": "airlock_open"},
+    {"pose": [896, 2432, 192], "updates": 1, "capture": "corridor_turn"},
+    {"pose": [1728, 1920, 0], "updates": 1, "capture": "zigzag_gate"},
+    {"buttons": ["b"], "updates": 1, "capture": "zigzag_open"},
+    {"pose": [2176, 1920, 64], "updates": 1, "capture": "combat_partition"},
+    {"pose": [2176, 2176, 0], "updates": 1, "capture": "machinery_chamber"},
+    {"pose": [2432, 2688, 64], "updates": 1, "capture": "exit_approach"}
   ]
 }

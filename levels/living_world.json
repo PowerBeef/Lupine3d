@@ -1,28 +1,28 @@
 {
   "format": "lupine-level-v2",
-  "name": "Hangar Breach",
+  "name": "Hangar Breach: Spatial Clarity",
   "width": 16,
   "height": 16,
   "rows": [
-    "1122111111221111",
-    "1000002000000001",
-    "1000002022220001",
-    "1000002000020001",
-    "1000002000020001",
-    "1000002000000001",
-    "1000002022200001",
-    "1123212020000001",
-    "1210000030000001",
-    "1110211120000001",
-    "1123211111123211",
-    "1000002000020001",
-    "1000002000020001",
-    "1000002000020001",
-    "1000002000020001",
-    "1122112112112211"
+    "1111111111111111",
+    "1111111111111111",
+    "1000011111111111",
+    "1000011111111111",
+    "1001011111111111",
+    "1000011222222111",
+    "1113111200002111",
+    "1110000301002111",
+    "1110111200002111",
+    "1110011200002111",
+    "1110011200002111",
+    "1111311223222111",
+    "1100001100001111",
+    "1100001101001111",
+    "1100001100001111",
+    "1111111111111111"
   ],
   "player_spawn": {
-    "x_q8": 896,
+    "x_q8": 1152,
     "y_q8": 3456,
     "angle": 192,
     "safe_radius_cells": 5
@@ -30,32 +30,32 @@
   "doors": [
     {
       "id": "start_airlock",
-      "x": 3,
-      "y": 10,
+      "x": 4,
+      "y": 11,
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
     },
     {
-      "id": "courtyard_access",
+      "id": "service_branch",
       "x": 3,
-      "y": 7,
+      "y": 6,
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "zigzag_entry",
-      "x": 8,
-      "y": 8,
+      "x": 7,
+      "y": 7,
       "orientation": "vertical",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "exit_lock",
-      "x": 12,
-      "y": 10,
+      "x": 9,
+      "y": 11,
       "orientation": "horizontal",
       "kind": "exit",
       "unlock": "sentinel_dead"
@@ -64,7 +64,7 @@
   "entities": [
     {
       "kind": "sentinel",
-      "x_q8": 3200,
+      "x_q8": 2688,
       "y_q8": 2176,
       "health": 3,
       "activation_radius_q4": 96
@@ -76,7 +76,14 @@
   "triggers": [
     {"kind": "activate_exit", "condition": "sentinel_dead"}
   ],
-  "exit": {"x": 13, "y": 13, "marker": "beacon"},
+  "exit": {"x": 10, "y": 13, "marker": "beacon"},
+  "readability": {
+    "maximum_sightline": 6,
+    "minimum_door_separation": 8,
+    "minimum_critical_path_steps": 15,
+    "minimum_critical_path_turns": 3,
+    "maximum_material_singletons": 16
+  },
   "palette_profile": "outpost",
   "vram_profile": "entity-heavy"
 }

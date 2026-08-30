@@ -82,7 +82,7 @@ Every update checks:
 
 - 80-ray adaptive descriptors against the host oracle;
 - all 80 corrected-depth and surface-segment certificates;
-- all 160 final pixel descriptors, including exact edge recasts;
+- all 160 final pixel descriptors and segment IDs, including exact edge recasts;
 - material-event and cast counters;
 - generated boundary tile bytes and the complete 384-byte view map;
 - dynamic-tile capacity and overflow state;
@@ -92,7 +92,7 @@ Every update checks:
 
 When `pixel_oracle` is present, each named capture is also hashed as raw RGB
 pixels and compared with the referenced JSON map. The default coherence tour
-uses `playtests/v062_capture_pixels.json`; this makes any visible departure
+uses `playtests/v063_capture_pixels.json`; this makes any visible departure
 from the accepted current presentation fail the playtest independently of PNG
 compression metadata. Older oracle files remain historical evidence rather
 than the active acceptance target.
@@ -125,10 +125,11 @@ supports one to four authored material-3 doors, one Sentinel, one Sentinel
 drop, and one empty exit cell. Current `lupine-level-v2` gameplay levels also
 require safe-spawn metadata and one Sentinel-locked exit door.
 
-`make playtest` intentionally rebuilds with `levels/renderer_benchmark.json`
-before checking the nine current pixel oracles. `make playtest-world` rebuilds
-the normal Hangar Breach ROM. This isolates renderer regression evidence from
-deliberate gameplay-map revisions.
+`make playtest` rebuilds the active Hangar Breach level in empty-world mode and
+checks nine inspected spatial-coherence pixel oracles. `make playtest-world`
+uses the same authored geometry with entities, door timing, combat and level
+completion enabled. The renderer benchmark remains an independent research
+fixture exercised by `make research-v3` and the differential suite.
 
 Enable the opt-in reprojection variant with `LUPINE3D_REPROJECTION=1`. The
 test suite builds this variant in a fresh subprocess so the environment-backed

@@ -1,4 +1,4 @@
-# Lupine 3D 0.6.2 architecture
+# Lupine 3D 0.6.3 architecture
 
 ## Design target
 
@@ -87,8 +87,9 @@ Axis distance is rounded to Q5 tiles. The mathematically exact projected top for
 | `$D5E0` | 160 | `PIXEL_ALONG` |
 | `$D680` | 80 | `RAY_DEPTH` |
 | `$D6D0` | 80 | `RAY_SEGMENT` |
+| `$D800` | 160 | `PIXEL_SEGMENT` |
 
-The 80-ray pass always casts even indices plus index 79. An odd midpoint is reconstructed only when both anchors agree on face and segment identity, are adjacent along the face, and differ by no more than two top pixels. Otherwise that ray is cast exactly. The 160-column pass performs additional exact recasts at detected discontinuities.
+The 80-ray pass always casts even indices plus index 79. An odd midpoint is reconstructed only when both anchors agree on face and segment identity, are adjacent along the face, and differ by no more than two top pixels. Otherwise that ray is cast exactly. The 160-column pass performs additional exact recasts at detected discontinuities and expands segment identity for presentation classification.
 
 ## Tile compositor
 
@@ -109,9 +110,9 @@ An 8×8 dynamic tile is built from one- or two-pixel vertical microstrips. Only 
 
 ### Surface grammar
 
-The base fills remain phase-free: orientation selects light or shadow, while detail is attached to actual geometry. Face breaks receive two-sided creases, machinery cell transitions receive two-pixel structural ribs, and door runs derive their frames and centre spine from the projected door extent.
+The base fills remain phase-free: orientation selects light or shadow, while strong detail is attached only to actual geometry. Static material 1 and 2 cells share a physical segment when they continue the same exposed plane. A segment change receives one dark pixel; a material change on the same segment is a soft fill transition; ordinary cell boundaries produce no full-height mark. Door runs derive narrow frames and a wider two-pixel centre spine from their projected extent.
 
-The entity-heavy profile replaces two rare seam masks with light/shadow machinery-rail tiles. Because eye height is exactly half a wall, screen row 48 represents the same world height at every distance. A rail is emitted only when all eight pixels in that tile belong to one uninterrupted material-2 panel; mixed boundary tiles omit it. The renderer-heavy profile retains the two rare seam masks and emits no rail logic, keeping its measured hot path effectively unchanged.
+The eye-height machinery rail is disabled. At a half-height camera it necessarily projected to screen row 48 at every distance, so it behaved as a false horizon and forced additional dynamic composition. The entity-heavy profile now retains the same 23-tile static wall vocabulary without either rail variant.
 
 ## VRAM pages and publication
 

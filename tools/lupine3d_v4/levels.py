@@ -56,6 +56,21 @@ class ExitSpec:
 
 
 @dataclass(frozen=True)
+class ReadabilityReport:
+    """Build-time spatial-legibility certificate for a gameplay level."""
+    walkable_cells: int
+    unreachable_cells: int
+    critical_path_steps: int
+    critical_path_turns: int
+    maximum_sightline: int
+    maximum_open_rectangle: tuple[int, int]
+    minimum_door_separation: int
+    material_seams: int
+    material_singleton_runs: int
+    physical_segments: int
+
+
+@dataclass(frozen=True)
 class CompiledLevel:
     format: str
     name: str
@@ -73,6 +88,7 @@ class CompiledLevel:
     exit: ExitSpec
     palette_profile: int
     vram_profile: int
+    readability: ReadabilityReport | None = None
 
     def header_bytes(self) -> bytes:
         """Fixed active-level header consumed by the resident SM83 loader."""
@@ -108,11 +124,12 @@ def _bounded_int(record: dict[str, Any], key: str, minimum: int, maximum: int) -
 
 
 def build_segment_table(grid: bytes, width: int, height: int) -> bytes:
-    """Assign one ID to every contiguous exposed face run.
+    """Assign one ID to every physically contiguous exposed face run.
 
     Entries are cell-major with four bytes per cell: west, east, north,
-    south. IDs are stable for a fixed level and deliberately describe the
-    visible surface, not merely its supporting wall plane.
+    south. Static wall materials 1 and 2 share continuity; a paint change is
+    not geometry. Doors remain separate movable surfaces and therefore always
+    split a run.
     """
     if len(grid) != width * height:
         raise ValueError("segment grid size mismatch")
@@ -140,15 +157,20 @@ def build_segment_table(grid: bytes, width: int, height: int) -> bytes:
             table[(y * width + x) * 4 + side] = next_id
         next_id += 1
 
-    # Vertical planes: consecutive Y cells form one segment only while their
-    # material and exposed side agree.
+    def surface_class(cell_material: int, x: int, y: int) -> int:
+        # Every authored door is independent movable geometry. Static paint
+        # families intentionally collapse to the same class.
+        return 0x100 + y * width + x if cell_material == 3 else 1
+
+    # Vertical planes: consecutive Y cells form one segment while their
+    # physical class and exposed side agree. Paint does not split the plane.
     for side in (0, 1):
         for x in range(width):
             run: list[tuple[int, int]] = []
             run_material = -1
             for y in range(height + 1):
                 valid = y < height and exposed(x, y, side)
-                cell_material = material(x, y) if valid else -1
+                cell_material = surface_class(material(x, y), x, y) if valid else -1
                 if valid and (not run or cell_material == run_material):
                     run.append((x, y)); run_material = cell_material
                     continue
@@ -157,14 +179,14 @@ def build_segment_table(grid: bytes, width: int, height: int) -> bytes:
                 run_material = cell_material
             allocate(run, side)
 
-    # Horizontal planes: consecutive X cells use the same rule.
+    # Horizontal planes use the same geometry-only rule.
     for side in (2, 3):
         for y in range(height):
             run = []
             run_material = -1
             for x in range(width + 1):
                 valid = x < width and exposed(x, y, side)
-                cell_material = material(x, y) if valid else -1
+                cell_material = surface_class(material(x, y), x, y) if valid else -1
                 if valid and (not run or cell_material == run_material):
                     run.append((x, y)); run_material = cell_material
                     continue
@@ -173,6 +195,178 @@ def build_segment_table(grid: bytes, width: int, height: int) -> bytes:
                 run_material = cell_material
             allocate(run, side)
     return bytes(table)
+
+
+def _passable_cells(grid: bytes, width: int, height: int) -> set[tuple[int, int]]:
+    return {
+        (x, y)
+        for y in range(height)
+        for x in range(width)
+        if grid[y * width + x] in (0, 3)
+    }
+
+
+def _reachable_cells(
+    passable: set[tuple[int, int]], start: tuple[int, int],
+    blocked: tuple[int, int] | None = None,
+) -> set[tuple[int, int]]:
+    if start == blocked or start not in passable:
+        return set()
+    queue = deque((start,))
+    visited = {start}
+    while queue:
+        x, y = queue.popleft()
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            cell = (x + dx, y + dy)
+            if cell == blocked or cell in visited or cell not in passable:
+                continue
+            visited.add(cell)
+            queue.append(cell)
+    return visited
+
+
+def _shortest_path_steps_and_turns(
+    passable: set[tuple[int, int]], start: tuple[int, int], goal: tuple[int, int],
+) -> tuple[int, int] | None:
+    """Return distance and the fewest turns among all shortest paths."""
+    queue = deque(((start[0], start[1], -1, 0, 0),))
+    best: dict[tuple[int, int, int], tuple[int, int]] = {}
+    solutions: list[tuple[int, int]] = []
+    directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
+    while queue:
+        x, y, previous, steps, turns = queue.popleft()
+        if solutions and steps > solutions[0][0]:
+            break
+        if (x, y) == goal:
+            solutions.append((steps, turns))
+            continue
+        for direction, (dx, dy) in enumerate(directions):
+            cell = (x + dx, y + dy)
+            if cell not in passable:
+                continue
+            candidate = (steps + 1, turns + int(previous >= 0 and previous != direction))
+            state = (cell[0], cell[1], direction)
+            if state in best and best[state] <= candidate:
+                continue
+            best[state] = candidate
+            queue.append((cell[0], cell[1], direction, *candidate))
+    if not solutions:
+        return None
+    shortest = min(item[0] for item in solutions)
+    return shortest, min(turns for steps, turns in solutions if steps == shortest)
+
+
+def _maximum_sightline(passable: set[tuple[int, int]], width: int, height: int) -> int:
+    maximum = 0
+    for y in range(height):
+        run = 0
+        for x in range(width):
+            run = run + 1 if (x, y) in passable else 0
+            maximum = max(maximum, run)
+    for x in range(width):
+        run = 0
+        for y in range(height):
+            run = run + 1 if (x, y) in passable else 0
+            maximum = max(maximum, run)
+    return maximum
+
+
+def _maximum_open_rectangle(
+    passable: set[tuple[int, int]], width: int, height: int,
+) -> tuple[int, int]:
+    """Return the largest-area axis-aligned open rectangle dimensions."""
+    best_area, best_width, best_height = 0, 0, 0
+    heights = [0] * width
+    for y in range(height):
+        for x in range(width):
+            heights[x] = heights[x] + 1 if (x, y) in passable else 0
+        for left in range(width):
+            minimum = height + 1
+            for right in range(left, width):
+                minimum = min(minimum, heights[right])
+                if minimum == 0:
+                    continue
+                rect_width = right - left + 1
+                area = rect_width * minimum
+                if area > best_area:
+                    best_area, best_width, best_height = area, rect_width, minimum
+    return best_width, best_height
+
+
+def _has_oversized_open_room(
+    passable: set[tuple[int, int]], width: int, height: int,
+) -> bool:
+    """Detect any open 5x4 or 4x5 window, irrespective of larger corridors."""
+    for rect_width, rect_height in ((5, 4), (4, 5)):
+        for y0 in range(height - rect_height + 1):
+            for x0 in range(width - rect_width + 1):
+                if all(
+                    (x, y) in passable
+                    for y in range(y0, y0 + rect_height)
+                    for x in range(x0, x0 + rect_width)
+                ):
+                    return True
+    return False
+
+
+def _material_run_metrics(grid: bytes, width: int, height: int) -> tuple[int, int]:
+    """Count paint seams and one-cell islands within physical surfaces."""
+    segment_table = build_segment_table(grid, width, height)
+    members: dict[int, list[tuple[int, int]]] = {}
+    for cell_index, cell_material in enumerate(grid):
+        if cell_material not in (1, 2):
+            continue
+        for side in range(4):
+            segment = segment_table[cell_index * 4 + side]
+            if segment:
+                members.setdefault(segment, []).append((cell_index, cell_material))
+
+    seam_count = 0
+    singleton_count = 0
+    for entries in members.values():
+        if len(entries) <= 1:
+            continue
+        ordered = [material for _, material in sorted(entries)]
+        run_material, run_length = ordered[0], 1
+        run_lengths: list[int] = []
+        for material in ordered[1:] + [-1]:
+            if material == run_material:
+                run_length += 1
+                continue
+            run_lengths.append(run_length)
+            run_material, run_length = material, 1
+        seam_count += len(run_lengths) - 1
+        singleton_count += sum(length == 1 for length in run_lengths)
+    return seam_count, singleton_count
+
+
+def analyze_level_readability(
+    grid: bytes, width: int, height: int, start: tuple[int, int],
+    sentinel: tuple[int, int], doors: tuple[DoorSpec, ...],
+) -> ReadabilityReport:
+    passable = _passable_cells(grid, width, height)
+    reachable = _reachable_cells(passable, start)
+    critical = _shortest_path_steps_and_turns(passable, start, sentinel)
+    if critical is None:
+        critical = (0, 0)
+    separations = [
+        len(passable) - len(_reachable_cells(passable, start, (door.x, door.y))) - 1
+        for door in doors
+    ]
+    segment_table = build_segment_table(grid, width, height)
+    material_seams, material_singletons = _material_run_metrics(grid, width, height)
+    return ReadabilityReport(
+        walkable_cells=len(passable),
+        unreachable_cells=len(passable - reachable),
+        critical_path_steps=critical[0],
+        critical_path_turns=critical[1],
+        maximum_sightline=_maximum_sightline(passable, width, height),
+        maximum_open_rectangle=_maximum_open_rectangle(passable, width, height),
+        minimum_door_separation=min(separations, default=0),
+        material_seams=material_seams,
+        material_singleton_runs=material_singletons,
+        physical_segments=max(segment_table, default=0),
+    )
 
 
 def _reachable_distance(
@@ -337,6 +531,52 @@ def compile_level(path: Path) -> CompiledLevel:
         exit_doors = [door for door in doors if door.flags & DOOR_FLAG_EXIT]
         if len(exit_doors) != 1 or not (exit_doors[0].flags & DOOR_FLAG_LOCK_SENTINEL):
             raise ValueError("v2 gameplay levels require one Sentinel-locked exit door")
+    readability = analyze_level_readability(
+        grid, width, height,
+        (player_x_q8 >> 8, player_y_q8 >> 8),
+        (entities[0].x_q8 >> 8, entities[0].y_q8 >> 8),
+        doors,
+    )
+    if level_format == "lupine-level-v2":
+        limits = source.get("readability", {})
+        max_sightline = int(limits.get("maximum_sightline", 6))
+        min_door_separation = int(limits.get("minimum_door_separation", 4))
+        min_path_steps = int(limits.get("minimum_critical_path_steps", 12))
+        min_path_turns = int(limits.get("minimum_critical_path_turns", 2))
+        max_singletons = int(limits.get("maximum_material_singletons", 16))
+        if readability.unreachable_cells:
+            raise ValueError(
+                f"readability: {readability.unreachable_cells} walkable cells are unreachable"
+            )
+        if readability.minimum_door_separation < min_door_separation:
+            raise ValueError(
+                "readability: an ordinary door fails to separate enough walkable cells "
+                f"({readability.minimum_door_separation} < {min_door_separation})"
+            )
+        if readability.critical_path_steps < min_path_steps:
+            raise ValueError(
+                f"readability: critical path is too short ({readability.critical_path_steps} < {min_path_steps})"
+            )
+        if readability.critical_path_turns < min_path_turns:
+            raise ValueError(
+                f"readability: critical path has too few turns ({readability.critical_path_turns} < {min_path_turns})"
+            )
+        if readability.maximum_sightline > max_sightline:
+            raise ValueError(
+                f"readability: sightline is too long ({readability.maximum_sightline} > {max_sightline})"
+            )
+        # Long 1-3-cell-wide corridors are fine; room-like open rectangles
+        # must fit inside the renderer's legible 4x4 envelope.
+        if _has_oversized_open_room(_passable_cells(grid, width, height), width, height):
+            rect_width, rect_height = readability.maximum_open_rectangle
+            raise ValueError(
+                f"readability: open rectangle {rect_width}x{rect_height} exceeds the 4x4 room envelope"
+            )
+        if readability.material_singleton_runs > max_singletons:
+            raise ValueError(
+                "readability: exposed material paint is too fragmented "
+                f"({readability.material_singleton_runs} singleton runs > {max_singletons})"
+            )
     return CompiledLevel(
         format=level_format, name=str(source["name"]), width=width, height=height, grid=grid,
         segment_table=build_segment_table(grid, width, height),
@@ -347,6 +587,7 @@ def compile_level(path: Path) -> CompiledLevel:
         doors=doors, entities=entities, pickups=pickups, exit=exit_spec,
         palette_profile=PALETTE_IDS[str(source["palette_profile"])],
         vram_profile=PROFILE_IDS[str(source["vram_profile"])],
+        readability=readability,
     )
 
 

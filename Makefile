@@ -40,8 +40,8 @@ verify: build test research
 	$(PYTHON) tools/release_check.py
 
 playtest:
-	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) tools/build_rom.py
-	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) tools/playtest.py
+	$(PYTHON) tools/build_rom.py
+	$(PYTHON) tools/playtest.py
 
 playtest-world:
 	$(PYTHON) tools/build_rom.py

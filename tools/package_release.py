@@ -151,8 +151,8 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         "LUPINE3D_LEVEL": str((ROOT / "levels" / "renderer_benchmark.json").resolve()),
     }
     run([python, "research/rendering_v3_lab.py"], ROOT, env_overrides=benchmark_env)
-    run([python, "tools/build_rom.py"], ROOT, env_overrides=benchmark_env)
-    run([python, "tools/playtest.py"], ROOT, env_overrides=benchmark_env)
+    run([python, "tools/build_rom.py"], ROOT)
+    run([python, "tools/playtest.py"], ROOT)
     run([python, "tools/build_rom.py"], ROOT)
     run([
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
