@@ -1,121 +1,130 @@
-# Lupine 3D 0.7.0-beta.5 test report
+# Lupine 3D 0.7.0-beta.6 test report
 
-Candidate ROM SHA-256:
-`8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3`
+Production ROM SHA-256:
+`48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99`
 
-4 MiB MBC5 · CGB-only · no cartridge RAM · **physical hardware not tested**
+4 MiB MBC5 · CGB-only · no cartridge RAM · **emulator-qualified**
 
-## Automated contracts
+The release version changes packaging metadata. Its ROM is byte-identical to
+the accepted performance milestone. The [beta.5 report](TEST_REPORT_BETA5.md)
+and immutable comparison archives retain historical evidence separately.
 
-**84 tests and 86 release gates pass locally.** This includes frozen v0.1 hash, deterministic builds, cartridge layout, projection and product arithmetic, generated-code/host descriptors, tile/map bytes, all door-state face IDs, combat, input, publication, colour metadata and memory bounds.
+## Executed verification
 
-Four streaming/prepared-ray tests cover 32 synthetic expansion arrays (including unsigned-byte wrap and endpoint clamps), 200 door/surface-event cases, all 61,696 valid camera records and actual SM83 loads across every camera-bank boundary. They check exact projection addresses, Q14 components, door precedence, page crossings, restored ROM bank and memory guards.
+**137 tests and 86 release checks pass locally.** The packaged source is also
+rebuilt, extracted into a fresh directory, rebuilt again and tested. Test
+inventory is recorded separately from actual execution logs.
 
-Five wall-reuse tests exercise every one of the 290 key bytes, actor-only changes, camera/door misses, in-flight reload generation and wrap, cached/full packet equivalence, independent OBJ/BG ownership, zero-to-32 masked pattern publication, serial wrap and reserved memory. Actual published VRAM and admitted OAM bank bits are checked in driven routes.
+Coverage includes:
 
-Three runtime tests cover bounded quotient/remainder/overflow behavior, every product-bank selector with both address-half boundaries, and Q14 continuation versus full restart over 512 open-room ray probes. The latter explicitly requires late ambiguous crossings. The unchanged resident-memory reserve gate still requires at least 3,000 bytes.
+- The frozen v1 ROM hash, deterministic builds and the original nine RGB fixtures.
+- All 282 legal folded selectors and 6,768 pattern comparisons, plus the complete
+  19-state unfolded domain and both stored strip widths/styles.
+- Fifty-three same-snapshot descriptor, allocation, packet and RGB comparisons.
+- Certificate carries, all camera banks, cache collisions/reloads/generation
+  wrap, bank restoration and cooperative simulation state.
+- Four-anchor packet bounds, splits, scalar fallbacks and prepared padding.
+- Physical-query provenance, same-key refinement promotion, one through four
+  actors, all-screen refinement bounds and forced-full agreement.
+- Q8.8 actor transforms, atomic capacity rollback, hidden-X OAM selection,
+  LOD fallback and physical door-run separation.
+- All 2,359,296 logical projection bytes, emitted directory/page boundaries,
+  and the bounded near-field projection candidate.
+- Foreground queue overflow, sequence/generation wrap, reload ownership,
+  coherent OAM publication and maximum 176-block staged transfers.
+- The coherence/world/art routes, controller-only completion/restart, variants,
+  short motion checks and the full 24,384-view geometry-tail scan.
 
-Eight art/UI acceptance tests cover the 78-pattern HUD dictionary, actual line-96 interrupt/vector timing, prepared HUD snapshot bytes and status text, fixture authoring legality, segment-plus-cell masks, upper-wall placement and projection preservation, publication-budget boundaries before line 153, and actor-priority scanline capacity.
+## Production measurements
 
-New coverage exercises:
+The review baseline is commit `466bd09786d076c1e4b528f32647aa2885d201ff`, ROM
+`8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3`.
+Each sustained lane spans 3,584 LCD intervals (59.989 seconds). The baseline
+and production receive identical controller tapes and no post-setup game-RAM
+writes. Timing categories reconcile exactly in CPU T-cycles.
 
-- all 61,696 supported camera records' Q14 component-error certificates, including centre hitscan;
-- 64 retained severe rays in actual ROM code;
-- 1,600 ROM/host sliding-door probes across four doors and five apertures;
-- shared aperture LOS versus radius collision;
-- 16-bit timestamp wrap, repeated edges, bounded debt and non-overwriting overflow;
-- immutable rendering while live simulation advances;
-- fixed movement under different service batching;
-- per-bit OBJ masks, three-LOD hysteresis and scanline admission;
-- two actor slots, nearest-first shots and all-dead exit unlock;
-- surface-profile legality and exact hidden attributes;
-- bulk-copy lengths/guards and immutable reprojection coordinates.
-- forced maximum 176-block staged publication and Start-to-restart after death/completion.
+| Scenario | Baseline mean | Production mean | Production p95 | Full geometry/s |
+|---|---:|---:|---:|---:|
+| Walking | 1,212,118 | 1,151,487 | 1,264,268 | 7.25 |
+| Turning | 921,810 | 866,184 | 983,424 | 9.67 |
+| Walking and turning | 980,133 | 906,582 | 1,123,992 | 9.23 |
+| Moving fire | 978,764 | 906,582 | 1,123,916 | 9.23 |
+| Open door | 1,271,867 | 1,225,335 | 1,264,160 | 6.83 |
+| Closed door | 1,035,856 | 963,202 | 1,124,568 | 8.68 |
+| Two-actor corner | 1,348,764 | 1,283,440 | 1,685,396 | 6.52 |
 
-## Current routes
+Mean improvement is 3.7–7.5% across the six primary moving scenarios. The 10 Hz
+target remains unmet. The two-actor arena has intermittent contention: both
+actors reach admission together in three frames, with world OAM submitted in
+47 production frames. Its five-second windows all contain translation/turning.
 
-| Measurement | Coherence tour | Combat diagnostic |
+The stationary door-tap lane has five full geometry frames while the door
+opens, followed by cached presentations. Those cached frames are not geometry
+throughput. Controller-only completion occurs at update 274 and restart is
+verified at update 276, with no gameplay-RAM injection. The bot reads live state
+to steer; this is functional verification, not blind human navigation.
+
+| Driven route | Coherence | Combat diagnostic |
 |---|---:|---:|
-| Updates / captures | 11 / 9 | 47 / 14 |
-| Full / cached presentations | 9 / 2 | 22 / 25 |
-| Mean CPU cycles/presentation | 776,618.545 | 611,982.979 |
-| Maximum CPU cycles/presentation | 1,128,280 | 1,404,644 |
-| Minimum presentations/s | 7.4349 | 5.9721 |
+| Presentations / captures | 11 / 9 | 47 / 14 |
+| Full / cached | 9 / 2 | 22 / 25 |
+| Mean T-cycles/presentation | 738,315 | 600,030 |
+| Maximum T-cycles/presentation | 1,128,288 | 1,404,568 |
 | Peak dynamic patterns | 18 / 96 | 25 / 96 |
-| Peak total casts | 56 | 59 |
-| Peak visible OAM | 11 / 40 | 15 / 40 |
-| Peak Y-selected scanline OAM | 4 / 10 | 7 / 10 |
+| Peak objects per scanline | 4 / 10 | 7 / 10 |
 | Unsafe GDMA starts | 0 | 0 |
-| Frozen RGB captures | 9 / 9 exact | None |
 
-Cycles include publication waits and concurrent simulation work. These are project-harness CPU-cycle measurements, not measurements from an original CGB. Live actor poses can differ as render duration changes; the separate frozen-world comparison isolates the optimization's exact output and timing.
+Live sampling changes as rendering becomes faster. Same-snapshot exactness is
+established separately; controller-driven RGB differences alone are not used
+to classify a regression. The nine production RGB fixtures remain unchanged.
 
-The nine Sable RGB fixtures were accepted after the art pass's visual inspection in `playtests/v070_sable_capture_pixels.json`. This performance pass changes none of them. A separate frozen-simulation folded/unfolded comparison matches all nine RGB images exactly. The six-view art tour separately covers close and oblique vents, lighting, a sector sign, the airlock and the Sentinel.
+## Independent emulators and geometric witnesses
 
-The gameplay diagnostic teleports its camera for state coverage. It explicitly aims at the live enemy and relocates to the actual drop; it does not inject health/death/completion. All states are reached by generated gameplay code.
-
-Across 53 identical frozen scenes, a cached update averages 135,878 cycles versus 1,110,314 for a forced full update of the same candidate: 87.76% less work including waits. RGB and complete packets match, allowing only the intended BG bank selection in attributes. The separate fresh-frame comparison against beta.4 normalizes only the irrelevant bank bit in disabled OAM slots; visible OAM remains exact. Current content budgets stay at 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles; memory, correctness and timing gates were not relaxed.
-
-LCD-timed stationary combat presents 40.37 updates/s. All three brief A taps publish muzzle feedback in 49.48–49.52 ms; the estimated next muzzle scanline occurs at 56.32 ms. Idle presents 59.71 updates/s. The turning trial still completes nine full renders, with nine additional cached updates during stable poses. These are short deterministic trials, not a guaranteed gameplay frame rate or hardware latency measurement. See [wall reuse evidence](WALL_REUSE.md).
-
-## Streaming and motion measurements
-
-Against the immutable beta.4 baseline, 53 frozen scenes preserve all six output groups, executed cast counts and material-event counts. Complete-presentation mean falls from 1,234,852 to 1,115,603 cycles (9.66%). Expansion alone falls 65.67%; surface scans 51.69%. The casting total includes those kernels, so the percentages are not additive.
-
-Four 144-LCD-frame-counter trials make no game-RAM writes after diagnostic setup. Walking completes 16 full updates (6.68/s), turning 22 (9.19/s), and combined movement 21 (8.77/s). A single-frame B tap opens the door, with five full frames and multiple changing apertures observed. Every presentation verifies exact cache invalidation and published packets; queue overflow and unsafe DMA starts stay zero. These short live trials sample different poses as rendering speeds change; exact cross-version image identity is established separately with frozen snapshots.
-
-Prepared-ray-disabled, reuse-disabled and unfolded variants each match the default's nine frozen RGB captures. Source measurements and baseline hashes are retained in [streaming evidence](COLUMN_PERFORMANCE.md).
-
-## Controller-only level completion
-
-**252 completed presentations**, 84 health remaining, Sentinel dead, medkit collected and exit reached. No pose or gameplay RAM injections. Every completed update validates descriptors, depths, segments, actual published wall/mask packets, surface attributes, OAM banks/limits, queue overflow and publication safety. Presentation counts do not determine elapsed playthrough time: the controller samples the live world after each completed update.
-
-The bot reads live state to steer. This proves functional controller completion, not blind human navigability or player preference.
-
-## Geometry-tail laboratory
-
-The retained renderer-benchmark evidence covers 381 positions and 64 angles: **24,384 views / 3,901,440 physical columns**. This pass preserves the geometry model; it does not claim a newly executed full tail scan.
-
-| Result | Current scan |
-|---|---:|
-| Maximum wall-top error | 4.489522 px |
-| Columns with error ≥8 px | 0 |
-| Wrong-segment columns | 67 |
-| Wrong-material columns | 3 |
-
-The historical 41-pixel corpus remains unchanged. Its 64 retained severe ray cases now choose the floating oracle's hit cell and axis in actual generated code. The full scan is a host comparison, not 24,384 independent-emulator frames. Q14 fixes crossing order; Q5 projection and adaptive interpolation remain quantized.
-
-Artifacts: `build/q14_tail.json`, `.csv`, `.png`.
-
-## Independent emulators
-
-| Core / model | Pin | Result for candidate SHA |
+| Core / model | Pinned revision | Production result |
 |---|---|---|
 | SameBoy CGB-0 | `213a12ce93d66b105a113debd9396306066a7cfc` | Pass |
-| SameBoy CGB-E | same pin | Pass |
+| SameBoy CGB-E | Same revision | Pass |
 | mGBA CGB | `507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6` | Pass |
 
-Each lane runs 480 LCD frames, observes 30 BG page swaps, moves/turns and opens the starting door using input. SameBoy records 278 presentations (248 cached); mGBA records 281. Different bootstrap timing affects the presentation count. Startup RGB, including the split-screen HUD and door emblem, matches the project host under matching linear RGB15 conversion.
+Startup and controller routes pass on the exact ROM. All 51 frozen-world
+images agree with the project harness in the production, quality and near-field
+configurations on all three lanes. The rational plane oracle independently
+provides expected visibility; emulator agreement alone does not establish
+geometric correctness. Frozen-scene writes are explicitly diagnostic.
 
-SameBoy observes 198 GDMA starts per model, zero unsafe GDMA/OAM starts, zero unsafe page flips/presentations and zero writes into the visible masked-object bank. mGBA verifies boot/control/RGB and zero input overflow but **does not instrument DMA writes**. SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Neither tests the Nintendo boot ROM.
+Scalar, unfolded, packet and both compact-storage reference configurations also
+pass the independent controller lanes. Foreground moving-fire traces exercise
+the actual foreground lane with no mixed world OAM. SameBoy observes DMA,
+publication and visible-mask writes; mGBA does not instrument DMA writes.
+Neither bootstrap tests the original Nintendo boot ROM.
 
-CI configuration includes both pinned cores, gameplay completion, variant checks, the exact cached/full laboratory and all four continuous-motion trials. This report records local executed evidence; remote run status is available separately in GitHub Actions.
+## Enable/disable decisions and resources
 
-## Variant and resource acceptance
+Production enables compact strips, invariant camera setup, narrow yield contexts
+and exact attribute padding. The other rendering candidates remain disabled
+where their timing, quality or feedback gates fail. In particular, the physical
+depth/actor/admission combination exceeds the mean/p95 half-gains budget, and
+foreground sample-to-visible p95 is 40.606 ms versus the 33.485 ms target.
+See the [implementation ledger](RENDERING_IMPLEMENTATION.md) for candidate
+hashes, partial rejection gates and reviewed before/after motion sequences.
 
-- Two-Sentinel scene: eight world objects, 17 visible OAM total, six objects maximum per scanline.
-- Masked 8×16 allocation: ≤16 world entries, ≤32 mask patterns, ≤4 world objects per scanline.
-- Forced large packet tests keep prior OAM until final BG/attribute/HUD/OAM publication.
-- Reuse-disabled build: nine RGB captures match the default build. Cached updates transfer at most 32 OBJ blocks in one VBlank and leave BG VRAM unchanged.
-- Optional reprojection: exact clamp, static UI, published-world X shifts, future-shadow isolation and matching guard attributes pass in the project harness. Default remains off; independent/hardware perception testing is not claimed.
-- Resident image: 29,309 bytes, end $73CD, 3,123 bytes free below $8000. Grouped division temporarily adds two stack bytes; no new HRAM or VRAM allocation.
-- Cold assets: 9,514 bytes in bank 156, including the relocated startup map; Q14 tables: 262,144 bytes; products: 131,072 bytes.
-- Prepared rays: 1,048,576 bytes in banks 173–236; 311,296 cartridge bytes remain. Four banked WRAM bytes at $D8F3–$D8F6 hold projection pointers; no extra HRAM/VRAM. Door-event scanning temporarily adds four stack bytes.
-- Wall reuse: 297 additional WRAM bytes; no additional HRAM, VRAM or cartridge bank.
-- Stack: fixed $CFFF with 512 bytes reserved. HRAM: 111 state bytes plus separate ten-byte DMA stub.
-- Packet maximum: 176 blocks, staged into ≤96 and ≤80 blocks when needed. Single-window dynamic-plus-mask cap is 24; optional reprojection may use an extra window for large masked packets.
-- HUD: 78 of 96 available bank-0 patterns; fixtures: 16 authored, at most four OAM entries per frame from the existing world capacity.
+The allocation ledger checks fixed ROM, banked ROM, WRAM, HRAM, stack, VRAM and
+OAM ownership. The production resident image ends at `$68CD`, leaving **5,939
+bytes**. Fixed code ends at `$3090`; the 3,000-byte reserve, 512-byte stack,
+96 dynamic patterns, 32 masks and 176-block staged-publication limit hold.
+The 3,840-byte strip-table saving yields 2,816 net linked bytes; it does not
+expand the fixed-ROM execution ceiling.
 
-## Remaining acceptance boundary
+## Release evidence and hardware status
 
-No original CGB or flash cartridge was available. No unlimited-input guarantee after queue overflow, arbitrary-precision depth, arbitrary sprite scaling, or default-enabled reprojection is claimed. See [implementation status](OVERHAUL_IMPLEMENTATION.md) and [hardware checklist](HARDWARE_TEST_CHECKLIST.md).
+The source bundle includes `build/rendering_qualification/report.json` and its
+65 hash-bound evidence files. It records two deterministic ROM rebuilds,
+sustained/frozen/reference results, controller replays and the actual test log.
+The packager verifies these hashes and emits a separate clean-room report,
+release manifest and SHA-256 checksums for its distributable files.
+
+GitHub Actions status is reported separately from these local results. The
+owner has no physical CGB or flash cartridge; hardware status remains false
+and does not block emulator-qualified releases. Development takes place on
+`main`. See the [development policy](../AGENTS.md) and optional future
+[hardware checklist](HARDWARE_TEST_CHECKLIST.md).

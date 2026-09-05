@@ -17,12 +17,14 @@ from playtest import validate_frame, oam_budget, make_contact_sheet
 from sm83emu import CGB, parse_symbols
 
 
-def run(output: Path):
+def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
     output.mkdir(parents=True, exist_ok=True)
-    rom = (br.BUILD / "lupine3d.gb").read_bytes()
-    cgb = CGB(rom, parse_symbols(br.BUILD / "lupine3d.sym"))
+    rom = (rom_path or br.BUILD / "lupine3d.gb").read_bytes()
+    cgb = CGB(rom, parse_symbols(symbols_path or br.BUILD / "lupine3d.sym"))
     cgb.run(until_pc=cgb.symbols["main_loop"], max_steps=2_000_000)
     records, captures = [], []
+    first_lcd=cgb.frame_count
+    replay={}
 
     def live8(address):
         return cgb.wramx[2][address - 0xD000] if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000 else cgb.read8(address)
@@ -36,7 +38,13 @@ def run(output: Path):
     def step(keys=0):
         if len(records) >= 1200:
             raise AssertionError("controller route exceeded 1200-update watchdog")
-        cgb.button_provider = (lambda *_: keys()) if callable(keys) else (lambda *_: keys)
+        def controller(*_):
+            # Latch one controller byte for each LCD interval. Steering may
+            # inspect live state, but never changes midway through a P1 read.
+            frame=cgb.frame_count-first_lcd
+            if frame not in replay: replay[frame]=keys() if callable(keys) else keys
+            return replay[frame]
+        cgb.button_provider = controller
         cycles = cgb.cycles
         cgb.run(until_presentations=cgb.presentations + 1, max_steps=3_000_000)
         data = validate_frame(cgb)
@@ -136,8 +144,23 @@ def run(output: Path):
     step(0)
     assert cgb.read8(br.LEVEL_COMPLETE) == 1
     capture("level_complete")
+    completed_at=len(records)
+    if restart:
+        generation=cgb.read16(br.WALL_EPOCH)
+        step(128);step(0)
+        for _ in range(8):
+            if not live8(br.LEVEL_COMPLETE) and cgb.read16(br.WALL_EPOCH)!=generation:break
+            step(0)
+        assert not live8(br.LEVEL_COMPLETE) and cgb.read16(br.WALL_EPOCH)!=generation
+        assert live8(br.PLAYER_HEALTH)==99 and live8(br.PICKUP_COLLECTED)==0
+        capture("restarted")
+    tape=bytes(replay.get(i,0) for i in range(cgb.frame_count-first_lcd+1))
+    (output/'controller_replay.bin').write_bytes(tape)
     report = {"passed": True, "rom_sha256": hashlib.sha256(rom).hexdigest(),
               "game_ram_injections": 0, "controller_only": True, "blind_navigation": False,
+              "schema":"lupine3d.controller-route.v2","input_replay_sha256":hashlib.sha256(tape).hexdigest(),
+              "input_replay_encoding":"one controller byte per LCD interval; adaptive controller recorded for replay",
+              "lcd_intervals":len(tape),"completion_update":completed_at,"restart_verified":restart,
               "update_count": len(records), "health_remaining": cgb.read8(br.PLAYER_HEALTH),
               "sentinel_dead": True, "pickup_collected": True, "level_complete": True,
               "unsafe_gdma_starts": cgb.gdma_vblank_violations, "updates": records}
@@ -149,4 +172,8 @@ def run(output: Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=br.BUILD / "playthrough")
-    run(parser.parse_args().output_dir)
+    parser.add_argument("--rom",type=Path);parser.add_argument("--symbols",type=Path)
+    parser.add_argument("--restart",action="store_true")
+    args=parser.parse_args()
+    if bool(args.rom)!=bool(args.symbols):parser.error("Supply ROM and symbols together")
+    run(args.output_dir,rom_path=args.rom,symbols_path=args.symbols,restart=args.restart)

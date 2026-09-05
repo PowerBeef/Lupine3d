@@ -88,18 +88,34 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--baseline-rom", type=Path, required=True)
     parser.add_argument("--baseline-symbols", type=Path, required=True)
+    parser.add_argument("--baseline-report", type=Path, help="Reuse hash- and scene-bound frozen measurements")
     parser.add_argument("--output", type=Path, default=br.BUILD / "runtime_comparison.json")
     args = parser.parse_args()
     baseline = args.baseline_rom.read_bytes()
     labels = parse_symbols(args.baseline_symbols)
-    candidate, asm, _ = br.make_rom()
+    candidate, asm, manifest = br.make_rom()
+    recorded = None
+    if args.baseline_report:
+        evidence = json.loads(args.baseline_report.read_text())
+        if not evidence["passed"] or not evidence["simulation_frozen"]:
+            raise ValueError("Baseline report is not a passing frozen comparison")
+        lane = "candidate" if evidence["candidate_sha256"] == hashlib.sha256(baseline).hexdigest() else "baseline"
+        if evidence[lane+"_sha256"] != hashlib.sha256(baseline).hexdigest():
+            raise ValueError("Baseline report hash does not match baseline ROM")
+        if [row["scene"] for row in evidence["scenes"]] != scenes():
+            raise ValueError("Baseline report scene definitions have changed")
+        recorded = {row["scene"]["name"]:row[lane] for row in evidence["scenes"]}
     rows = []
     for scene in scenes():
-        before, after = measure(baseline, labels, scene), measure(candidate, asm.labels, scene)
+        before = recorded[scene["name"]] if recorded is not None else measure(baseline, labels, scene)
+        after = measure(candidate, asm.labels, scene)
         if any(before[key] != after[key] for key in ("hashes", "casts", "material_events")):
             raise AssertionError((scene, before, after))
         rows.append(dict(scene=scene, baseline=before, candidate=after))
-    report = dict(passed=True, simulation_frozen=True, diagnostic_ram_injections=True,
+    report = dict(schema="lupine3d.frozen.v2",timing_unit="cpu_t_cycles",cpu_hz=8388608,
+                  configuration_id=manifest["configuration_id"],
+                  baseline_report_sha256=hashlib.sha256(args.baseline_report.read_bytes()).hexdigest() if args.baseline_report else None,
+                  passed=True, simulation_frozen=True, diagnostic_ram_injections=True,
                   baseline_sha256=hashlib.sha256(baseline).hexdigest(),
                   candidate_sha256=hashlib.sha256(candidate).hexdigest(), scene_count=len(rows),
                   normalization="Only OBJ bank bit 3 in disabled Y=0 OAM slots",

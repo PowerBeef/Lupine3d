@@ -24,6 +24,8 @@ def main():
     executable = br.BUILD / "sameboy_smoke"
     subprocess.run(["cc", f"-I{core}", str(br.ROOT / "tools/sameboy_smoke.c"),
                     str(core / "build/lib/libsameboy.a"), "-lm", "-ldl", "-o", str(executable)], check=True)
+    executable.with_suffix(".provenance.json").write_text(json.dumps(dict(core="SameBoy",core_commit=revision,
+        adapter_sha256=hashlib.sha256(executable.read_bytes()).hexdigest()),indent=2)+"\n")
     rom = br.BUILD / "lupine3d.gb"
     sha = hashlib.sha256(rom.read_bytes()).hexdigest()
     expected_rom, asm, _ = br.make_rom()

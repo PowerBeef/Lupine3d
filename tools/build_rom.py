@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import argparse
 
 from lupine3d_v4.layout import *  # noqa: F401,F403
 from lupine3d_v4.resources import *  # noqa: F401,F403
@@ -19,6 +20,11 @@ from lupine3d_v4.living_world import *  # noqa: F401,F403
 # shadow the active industrial-gothic UI and weapon assets.
 from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles  # noqa: E402
 from lupine3d_v4.precision import make_q14_directions, emit_precision
+from lupine3d_v4.actor_precision import emit_actor_precision
+from lupine3d_v4.admission import emit_admission
+from lupine3d_v4.projection_storage import pack_projection, emit_projection_storage
+from lupine3d_v4.near_field import near_corrections, emit_near_field
+from lupine3d_v4.foreground import emit_foreground
 from lupine3d_v4.door_geometry import emit_door_geometry
 from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk
 from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_renderer_v7
@@ -28,6 +34,12 @@ from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.world_decor import emit_world_decor, fixture_records
 from lupine3d_v4.wall_cache import emit_wall_cache
 from lupine3d_v4.ray_setup import make_ray_setup_table, emit_ray_setup
+from lupine3d_v4 import layout as active_layout
+from lupine3d_v4.allocation import memory_ledger
+from lupine3d_v4.configuration import identity
+from lupine3d_v4.tile_cache import emit_tile_cache
+from lupine3d_v4.packets import emit_packets
+from lupine3d_v4.physical_depth import emit_physical_depth
 
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
@@ -55,6 +67,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.xor_r("a"); a.ldh_n_a(LCDC); a.ldh_n_a(SCX); a.ldh_n_a(SCY)
     for address in (WALL_CACHE_VALID, FRAME_REUSED, PRESENT_SERIAL, WALL_CACHE_DISABLE, WALL_EPOCH, WALL_EPOCH + 1):
         a.ld_abs_a(address)
+    if PHYSICAL_DEPTH: a.ld_abs_a(COVERAGE_MODE)
+    if FOREGROUND_PUBLICATION:
+        for address in range(FG_HEAD,FG_CHANGED+1): a.ld_abs_a(address)
     a.ld_r_n("a", 1); a.ld_abs_a(OBJ_PAGE)
     a.call("load_level")
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
@@ -62,7 +77,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_abs_a(SIM_READY)
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
     a.call("init_palettes"); a.call("init_vram"); a.call("prepare_hud_tiles"); a.call("update_hud_tiles"); a.call("init_oam"); a.call("init_audio")
-    a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_initial_both_pages")
+    if FOREGROUND_PUBLICATION:
+        for i in range(2): a.ld_a_abs(WALL_EPOCH+i); a.ld_abs_a(FG_FRAME_GENERATION+i)
+    a.call("cast_all")
+    if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
+    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_initial_both_pages")
+    if FOREGROUND_PUBLICATION: a.call("finish_foreground_commit")
     a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC)
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
     if ENABLE_MICRO_REPROJECTION or HUD_UNSIGNED:
@@ -78,8 +98,13 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     else:
         a.call("update_input"); a.call("update_world")
     a.call("check_wall_reuse"); a.or_r("a"); a.jr("reuse_wall_view", "nz")
-    a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
+    a.call("cast_all")
+    if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
+    a.label("compose_full_snapshot")
+    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
     a.label("reuse_wall_view")
+    if PHYSICAL_DEPTH:
+        a.call("refine_reused_snapshot"); a.or_r("a"); a.jp("compose_full_snapshot","nz")
     a.call("render_entities"); a.call("upload_entities_hud"); a.jp("main_loop")
 
     # Runtime routines.
@@ -91,9 +116,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     if PREPARED_RAYS: emit_ray_setup(a)
     emit_dda(a); emit_projection_and_casting(a); emit_renderer(a)
     emit_precision(a)
+    emit_packets(a)
+    emit_physical_depth(a)
+    emit_actor_precision(a)
+    emit_admission(a)
+    emit_projection_storage(a)
+    emit_near_field(a)
+    emit_foreground(a)
     emit_door_geometry(a)
     emit_simulation(a)
     emit_wall_cache(a)
+    emit_tile_cache(a)
     emit_actors(a)
     emit_surfaces(a)
     emit_world_decor(a)
@@ -156,22 +189,30 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("active_atlas_bucket_start"); a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
     a.label("active_atlas_bucket_count"); a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
     a.label("active_atlas_entries"); a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
-    microstrips = make_microstrips()
-    style_block = MICRO_STATE_COUNT * 8 * 16
+    microstrips = make_microstrips(STORED_STRIP_STATES)
+    style_block = STORED_STRIP_COUNT * 8 * 16
     a.label("microstrip_style_bases")
     for style in range(2): a.dw_label(f"microstrips_style_{style}")
     for style in range(2):
-        a.label(f"microstrips_style_{style}")
-        a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
-    pair_microstrips = make_pair_microstrips()
-    pair_style_block = MICRO_STATE_COUNT * 4 * 16
+        if FOLDED_COMPOSITOR:
+            a.label(f"microstrips_style_{style}")
+            a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
+        else:
+            a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block
+    pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES)
+    pair_style_block = STORED_STRIP_COUNT * 4 * 16
     a.label("pair_microstrip_style_bases")
     for style in range(2): a.dw_label(f"pair_microstrips_style_{style}")
     for style in range(2):
-        a.label(f"pair_microstrips_style_{style}")
-        a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+        if FOLDED_COMPOSITOR:
+            a.label(f"pair_microstrips_style_{style}")
+            a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+        else:
+            a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block
     # Fixtures have no alignment requirement; the startup map is cold/banked.
     a.label("wall_fixture_records"); a.bytes(fixture_records(), "wall-mounted landmarks")
+    if NEAR_FIELD:
+        a.label("near_correction_q14"); a.bytes(words_le(near_corrections()), "241 Q14 camera-plane cosine corrections")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
     # avoids wasting a complete 1 KiB alignment page as the resident art/UI
     # vocabulary grows.
@@ -205,7 +246,21 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "prepared_ray_setup": PREPARED_RAYS,
         "prepared_ray_table_bank": RAY_SETUP_ROM_BANK,
         "prepared_ray_table_bytes": RAY_SETUP_ROM_BYTES if PREPARED_RAYS else 0,
-        "prepared_ray_wram_bytes": 4 if PREPARED_RAYS else 0,
+        "prepared_ray_format": {"version": 3 if PROJECTION_STORAGE != "direct" else 2 if ANCHOR_PACKETS else 1,
+                                "scalar_records": [0,241], "packet_records": [241,251] if ANCHOR_PACKETS else [],
+                                "projection_fields": "logical slice u16" if PROJECTION_STORAGE != "direct" else "physical bank/high byte",
+                                "record_bytes": 16, "raw_sentinel": 255},
+        "anchor_packet_workspace_bytes": 96 if ANCHOR_PACKETS else 0,
+        "anchor_packet_max_pending_siblings": 2 if ANCHOR_PACKETS else 0,
+        "prepared_ray_wram_bytes": (8 if CAMERA_SETUP else 4) if PREPARED_RAYS else 0,
+        "dynamic_cache_format": {
+            "version": 1, "enabled": DYNAMIC_TILE_CACHE, "wram_bank": 3,
+            "entry_count": 128, "entry_bytes": 32, "signature_bytes": 10,
+            "index_hash": "atlas_xor_first_top" if CACHE_KEY_MIX else "atlas_signature",
+            "valid_offset": 0, "profile_offset": 1, "generation_offset": 2,
+            "signature_offset": 4, "pattern_offset": 14,
+            "staging_range": [DYNAMIC_CACHE_STAGE, DYNAMIC_CACHE_POINTER+2],
+        },
         "publication": "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,
@@ -223,14 +278,20 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "single_vblank_pattern_budget": 24,
         "oam_dma_wait_mcycles": 160,
         "camera_focal_pixels": CAMERA_FOCAL_PIXELS,
-        "cast_depth_source": "paired projection LUT; interpolated samples retain conservative height bounds",
+        "cast_depth_source": "queried physical columns in Q5 with per-column validity" if PHYSICAL_DEPTH else "paired projection LUT; interpolated samples retain conservative height bounds",
+        "physical_depth_format": {"version": 1, "enabled": PHYSICAL_DEPTH,
+                                  "depth_address": PIXEL_DEPTH, "depth_bytes": 160,
+                                  "validity_address": PIXEL_DEPTH_VALID, "validity_bytes": 20,
+                                  "coverage_address": PHYSICAL_COVERAGE, "coverage_bytes": 20,
+                                  "meaning": "actual query under current exact wall key and projection configuration; Q5"},
         "dynamic_tile_capacity": DYNAMIC_TILE_CAPACITY,
         "dynamic_tile_buffer_bytes": DYNAMIC_TILE_CAPACITY * 16,
         "view_map_buffer_bytes": 384,
         "maximum_commit_bytes": DYNAMIC_TILE_CAPACITY * 16 + 768 + ENTITY_OAM_COUNT * 32,
         "maximum_commit_blocks": DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
         "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
-        "maximum_final_stage_blocks": 48 + ENTITY_OAM_COUNT * 2,
+        "maximum_final_stage_blocks": 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
+        "maximum_publication_vblanks": 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION else 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
         "exact_wall_reuse": WALL_REUSE_ENABLED,
         "wall_cache_key_bytes": 290,
@@ -247,7 +308,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "entity_size_lods": [[16, 32], [16, 16], [8, 16]],
         "masked_obj_patterns": ENTITY_OAM_COUNT * 2,
         "hardware_obj_size": [8, 16],
-        "world_obj_limit_per_scanline": 4,
+        "world_obj_limit_per_scanline": 10 if SCANLINE_ADMISSION else 4,
+        "world_obj_scanline_accounting": "actual foreground Y occupancy plus world objects" if SCANLINE_ADMISSION else "six foreground slots reserved on every line",
+        "actor_projection_format": {"version":2 if ACTOR_PRECISION else 1,"position_fractional_bits":8 if ACTOR_PRECISION else 4,
+                                    "camera_fractional_bits":14 if ACTOR_PRECISION else 6,"product_bits":32 if ACTOR_PRECISION else 16,
+                                    "transform_rounding":"nearest, ties toward +infinity" if ACTOR_PRECISION else "arithmetic truncation"},
+        "foreground_format": {"version":1,"enabled":FOREGROUND_PUBLICATION,"wram_bank":4,
+                              "queue_capacity":15,"record_bytes":10,"fields":["sequence_u16","sample_tick_u16","accept_tick_u16","scene_generation_u16","type_u8","reserved_u8"],
+                              "vblank_event_limit":2,"world_prepare_event_limit":4,"dma_buffer":FG_COMPOSITE_OAM,
+                              "published_oam":FG_PUBLISHED_OAM,"full_geometry_counter_unchanged":True},
+        "near_field_format": {"version":1,"enabled":NEAR_FIELD,"limit_q8":512,"far_field":"legacy Q5",
+                             "perpendicular_fractional_bits":8,"plane_components_fractional_bits":14,"output_depth_fractional_bits":5},
         "surface_profile_records": len(ACTIVE_LEVEL.surface_table),
         "rays": RAYS,
         "physical_columns": PHYSICAL_COLUMNS,
@@ -314,6 +385,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "micro_reprojection_limit_pixels": REPROJECT_LIMIT,
         "microstrip_states": MICRO_STATE_COUNT,
         "microstrip_rom_bytes": len(microstrips) + len(pair_microstrips),
+        "microstrip_format": {
+            "version": 2, "logical_states": MICRO_STATE_COUNT,
+            "stored_states": list(STORED_STRIP_STATES),
+            "stored_state_count": STORED_STRIP_COUNT,
+            "table_bytes": len(microstrips) + len(pair_microstrips),
+            "table_bytes_saved": 7296 - len(microstrips) - len(pair_microstrips),
+            "placement": "resident" if FOLDED_COMPOSITOR else "banked diagnostic",
+            "bank": None if FOLDED_COMPOSITOR else UNFOLDED_STRIP_ROM_BANK,
+            "scratch_bytes": 0 if FOLDED_COMPOSITOR else 16,
+            "net_linked_savings_from_review": 29645 - a.origin - len(code),
+        },
         "hram_hot_state_bytes": HRAM_BYTES_USED,
         "hram_hot_state_range": [min(HRAM_LAYOUT.values()), max(HRAM_LAYOUT.values())],
         "projection_lut_bytes": PROJECTION_LUT_BYTES,
@@ -327,6 +409,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "rom_banks": ROM_BANKS,
         "cartridge_type": "MBC5",
     }
+    configuration = dict(**RENDER_CONFIG, folded=FOLDED_COMPOSITOR,
+                         q14=Q14_ORDER_ENABLED, prepared_rays=PREPARED_RAYS,
+                         wall_reuse=WALL_REUSE_ENABLED, fixed_simulation=FIXED_SIMULATION,
+                         reprojection=ENABLE_MICRO_REPROJECTION,
+                         level=ACTIVE_LEVEL.name,
+                         level_map_sha256=hashlib.sha256(make_map()).hexdigest(),
+                         active_atlas_sha256=hashlib.sha256(ACTIVE_ATLAS_TILES + ACTIVE_ATLAS_ENTRIES).hexdigest())
+    metadata["configuration"] = configuration
+    metadata["configuration_id"] = identity(configuration)
+    metadata["allocation_ledger"] = memory_ledger(active_layout, a.labels["level_header"],
+                                                a.origin + len(code), cold_address - 0x4000)
     return code, a, metadata
 
 
@@ -341,12 +434,17 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom[0x0143] = 0xC0; rom[0x0144:0x0146] = b"00"; rom[0x0146] = 0
     rom[0x0147] = 0x19; rom[0x0148] = 0x07; rom[0x0149] = 0; rom[0x014A] = 1; rom[0x014B] = 0x33; rom[0x014C] = 6
     rom[0x0150:0x0150 + len(engine)] = engine
+    if not FOLDED_COMPOSITOR:
+        strips = make_microstrips() + make_pair_microstrips()
+        start = UNFOLDED_STRIP_ROM_BANK * 0x4000
+        rom[start:start + len(strips)] = strips
     vblank_isr = assembler.labels["vblank_isr"]
     rom[0x0040:0x0043] = bytes((0xC3, vblank_isr & 0xFF, vblank_isr >> 8))
     if ENABLE_MICRO_REPROJECTION or HUD_UNSIGNED:
         stat_isr = assembler.labels["stat_isr"]
         rom[0x0048:0x004B] = bytes((0xC3, stat_isr & 0xFF, stat_isr >> 8))
-    projection_lut = make_projection_top_lut()
+    projection_lut, projection_format = pack_projection(PROJECTION_STORAGE)
+    metadata["projection_storage_format"] = projection_format
     lut_start = PROJECTION_LUT_BASE_BANK * 0x4000
     rom[lut_start:lut_start + len(projection_lut)] = projection_lut
     product_lut = make_product_lut()
@@ -389,11 +487,15 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output-dir", type=Path, default=BUILD)
+    output = parser.parse_args().output_dir
+    output.mkdir(parents=True, exist_ok=True)
     rom, assembler, metadata = make_rom()
-    rom_path = BUILD / "lupine3d.gb"; rom_path.write_bytes(rom)
-    assembler.write_listing(BUILD / "lupine3d.lst")
-    (BUILD / "lupine3d.sym").write_text("\n".join(f"{addr:04X} {name}" for name, addr in sorted(assembler.labels.items(), key=lambda item: item[1])) + "\n", encoding="utf-8")
-    (BUILD / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    rom_path = output / "lupine3d.gb"; rom_path.write_bytes(rom)
+    assembler.write_listing(output / "lupine3d.lst")
+    (output / "lupine3d.sym").write_text("\n".join(f"{addr:04X} {name}" for name, addr in sorted(assembler.labels.items(), key=lambda item: item[1])) + "\n", encoding="utf-8")
+    (output / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     print(f"Built {rom_path} ({len(rom)} bytes)")
     print(f"Engine: {metadata['engine_size']} bytes, end={metadata['engine_end']:#06x}")
     print(f"Header checksum: {metadata['header_checksum']:#04x}; global: {metadata['global_checksum']:#06x}")

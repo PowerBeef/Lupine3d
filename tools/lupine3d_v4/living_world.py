@@ -80,6 +80,8 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_abs_a(MASK_TILE_COUNT)
     a.ld_rr_nn("hl", WORLD_SCANLINES); a.ld_r_n("b", 144)
     a.label("clear_world_scanlines"); a.ldi_hl_a(); a.dec_r("b"); a.jr("clear_world_scanlines", "nz")
+    if SCANLINE_ADMISSION:
+        a.ld_abs_a(ADMISSION_MODE); a.call("seed_foreground_scanlines")
     a.ld_r_n("a", 255); a.ld_abs_a(MASK_BITS)
     a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY); a.ret()
 
@@ -195,6 +197,8 @@ def emit_entity_projection(a: Assembler) -> None:
     ):
         a.ld_a_abs(source); a.ld_abs_a(destination)
     a.label("project_entity")
+    if ACTOR_PRECISION: a.jp("project_entity_q8")
+    a.label("project_entity_q4_reference")
     a.xor_r("a"); a.ld_abs_a(SENTINEL_VISIBLE)
     a.ld_r_n("a", 255); a.ld_abs_a(SENTINEL_SCREEN_X)
     _emit_q4_delta(a, "entity_dx", ENTITY_WORLD_XL, ENTITY_WORLD_XH, PLAYER_XL, PLAYER_XH, ENTITY_DX)
@@ -242,6 +246,12 @@ def emit_entity_projection(a: Assembler) -> None:
     a.ld_a_abs(DECAL_PROJECTING); a.or_r("a"); a.jr("entity_project_occlusion", "z")
     a.ld_r_n("a", 1); a.ld_abs_a(SENTINEL_VISIBLE); a.ret()
     a.label("entity_project_occlusion")
+    if PHYSICAL_DEPTH:
+        # Live aiming uses the fresh transform and its own LOS ray. It must
+        # not consult render-depth ownership in the live-world bank.
+        a.ldh_a_n(SVBK); a.and_n(7); a.cp_n(2); a.jr("entity_snapshot_occlusion","nz")
+        a.ld_r_n("a",1); a.ld_abs_a(SENTINEL_VISIBLE); a.ret()
+        a.label("entity_snapshot_occlusion")
 
     # Coarse 8-pixel strip occlusion against authoritative two-pixel wall depth.
     a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jr("project_near_visibility", "nz")
@@ -263,7 +273,16 @@ def emit_entity_projection(a: Assembler) -> None:
     a.label("entity_strip_depth_loop")
     a.ld_a_abs(MASK_BITS); a.add_a_r("a"); a.ld_abs_a(MASK_BITS)
     a.ld_a_abs(ENTITY_TMP_L); a.cp_n(PHYSICAL_COLUMNS); a.jr("entity_strip_next", "nc")
-    a.cb("srl", "a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    if PHYSICAL_DEPTH:
+        a.ld_abs_a(PIXEL_INDEX); a.call("physical_bit_address")
+        a.ld_rr_nn("hl",PIXEL_DEPTH_VALID); a.add_hl_rr("de"); a.ld_a_hl(); a.and_r("b")
+        a.jr("entity_depth_valid","nz")
+        a.ld_rr_nn("hl",PHYSICAL_DEPTH_MISSING); a.inc_r("(hl)"); a.jp("entity_strip_next")
+        a.label("entity_depth_valid")
+        a.ld_a_abs(ENTITY_TMP_L); a.ld_r_r("e","a"); a.ld_r_n("d",0)
+        a.ld_rr_nn("hl",PIXEL_DEPTH); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b","a")
+    else:
+        a.cb("srl", "a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_DEPTH); a.cp_r("b"); a.jr("entity_strip_next", "nc")
     a.ld_a_abs(MASK_BITS); a.or_n(1); a.ld_abs_a(MASK_BITS)
     a.label("entity_strip_next")

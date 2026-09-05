@@ -386,16 +386,17 @@ def microstrip_region(state: int, row: int) -> str:
     return "wall" if row < floor_start else "floor"
 
 
-def make_microstrips() -> bytes:
+def make_microstrips(states=None) -> bytes:
     """Precompose every physical-pixel boundary strip.
 
     The position-expanded table is deliberately used here: it removes mask
     logic from the hot compositor while still fitting comfortably in 32 KiB
     after the phase-free material simplification.
     """
+    states = tuple(range(MICRO_STATE_COUNT)) if states is None else tuple(states)
     out = bytearray()
     for style in range(2):  # visual light/dark; geometry styles normalize with &1
-        for state in range(MICRO_STATE_COUNT):
+        for state in states:
             for pixel in range(8):
                 mask = 0x80 >> pixel
                 for row in range(8):
@@ -406,15 +407,16 @@ def make_microstrips() -> bytes:
                     if region == "wall" and (top_edge or bottom_edge):
                         color = 3
                     out.extend((mask if color & 1 else 0, mask if color & 2 else 0))
-    assert len(out) == 2 * MICRO_STATE_COUNT * 8 * 16
+    assert len(out) == 2 * len(states) * 8 * 16
     return bytes(out)
 
 
-def make_pair_microstrips() -> bytes:
+def make_pair_microstrips(states=None) -> bytes:
     """Fast two-pixel strips used when a synthesized pair remains identical."""
+    states = tuple(range(MICRO_STATE_COUNT)) if states is None else tuple(states)
     out = bytearray()
     for style in range(2):
-        for state in range(MICRO_STATE_COUNT):
+        for state in states:
             for pair in range(4):
                 mask = 0xC0 >> (pair * 2)
                 for row in range(8):
@@ -425,7 +427,7 @@ def make_pair_microstrips() -> bytes:
                     if region == "wall" and (top_edge or bottom_edge):
                         color = 3
                     out.extend((mask if color & 1 else 0, mask if color & 2 else 0))
-    assert len(out) == 2 * MICRO_STATE_COUNT * 4 * 16
+    assert len(out) == 2 * len(states) * 4 * 16
     return bytes(out)
 
 

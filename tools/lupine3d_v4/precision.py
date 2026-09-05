@@ -31,7 +31,18 @@ def make_q14_directions() -> bytes:
 
 
 def emit_precision(a: Assembler) -> None:
+    if INCREMENTAL_CERTIFICATE:
+        a.label("initialize_certificate")
+        a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_L); a.add_a_r("b"); a.ld_abs_a(CERTIFICATE_THRESHOLD)
+        a.ld_a_abs(DDA_NEXT_X_H); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_H); a.adc_a_r("b"); a.ld_abs_a(CERTIFICATE_THRESHOLD + 1); a.ret()
     a.label("q14_crossing_uncertain")
+    if INCREMENTAL_CERTIFICATE:
+        # Public probes remain self-contained. Only the internal DDA loop
+        # enters with the already-initialized, incrementally maintained sum.
+        a.call("initialize_certificate")
+        a.label("q14_crossing_uncertain_prepared")
     # |coarse component - Q14 component * 127/16384| < 1 is
     # exhaustively checked at build/test time for every supported ray.
     # Therefore |coarse error| > nextX + nextY certifies its sign.
@@ -43,10 +54,14 @@ def emit_precision(a: Assembler) -> None:
     a.ld_r_r("a", "l"); a.cpl(); a.ld_r_r("l", "a")
     a.ld_r_r("a", "h"); a.cpl(); a.ld_r_r("h", "a"); a.inc_rr("hl")
     a.label("q14_error_positive")
-    a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
-    a.ld_a_abs(DDA_NEXT_Y_L); a.add_a_r("b"); a.ld_r_r("e", "a")
-    a.ld_a_abs(DDA_NEXT_X_H); a.ld_r_r("b", "a")
-    a.ld_a_abs(DDA_NEXT_Y_H); a.adc_a_r("b"); a.ld_r_r("d", "a")
+    if INCREMENTAL_CERTIFICATE:
+        a.ld_a_abs(CERTIFICATE_THRESHOLD); a.ld_r_r("e", "a")
+        a.ld_a_abs(CERTIFICATE_THRESHOLD + 1); a.ld_r_r("d", "a")
+    else:
+        a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_L); a.add_a_r("b"); a.ld_r_r("e", "a")
+        a.ld_a_abs(DDA_NEXT_X_H); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_H); a.adc_a_r("b"); a.ld_r_r("d", "a")
     a.ld_r_r("a", "e"); a.sub_r("l")
     a.ld_r_r("a", "d"); a.sbc_a_r("h"); a.jr("q14_certain", "c")
     a.label("q14_uncertain"); a.ld_r_n("a", 1); a.or_r("a"); a.ret()

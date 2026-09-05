@@ -45,7 +45,18 @@ def emit_surfaces(a: Assembler) -> None:
     a.ld_rr_nn("de", 32)
     for row in range(12):
         a.ld_r_r("a", "b" if row < 6 else "c"); a.ld_hl_a(); a.add_hl_rr("de")
-    a.ld_a_abs(SURFACE_COLUMN); a.inc_r("a"); a.ld_abs_a(SURFACE_COLUMN); a.cp_n(32); a.jp("surface_column_loop", "c")
+    a.ld_a_abs(SURFACE_COLUMN); a.inc_r("a"); a.ld_abs_a(SURFACE_COLUMN); a.cp_n(20 if ATTRIBUTE_PADDING else 32); a.jp("surface_column_loop", "c")
+    if ATTRIBUTE_PADDING:
+        # The twelve padding columns always use the structural profile.
+        # Fill them row-wise on the CPU; retain the identical 384-byte GDMA.
+        a.ld_a_abs(CURRENT_PAGE); a.xor_n(1)
+        for _ in range(3): a.add_a_r("a")
+        a.ld_r_r("b", "a")
+        a.or_n(2 | (0x40 if FOLDED_COMPOSITOR else 0)); a.ld_r_r("c", "a")
+        for row in range(12):
+            a.ld_rr_nn("hl", VIEW_ATTRIBUTES + row*32 + 20)
+            a.ld_r_r("a", "b" if row < 6 else "c")
+            for _ in range(12): a.ldi_hl_a()
     if ENABLE_MICRO_REPROJECTION:
         for row in range(12):
             a.ld_a_abs(VIEW_ATTRIBUTES + row * 32); a.ld_abs_a(VIEW_ATTRIBUTES + row * 32 + 31)

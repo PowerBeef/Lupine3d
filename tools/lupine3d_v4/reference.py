@@ -126,6 +126,10 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     projection = tables["projection_half"]
     top = 48 - projection[perp32]
     depth_q5 = min(255, perp32)
+    if NEAR_FIELD:
+        from .near_field import project_near_reference
+        record = ray_index + (80 if count == 160 else 0)
+        top,depth_q5 = project_near_reference(distance,order_ax if axis==0 else order_ay,record,top,depth_q5)
     style = 4 if material == 3 else (2 + axis if material == 2 else axis)
     if axis == 0:
         plane, along = mx + (1 if sx < 0 else 0), my
@@ -261,7 +265,8 @@ def decorate_surface_events(
             i += 1
             continue
         start = i
-        while i < PHYSICAL_COLUMNS and ((keys[i] >> 5) & 3) == 3:
+        while i < PHYSICAL_COLUMNS and ((keys[i] >> 5) & 3) == 3 and (not DOOR_IDENTITY or
+              (keys[i], segments[i], alongs[i]) == (keys[start], segments[start], alongs[start])):
             i += 1
         end = i - 1
         if tops[start] <= 40:
@@ -341,6 +346,27 @@ def reference_pixel_descriptor_view(
         adaptive_casts + edge_recasts, edge_recasts, events, depths, segments,
         pixel_segments, pixel_surfaces,
     )
+
+
+def reference_refined_descriptor_view(px, py, yaw, queried_columns, grid=None, door_states=None):
+    """Same-snapshot Q5 oracle with explicit physical refinement coverage.
+
+    Coverage is an input to this reference. Machine-code provenance tests
+    independently verify that validity bits correspond to actual queries.
+    """
+    result = list(reference_pixel_descriptor_view(px,py,yaw,grid,door_states))
+    tops,_,keys,alongs = result[:4]
+    segments,surfaces = result[9:11]
+    styles = [(4 if key & 0x60 == 0x60 else (2 if key & 0x60 == 0x40 else 0)+(key>>7)) for key in keys]
+    physical_depths = {}
+    for column in sorted(queried_columns):
+        if not 0 <= column < 160: raise ValueError("Physical column outside viewport")
+        hit = reference_cast_physical_hit(px,py,yaw,column,grid,door_states)
+        tops[column],styles[column],keys[column],alongs[column] = hit.top,hit.style,hit.face_key,hit.along
+        segments[column],surfaces[column] = hit.segment_id,hit.surface_profile
+        physical_depths[column] = hit.depth_q5
+    result[1],result[6] = decorate_surface_events(tops,styles,keys,alongs,segments)
+    return tuple(result),physical_depths
 
 
 def reference_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int) -> tuple[list[int], list[int]]:

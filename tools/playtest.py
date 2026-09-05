@@ -95,6 +95,7 @@ def apply_diagnostic_camera(cgb: CGB, action: dict[str, Any]) -> None:
 
 
 def validate_frame(cgb: CGB) -> dict[str, Any]:
+    physical = "refine_full_snapshot" in cgb.symbols
     x_q8 = cgb.read16(br.PLAYER_XL)
     y_q8 = cgb.read16(br.PLAYER_YL)
     angle = cgb.read8(br.ANGLE)
@@ -109,6 +110,11 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
     if not cgb.read8(br.WORLD_MODE): door_states = {}
     pair = br.reference_adaptive_descriptor_view(x_q8, y_q8, angle, grid, door_states)
     pixel = br.reference_pixel_descriptor_view(x_q8, y_q8, angle, grid, door_states)
+    physical_depths = {}
+    if physical:
+        valid = read_block(cgb,br.PIXEL_DEPTH_VALID,20)
+        queried = {x for x in range(160) if valid[x>>3] & (1 << (x&7))}
+        pixel,physical_depths = br.reference_refined_descriptor_view(x_q8,y_q8,angle,queried,grid,door_states)
 
     actual_pair = (
         list(read_block(cgb, br.RAY_TOPS, br.RAYS)),
@@ -143,6 +149,9 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "input_queue_no_overflow": cgb.read8(br.INPUT_QUEUE_OVERFLOW) == 0,
     }
     page = cgb.read8(br.CURRENT_PAGE)
+    if physical:
+        checks["queried_physical_depth_exact"] = all(cgb.read8(br.PIXEL_DEPTH+x)==depth for x,depth in physical_depths.items())
+        checks["no_unqueried_actor_depth"] = cgb.read8(br.PHYSICAL_DEPTH_MISSING)==0
     offset = 0x1C00 if page else 0x1800
     checks["published_map_exact"] = bytes(cgb.vram[0][offset:offset+384]) == view_map
     checks["published_attributes_exact"] = bytes(cgb.vram[1][offset:offset+384]) == br.surface_attributes(pixel[10], page)
@@ -156,6 +165,9 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise AssertionError(f"frame validation failed: {', '.join(failed)}")
+    executed_casts = 0 if cgb.explicit_presentations and cgb.read8(br.FRAME_REUSED) else pixel[4]
+    if physical:
+        executed_casts = (pixel[4] if cgb.read8(br.GEOMETRY_BACKBONE_RAN) else 0)+cgb.read8(br.PHYSICAL_QUERY_COUNT)
     return {
         "pose": {"x_q8": x_q8, "y_q8": y_q8, "x": x_q8 / 256.0, "y": y_q8 / 256.0, "angle": angle},
         "adaptive_casts": pair[4],
@@ -164,7 +176,7 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "material_events": pixel[6],
         "dynamic_tiles": dynamic_count,
         "wall_view_reused": bool(cgb.read8(br.FRAME_REUSED)) if cgb.explicit_presentations else False,
-        "executed_casts": 0 if cgb.explicit_presentations and cgb.read8(br.FRAME_REUSED) else pixel[4],
+        "executed_casts": executed_casts,
         "checks": checks,
     }
 

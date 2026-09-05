@@ -12,6 +12,7 @@
 static uint32_t pixels[160 * 144];
 static unsigned swaps, unsafe_dma, unsafe_flips, dma_starts, frame;
 static unsigned presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes;
+static unsigned foreground_publications, mixed_world_oam;
 
 static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -41,6 +42,11 @@ static bool write_hook(GB_gameboy_t *gb, uint16_t address, uint8_t value)
     }
     if (address == 0xff46 && (lcdc & 0x80) &&
         (GB_read_memory(gb, 0xff44) < 144 || GB_read_memory(gb, 0xff44) >= 153)) unsafe_oam++;
+    if (address == 0xff46 && value == 0xd0 && (lcdc & 0x80)) {
+        for (unsigned i = 40; i < 160; ++i)
+            if (GB_read_memory(gb, 0xd000+i) != GB_read_memory(gb, 0xfe00+i)) mixed_world_oam++;
+    }
+    if (address == 0xc8c3 && (lcdc & 0x80)) foreground_publications++;
     if (address == 0xc8b6 && (lcdc & 0x80)) {
         presentations++;
         reused += GB_read_memory(gb, 0xc8b5) != 0;
@@ -87,6 +93,43 @@ int main(int argc, char **argv)
     GB_set_color_correction_mode(gb, GB_COLOR_CORRECTION_DISABLED);
     GB_set_write_memory_callback(gb, write_hook);
     GB_set_turbo_mode(gb, true, false);
+    bool foreground_test=argc>4 && !strcmp(argv[4],"--foreground");
+    if (argc > 4 && !foreground_test) {
+        /* Explicit diagnostic frozen-scene lane; the normal controller lane
+         * above/below retains its no-RAM-patch behavior. Format: LE PC/count,
+         * then count records [bank, address low, address high, value]. */
+        FILE *input = fopen(argv[4], "rb");
+        if (!input) return 2;
+        unsigned pc = fgetc(input); pc |= fgetc(input) << 8;
+        unsigned count = fgetc(input); count |= fgetc(input) << 8;
+        unsigned steps = 0;
+        while (GB_get_registers(gb)->pc != pc && steps++ < 5000000) GB_run(gb);
+        if (GB_get_registers(gb)->pc != pc) return 3;
+        for (unsigned i=0; i<count; ++i) {
+            int bank=fgetc(input), lo=fgetc(input), hi=fgetc(input), value=fgetc(input);
+            if (value == EOF) return 2;
+            if (bank) GB_write_memory(gb, 0xff70, bank);
+            GB_write_memory(gb, lo | hi << 8, value);
+        }
+        fclose(input); GB_write_memory(gb, 0xff70, 1);
+        unsigned serial=GB_read_memory(gb,0xc8b6); steps=0;
+        while (GB_read_memory(gb,0xc8b6)==serial && steps++<5000000) GB_run(gb);
+        if (GB_read_memory(gb,0xc8b6)==serial) return 3;
+        GB_run_frame(gb); GB_run_frame(gb); capture(argv[2],"scene");
+        unsigned max_objects=0;
+        for (unsigned line=0; line<144; ++line) {
+            unsigned objects=0;
+            for (unsigned i=0; i<40; ++i) {
+                int y=GB_read_memory(gb,0xfe00+i*4)-16;
+                if (y<=(int)line && (int)line<y+16) objects++;
+            }
+            if (objects>max_objects) max_objects=objects;
+        }
+        bool passed=!unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10;
+        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u}\n",
+               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam);
+        GB_dealloc(gb); return passed?0:1;
+    }
     unsigned initial_angle = 0, initial_y = 0;
     for (frame = 0; frame < 480; frame++) {
         unsigned keys = 0;
@@ -95,6 +138,8 @@ int main(int argc, char **argv)
         if (frame == 125 || frame == 225) keys |= GB_KEY_B_MASK; /* one-frame pulses */
         if (frame >= 260 && frame < 320) keys = GB_KEY_RIGHT_MASK;
         if (frame == 330 || frame == 360) keys = GB_KEY_A_MASK;
+        if (foreground_test && frame>=320)
+            keys=GB_KEY_RIGHT_MASK | (((frame/48)&1)?GB_KEY_UP_MASK:GB_KEY_DOWN_MASK) | (frame%24==8?GB_KEY_A_MASK:0);
         GB_set_key_mask(gb, keys);
         GB_run_frame(gb);
         if (frame == 59) {
@@ -110,13 +155,15 @@ int main(int argc, char **argv)
     bool door_open = GB_read_memory(gb, 0xd764) == 2;
     bool passed = presentations >= 30 && reused > 0 && swaps >= 10 && dma_starts >= 30
         && !unsafe_dma && !unsafe_flips && !unsafe_presentations && !unsafe_oam && !visible_mask_writes
+        && !mixed_world_oam && (!foreground_test || foreground_publications>0)
         && angle != initial_angle && y != initial_y && door_open && GB_is_cgb_in_cgb_mode(gb);
     printf("{\"passed\":%s,\"model\":%u,\"lcd_frames\":%u,\"page_swaps\":%u,"
            "\"gdma_starts\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_page_flips\":%u,"
            "\"presentations\":%u,\"reused_presentations\":%u,\"unsafe_presentations\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,"
-           "\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
+           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
            passed ? "true" : "false", model, frame, swaps, dma_starts, unsafe_dma,
            unsafe_flips, presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes,
+           foreground_publications, mixed_world_oam,
            y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
            door_open ? "true" : "false");
     GB_dealloc(gb);

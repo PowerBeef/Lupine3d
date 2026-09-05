@@ -1,10 +1,10 @@
-# Lupine 3D 0.7.0-beta.5 architecture
+# Lupine 3D 0.7.0-beta.6 architecture
 
 Lupine is a CGB-only 4 MiB MBC5 engine with no cartridge RAM. Python generates SM83 code, tables and original graphics. Runtime uses double-speed execution, native tiles, two VRAM banks, two BG maps and hardware 8×16 objects.
 
 ## Frame and simulation ownership
 
-VBlank interrupts sample controls into a timestamped ring queue; they never simulate. The renderer cooperatively yields at ray and tile-column boundaries. Each yield saves render HRAM, selects WRAM bank 2, consumes at most four simulation packets, restores bank 1 and resumes. Queue debt is retained.
+VBlank interrupts sample controls into a timestamped ring queue; they never simulate. The renderer cooperatively yields at ray and tile-column boundaries. The production contexts save only the state live at those documented boundaries; the generic full-HRAM ABI remains available. Each yield selects WRAM bank 2, consumes at most four simulation packets, restores bank 1 and resumes. Queue debt is retained.
 
 At frame start, live map/player/world/actor records are copied through a 457-byte fixed-WRAM staging buffer into bank 1. All rendering, depth tests, animation selection and publication use that immutable snapshot. Bank 2 continues moving actors and doors while the snapshot renders.
 
@@ -22,9 +22,10 @@ A full frame proceeds through 80 adaptive descriptors, 160 physical columns, six
 | 156 | Cold boot assets and startup map: 9,514 bytes |
 | 157–172 | Q14 camera directions: 262,144 bytes |
 | 173–236 | Prepared coarse/Q14 ray metadata and projection pointers: 1,048,576 bytes |
-| 237–255 | Unallocated cartridge capacity: 311,296 bytes |
+| 237 | Reserved unfolded diagnostic strips: 7,296 bytes; unused by production |
+| 238–255 | Unallocated cartridge capacity: 294,912 bytes |
 
-Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $73CD (29,309 emitted bytes), leaving 3,123 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. Unaligned fixture records follow the hot tables; the startup map lives in cold bank 156. The loader restores bank 1 after copying it.
+Banked lookups restore ROM bank 1. Executing bank-switching routines stay below $4000; the builder asserts the boundary. The accepted rendering configuration ends at $68CD, leaving 5,939 resident bytes below $8000 and preserving the 3,000-byte reserve. Its fixed code ends at $3090. Compact strips save 3,840 table bytes and 2,816 net linked bytes versus the review baseline; they do not enlarge fixed ROM. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. Unaligned fixture records follow the hot tables; the startup map lives in cold bank 156. The loader restores bank 1 after copying it.
 
 ## Geometry and projection
 
@@ -34,7 +35,7 @@ The coarse signed-error DDA maintains next-boundary distances and the sign of `n
 
 A 1,024-byte direction page per camera angle contains 80 pair-centre vectors, 160 physical-centre vectors and one centre hitscan vector. The 64 retained severe tail rays choose their floating-oracle cell/axis in generated code. This does not eliminate every continuous-camera error.
 
-Aligned sixteen-byte records precompute each camera/ray pair’s coarse components, steps, angle, correction, projection pointers and absolute Q14 components. Loading a record marks fine components ready for doors and precision continuation. Raw probes, generic LOS and full Q14 restart retain their original paths. Four banked WRAM bytes at $D8F3–$D8F6 hold the X/Y projection pointers. `LUPINE3D_PREPARED_RAYS=0` retains the arithmetic build. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md).
+Aligned sixteen-byte records precompute each camera/ray pair’s coarse components, steps, angle, correction, projection pointers and absolute Q14 components. Loading a record marks fine components ready for doors and precision continuation. Raw probes, generic LOS and full Q14 restart retain their original paths. Four banked WRAM bytes at $D8F3–$D8F6 hold the X/Y projection pointers. The production snapshot also computes its bank and camera-page contribution once; public queries retain self-contained setup. `LUPINE3D_PREPARED_RAYS=0` retains the arithmetic build. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md).
 
 Projection still uses the paired integer Q5 LUT. Cast depth is corrected perpendicular Q5 distance, saturated to 255. Adaptive interpolation uses conservative height-class depth bounds. Wall geometry is not a floating-point continuous oracle.
 
@@ -81,6 +82,12 @@ The active HUD uses 78 bank-0 patterns at $8200–$86DF. A line-96 STAT interrup
 
 Only six upper rows are composed. Lower rows reuse IDs with Y-flip and a matching floor palette; `LUPINE3D_FOLDED=0` retains the unfolded oracle. This relies on symmetric full-height walls and does not support pitch or arbitrary sector heights.
 
+The logical microstrip model still has 19 states. Production stores only states
+`[0,2,4,5,6,7,8,9,10]`, indexed densely for both styles and strip widths. The
+unfolded diagnostic reads all 19 states from bank 237 into a fixed 16-byte
+scratch buffer and restores bank 1. Exact CPU initialization of attribute
+padding preserves the 384-byte upload layout.
+
 Per-face content selects structure, machinery or functional-door profiles. A uniform eight-pixel group selects its profile's palette; a mixed group falls back to neutral to avoid inventing a material edge. Upper/lower palette pairs are 0/2, 5/6 and 3/4 respectively; HUD uses 1. All share consistent ceiling/floor colours.
 
 No eye-height rail or full-height decorative cell ribs are emitted. True corners receive narrow dark edges; doors have run-derived frames and a brighter centre signal.
@@ -126,6 +133,25 @@ Sixteen authored wall fixtures share that pool after actors and the exit. At mos
 
 HRAM uses $FF80–$FFEE (111 bytes). The ten-byte OAM DMA stub uses $FFF4–$FFFD. ISR-owned input bytes are excluded from render-save restoration.
 
+`allocation.py` validates a complete ledger at link time, including ranges
+reserved for disabled experiments. End addresses in its manifest are exclusive.
+The 457-byte snapshot-copy spans are asserted disjoint from render-only state.
+
+| Additional reservation | Ownership |
+|---|---|
+| Fixed $C780–$C78F | Unfolded strip scratch |
+| Fixed $C8BA–$C8CD | Foreground queue/publication ownership |
+| Fixed $CB70–$CB7F / $CB80–$CB99 | Cache key staging / atomic actor admission |
+| Bank 1 $D2A0–$D2FF | Current packet and two pending siblings, no recursion |
+| Bank 1 $D3A0–$D3D7 | Certificate/camera, coverage, actor transform and near-plane scratch |
+| Bank 1 $DF42–$DF55 / $DF60–$DFFF | 160 validity bits / 160 physical depths |
+| Bank 3 $D000–$DFFF | 128 complete-key, 32-byte dynamic-cache entries |
+| Bank 4 $D000–$D09F / $D100–$D19F | Foreground-composite / published-world OAM |
+| Bank 4 $D200–$D29F | Sixteen ten-byte event slots, fifteen usable |
+
+Banks 5–7 remain free. Scratch lifetime reuse is declared explicitly; overlapping
+allocations are rejected even when comments assign different lifetimes.
+
 Queue entries contain a 16-bit tick, held state and rising edges. Overflow never overwrites pending entries: it increments a saturating diagnostic and preserves an OR-latched edge. It is finite capacity, not an unlimited event log.
 
 ## Publication
@@ -134,7 +160,7 @@ Maximum packet: 96 dynamic BG blocks + 32 masked OBJ blocks + 24 attribute block
 
 When dynamic-plus-mask patterns exceed 24, hidden dynamic patterns upload in one VBlank; masked patterns, attributes, map, HUD and OAM finish together in the next. The first stage is at most 96 blocks; final stage at most 80. Small packets fit one VBlank. The old complete frame stays visible until publication. HUD values are computed before waiting; only the eleven prepared IDs are written during publication. OAM DMA waits 160 M-cycles in HRAM. Boundary tests require completion before line 153.
 
-With optional reprojection enabled, more than 24 masked patterns trigger an additional wait after their upload. That stress case can use three VBlanks to preserve headroom for the published-X copy; the default build uses at most two.
+With optional reprojection or foreground publication enabled, more than 24 masked patterns trigger an additional wait after their upload. That stress case can use three VBlanks to preserve headroom; the default build uses at most two.
 
 Tile numbers upload with VBK=0; attributes with VBK=1; BG pattern bank follows the hidden BG page. Mask patterns target the hidden OBJ bank independently. LCDC map selection changes only after the matching complete full packet. A cached update uploads only 0–32 mask patterns plus HUD/OAM in one VBlank and leaves the viewport maps and BG owner untouched. `PRESENT_SERIAL` advances after either path; physical BG flips are counted separately. SameBoy checks GDMA/OAM starts, final publication and writes against the published mask bank.
 
@@ -145,6 +171,15 @@ Tile numbers upload with VBK=0; attributes with VBK=1; BG pattern bank follows t
 Guard columns extend the nearest edge tile/attribute; they are not extra rendered rays. A line-96 STAT split resets SCX for the HUD, not a Window-layer conversion. The experiment remains off by default pending perceptual and physical LCD testing.
 
 ## Content and modules
+
+The [rendering implementation ledger](RENDERING_IMPLEMENTATION.md) records all
+experimental interfaces and measured enable/disable decisions. `configuration.py`
+resolves flags and build identity; `allocation.py` enforces memory boundaries.
+`tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`,
+`admission.py`, `projection_storage.py`, `near_field.py`, and `foreground.py`
+own the corresponding separately selectable kernels. Production enables compact
+strips, camera setup, narrow yields and attribute padding. Other new kernels
+remain disabled after their performance or quality gates.
 
 `levels.py` compiles JSON legality/readability, physical segments, oriented-face profiles and fixtures. `columns.py` emits streamed expansion/events; `ray_setup.py` generates and loads prepared ray records; `precision.py` owns Q14 tables/traversal; `door_geometry.py` shared panel queries; `simulation.py` queues/bank snapshots; `actors.py` bounded actor reuse; `masked_entities.py` LOD/masks/admission; `surfaces.py` palette packets; `artwork.py` native graphics; `world_decor.py` mounted fixtures. The legacy-named `lupine3d_v4` package remains a stable import path, not a version claim.
 

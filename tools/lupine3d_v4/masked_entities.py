@@ -19,6 +19,8 @@ def emit_masked_entities(a: Assembler) -> None:
     a.label("submit_masked_oam")  # B=Y, C=X, D=even source cel, E=palette
     for source, target in (("b", MASK_OAM_Y), ("c", MASK_OAM_X), ("d", MASK_SOURCE_TILE), ("e", MASK_ATTRIBUTES)):
         a.ld_r_r("a", source); a.ld_abs_a(target)
+    if SCANLINE_ADMISSION:
+        a.ld_a_abs(ADMISSION_MODE); a.or_r("a"); a.jp("collect_actor_strip","nz")
     a.ld_a_abs(MASK_BITS); a.or_r("a"); a.ret("z")
     a.ld_a_abs(SENTINEL_OAM_USED); a.cp_n(ENTITY_OAM_COUNT); a.ret("nc")
     a.ld_a_abs(MASK_OAM_Y); a.or_r("a"); a.ret("z"); a.cp_n(160); a.ret("nc")
@@ -30,7 +32,7 @@ def emit_masked_entities(a: Assembler) -> None:
     a.label("mask_preflight_loop")
     # Reserving six UI-selected objects leaves four world objects on every
     # scanline, including rows occupied by the weapon/crosshair/muzzle.
-    a.ldi_a_hl(); a.cp_n(4); a.ret("nc"); a.dec_r("c"); a.jr("mask_preflight_loop", "nz")
+    a.ldi_a_hl(); a.cp_n(10 if SCANLINE_ADMISSION else 4); a.ret("nc"); a.dec_r("c"); a.jr("mask_preflight_loop", "nz")
     a.ld_a_abs(MASK_SCAN_START); a.ld_r_r("l", "a"); a.ld_r_n("h", WORLD_SCANLINES >> 8)
     a.ld_a_abs(MASK_SCAN_COUNT); a.ld_r_r("c", "a")
     a.label("mask_reserve_loop"); a.inc_r("(hl)"); a.inc_rr("hl"); a.dec_r("c"); a.jr("mask_reserve_loop", "nz")
@@ -74,6 +76,8 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
 
     a.label("render_sentinel_actor")
     a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
+    if SCANLINE_ADMISSION: a.jp("render_actor_atomic")
+    a.label("render_actor_selected_lod")
     a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jp("render_far_pair", "z")
     a.or_r("a"); a.jp("render_medium_pairs", "nz")
     a.ld_a_abs(SENTINEL_ANIM); a.and_n(3)

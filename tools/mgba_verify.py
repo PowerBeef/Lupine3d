@@ -4,6 +4,7 @@ import hashlib
 import json
 import subprocess
 import shlex
+import sys
 from pathlib import Path
 from PIL import Image
 import build_rom as br
@@ -26,8 +27,12 @@ def main():
     flags = (core / "build/CMakeFiles/mgba.dir/flags.make").read_text()
     defines = shlex.split(next(line.partition("=")[2] for line in flags.splitlines() if line.startswith("C_DEFINES =")))
     if not all(flag.startswith("-D") for flag in defines): raise SystemExit("unexpected compiler defines")
+    # The macOS core uses CoreFoundation to locate its portable configuration.
+    platform_libs = ["-framework", "CoreFoundation"] if sys.platform == "darwin" else []
     subprocess.run(["cc", *defines, f"-I{core / 'include'}", f"-I{core / 'build/include'}",
-                    str(br.ROOT / "tools/mgba_smoke.c"), str(core / "build/libmgba.a"), "-lm", "-lpthread", "-o", str(executable)], check=True)
+                    str(br.ROOT / "tools/mgba_smoke.c"), str(core / "build/libmgba.a"), "-lm", "-lpthread", *platform_libs, "-o", str(executable)], check=True)
+    executable.with_suffix(".provenance.json").write_text(json.dumps(dict(core="mGBA",core_commit=revision,
+        adapter_sha256=hashlib.sha256(executable.read_bytes()).hexdigest()),indent=2)+"\n")
     rom, asm, _ = br.make_rom()
     if (br.BUILD / "lupine3d.gb").read_bytes() != rom:
         raise SystemExit("ROM does not match active source/configuration")

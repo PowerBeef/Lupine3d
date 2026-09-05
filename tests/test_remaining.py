@@ -220,7 +220,7 @@ class RemainingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run([sys.executable, str(br.ROOT / "tools/verify_variants.py"),
                                      "reprojection", "--output", str(Path(directory) / "report.json")],
-                                    env={**os.environ, "LUPINE3D_REPROJECTION": "1"},
+                                    env={**os.environ, "LUPINE3D_REPROJECTION": "1", "LUPINE3D_NARROW_YIELDS": "0"},
                                     capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

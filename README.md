@@ -7,7 +7,7 @@
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 
-[Build](#quick-start) · [Controls](#controls) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/TEST_REPORT.md)
+[Download beta.6](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.7.0-beta.6) · [Build](#quick-start) · [Controls](#controls) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/TEST_REPORT.md)
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D Sentinel, steel-walled environment and industrial HUD">
 
@@ -17,7 +17,9 @@
 
 ## Current implementation
 
-**0.7.0-beta.5 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+**0.7.0-beta.6 — Rendering qualification** improves the Sable Outpost renderer while preserving its reviewed images and gameplay. The playable industrial outpost includes a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+
+The release enables compact folded strips, camera setup computed once per snapshot, smaller save/restore contexts at documented yield boundaries, and exact attribute-padding initialization. Mean full-frame time improves **3.7–7.5%** across the six primary sustained scenarios. Resident free space increases from **3,123 to 5,939 bytes**, preserving the 3,000-byte reserve.
 
 Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
@@ -30,7 +32,7 @@ The engine emits SM83 machine code directly from Python. Cartridge tables replac
 | Certified selective Q14 crossing order | Fixed VBlank-rate simulation |
 | 80 adaptive samples → 160 physical columns | Timestamped held-state and button-edge queue |
 | Corrected Q5 depth and physical segment IDs | Immutable render snapshots in a separate WRAM bank |
-| Folded six-row composition and full 121-pattern atlas | Shared sliding-door geometry for rays, collision and LOS |
+| Folded six-row composition, nine stored strip states and full 121-pattern atlas | Shared sliding-door geometry for rays, collision and LOS |
 | Masked hardware 8×16 sprites, three size LODs | Four bounded actor slots, depth sorting and OAM admission |
 | Per-face palettes and wall-mounted fixture masks | Atomic BG, attributes, HUD and entity publication |
 | Exact reuse of unchanged wall views | Independent sprite/HUD updates with retained wall depth |
@@ -54,23 +56,42 @@ Wall depth remains Q5; interpolated samples use conservative bounds. Sprite mask
 
 ### Measured routes
 
-Project-harness CPU cycles include publication waits.
+Each sustained scenario runs for 3,584 LCD intervals, approximately 60 emulated
+seconds, with identical controller replays on baseline and candidate ROMs.
+CPU T-cycles include engine work, simulation, interrupts, publication waits and
+DMA. Every five-second movement window must contain real movement or turning.
 
-| Result | Coherence tour | Combat diagnostic |
-|---|---:|---:|
-| Mean cycles/presentation | 776,619 | 611,983 |
-| Maximum cycles/presentation | 1,128,280 | 1,404,644 |
-| Minimum presentations/s | 7.43 | 5.97 |
-| Reused wall views | 2 / 11 | 25 / 47 |
-| Peak dynamic tiles | 18 / 96 | 25 / 96 |
-| Peak objects per scanline | 4 / 10 | 7 / 10 |
-| Unsafe GDMA starts | 0 | 0 |
+| Scenario | Full geometry updates/s | Mean T-cycles/full frame | p95 T-cycles/full frame |
+|---|---:|---:|---:|
+| Walking | 7.25 | 1,151,487 | 1,264,268 |
+| Turning | 9.67 | 866,184 | 983,424 |
+| Walking and turning | 9.23 | 906,582 | 1,123,992 |
+| Moving fire | 9.23 | 906,582 | 1,123,916 |
+| Open door | 6.83 | 1,225,335 | 1,264,160 |
+| Closed door | 8.68 | 963,202 | 1,124,568 |
+| Two-actor corner arena | 6.52 | 1,283,440 | 1,685,396 |
 
-Stationary trials present **59.71 updates/s at the safe start** and **40.37 updates/s in combat**. Three brief fire taps reach the next muzzle scanline in approximately **56 ms** in the combat trial. These are project-emulator measurements for fixed test scenes.
+The **10 sustained full geometry updates/s target remains unmet**. Cached
+sprite/HUD updates and experimental foreground publications are counted
+separately and never inflate that rate. Trials record zero post-setup game-RAM
+writes, input overflow and unsafe GDMA starts. The door-interaction trial and
+controller-only completion/restart provide separate functional coverage.
 
-Continuous-motion trials measure **6.68 full geometry updates/s while walking**, **9.19 while turning**, and **8.77 while walking and turning**. Each trial spans about 2.394 seconds, validates every completed frame and records zero input overflow or unsafe GDMA starts. See [streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md).
+See the [rendering implementation and acceptance evidence](docs/RENDERING_IMPLEMENTATION.md)
+for baseline comparisons, memory allocations, replay identities and timing
+definitions. Exact output is checked on identical frozen snapshots; faster
+rendering can change when live actor poses are sampled.
 
-Controls are sampled each VBlank. Sprite/HUD presentations and full geometry renders are counted separately: movement, turning and changing doors still require complete wall rendering. See [wall reuse and latency evidence](docs/WALL_REUSE.md).
+### Gated experiments
+
+Persistent dynamic-tile caching, four-anchor packets, physical-depth refinement,
+Q8.8 actor projection, atomic scanline admission, door-run identity, projection
+page compression, near-field precision and foreground feedback are implemented
+as individually selectable build paths. They remain disabled where performance
+or quality gates failed. Intentional quality changes must retain at least half
+the accepted performance gain for both mean and p95 frame time. The default
+keeps the current Q5 depth model and reviewed visual oracle; reprojection also
+remains disabled.
 
 ## Quick start
 
@@ -78,6 +99,7 @@ Requirements: Python 3.10+, Pillow and `make`.
 
 ```sh
 python3 tools/dev_setup.py
+source .venv/bin/activate
 make build
 make test
 make playtest playtest-world
@@ -95,6 +117,10 @@ make mgba MGBA_DIR=/absolute/path/to/mgba
 
 See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling and diagnostic switches.
 
+Development takes place directly on **`main`**, without development branches or
+Git worktrees. Optional sustained comparisons run with `make sustained`; they
+also have a separate manual CI job.
+
 ## Controls
 
 | Button | Action |
@@ -107,23 +133,29 @@ See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling 
 
 ## Verification and limits
 
-**84 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene cache/full-render comparisons, a six-view art tour, a retained 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 252 verified presentations without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
+**137 automated tests**, nine unchanged reviewed RGB fixtures, 53 frozen-scene comparisons, a six-view art tour and a 24,384-view geometry-tail scan protect the implementation. Fifty-one additional complete-world witnesses cover occlusion, corners, doors, actor motion and admission. Controller-only completion and restart pass without teleporting or changing game RAM; the controller reads state to steer, so this is functional verification rather than a blind human-navigation study.
 
 Validation checks the actual published sprite patterns, OAM banks and viewport VRAM, alongside host geometry and staging buffers. All 290 wall-key bytes are tested for invalidation; cached updates preserve the displayed background exactly.
 
-The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. CI is configured to repeat them; local results are not a claim that a new GitHub CI run has executed.
+The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. All 51 frozen worlds agree with the project harness on those lanes for the production, quality and near-field configurations. Releases include checksums and a source bundle that is rebuilt and tested after extraction. Check the CI badge for remote run status.
 
-**Original CGB and flash-cartridge testing remains pending.** Neither emulator lane uses the Nintendo boot ROM. Optional ±4-pixel turning reprojection remains disabled: it shifts published world sprites with the BG, but extends edge tiles rather than rendering new guard geometry. Its LCD behavior and perceptual benefit need hardware/user evaluation.
+**No physical CGB or flash cartridge is available.** Development and releases
+use emulator qualification, with hardware status explicitly untested. Neither
+emulator lane uses the Nintendo boot ROM. Physical testing is optional future
+work and does not block releases. Optional ±4-pixel turning reprojection remains
+disabled; its visual benefit has not been accepted.
 
 | Document | Purpose |
 |---|---|
+| [Rendering implementation](docs/RENDERING_IMPLEMENTATION.md) | Current defaults, gated experiments, sustained measurements and qualification |
+| [Agent guidance](AGENTS.md) | Main-only development, architecture contracts and verification commands |
 | [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
 | [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
 | [Gameplay performance](docs/RUNTIME_PERFORMANCE.md) | Implementation steps, exactness proof and measured results |
-| [Streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md) | Current rendering kernels, cartridge allocation and live-motion evidence |
+| [Streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md) | Historical beta.5 rendering and motion evidence |
 | [Wall reuse and combat latency](docs/WALL_REUSE.md) | Exact caching, independent sprite publication and timing |
 | [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
 | [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |
-| [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Physical acceptance procedure |
+| [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Optional procedure for future physical hardware access |
 
 Code and original assets use the [MIT License](LICENSE). See [NOTICE.md](NOTICE.md) for naming and asset details.

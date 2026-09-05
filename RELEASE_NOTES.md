@@ -1,3 +1,21 @@
+# Lupine 3D 0.7.0-beta.6 — Rendering qualification
+
+- Enable compact folded strips, invariant camera setup, narrow cooperative-yield contexts and exact attribute padding. The existing nine-image visual oracle and 53 frozen comparisons remain exact.
+- Reduce mean full-frame time by 3.7–7.5% across six approximately 60-second motion scenarios. Moving geometry rates range from 6.52/s in the two-actor arena to 9.67/s while turning; the 10/s target remains unmet.
+- Save 3,840 microstrip table bytes and 2,816 net linked bytes. Resident free space is 5,939 bytes; fixed-ROM execution limits, the 3,000-byte reserve and publication budgets remain enforced.
+- Implement complete-key tile caching, certified four-anchor packets, physical-depth refinement, Q8.8 actor transforms, atomic admission, physical door identity, paged projection storage, near-field arithmetic and foreground events as gated experiments. Candidates that fail measured gates remain disabled.
+- Add reconciled host timing, LCD-indexed controller replays, 51 geometric witnesses, independent-core scene adapters, current-ROM quality budgets and immutable comparison archives.
+- Pass 137 tests, controller-only completion/restart, SameBoy CGB-0/CGB-E and mGBA checks, and deterministic clean-room source rebuilds. Preserve the original v1 ROM hash and historical fixtures.
+- Document development directly on `main`. Physical CGB and flash-cartridge access are unavailable; this is an emulator-qualified prerelease.
+
+Production ROM SHA-256: `48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99`.
+See [implementation and evidence](docs/RENDERING_IMPLEMENTATION.md) and the
+[current test report](docs/TEST_REPORT.md). The version update changes release
+metadata; the production ROM is byte-identical to the qualified performance
+milestone.
+
+---
+
 # Lupine 3D 0.7.0-beta.5 — Streaming columns and prepared rays
 
 - Sequential 80-to-160 column expansion and register-resident surface/door scans preserve rounding, edge recasts, event counts and stencil precedence.

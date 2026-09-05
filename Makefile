@@ -65,14 +65,14 @@ mgba: build
 	$(PYTHON) tools/mgba_verify.py --core "$(MGBA_DIR)"
 
 variants:
-	LUPINE3D_REPROJECTION=1 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json
+	LUPINE3D_REPROJECTION=1 LUPINE3D_NARROW_YIELDS=0 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json
 	LUPINE3D_LEVEL=levels/two_sentinels.json $(PYTHON) tools/verify_variants.py two-actors --output build/two_sentinels.json
 	$(PYTHON) tools/verify_variants.py folding --output build/folded_pixels.json
-	LUPINE3D_FOLDED=0 $(PYTHON) tools/verify_variants.py folding --output build/unfolded_pixels.json
+	LUPINE3D_FOLDED=0 LUPINE3D_COMPACT_STRIPS=0 $(PYTHON) tools/verify_variants.py folding --output build/unfolded_pixels.json
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","unfolded")); assert len(a)==9 and a==b'
 	LUPINE3D_WALL_REUSE=0 $(PYTHON) tools/verify_variants.py folding --output build/reuse_disabled_pixels.json
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","reuse_disabled")); assert a==b'
-	LUPINE3D_PREPARED_RAYS=0 $(PYTHON) tools/verify_variants.py folding --output build/prepared_disabled_pixels.json
+	LUPINE3D_PREPARED_RAYS=0 LUPINE3D_CAMERA_SETUP=0 $(PYTHON) tools/verify_variants.py folding --output build/prepared_disabled_pixels.json
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","prepared_disabled")); assert a==b'
 
 wall-reuse:
@@ -80,6 +80,13 @@ wall-reuse:
 
 motion:
 	$(PYTHON) tools/benchmark_motion.py
+
+.PHONY: sustained
+sustained:
+	$(PYTHON) tools/benchmark_motion.py --duration 60 --scenario walking --scenario turning \
+		--scenario walking_turning --scenario moving_fire --scenario open_door --scenario closed_door \
+		--scenario opening_door --scenario two_actor_corner \
+		--output-dir build/sustained $(MOTION_ARGS)
 
 qa: build test playtest playtest-world research-v3
 

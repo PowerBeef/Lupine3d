@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from sm83 import Assembler  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
 from lupine3d_v4 import levels as level_codec  # noqa: E402
+from lupine3d_v4.configuration import RENDER_CONFIG  # noqa: E402
 
 BUILD = ROOT / "build"
 BUILD.mkdir(parents=True, exist_ok=True)
@@ -86,6 +87,64 @@ DECAL_COLUMN = 0xD9F4
 HUD_PACKET = 0xD9F5           # eleven tile IDs prepared before VBlank
 WEAPON_TILE_BASE = 64          # bank 1 $8400, disjoint from all BG patterns
 FOLDED_COMPOSITOR = os.environ.get("LUPINE3D_FOLDED", "1") != "0"
+COMPACT_STRIPS = RENDER_CONFIG["compact_strips"]
+UNFOLDED_STRIP_ROM_BANK = 237
+STRIP_SCRATCH = 0xC780         # 16 bytes; diagnostic bank lookup only
+INCREMENTAL_CERTIFICATE = RENDER_CONFIG["incremental_certificate"]
+DYNAMIC_TILE_CACHE = RENDER_CONFIG["dynamic_tile_cache"]
+CACHE_KEY_MIX = RENDER_CONFIG["cache_key_mix"]
+ATTRIBUTE_PADDING = RENDER_CONFIG["attribute_padding"]
+NARROW_YIELDS = RENDER_CONFIG["narrow_yields"]
+ANCHOR_PACKETS = RENDER_CONFIG["anchor_packets"]
+PACKET_BOUNDS_REUSE = RENDER_CONFIG["packet_bounds_reuse"]
+PACKET_WORKSPACE = 0xD2A0       # current packet plus two pending 32-byte siblings
+PHYSICAL_DEPTH = RENDER_CONFIG["physical_depth"]
+PIXEL_DEPTH_VALID = 0xDF42      # 160 validity bits for the current exact wall key
+PIXEL_DEPTH = 0xDF60            # 160 Q5 depths from actual physical-column queries
+REFINEMENT_DIRTY = 0xD3A4
+REFINEMENT_QUERIED = 0xD3A5
+COVERAGE_MODE = 0xD3A6
+COVERAGE_LEFT = 0xD3A7
+COVERAGE_REMAIN = 0xD3A8
+PHYSICAL_DEPTH_MISSING = 0xD3A9
+PHYSICAL_QUERY_COUNT = 0xD3AA
+GEOMETRY_BACKBONE_RAN = 0xD3AB
+PHYSICAL_COVERAGE = 0xD3B0      # twenty required-column bytes, separate from validity
+ACTOR_PRECISION = RENDER_CONFIG["actor_precision"]
+ACTOR_DX_Q8 = 0xD3C4
+ACTOR_DY_Q8 = 0xD3C6
+ACTOR_COS_Q14 = 0xD3C8
+ACTOR_SIN_Q14 = 0xD3CA
+ACTOR_FORWARD_Q8 = 0xD3CC
+ACTOR_LATERAL_Q8 = 0xD3CE
+ACTOR_ACCUM = 0xD3D0
+ACTOR_SIGN = 0xD3D4
+ACTOR_SCREEN_SIGN = 0xD3D5
+SCANLINE_ADMISSION = RENDER_CONFIG["scanline_admission"]
+DOOR_IDENTITY = RENDER_CONFIG["door_identity"]
+PROJECTION_STORAGE = RENDER_CONFIG["projection_storage"]
+NEAR_FIELD = RENDER_CONFIG["near_field"]
+NEAR_PERP_Q8 = 0xD3D6
+FOREGROUND_PUBLICATION = RENDER_CONFIG["foreground_publication"]
+FG_HEAD, FG_TAIL = 0xC8BA, 0xC8BB
+FG_SEQUENCE, FG_CONSUMED_SEQUENCE = 0xC8BC, 0xC8BE
+FG_ACTIVE, FG_WORLD_PENDING, FG_READY, FG_SERIAL = 0xC8C0, 0xC8C1, 0xC8C2, 0xC8C3
+FG_OVERFLOW = 0xC8C4
+FG_FRAME_GENERATION, FG_PUBLISHED_GENERATION, FG_TARGET_GENERATION = 0xC8C6, 0xC8C8, 0xC8CA
+FG_BUDGET, FG_CHANGED = 0xC8CC, 0xC8CD
+FG_COMPOSITE_OAM, FG_PUBLISHED_OAM, FG_QUEUE = 0xD000, 0xD100, 0xD200  # bank 4
+ADMISSION_RECORDS = 0xCB80     # four Y/X/cel/palette/mask records
+ADMISSION_COUNT = 0xCB94
+ADMISSION_FAILED = 0xCB95
+ADMISSION_MODE = 0xCB96
+ADMISSION_LINE = 0xCB97
+ADMISSION_INDEX = 0xCB98
+ADMISSION_DISTANCE_LOD = 0xCB99
+CERTIFICATE_THRESHOLD = 0xD3A0  # Nx + Ny, ordinary coarse traversal only
+FRAME_SETUP_BANK = 0xD3A2
+FRAME_SETUP_PAGE = 0xD3A3
+DYNAMIC_CACHE_STAGE = 0xCB70    # validity, profile, generation u16, complete key[10]
+DYNAMIC_CACHE_POINTER = 0xCB7E  # fixed-WRAM address across selecting bank 3
 
 
 def bg_tile_address(tile_id: int) -> int:
@@ -157,6 +216,7 @@ Q14_ORDER_ENABLED = os.environ.get("LUPINE3D_Q14", "1") != "0"
 # centre ray, then padding. Sixteen pages fit in each of sixteen banks.
 Q14_ROM_BYTES = 256 * 1024
 PREPARED_RAYS = os.environ.get("LUPINE3D_PREPARED_RAYS", "1") != "0"
+CAMERA_SETUP = RENDER_CONFIG["camera_setup"] and PREPARED_RAYS
 RAY_SETUP_ROM_BANK = Q14_ROM_BANK + Q14_ROM_BYTES // 0x4000
 RAY_SETUP_RECORD_BYTES = 16
 RAY_SETUP_ROM_BYTES = 256 * 256 * RAY_SETUP_RECORD_BYTES
@@ -481,6 +541,9 @@ DOOR_SPINE_STYLE = 7
 SURFACE_RAIL_Y0 = 48
 SURFACE_DETAIL_ENABLED = False
 MICRO_STATE_COUNT = 19
+FOLDED_STORED_STATES = (0, 2, 4, 5, 6, 7, 8, 9, 10)
+STORED_STRIP_STATES = FOLDED_STORED_STATES if COMPACT_STRIPS else tuple(range(MICRO_STATE_COUNT))
+STORED_STRIP_COUNT = len(STORED_STRIP_STATES)
 _COMMON_STATIC_WALL_MASKS = (
     0x00, 0xFF,
     0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
@@ -640,3 +703,6 @@ HUD_ROW = 14
 ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"
 REPROJECT_LIMIT = 4
 REPROJECT_GDMA_THRESHOLD = 72
+
+# Shared by snapshot emission and the allocation/lifetime validator.
+WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, 65))

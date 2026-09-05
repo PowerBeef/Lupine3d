@@ -7,6 +7,15 @@ simulation work in bank 2, then resumes the untouched bank-1 frame.
 """
 from .layout import *  # noqa: F401,F403
 
+# Liveness at the two internal call sites. Registers and per-ray scratch are
+# dead there. Bank-1 WRAM is isolated from live queries in bank 2. Public
+# render_yield retains the complete historical register/HRAM ABI.
+NARROW_CONTEXTS = {
+    "ray": ((ADAPTIVE_CASTS, 3), (FRAME_X_POS_L, 8)),
+    "column": ((ADAPTIVE_CASTS, 3), (DYN_COUNT, SCAN_STYLE_PTR_H-DYN_COUNT+1),
+               (COLUMN_COUNT, COLUMN_MAP_H-COLUMN_COUNT+1), (EDGE_RECASTS, 1), (EVENT_COUNT, 1)),
+}
+
 
 def emit_copy_bulk(a: Assembler) -> None:
     """HL -> DE, BC bytes; four-byte loop halves the counter overhead.
@@ -28,7 +37,7 @@ def emit_copy_bulk(a: Assembler) -> None:
 
 
 def emit_simulation(a: Assembler) -> None:
-    ranges = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, 65))
+    ranges = WORLD_COPY_RANGES
     for name, to_buffer in (("world_to_buffer", True), ("buffer_to_world", False)):
         a.label(name)
         offset = 0
@@ -57,6 +66,8 @@ def emit_simulation(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldh_n_a(SVBK); a.call("buffer_to_world")
     for byte in range(2):
         a.ld_a_abs(SIM_TICK + byte); a.ld_abs_a(FRAME_TICK + byte)
+        if FOREGROUND_PUBLICATION:
+            a.ld_a_abs(WALL_EPOCH+byte); a.ld_abs_a(FG_FRAME_GENERATION+byte)
     a.ret()
 
     a.label("queue_vblank_input")
@@ -110,6 +121,34 @@ def emit_simulation(a: Assembler) -> None:
     a.pop("hl"); a.pop("de")
     a.label("render_yield_empty"); a.pop("bc")
     a.label("render_yield_idle"); a.pop("af"); a.ret()
+
+    if NARROW_YIELDS:
+        for name, spans in NARROW_CONTEXTS.items():
+            a.label("render_yield_" + name)
+            a.ld_a_abs(SIM_READY); a.or_r("a"); a.ret("z")
+            a.ld_a_abs(INPUT_QUEUE_TAIL); a.ld_r_r("b", "a")
+            a.ld_a_abs(INPUT_QUEUE_HEAD); a.cp_r("b"); a.ret("z")
+            for source, count in spans:
+                a.ld_rr_nn("hl", source); a.ld_rr_nn("de", RENDER_HRAM_SAVE+source-0xFF80)
+                a.ld_rr_nn("bc", count); a.call("copy_bc")
+            a.ld_r_n("a", 2); a.ldh_n_a(SVBK); a.call("narrow_service_input")
+            a.ld_r_n("a", 1); a.ldh_n_a(SVBK)
+            for target, count in spans:
+                a.ld_rr_nn("hl", RENDER_HRAM_SAVE+target-0xFF80); a.ld_rr_nn("de", target)
+                a.ld_rr_nn("bc", count); a.call("copy_bc")
+            a.ret()
+        a.label("narrow_service_input")
+        a.ld_r_n("a", 4); a.ld_abs_a(SIM_BUDGET)
+        a.label("narrow_service_input_loop")
+        a.ld_a_abs(INPUT_QUEUE_TAIL); a.ld_r_r("b", "a"); a.ld_a_abs(INPUT_QUEUE_HEAD); a.cp_r("b"); a.ret("z")
+        a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("l", "a"); a.ld_r_n("h", INPUT_QUEUE >> 8)
+        for address in (SIM_TICK, SIM_TICK+1, PREV_BUTTONS, PRESSED):
+            a.ldi_a_hl(); a.ld_abs_a(address)
+        a.ld_a_abs(INPUT_QUEUE_TAIL); a.inc_r("a"); a.and_n(63); a.ld_abs_a(INPUT_QUEUE_TAIL)
+        a.call("simulation_tick")
+        a.ld_rr_nn("hl", SIM_STEPS); a.inc_r("(hl)"); a.jr("narrow_simulation_count_ready", "nz"); a.inc_rr("hl"); a.inc_r("(hl)")
+        a.label("narrow_simulation_count_ready")
+        a.ld_a_abs(SIM_BUDGET); a.dec_r("a"); a.ld_abs_a(SIM_BUDGET); a.jr("narrow_service_input_loop", "nz"); a.ret()
 
     a.label("simulation_tick")
     a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("simulation_restart", "nz")

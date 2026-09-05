@@ -91,8 +91,16 @@ def emit_surface_scan(a: Assembler):
     a.ld_r_r("a", "b"); a.ld_abs_a(DOOR_RUN_START)
     a.label("door_find_end")
     a.inc_r("b"); a.ld_r_r("a", "b"); a.cp_n(PHYSICAL_COLUMNS); a.jr("door_end_ready", "z")
-    a.ldi_a_hl(); a.and_n(0x60); a.cp_n(0x60); a.jr("door_find_end", "z")
-    a.dec_rr("hl")  # first non-door cell will be consumed by the outer scan
+    if DOOR_IDENTITY:
+        a.push("hl")
+        for number,base in enumerate((PIXEL_KEYS,PIXEL_SEGMENT,PIXEL_ALONG)):
+            a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("e","a"); column_pointer(a,base); a.ld_a_hl(); a.ld_r_r("c","a")
+            a.ld_r_r("e","b"); column_pointer(a,base); a.ld_a_hl(); a.cp_r("c"); a.jr("door_identity_end","nz")
+        a.pop("hl"); a.inc_rr("hl"); a.jr("door_find_end")
+        a.label("door_identity_end"); a.pop("hl")
+    else:
+        a.ldi_a_hl(); a.and_n(0x60); a.cp_n(0x60); a.jr("door_find_end", "z")
+        a.dec_rr("hl")  # first non-door cell will be consumed by the outer scan
     a.label("door_end_ready")
     a.ld_r_r("a", "b"); a.ld_abs_a(DOOR_RUN_END)
     a.push("bc"); a.push("hl")

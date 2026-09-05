@@ -224,6 +224,7 @@ def emit_dma(a: Assembler) -> None:
     a.xor_r("a"); a.ld_abs_a(FRAME_REUSED)
     a.call("prepare_hud_tiles")
     a.call("build_surface_attributes")
+    if FOREGROUND_PUBLICATION: a.call("prepare_foreground_commit")
     a.call("wait_vblank")
     # Upload dynamic pixels to the hidden page's selected tile-data bank.
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
@@ -235,6 +236,11 @@ def emit_dma(a: Assembler) -> None:
     a.call("wait_vblank")
     a.label("upload_packet_ready")
     a.call("upload_masked_tiles")
+    if FOREGROUND_PUBLICATION:
+        # The larger ISR plus a maximal OBJ upload cannot share the map/HUD
+        # tail safely. Keep old world ownership for one further VBlank.
+        a.ld_a_abs(MASK_TILE_COUNT); a.cp_n(25); a.jr("foreground_world_packet_fits","c")
+        a.call("wait_vblank"); a.label("foreground_world_packet_fits")
     if ENABLE_MICRO_REPROJECTION:
         # The optional published-X copy needs extra headroom with a full OBJ
         # packet. Keep all visible state on the old epoch until the last wait.
@@ -281,6 +287,7 @@ def emit_input_system(a: Assembler) -> None:
     # The sampler uses only AF/BC. A minimal save set keeps the once-per-VBlank
     # latency tax small while retaining instruction-boundary transparency.
     a.push("af"); a.push("bc"); a.push("hl"); a.call("sample_joypad_latched")
+    if FOREGROUND_PUBLICATION: a.push("de")
     if HUD_UNSIGNED:
         a.ldh_a_n(LCDC); a.and_n(0xEF); a.ldh_n_a(LCDC)
     # This is a VBlank clock, not a count of arbitrary joypad polls.
@@ -289,6 +296,8 @@ def emit_input_system(a: Assembler) -> None:
         a.call("queue_vblank_input")
     if ENABLE_MICRO_REPROJECTION:
         a.call("update_reprojection_vblank")
+    if FOREGROUND_PUBLICATION:
+        a.call("foreground_vblank"); a.pop("de")
     a.pop("hl"); a.pop("bc"); a.pop("af"); a.reti()
 
     a.label("update_input")
@@ -316,11 +325,16 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(PRESSED); a.and_n(0x20); a.jr("no_open_door", "z"); a.call("open_door")
     a.label("no_open_door")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
-    a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH); a.call("sound_shoot"); a.call("player_fire_hitscan")
+    a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH)
+    if FOREGROUND_PUBLICATION: a.call("enqueue_foreground_fire")
+    a.call("sound_shoot"); a.call("player_fire_hitscan")
     a.label("no_shoot")
     a.ret()
 
     a.label("update_muzzle_oam")
+    if FOREGROUND_PUBLICATION:
+        a.ld_a_abs(FG_ACTIVE); a.or_r("a"); a.jr("muzzle_hidden","z")
+        a.ld_r_n("b",72); a.jp("muzzle_shadow_compare")
     a.ld_a_abs(FLASH); a.or_r("a"); a.jr("muzzle_hidden", "z")
     a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", 56 + 16); a.jr("muzzle_shadow_compare")
     a.label("muzzle_hidden"); a.ld_r_n("b", 0)
@@ -332,6 +346,7 @@ def emit_input_system(a: Assembler) -> None:
 
 def emit_dda(a: Assembler) -> None:
     a.label("prepare_frame_boundaries")
+    if CAMERA_SETUP: a.call("prepare_camera_setup")
     # Distance from the player fraction to each side of its current cell. The
     # four values are pose-invariant across every ray in one visual update.
     a.ld_a_abs(PLAYER_XL); a.ld_abs_a(FRAME_X_NEG_L); a.xor_r("a"); a.ld_abs_a(FRAME_X_NEG_H)
@@ -351,7 +366,7 @@ def emit_dda(a: Assembler) -> None:
     # One sequential four-byte fetch replaces two tables plus sign decoding.
     if PREPARED_RAYS:
         a.ld_a_abs(Q14_RECORD); a.cp_n(241); a.jr("dda_raw_vector", "nc")
-        a.call("load_ray_setup"); a.jr("dda_vector_ready")
+        a.call("load_ray_setup_prepared" if CAMERA_SETUP else "load_ray_setup"); a.jr("dda_vector_ready")
         a.label("dda_raw_vector")
     load_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
     a.add_hl_rr("hl"); a.add_hl_rr("hl")
@@ -390,6 +405,7 @@ def emit_dda(a: Assembler) -> None:
     a.xor_r("a"); a.ld_abs_a(DDA_ERR_L); a.ld_r_n("a", 0x80); a.ld_abs_a(DDA_ERR_H); a.jr("dda_error_done")
 
     a.label("dda_error_general")
+    if INCREMENTAL_CERTIFICATE: a.call("initialize_certificate")
     # X product = nextX * absY.
     a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
     a.ld_a_abs(DDA_ABS_Y); a.ld_r_r("c", "a"); a.call("mul_u8")
@@ -420,7 +436,7 @@ def emit_dda(a: Assembler) -> None:
     a.call("dda_read_cell"); a.cp_n(3); a.jp("q14_restart", "z")
     a.label("dda_loop")
     if Q14_ORDER_ENABLED:
-        a.call("q14_crossing_uncertain"); a.jp("q14_resume", "nz")
+        a.call("q14_crossing_uncertain_prepared" if INCREMENTAL_CERTIFICATE else "q14_crossing_uncertain"); a.jp("q14_resume", "nz")
     # Choose X on negative or zero signed error; Y on positive error.
     a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("dda_step_y", "z")
     a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("dda_step_x", "z")
@@ -434,6 +450,8 @@ def emit_dda(a: Assembler) -> None:
     a.ld_a_abs(DDA_NEXT_X_L); a.ld_abs_a(DDA_DIST_L); a.ld_a_abs(DDA_NEXT_X_H); a.ld_abs_a(DDA_DIST_H)
     a.call("dda_post_step"); a.ret("nz")
     a.ld_a_abs(DDA_NEXT_X_H); a.inc_r("a"); a.ld_abs_a(DDA_NEXT_X_H)
+    if INCREMENTAL_CERTIFICATE:
+        a.ld_rr_nn("hl", CERTIFICATE_THRESHOLD + 1); a.inc_r("(hl)")
     a.ld_a_abs(DDA_ABS_Y); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_ERR_H); a.add_a_r("b"); a.ld_abs_a(DDA_ERR_H)
     a.jp("dda_loop")
 
@@ -443,6 +461,8 @@ def emit_dda(a: Assembler) -> None:
     a.ld_a_abs(DDA_NEXT_Y_L); a.ld_abs_a(DDA_DIST_L); a.ld_a_abs(DDA_NEXT_Y_H); a.ld_abs_a(DDA_DIST_H)
     a.call("dda_post_step"); a.ret("nz")
     a.ld_a_abs(DDA_NEXT_Y_H); a.inc_r("a"); a.ld_abs_a(DDA_NEXT_Y_H)
+    if INCREMENTAL_CERTIFICATE:
+        a.ld_rr_nn("hl", CERTIFICATE_THRESHOLD + 1); a.inc_r("(hl)")
     a.ld_a_abs(DDA_ABS_X); a.ld_r_r("b", "a"); a.ld_a_abs(DDA_ERR_H); a.sub_r("b"); a.ld_abs_a(DDA_ERR_H)
     a.jp("dda_loop")
 
@@ -489,6 +509,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(DDA_CORRECTION); a.sub_n(PROJECTION_LUT_CORRECTION_MIN); a.ld_abs_a(LUT_CORRECTION)
     a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
     a.ld_r_r("a", "l"); a.ld_abs_a(LUT_SLICE_LOW)
+    if PROJECTION_STORAGE != "direct": a.jp("project_paged_read")
     # Bank = 2 + slice/16. The selected bank is restored to bank 1 before
     # any conventional engine data in $4000-$7FFF is touched again.
     for _ in range(4): a.cb("srl", "h"); a.cb("rr", "l")
@@ -502,6 +523,8 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
 
     # Exact wall-side style.
+    a.label("project_style_result")
+    if NEAR_FIELD: a.call("refine_near_projection")
     a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("style_door", "z"); a.cp_n(2); a.jr("style_tech", "z")
     a.ld_a_abs(DDA_AXIS); a.jr("style_store")
     a.label("style_tech"); a.ld_a_abs(DDA_AXIS); a.add_a_n(2); a.jr("style_store")
@@ -575,6 +598,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_abs_a(CAST_INDEX)
     a.ld_a_abs(ADAPTIVE_CASTS); a.inc_r("a"); a.ld_abs_a(ADAPTIVE_CASTS)
     a.call("cast_indexed_prepared")
+    a.label("store_cast_result")
     a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
@@ -595,23 +619,34 @@ def emit_projection_and_casting(a: Assembler) -> None:
         (PIXEL_SURFACE, SURFACE_RESULT),
     ):
         a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_abs(result); a.ld_hl_a()
+    if PHYSICAL_DEPTH: a.call("save_physical_depth")
     a.ret()
 
     a.label("cast_all")
+    if PHYSICAL_DEPTH:
+        a.call("clear_physical_depth")
+        a.ld_r_n("a",1); a.ld_abs_a(GEOMETRY_BACKBONE_RAN)
     a.xor_r("a"); a.ld_abs_a(Q14_FALLBACKS)
     a.call("prepare_frame_boundaries")
-    a.xor_r("a"); a.ld_abs_a(ADAPTIVE_CASTS); a.call("cast_and_store")
-    a.ld_r_n("a", 2); a.ld_abs_a(ADAPTIVE_INDEX)
-    a.label("cast_anchor_loop")
-    if FIXED_SIMULATION:
-        a.call("render_yield")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(80); a.jr("cast_anchor_loop", "c")
+    if ANCHOR_PACKETS:
+        a.xor_r("a"); a.ld_abs_a(ADAPTIVE_CASTS); a.ld_abs_a(ADAPTIVE_INDEX)
+        a.label("cast_anchor_loop")
+        if FIXED_SIMULATION: a.call("render_yield_ray" if NARROW_YIELDS else "render_yield")
+        a.call("cast_anchor_packet")
+        a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(8); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(80); a.jr("cast_anchor_loop","c")
+    else:
+        a.xor_r("a"); a.ld_abs_a(ADAPTIVE_CASTS); a.call("cast_and_store")
+        a.ld_r_n("a", 2); a.ld_abs_a(ADAPTIVE_INDEX)
+        a.label("cast_anchor_loop")
+        if FIXED_SIMULATION:
+            a.call("render_yield_ray" if NARROW_YIELDS else "render_yield")
+        a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
+        a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(80); a.jr("cast_anchor_loop", "c")
     a.ld_r_n("a", 79); a.call("cast_and_store")
     a.ld_r_n("a", 1); a.ld_abs_a(ADAPTIVE_INDEX)
     a.label("adaptive_fill_loop")
     if FIXED_SIMULATION:
-        a.call("render_yield")
+        a.call("render_yield_ray" if NARROW_YIELDS else "render_yield")
     # Compare left/right face keys.
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
@@ -658,7 +693,9 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.label("adaptive_fill_done")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
-    a.call("build_pixel_descriptors"); a.call("decorate_pixel_styles"); a.ret()
+    a.call("build_pixel_descriptors")
+    if not PHYSICAL_DEPTH: a.call("decorate_pixel_styles")
+    a.ret()
 
     a.label("build_pixel_descriptors")
     a.xor_r("a"); a.ld_abs_a(PAIR_INDEX); a.ld_abs_a(EDGE_RECASTS)
@@ -725,6 +762,25 @@ def emit_renderer(a: Assembler) -> None:
         a.ret()
 
     a.label("compute_strip_state")  # input A top, output A state
+    if COMPACT_STRIPS:
+        # Folded y0 is 0..40, top is 0..46. Emit the stored-state index
+        # directly: ceiling=0, wall=1, boundary=top-y0+1 (2..8).
+        a.ld_r_r("b", "a")
+        a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("b"); a.jr("strip_ceiling", "c")
+        a.ld_a_abs(TILE_Y0); a.cp_r("b"); a.jr("strip_wall", "nc")
+        a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.inc_r("a"); a.ret()
+        a.label("strip_ceiling"); a.xor_r("a"); a.ret()
+        a.label("strip_wall"); a.ld_r_n("a", 1); a.ret()
+    else:
+        emit_general_strip_selector(a)
+
+    emit_strip_pointers(a)
+
+    emit_tile_compositor(a)
+
+
+def emit_general_strip_selector(a: Assembler) -> None:
+    """Original 19-state selector, retained as the unfolded image oracle."""
     a.ld_r_r("b", "a")
     a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("b"); a.jr("strip_ceiling", "c")
     a.ld_r_n("a", 96); a.sub_r("b"); a.ld_r_r("c", "a")  # C = bottom
@@ -739,6 +795,8 @@ def emit_renderer(a: Assembler) -> None:
     a.label("strip_floor"); a.ld_r_n("a", 1); a.ret()
     a.label("strip_wall"); a.ld_r_n("a", 2); a.ret()
 
+
+def emit_strip_pointers(a: Assembler) -> None:
     a.label("get_microstrip_ptr")
     # Base pointer for the style.
     a.ld_a_abs(STRIP_STYLE); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
@@ -748,7 +806,9 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_a_abs(STRIP_STATE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
     for _ in range(7): a.add_hl_rr("hl")
     a.ld_a_abs(STRIP_PAIR); a.cb("swap", "a"); a.and_n(0xF0); a.ld_r_r("c", "a"); a.ld_r_n("b", 0); a.add_hl_rr("bc")
-    a.add_hl_rr("de"); a.ret()
+    a.add_hl_rr("de")
+    if not FOLDED_COMPOSITOR: a.jp("fetch_diagnostic_strip")
+    else: a.ret()
 
     a.label("get_pair_microstrip_ptr")
     a.ld_a_abs(STRIP_STYLE); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
@@ -758,8 +818,19 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_a_abs(STRIP_STATE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
     for _ in range(6): a.add_hl_rr("hl")
     a.ld_a_abs(STRIP_PAIR); a.cb("srl", "a"); a.cb("swap", "a"); a.and_n(0xF0); a.ld_r_r("c", "a"); a.ld_r_n("b", 0); a.add_hl_rr("bc")
-    a.add_hl_rr("de"); a.ret()
+    a.add_hl_rr("de")
+    if not FOLDED_COMPOSITOR:
+        a.label("fetch_diagnostic_strip")
+        # Pointer arithmetic reads resident style bases before switching.
+        # Never return/yield with the diagnostic bank selected.
+        a.ld_r_n("a", UNFOLDED_STRIP_ROM_BANK); a.ld_abs_a(0x2000)
+        a.ld_rr_nn("de", STRIP_SCRATCH); a.call("copy_16")
+        a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+        a.ld_rr_nn("hl", STRIP_SCRATCH)
+    a.ret()
 
+
+def emit_tile_compositor(a: Assembler) -> None:
     a.label("build_tile_signature")
     # Hash y0, the already-produced dark mask, and the eight source tops in
     # place.  The earlier prototype copied all ten bytes into WRAM and then
@@ -900,7 +971,7 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_r_n("a", 20); a.ld_abs_a(COLUMN_COUNT)
     a.label("render_column_loop")
     if FIXED_SIMULATION:
-        a.call("render_yield")
+        a.call("render_yield_column" if NARROW_YIELDS else "render_yield")
     a.call("scan_column")
     a.xor_r("a"); a.ld_abs_a(TILE_ROW); a.ld_abs_a(TILE_Y0)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
@@ -918,7 +989,7 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_abs_a(TILE_ID_RESULT); a.jr("render_write_tile")
     a.label("render_dynamic_miss")
     a.ld_a_abs(DYN_COUNT); a.cp_n(DYNAMIC_TILE_CAPACITY); a.jr("render_dynamic_overflow", "nc")
-    a.ld_abs_a(TILE_ID_RESULT); a.call("compose_dynamic_tile")
+    a.ld_abs_a(TILE_ID_RESULT); a.call("compose_dynamic_tile_cached" if DYNAMIC_TILE_CACHE else "compose_dynamic_tile")
     a.ld_a_abs(DYN_COUNT); a.inc_r("a"); a.ld_abs_a(DYN_COUNT)
     a.ld_r_r("b", "a"); a.ld_a_abs(DYN_HIGH_WATER); a.cp_r("b"); a.jr("render_dynamic_high_keep", "nc"); a.ld_r_r("a", "b"); a.ld_abs_a(DYN_HIGH_WATER)
     a.label("render_dynamic_high_keep"); a.jr("render_write_tile")

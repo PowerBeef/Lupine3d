@@ -46,7 +46,7 @@ class RaySetupTests(unittest.TestCase):
                                  [abs(x) for x in q14_direction(angle,record)])
                 self.assertEqual(data[15],0)
         self.assertEqual(len(self.rom),4*1024*1024)
-        self.assertEqual(self.manifest["prepared_ray_wram_bytes"],4)
+        self.assertEqual(self.manifest["prepared_ray_wram_bytes"],8 if br.CAMERA_SETUP else 4)
         self.assertLessEqual(first+br.RAY_SETUP_ROM_BYTES,len(self.rom))
 
     def test_sm83_record_load_crosses_all_camera_banks_and_restores_bank_one(self):

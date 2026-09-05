@@ -3,5 +3,6 @@ __pycache__/
 *.py[cod]
 .DS_Store
 build/
+.render-baselines/
 dist/
 playtests/baseline_v030/

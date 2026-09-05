@@ -32,6 +32,7 @@ ARCHIVE_ROOT = f"{PROJECT_SLUG}_v{VERSION}"
 
 TOP_LEVEL_FILES = (
     ".gitignore",
+    "AGENTS.md",
     "LICENSE",
     "Makefile",
     "NOTICE.md",
@@ -155,13 +156,21 @@ def validate_verification_report(root: Path) -> dict[str, object]:
         raise RuntimeError("release report must preserve the explicit pending hardware-test status")
     if report.get("version") != VERSION:
         raise RuntimeError("verification report version does not match VERSION")
+    rendering_path = root / "build" / "rendering_qualification" / "report.json"
+    if rendering_path.is_file():
+        rendering = json.loads(rendering_path.read_text())
+        if not rendering["passed"] or rendering["rom_sha256"] != report["rom"]["sha256"]:
+            raise RuntimeError("rendering qualification belongs to another ROM or failed")
+        for entry in rendering["evidence"].values():
+            if sha256_file(rendering_path.parent / entry["path"]) != entry["sha256"]:
+                raise RuntimeError("rendering evidence changed: " + entry["path"])
     return report
 
 
 def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     python = sys.executable
     run([python, "tools/build_rom.py"], ROOT)
-    run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT)
+    run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT, timeout=600)
     run([python, "research/geometry_v2_lab.py"], ROOT)
     benchmark_env = {
         "LUPINE3D_LEVEL": str((ROOT / "levels" / "renderer_benchmark.json").resolve()),
@@ -227,6 +236,11 @@ def iter_source_files() -> Iterable[tuple[Path, Path]]:
         source = ROOT / "build" / name
         if source.is_file():
             yield source, Path("build") / name
+    rendering = ROOT / "build" / "rendering_qualification"
+    if (rendering / "report.json").is_file():
+        for source in sorted(rendering.rglob("*")):
+            if source.is_file() and not source.is_symlink():
+                yield source, source.relative_to(ROOT)
 
 
 def stage_source_tree(stage_root: Path) -> None:
@@ -250,6 +264,7 @@ def build_and_compare(
             [python, "-m", "unittest", "discover", "-s", "tests", "-v"],
             root,
             capture=True,
+            timeout=600,
         )
     rebuilt_path = root / "build" / "lupine3d.gb"
     rebuilt = rebuilt_path.read_bytes()
@@ -461,7 +476,7 @@ def package(
     external_manifest = {
         "project": "Lupine 3D",
         "version": VERSION,
-        "publication_status": "software release complete; original-hardware certification pending",
+        "publication_status": "local package verified; original-hardware qualification pending",
         "physical_hardware_tested": False,
         "rom": {
             "bytes": len(expected_rom),

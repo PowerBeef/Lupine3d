@@ -918,6 +918,7 @@ print(json.dumps({
 '''
         environment = dict(os.environ)
         environment["LUPINE3D_REPROJECTION"] = "1"
+        environment["LUPINE3D_NARROW_YIELDS"] = "0"  # explicit generic-context oracle
         completed = subprocess.run(
             [sys.executable, "-c", probe], cwd=ROOT, env=environment,
             check=True, capture_output=True, text=True, timeout=120,
