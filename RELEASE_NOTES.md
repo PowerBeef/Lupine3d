@@ -1,3 +1,53 @@
+# Lupine 3D 0.7.0-beta.2 — Sable Outpost
+
+- Original gunmetal/green environment, illuminated teal doors, amber utility lighting and coherent functional colours.
+- Sixteen map-authored wall fixtures: vents, caged lights, sector signs and moving door access emblems. Physical segment/cell masks prevent decoration leaking across corners or openings; at most four fixture objects share the existing bounded world pool after actors.
+- New shotgun and gloved hands, red-armoured Sentinel animation, medical crate, exit beacon palette, clear reticle and muzzle flash.
+- A 78-pattern instrument-panel HUD with large health/hostile counts, visor portrait, controls and LOCK/OPEN/DEAD/DONE text. A verified line-96 addressing switch uses spare bank-0 VRAM without reducing the wall atlas.
+- HUD preparation runs before VBlank. Publication uses a measured 24-pattern single-window budget and the documented 160-M-cycle OAM wait. Default large packets remain atomic over two VBlanks; the optional reprojection stress case can use three.
+- 72 tests, reviewed RGB fixtures, close-up art tour, controller-only completion and independent SameBoy CGB-0/CGB-E plus mGBA checks.
+
+The protected room/corridor topology and wall mathematics remain intact. This visual pass adds measurable rendering work; original CGB/flash-cartridge validation remains pending. See [visual implementation](docs/SABLE_OUTPOST.md) and [test report](docs/TEST_REPORT.md).
+
+---
+
+# Lupine 3D 0.7.0-beta.1 — Living Renderer
+
+Implements the software items deferred by the foundation alpha:
+
+- Certified selective Q14 crossing order removes all ≥8-pixel top errors in the full retained 24,384-view corpus; maximum is 4.489522 pixels. Historical evidence remains unchanged.
+- True sliding centre-plane doors share geometry across rendering, LOS, hitscan and radius collision.
+- A 16-bit timestamped input queue drives fixed-tick simulation. Rendering yields cooperatively while preserving a separate immutable WRAM snapshot.
+- Masked hardware 8×16 billboards, three size LODs with hysteresis, four bounded actor slots, nearest-first submission and scanline admission.
+- Per-face colour metadata separates neutral steel, muted-green machinery and recognizable cyan/white doors. No eye-height rail returns.
+- Matched dynamic patterns, masked sprites, attributes, map, HUD and OAM publish atomically, with bounded two-VBlank staging for large packets.
+- Optional turning reprojection shifts published world objects with the BG while retaining fixed UI; remains disabled by default.
+- Pinned SameBoy CGB-0/CGB-E and mGBA lanes, two-Sentinel acceptance scene, folded/unfolded RGB equivalence and controller-only level completion.
+
+This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
+
+---
+
+# Lupine 3D 0.7.0-alpha.1 — Renderer Foundation
+
+First implemented milestone of the overhaul, not completion of the full roadmap.
+
+- Paired projection records retain actual cast depth in the same 2.25 MiB ROM budget.
+- Latent door-jamb faces have physical IDs in all 16 door-state combinations.
+- Current-pose hitscan ignores cached visibility; entities share the wall camera focal length and project their feet from depth.
+- Signed BG addressing separates OBJ art from world patterns; the full 121-pattern atlas coexists with entities.
+- Folded composition reuses upper patterns through CGB Y-flip and a paired palette; unfolded A/B remains available.
+- Cold boot assets move to bank 152; the stack moves to fixed WRAM; generated memory budgets enforce fixed-bank hot code.
+- Large packets stage hidden patterns, then publish BG/HUD/OAM together.
+- Joypad polling no longer advances the VBlank clock; bounded AI catch-up retains tick remainder.
+- 47 tests, controller-only level completion, and pinned SameBoy CGB-0/CGB-E smoke lanes.
+
+The opened-airlock RGB fixture intentionally removes 50 false-crease pixels after inspection. The other eight legacy captures are unchanged; all nine folded/unfolded captures match each other.
+
+High-precision tail fallback, fully fixed-rate simulation, masked multi-entity rendering, real sliding apertures and original-hardware validation remain unfinished. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md).
+
+---
+
 # Lupine 3D 0.6.3 — Spatial Clarity
 
 This revision makes the authored world read as geometry rather than a collection of decorative screen marks.

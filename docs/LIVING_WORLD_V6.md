@@ -1,5 +1,7 @@
 # Living World architecture
 
+Historical v0.6 design record. For the current implementation, memory layout, sliding doors and scheduler, use [Architecture](ARCHITECTURE.md).
+
 Lupine 3D 0.6.3 presents the first gameplay slice as a navigable industrial-horror level with an exact wall-rendering contract and compiler-certified spatial readability.
 
 ## Frame ownership

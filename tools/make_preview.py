@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as v2  # noqa: E402
 from sm83emu import CGB  # noqa: E402
+from playtest import set_test_world_byte  # noqa: E402
 
 
 def preview_input(iteration: int, _swaps: int) -> int:
@@ -55,9 +56,9 @@ def main() -> None:
     hero.run(until_pc=v2_assembler.labels["main_loop"], max_steps=2_000_000)
     # Face the Sentinel across the machinery hall so the repository hero
     # image communicates the complete current slice, not an empty start wall.
-    hero.write16(v2.PLAYER_XL, 0x0980)
-    hero.write16(v2.PLAYER_YL, 0x0880)
-    hero.write8(v2.ANGLE, 0)
+    for address, value in ((v2.PLAYER_XL, 128), (v2.PLAYER_XH, 8),
+                           (v2.PLAYER_YL, 128), (v2.PLAYER_YH, 8), (v2.ANGLE, 240)):
+        set_test_world_byte(hero, address, value)
     hero.run(until_swaps=1, max_steps=3_000_000)
     hero_image = nearest(hero.render_screen())
 

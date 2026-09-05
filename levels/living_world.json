@@ -1,6 +1,6 @@
 {
   "format": "lupine-level-v2",
-  "name": "Hangar Breach: Spatial Clarity",
+  "name": "Sable Outpost",
   "width": 16,
   "height": 16,
   "rows": [
@@ -84,6 +84,24 @@
     "minimum_critical_path_turns": 3,
     "maximum_material_singletons": 16
   },
+  "fixtures": [
+    {"x": 4, "y": 11, "side": "south", "kind": "access"},
+    {"x": 3, "y": 6, "side": "south", "kind": "access"},
+    {"x": 7, "y": 7, "side": "west", "kind": "access"},
+    {"x": 9, "y": 11, "side": "north", "kind": "access"},
+    {"x": 3, "y": 11, "side": "south", "kind": "light"},
+    {"x": 5, "y": 11, "side": "south", "kind": "vent"},
+    {"x": 1, "y": 13, "side": "east", "kind": "sector"},
+    {"x": 6, "y": 13, "side": "west", "kind": "vent"},
+    {"x": 4, "y": 8, "side": "west", "kind": "light"},
+    {"x": 5, "y": 6, "side": "south", "kind": "sector"},
+    {"x": 7, "y": 8, "side": "east", "kind": "vent"},
+    {"x": 12, "y": 8, "side": "west", "kind": "light"},
+    {"x": 10, "y": 5, "side": "south", "kind": "vent"},
+    {"x": 9, "y": 7, "side": "south", "kind": "sector"},
+    {"x": 12, "y": 13, "side": "west", "kind": "light"},
+    {"x": 0, "y": 3, "side": "east", "kind": "vent"}
+  ],
   "palette_profile": "outpost",
   "vram_profile": "entity-heavy"
 }

@@ -70,7 +70,7 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
     if version == CURRENT_VERSION:
         report.update({
             "all_commits_single_frame": all(bool(event["vblank_safe"]) for event in commits),
-            "all_commits_two_transfers": all(int(event["event_count"]) == 2 for event in commits),
+            "all_commits_bounded_transfers": all(2 <= int(event["event_count"]) <= 4 for event in commits),
             "commit_payload_bytes": number_stats([value * 16 for value in commit_blocks]),
             "last_adaptive_casts": cgb.read8(v2.ADAPTIVE_CASTS),
             "last_edge_recasts": cgb.read8(v2.EDGE_RECASTS),
@@ -141,6 +141,16 @@ def main() -> None:
     if not world_playtest_path.exists():
         raise SystemExit("missing Living World playtest report; run `make playtest-world`")
     world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
+    art_playtest = json.loads((v2.BUILD / "playtest/sable_art_tour/report.json").read_text())
+    current_sha = hashlib.sha256(v2_rom).hexdigest()
+    completion = json.loads((v2.BUILD / "playthrough/report.json").read_text())
+    folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
+    unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
+    current_tail = json.loads((v2.BUILD / "q14_tail.json").read_text())
+    independent = {}
+    for name in ("sameboy_cgb0.json", "sameboy_cgbe.json", "mgba_cgb.json"):
+        if (v2.BUILD / name).is_file():
+            independent[name] = json.loads((v2.BUILD / name).read_text())
 
     discovered_tests = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
     automated_tests = discovered_tests.countTestCases()
@@ -153,7 +163,18 @@ def main() -> None:
         "header_checksum": header_checksum(v2_rom) == v2_rom[0x014D],
         "global_checksum": global_checksum(v2_rom) == expected_global,
         "engine_fits_rom": int(v2_manifest["engine_end"]) <= 0x8000,
-        "maximum_commit_120_blocks": int(v2_manifest["maximum_commit_blocks"]) <= 120,
+        "maximum_commit_176_blocks": int(v2_manifest["maximum_commit_blocks"]) <= 176,
+        "bounded_publication_stages": v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80,
+        "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == current_sha,
+        "sable_art_tour_current": art_playtest["rom_sha256"] == current_sha and art_playtest["summary"]["passed"] and art_playtest["summary"]["capture_count"] == 6,
+        "hud_and_fixture_budgets": v2_manifest["hud_patterns"] <= 96 and v2_manifest["wall_fixture_oam_budget"] <= 4,
+        "controller_only_completion": completion["passed"] and completion["controller_only"] and completion["game_ram_injections"] == 0 and completion["rom_sha256"] == current_sha,
+        "fixed_tick_and_snapshot_enabled": v2_manifest["fixed_tick_simulation"] and v2_manifest["live_world_wram_bank"] != v2_manifest["render_snapshot_wram_bank"],
+        "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
+        "masked_8x16_four_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == 4,
+        "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
+        "full_current_tail_scan": current_tail["configuration"]["q14_order"] and current_tail["corpus"]["views"] == 24384 and current_tail["tail"]["columns_at_or_above_threshold"] == 0 and current_tail["tail"]["maximum_top_error_px"] < 5,
+        "available_independent_evidence_current": all(r["passed"] and r["rom_sha256"] == current_sha for r in independent.values()),
         "integer_dda_zero_mismatches": research["integer_dda_identity"]["mismatches"] == 0,
         "adaptive_wall_identity_zero_mismatches": research["adaptive_spans"]["wall_key_mismatches_vs_full_exact"] == 0,
         "adaptive_style_zero_mismatches": research["adaptive_spans"]["style_mismatches_vs_full_exact"] == 0,
@@ -164,8 +185,10 @@ def main() -> None:
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
         "driven_playtest_exact_current_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
-        "driven_playtest_mean_under_1m": float(playtest["summary"]["mean_cycles"]) < 1_000_000,
-        "driven_playtest_max_under_1_150k": int(playtest["summary"]["max_cycles"]) < 1_150_000,
+        # Sable's bounded decals have an explicit visual-content budget.
+        "driven_playtest_mean_under_1_050k": float(playtest["summary"]["mean_cycles"]) < 1_050_000,
+        "driven_playtest_max_under_1_400k": int(playtest["summary"]["max_cycles"]) < 1_400_000,
+        "living_world_max_under_2_200k": int(world_playtest["summary"]["max_cycles"]) < 2_200_000,
         "atlas_exact_signature_entries_255": atlas_research["signature_entries"] == 255,
         "atlas_patterns_fit_vram_121": atlas_research["atlas_patterns"] == 121,
         "entity_atlas_patterns_fit_vram_80": entity_atlas["atlas_patterns"] == 80,
@@ -200,8 +223,11 @@ def main() -> None:
         "level_sightline_at_most_six_cells": int(v2_manifest["maximum_level_sightline"]) <= 6,
         "level_critical_path_has_three_turns": int(v2_manifest["critical_path_turns"]) >= 3,
         "every_level_door_is_meaningful": int(v2_manifest["minimum_door_separation"]) >= 8,
-        "level_material_seams_counted_separately": int(v2_manifest["material_surface_seams"]) == 0,
-        "level_material_paint_has_no_singletons": int(v2_manifest["material_singleton_runs"]) == 0,
+        "level_material_seams_include_latent_jambs": int(v2_manifest["material_surface_seams"]) == 2,
+        "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 2,
+        "signed_bg_allocation": bool(v2_manifest["signed_bg_tile_addressing"]),
+        "folded_compositor_enabled": bool(v2_manifest["folded_compositor"]),
+        "full_atlas_with_entities": int(v2_manifest["entity_atlas_patterns"]) == 121,
         "world_space_exit_beacon": bool(v2_manifest["exit_beacon"]),
         "living_world_playtest_passed": bool(world_playtest["summary"]["passed"]),
         "living_world_oam_total_safe": int(world_playtest["summary"]["max_visible_oam"]) <= 40,
@@ -215,7 +241,7 @@ def main() -> None:
             any(update.get("door_states", {}).get("start_airlock") == 2 for update in world_playtest["updates"])
             and any(update.get("door_states", {}).get("exit_lock") == 2 for update in world_playtest["updates"])
         ),
-        f"automated_test_inventory_{automated_tests}": automated_tests >= 35,
+        f"automated_test_inventory_{automated_tests}": automated_tests >= 64,
         "material_full_width_contrast_bands_zero": int(v2_manifest["full_width_contrast_bands"]) == 0,
     }
     if not all(checks.values()):
@@ -232,8 +258,8 @@ def main() -> None:
         "scripted_no_dynamic_overflow": v2_action["dynamic_tile_overflow"] == 0,
         "stationary_single_vblank_commits": bool(v2_stationary["all_commits_single_frame"]),
         "scripted_single_vblank_commits": bool(v2_action["all_commits_single_frame"]),
-        "stationary_two_transfers_per_commit": bool(v2_stationary["all_commits_two_transfers"]),
-        "scripted_two_transfers_per_commit": bool(v2_action["all_commits_two_transfers"]),
+        "stationary_bounded_transfers_per_commit": bool(v2_stationary["all_commits_bounded_transfers"]),
+        "scripted_bounded_transfers_per_commit": bool(v2_action["all_commits_bounded_transfers"]),
         "stationary_no_unsafe_gdma": v2_stationary["gdma_vblank_violations"] == 0,
         "scripted_no_unsafe_gdma": v2_action["gdma_vblank_violations"] == 0,
         "stationary_vblank_input_interrupts": v2_stationary["vblank_interrupts"] > 0,
@@ -274,7 +300,7 @@ def main() -> None:
             "geometry_columns": v2_manifest["rays"],
             "physical_columns": v2_manifest["physical_columns"],
             "column_width_pixels": v2_manifest["ray_width_pixels"],
-            "ray_traversal": "signed-error exact grid DDA",
+            "ray_traversal": "certified Q14 crossing order with Q5 projection",
             "adaptive_anchor_casts": v2_manifest["adaptive_anchor_casts"],
             "adaptive_validation": v2_manifest["adaptive_validation"],
             "direction_table_entries": v2_manifest["ray_direction_table_entries"],
@@ -312,7 +338,7 @@ def main() -> None:
             "estimated_maximum_gdma_microseconds": round(int(v2_manifest["maximum_commit_blocks"]) * 8.0, 3),
             "estimated_vblank_microseconds": round(DOTS_PER_LINE * VBLANK_LINES / CGB_CLOCK_HZ * 1_000_000, 3),
         },
-        "research_summary": {
+        "archived_research_summary": {
             "corpus_views": v3_research["corpus"]["views"],
             "physical_column_samples": v3_research["corpus"]["physical_column_samples"],
             "integer_dda_samples": research["integer_dda_identity"]["quantized_ray_samples"],
@@ -335,6 +361,11 @@ def main() -> None:
         },
         "driven_playtest": playtest["summary"],
         "living_world_playtest": world_playtest["summary"],
+        "sable_art_playtest": art_playtest["summary"],
+        "controller_completion": {key: value for key, value in completion.items() if key != "updates"},
+        "current_q14_tail": {key: current_tail[key] for key in ("corpus", "tail", "configuration")},
+        "independent_emulators": independent,
+        "test_inventory_is_not_test_execution": True,
         "harness": {
             "scope": "project-specific deterministic SM83/CGB smoke-test harness; not an independent cycle-accurate emulator",
             "refresh_hz_used_for_estimates": round(REFRESH_HZ, 6),
@@ -351,7 +382,7 @@ def main() -> None:
             "stationary_rate_retained_pct": round(100.0 * current_rate / baseline_rate, 3),
             "engine_bytes": {"v0.1.0": v1_manifest["engine_size"], f"v{CURRENT_VERSION}": v2_manifest["engine_size"]},
             "fixed_framebuffer_bytes": {"v0.1.0": 3840, f"v{CURRENT_VERSION}": 0},
-            "commit_vblanks": {"v0.1.0": 2, f"v{CURRENT_VERSION}": 1},
+            "commit_vblanks": {"v0.1.0": 2, f"v{CURRENT_VERSION}": "1 or 2, packet-size dependent"},
         },
         "physical_hardware_tested": False,
         "hardware_acceptance_document": "docs/HARDWARE_TEST_CHECKLIST.md",

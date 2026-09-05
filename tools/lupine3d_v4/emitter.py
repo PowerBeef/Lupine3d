@@ -70,55 +70,81 @@ def emit_palette_init(a: Assembler) -> None:
     a.label("init_bg_palette_loop")
     a.ldi_a_hl(); a.ldh_n_a(BGPD); a.dec_r("b"); a.jr("init_bg_palette_loop", "nz")
     a.ld_r_n("a", 0x80); a.ldh_n_a(OBPI)
-    a.ld_rr_label("hl", "obj_palettes"); a.ld_r_n("b", 16)
+    a.ld_rr_label("hl", "obj_palettes"); a.ld_r_n("b", 64)
     a.label("init_obj_palette_loop")
     a.ldi_a_hl(); a.ldh_n_a(OBPD); a.dec_r("b"); a.jr("init_obj_palette_loop", "nz")
     a.ret()
 
 
 def emit_hud_system(a: Assembler) -> None:
-    """Emit the live two-digit health and objective-status readouts."""
-    a.label("update_hud_tiles")
-    # Clamp the display to two digits, then divide by ten with at most nine
-    # tiny subtractions. This runs once per completed visual update, in VBlank.
-    a.ld_a_abs(PLAYER_HEALTH); a.cp_n(100); a.jr("hud_health_clamped", "c")
-    a.ld_r_n("a", 99)
-    a.label("hud_health_clamped"); a.ld_r_n("b", 0)
-    a.label("hud_health_tens_loop"); a.cp_n(10); a.jr("hud_health_digits_ready", "c")
-    a.sub_n(10); a.inc_r("b"); a.jr("hud_health_tens_loop")
-    a.label("hud_health_digits_ready"); a.ld_r_r("c", "a")
-    a.ld_r_r("a", "b"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("b", "a")
-    a.ld_r_r("a", "c"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
-    a.xor_r("a"); a.ldh_n_a(VBK)
-    for base in (0x9800, 0x9C00):
-        a.ld_rr_nn("hl", base + HUD_ROW * 32 + HUD_HEALTH_TENS_X)
-        a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_r_r("a", "c"); a.ld_hl_a()
-
-    # 00 means the objective/exit remains locked; 01 means it is armed.
-    a.ld_r_n("b", HUD_DIGIT_BASE)
-    a.ld_a_abs(EXIT_ACTIVE); a.and_n(1); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
-    for base in (0x9800, 0x9C00):
-        a.ld_rr_nn("hl", base + HUD_ROW * 32 + HUD_STATUS_TENS_X)
-        a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_r_r("a", "c"); a.ld_hl_a()
+    """Large health/remaining-hostile digits and a literal exit-status label."""
+    from .artwork import hud_assets
+    a.label("prepare_hud_tiles")
+    for item, name in enumerate(("health", "hostiles")):
+        if name == "health":
+            a.ld_a_abs(PLAYER_HEALTH); a.cp_n(100); a.jr("hud_health_ready", "c")
+            a.ld_r_n("a", 99); a.label("hud_health_ready")
+        else:
+            a.ld_r_n("b", 0)
+            for index in range(MAX_ACTORS):
+                a.ld_a_abs(ACTOR_COUNT); a.cp_n(index + 1); a.jr(f"hud_actor_{index}_skip", "c")
+                a.ld_a_abs(ENTITY_SLOTS + index * 16 + 4); a.cp_n(SENTINEL_DEAD); a.jr(f"hud_actor_{index}_skip", "z")
+                a.inc_r("b"); a.label(f"hud_actor_{index}_skip")
+            a.ld_r_r("a", "b")
+        a.ld_r_n("b", 0); a.label(f"hud_{name}_divide")
+        a.cp_n(10); a.jr(f"hud_{name}_digits", "c")
+        a.sub_n(10); a.inc_r("b"); a.jr(f"hud_{name}_divide")
+        a.label(f"hud_{name}_digits"); a.add_a_r("a"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
+        a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("b", "a")
+        for row in (0,1):
+            a.ld_rr_nn("hl", HUD_PACKET + item*4 + row*2)
+            a.ld_r_r("a", "b")
+            if row: a.inc_r("a")
+            a.ldi_hl_a(); a.ld_r_r("a", "c")
+            if row: a.inc_r("a")
+            a.ld_hl_a()
+    a.ld_a_abs(EXIT_ACTIVE); a.and_n(1); a.ld_r_r("b", "a")
+    a.ld_a_abs(PLAYER_HEALTH); a.or_r("a"); a.jr("hud_status_alive", "nz"); a.ld_r_n("b", 2)
+    a.label("hud_status_alive"); a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("hud_status_ready", "z"); a.ld_r_n("b", 3)
+    a.label("hud_status_ready")
+    a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_r("b"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "hud_status_records"); a.add_hl_rr("de")
+    for i in range(3):
+        a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + 8 + i)
     a.ret()
-
-
+    a.label("update_hud_tiles")
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    for item, column in enumerate((HUD_HEALTH_TENS_X, HUD_STATUS_TENS_X)):
+        for row in (0,1):
+            for digit in (0,1):
+                a.ld_a_abs(HUD_PACKET + item*4 + row*2 + digit)
+                for base in (0x9800, 0x9C00):
+                    a.ld_abs_a(base + (HUD_ROW+row)*32 + column + digit)
+    for i in range(3):
+        a.ld_a_abs(HUD_PACKET+8+i)
+        for base in (0x9800, 0x9C00): a.ld_abs_a(base+17*32+16+i)
+    a.ret()
 def emit_vram_init(a: Assembler) -> None:
+    def copy_atlas(length: int) -> None:
+        # Signed IDs wrap physically at 128: never stream across $9800 maps.
+        first = min(length, (128 - ATLAS_TILE_BASE) * 16)
+        a.ld_rr_nn("de", bg_tile_address(ATLAS_TILE_BASE)); a.ld_rr_nn("bc", first); a.call("copy_bc")
+        if length > first:
+            a.ld_rr_nn("de", 0x8800); a.ld_rr_nn("bc", length - first); a.call("copy_bc")
+
     a.label("upload_profile_tiles")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("upload_active_profile_tiles", "z")
     a.ld_r_n("a", BANKED_ATLAS_ROM_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_nn("hl", BANKED_ATLAS_TILES_ADDRESS); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(BANKED_ATLAS_TILES)); a.call("copy_bc")
-    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.jr("upload_profile_entity_art")
+    a.ld_rr_nn("hl", BANKED_ATLAS_TILES_ADDRESS); copy_atlas(len(BANKED_ATLAS_TILES))
+    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000); a.jr("upload_profile_entity_art")
     a.label("upload_active_profile_tiles")
-    a.ld_rr_label("hl", "active_atlas_tiles"); a.ld_rr_nn("de", 0x8000 + ATLAS_TILE_BASE * 16); a.ld_rr_nn("bc", len(ACTIVE_ATLAS_TILES)); a.call("copy_bc")
+    a.ld_rr_label("hl", "active_atlas_tiles"); copy_atlas(len(ACTIVE_ATLAS_TILES))
     a.label("upload_profile_entity_art")
-    # Entity patterns live only in bank 1. The same tile IDs remain free in
-    # bank 0 and can later host profile-specific effects.
-    a.ld_a_abs(VRAM_PROFILE); a.cp_n(VRAM_PROFILE_ENTITY); a.ret("nz")
-    a.ldh_a_n(VBK); a.and_n(1); a.ret("z")
-    a.ld_rr_label("hl", "entity_tiles"); a.ld_rr_nn("de", 0x8000 + ENTITY_TILE_BASE * 16); a.ld_rr_nn("bc", len(make_entity_tiles())); a.call("copy_bc"); a.ret()
+    # Source cels stay in ROM; only admitted masked pairs occupy OBJ VRAM.
+    a.ret()
 
     a.label("init_vram")
+    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     # The map upload covers all 32 bytes of each of the twelve viewport rows.
     # Initialize the hidden padding once instead of relying on WRAM power-on
     # contents that happen to be zero in the project harness.
@@ -128,19 +154,23 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_r("a", "b"); a.or_r("c"); a.jr("init_view_map_loop", "nz")
     # Bank 0: shared static viewport tiles, UI tiles and tile maps.
     a.xor_r("a"); a.ldh_n_a(VBK)
-    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
+    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     a.call("upload_profile_tiles")
     a.ld_rr_label("hl", "ui_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    from .artwork import hud_assets
+    a.ld_rr_label("hl", "hud_tiles"); a.ld_rr_nn("de", 0x8200); a.ld_rr_nn("bc", len(hud_assets()[0])); a.call("copy_bc")
     a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "tilemap_data"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     # Bank 1 mirrors viewport tiles and holds weapon OBJ tiles plus attributes.
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
-    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", 0x8600); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
+    a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     a.call("upload_profile_tiles")
-    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8500); a.ld_rr_nn("bc", 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
-    a.xor_r("a"); a.ldh_n_a(VBK); a.ret()
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ret()
 
 
 def emit_dma(a: Assembler) -> None:
@@ -148,7 +178,8 @@ def emit_dma(a: Assembler) -> None:
     a.ld_a_abs(DYN_COUNT); a.or_r("a"); a.ret("z")
     a.ld_r_r("b", "a")
     a.ld_r_n("a", 0xC0); a.ldh_n_a(HDMA1)
-    a.xor_r("a"); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA3); a.ldh_n_a(HDMA4)
+    a.xor_r("a"); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA4)
+    a.ld_r_n("a", (DYNAMIC_TILE_VRAM >> 8) & 0x1F); a.ldh_n_a(HDMA3)
     a.ld_r_r("a", "b"); a.dec_r("a"); a.ldh_n_a(HDMA5)
     a.ret()
     a.label("upload_view_map")
@@ -175,40 +206,54 @@ def emit_dma(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE)     # hidden page = 1 -> 9C00
     a.ldh_n_a(VBK); a.call("upload_view_map")
+    # Build both initial attribute packets using the same page rule as normal
+    # publication. LCD is off, so no staging or partial-packet exposure.
+    a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
+    a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
+    a.call("upload_masked_tiles"); a.call("publish_oam_packet")
+    a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.ldh_n_a(VBK); a.ret()
 
     a.label("upload_hidden_page")
+    a.call("prepare_hud_tiles")
+    a.call("build_surface_attributes")
     a.call("wait_vblank")
     # Upload dynamic pixels to the hidden page's selected tile-data bank.
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
     a.call("upload_dynamic_tiles")
-    # Upload tile numbers to the hidden BG map in VRAM bank 0, preserving
-    # the static attribute maps in VRAM bank 1.
+    # Stage large packets in hidden memory, retaining the old complete BG/OAM
+    # epoch. Publish map, HUD and OAM together in the following VBlank.
+    # Reserve the HUD/OAM tail and avoid the CGB's early LY=0 on line 153.
+    a.ld_a_abs(MASK_TILE_COUNT); a.ld_r_r("b", "a"); a.ld_a_abs(DYN_COUNT); a.add_a_r("b"); a.cp_n(25); a.jr("upload_packet_ready", "c")
+    a.call("wait_vblank")
+    a.label("upload_packet_ready")
+    a.call("upload_masked_tiles")
+    if ENABLE_MICRO_REPROJECTION:
+        # The optional published-X copy needs extra headroom with a full OBJ
+        # packet. Keep all visible state on the old epoch until the last wait.
+        a.ld_a_abs(MASK_TILE_COUNT); a.cp_n(25); a.jr("reprojection_packet_fits", "c")
+        a.call("wait_vblank"); a.label("reprojection_packet_fits")
+    a.call("upload_surface_attributes")
+    # Upload tile numbers after the matching hidden bank-1 attributes.
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
-    # A pathological 120-block publication consumes the complete measured
-    # VBlank budget. Defer the tiny live-HUD write under the same conservative
-    # threshold used by OAM; the next ordinary frame catches it up.
-    a.ld_a_abs(DYN_COUNT); a.cp_n(REPROJECT_GDMA_THRESHOLD + 1); a.jr("upload_hud_deferred", "nc")
     a.call("update_hud_tiles")
-    a.label("upload_hud_deferred")
-    a.call("update_muzzle_oam"); a.call("publish_oam_if_budget")
+    a.call("update_muzzle_oam"); a.call("publish_oam_packet")
     if ENABLE_MICRO_REPROJECTION:
         a.call("reset_reprojection_for_commit")
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
     a.or_r("a"); a.jr("display_page_zero", "z")
-    a.ld_r_n("a", 0x9B); a.ldh_n_a(LCDC); a.jr("display_page_done")
+    a.ld_r_n("a", BG_LCDC | 8); a.ldh_n_a(LCDC); a.jr("display_page_done")
     a.label("display_page_zero")
-    a.ld_r_n("a", 0x93); a.ldh_n_a(LCDC)
+    a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC)
     a.label("display_page_done")
     a.xor_r("a"); a.ldh_n_a(VBK); a.ret()
 
 
 def emit_input_system(a: Assembler) -> None:
-    """Emit VBlank sampling plus atomic main-loop input consumption.
+    """Emit VBlank sampling, timestamped packet production and legacy polling.
 
-    The interrupt path records only the latest held state and an OR-latched
-    set of rising edges. Movement, interaction, and all pose mutation stay in
-    the main loop, so a cast can never observe a half-updated camera.
+    The ISR does not simulate. Cooperative render yields consume packets in
+    the isolated live-world bank, leaving the render snapshot unchanged.
     """
     a.label("sample_joypad_latched")
     a.ld_r_n("a", 0x20); a.ldh_n_a(P1)
@@ -221,17 +266,22 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(INPUT_LAST_RAW); a.cpl(); a.and_r("c"); a.ld_r_r("b", "a")
     a.ld_a_abs(INPUT_EDGE_LATCH); a.or_r("b"); a.ld_abs_a(INPUT_EDGE_LATCH)
     a.ld_r_r("a", "c"); a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(BUTTONS)
-    a.ld_a_abs(INPUT_SAMPLE_COUNT); a.inc_r("a"); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     a.ld_r_n("a", 0x30); a.ldh_n_a(P1)
     a.ret()
 
     a.label("vblank_isr")
     # The sampler uses only AF/BC. A minimal save set keeps the once-per-VBlank
     # latency tax small while retaining instruction-boundary transparency.
-    a.push("af"); a.push("bc"); a.call("sample_joypad_latched")
+    a.push("af"); a.push("bc"); a.push("hl"); a.call("sample_joypad_latched")
+    if HUD_UNSIGNED:
+        a.ldh_a_n(LCDC); a.and_n(0xEF); a.ldh_n_a(LCDC)
+    # This is a VBlank clock, not a count of arbitrary joypad polls.
+    a.ld_a_abs(INPUT_SAMPLE_COUNT); a.inc_r("a"); a.ld_abs_a(INPUT_SAMPLE_COUNT)
+    if FIXED_SIMULATION:
+        a.call("queue_vblank_input")
     if ENABLE_MICRO_REPROJECTION:
         a.call("update_reprojection_vblank")
-    a.pop("bc"); a.pop("af"); a.reti()
+    a.pop("hl"); a.pop("bc"); a.pop("af"); a.reti()
 
     a.label("update_input")
     # Main-loop polling preserves the old immediate action semantics. DI also
@@ -241,12 +291,13 @@ def emit_input_system(a: Assembler) -> None:
     a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH)
     a.ld_a_abs(BUTTONS); a.ld_abs_a(PREV_BUTTONS)
     a.ei()
+    a.label("apply_input_actions")
     # Turn and move from one stable held-state snapshot.
     a.ld_a_abs(PREV_BUTTONS); a.and_n(0x02); a.jr("no_turn_left", "z")
-    a.ld_a_abs(ANGLE); a.sub_n(4); a.ld_abs_a(ANGLE)
+    a.ld_a_abs(ANGLE); a.sub_n(1 if FIXED_SIMULATION else 4); a.ld_abs_a(ANGLE)
     a.label("no_turn_left")
     a.ld_a_abs(PREV_BUTTONS); a.and_n(0x01); a.jr("no_turn_right", "z")
-    a.ld_a_abs(ANGLE); a.add_a_n(4); a.ld_abs_a(ANGLE)
+    a.ld_a_abs(ANGLE); a.add_a_n(1 if FIXED_SIMULATION else 4); a.ld_abs_a(ANGLE)
     a.label("no_turn_right")
     a.ld_a_abs(PREV_BUTTONS); a.and_n(0x04); a.jr("no_move_forward", "z")
     a.ld_a_abs(ANGLE); a.call("move_player")
@@ -257,7 +308,7 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(PRESSED); a.and_n(0x20); a.jr("no_open_door", "z"); a.call("open_door")
     a.label("no_open_door")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
-    a.ld_r_n("a", 3); a.ld_abs_a(FLASH); a.call("sound_shoot"); a.call("player_fire_hitscan")
+    a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH); a.call("sound_shoot"); a.call("player_fire_hitscan")
     a.label("no_shoot")
     a.ret()
 
@@ -266,8 +317,8 @@ def emit_input_system(a: Assembler) -> None:
     a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", 56 + 16); a.jr("muzzle_shadow_compare")
     a.label("muzzle_hidden"); a.ld_r_n("b", 0)
     a.label("muzzle_shadow_compare")
-    a.ld_a_abs(OAM_SHADOW + 17 * 4); a.cp_r("b"); a.ret("z")
-    a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + 17 * 4)
+    a.ld_a_abs(OAM_SHADOW + 9 * 4); a.cp_r("b"); a.ret("z")
+    a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + 9 * 4)
     a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY); a.ret()
 
 
@@ -350,8 +401,13 @@ def emit_dda(a: Assembler) -> None:
     a.ld_a_hl(); a.ret()
 
     a.label("dda_cast")
+    a.xor_r("a"); a.ld_abs_a(Q14_ACTIVE); a.ld_abs_a(Q14_LOADED)
     a.call("dda_setup")
+    a.ld_a_abs(Q14_RECORD); a.cp_n(255); a.jr("dda_loop", "z")
+    a.call("dda_read_cell"); a.cp_n(3); a.jp("q14_restart", "z")
     a.label("dda_loop")
+    if Q14_ORDER_ENABLED:
+        a.call("q14_crossing_uncertain"); a.jp("q14_restart", "nz")
     # Choose X on negative or zero signed error; Y on positive error.
     a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("dda_step_y", "z")
     a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("dda_step_x", "z")
@@ -379,7 +435,9 @@ def emit_dda(a: Assembler) -> None:
 
     a.label("dda_post_step")
     a.ld_a_abs(DDA_CROSSINGS); a.inc_r("a"); a.ld_abs_a(DDA_CROSSINGS); a.cp_n(32); a.jr("dda_force_hit", "nc")
-    a.call("dda_read_cell"); a.or_r("a"); a.jr("dda_hit", "nz")
+    a.call("dda_read_cell"); a.cp_n(3); a.jr("dda_regular_cell", "nz")
+    a.call("door_ray_hit")
+    a.label("dda_regular_cell"); a.or_r("a"); a.jr("dda_hit", "nz")
     a.xor_r("a"); a.ret()
     a.label("dda_force_hit")
     a.ld_r_n("a", 1)
@@ -403,7 +461,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("project_d32_ready")
     a.ld_r_r("a", "b"); a.ld_abs_a(D32_LOW)
     # Select the component perpendicular to the wall exactly as the former
-    # arithmetic path did.  The table's 512-byte slices are ordered by
+    # arithmetic path did. The table's paired 1024-byte slices are ordered by
     # component*18 + (correction-110).
     a.ld_a_abs(DDA_AXIS); a.or_r("a"); a.jr("project_component_y", "nz")
     a.ld_a_abs(DDA_ABS_X); a.jr("project_component_ready")
@@ -415,34 +473,16 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(DDA_CORRECTION); a.sub_n(PROJECTION_LUT_CORRECTION_MIN); a.ld_abs_a(LUT_CORRECTION)
     a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
     a.ld_r_r("a", "l"); a.ld_abs_a(LUT_SLICE_LOW)
-    # Bank = 2 + slice/32.  The selected bank is restored to bank 1 before
+    # Bank = 2 + slice/16. The selected bank is restored to bank 1 before
     # any conventional engine data in $4000-$7FFF is touched again.
-    for _ in range(5): a.cb("srl", "h"); a.cb("rr", "l")
+    for _ in range(4): a.cb("srl", "h"); a.cb("rr", "l")
     a.ld_r_r("a", "l"); a.add_a_n(PROJECTION_LUT_BASE_BANK); a.ld_abs_a(0x2000)
-    # Address = $4000 + (slice&31)*512 + D32.
-    a.ld_a_abs(LUT_SLICE_LOW); a.and_n(0x1F); a.add_a_r("a"); a.or_n(0x40); a.ld_r_r("h", "a")
-    a.ld_a_abs(D32_HIGH); a.or_r("h"); a.ld_r_r("h", "a")
-    a.ld_a_abs(D32_LOW); a.ld_r_r("l", "a"); a.ld_a_hl(); a.ld_abs_a(TOP_RESULT)
+    # Address = $4000 + (slice&15)*1024 + D32*2.
+    a.ld_a_abs(LUT_SLICE_LOW); a.and_n(0x0F); a.add_a_r("a"); a.add_a_r("a"); a.or_n(0x40); a.ld_r_r("h", "a")
+    a.ld_a_abs(D32_LOW); a.add_a_r("a"); a.ld_r_r("l", "a")
+    a.ld_a_abs(D32_HIGH); a.adc_a_r("a"); a.or_r("h"); a.ld_r_r("h", "a")
+    a.ldi_a_hl(); a.ld_abs_a(TOP_RESULT); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
-
-    # Convert the exact projection class back into its conservative nearest
-    # corrected Q5 depth. This 256-byte certificate replaces a per-ray divide.
-    a.ld_a_abs(TOP_RESULT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
-
-    # A Living World door retracts over eight visual updates. Its collision
-    # cell remains authoritative until the panel has fully cleared the cell.
-    a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("door_projection_done", "z")
-    a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("door_projection_done", "nz")
-    a.ld_a_abs(DDA_MAP_X); a.ld_r_r("b", "a")
-    a.ld_a_abs(DDA_MAP_Y); a.ld_r_r("c", "a"); a.call("lookup_door_bc")
-    a.or_r("a"); a.jr("door_projection_done", "z")
-    a.ld_a_abs(DOOR_ACTIVE_STATE); a.cp_n(1); a.jr("door_projection_done", "nz")
-    a.ld_a_abs(DOOR_ACTIVE_FRACTION)
-    for _ in range(3): a.cb("srl", "a")
-    a.ld_r_r("b", "a"); a.ld_a_abs(TOP_RESULT); a.add_a_r("b"); a.cp_n(48); a.jr("door_projection_store", "c"); a.ld_r_n("a", 47)
-    a.label("door_projection_store"); a.ld_abs_a(TOP_RESULT)
-    a.label("door_projection_done")
 
     # Exact wall-side style.
     a.ld_a_abs(DDA_MATERIAL); a.cp_n(3); a.jr("style_door", "z"); a.cp_n(2); a.jr("style_tech", "z")
@@ -478,14 +518,18 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.add_hl_rr("hl"); a.add_hl_rr("hl")
     a.ld_r_r("e", "c"); a.ld_r_n("d", 0); a.add_hl_rr("de")
     a.ld_rr_nn("de", SEGMENT_TABLE_ROM_ADDRESS); a.add_hl_rr("de")
-    a.ld_r_n("a", SEGMENT_TABLE_ROM_BANK); a.ld_abs_a(0x2000); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ld_r_r("a", "b"); a.ld_abs_a(SEGMENT_RESULT); a.ret()
+    a.ld_r_n("a", SEGMENT_TABLE_ROM_BANK); a.ld_abs_a(0x2000); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
+    a.ld_rr_nn("de", 1024); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SURFACE_RESULT)
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ret()
 
-    a.label("cast_one_v2"); a.call("dda_cast"); a.call("project_hit"); a.ret()
+    a.label("cast_one_v2"); a.call("dda_cast")
+    a.label("cast_precision_done"); a.call("project_hit")
+    a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD); a.ret()
 
     a.label("cast_indexed")  # Public self-contained probe entry.
     a.call("prepare_frame_boundaries"); a.jp("cast_indexed_prepared")
     a.label("cast_indexed_prepared")  # CAST_INDEX selects the ray
+    a.ld_a_abs(CAST_INDEX); a.ld_abs_a(Q14_RECORD)
     a.ld_a_abs(CAST_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "ray_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
@@ -498,6 +542,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("cast_physical_indexed")  # Public self-contained probe entry.
     a.call("prepare_frame_boundaries"); a.jp("cast_physical_indexed_prepared")
     a.label("cast_physical_indexed_prepared")  # PIXEL_INDEX selects one of 160 columns
+    a.ld_a_abs(PIXEL_INDEX); a.add_a_n(80); a.ld_abs_a(Q14_RECORD)
     a.ld_a_abs(PIXEL_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("a", 0); a.adc_a_n(0); a.ld_r_r("d", "a")
     a.ld_rr_label("hl", "physical_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
@@ -517,7 +562,8 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a(); a.ret()
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.ret()
 
     a.label("cast_physical_and_store")
     a.ld_a_abs(EDGE_RECASTS); a.inc_r("a"); a.ld_abs_a(EDGE_RECASTS)
@@ -527,20 +573,26 @@ def emit_projection_and_casting(a: Assembler) -> None:
         (PIXEL_TOPS, TOP_RESULT), (PIXEL_STYLES, STYLE_RESULT),
         (PIXEL_KEYS, FACE_RESULT), (PIXEL_ALONG, ALONG_RESULT),
         (PIXEL_SEGMENT, SEGMENT_RESULT),
+        (PIXEL_SURFACE, SURFACE_RESULT),
     ):
         a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_abs(result); a.ld_hl_a()
     a.ret()
 
     a.label("cast_all")
+    a.xor_r("a"); a.ld_abs_a(Q14_FALLBACKS)
     a.call("prepare_frame_boundaries")
     a.xor_r("a"); a.ld_abs_a(ADAPTIVE_CASTS); a.call("cast_and_store")
     a.ld_r_n("a", 2); a.ld_abs_a(ADAPTIVE_INDEX)
     a.label("cast_anchor_loop")
+    if FIXED_SIMULATION:
+        a.call("render_yield")
     a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(80); a.jr("cast_anchor_loop", "c")
     a.ld_r_n("a", 79); a.call("cast_and_store")
     a.ld_r_n("a", 1); a.ld_abs_a(ADAPTIVE_INDEX)
     a.label("adaptive_fill_loop")
+    if FIXED_SIMULATION:
+        a.call("render_yield")
     # Compare left/right face keys.
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
@@ -549,6 +601,8 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
     # Same plane/material: require identical or adjacent along-plane cells.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
     a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
     a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_along_positive", "nc"); a.cpl(); a.inc_r("a")
     a.label("adaptive_along_positive"); a.cp_n(2); a.jp("adaptive_cast_mid", "nc")
@@ -567,6 +621,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(FACE_RESULT)
     a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ALONG_RESULT)
     a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
+    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SURFACE_RESULT)
     # Re-certify the interpolated top through the same conservative exact
     # projection class used by cast rays. Averaging depths can otherwise move
     # an occluder farther away than the nearer member of its top class.
@@ -579,7 +634,8 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
     a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
     a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.label("adaptive_fill_done")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
@@ -611,6 +667,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     for source, destination in (
         (RAY_STYLES, PIXEL_STYLES), (RAY_KEYS, PIXEL_KEYS),
         (RAY_ALONG, PIXEL_ALONG), (RAY_SEGMENT, PIXEL_SEGMENT),
+        (RAY_SURFACE, PIXEL_SURFACE),
     ):
         a.ld_a_abs(PAIR_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", source); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
         a.ld_a_abs(PAIR_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", destination); a.add_hl_rr("de"); a.ld_r_r("a", "b"); a.ldi_hl_a(); a.ld_hl_a()
@@ -887,10 +944,12 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_rr_nn("hl", PIXEL_STYLES); store_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H)
     a.ld_r_n("a", 20); a.ld_abs_a(COLUMN_COUNT)
     a.label("render_column_loop")
+    if FIXED_SIMULATION:
+        a.call("render_yield")
     a.call("scan_column")
     a.xor_r("a"); a.ld_abs_a(TILE_ROW); a.ld_abs_a(TILE_Y0)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
-    a.ld_r_n("a", 12); a.ld_abs_a(ROW_RENDER_COUNT)
+    a.ld_r_n("a", 6 if FOLDED_COMPOSITOR else 12); a.ld_abs_a(ROW_RENDER_COUNT)
     a.label("render_row_loop")
     a.call("classify_row")
     a.ld_a_abs(DYNAMIC_FLAG); a.or_r("a"); a.jr("render_static_tile", "z")
@@ -912,6 +971,14 @@ def emit_renderer(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(DYN_OVERFLOW); a.ld_r_n("a", WALL_TILE_BASE); a.ld_abs_a(TILE_ID_RESULT); a.jr("render_write_tile")
     a.label("render_static_tile")
     a.label("render_write_tile")
+    if FOLDED_COMPOSITOR:
+        # Mirror map position around viewport row 5.5. Patterns need neither
+        # a second composition nor a second DMA; lower attrs supply Y-flip.
+        a.ld_r_n("a", 11); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_ROW); a.ld_r_r("c", "a")
+        a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
+        for _ in range(5): a.add_hl_rr("hl")
+        a.ld_a_abs(COLUMN_MAP_L); a.ld_r_r("e", "a"); a.ld_a_abs(COLUMN_MAP_H); a.ld_r_r("d", "a"); a.add_hl_rr("de")
+        a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a()
     load_hl_abs(a, MAP_PTR_L, MAP_PTR_H); a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a(); a.ld_rr_nn("de", 32); a.add_hl_rr("de"); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
     a.ld_a_abs(TILE_ROW); a.inc_r("a"); a.ld_abs_a(TILE_ROW)
     a.ld_a_abs(TILE_Y0); a.add_a_n(8); a.ld_abs_a(TILE_Y0)

@@ -40,7 +40,7 @@ TOP_LEVEL_FILES = (
     "VERSION",
     "requirements.txt",
 )
-TOP_LEVEL_DIRS = ("assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
+TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
 BUILD_FILES = (
     "build_manifest.json",
     "harness_action.png",
@@ -56,7 +56,19 @@ BUILD_FILES = (
     "playtest/living_world/contact_sheet.png",
     "playtest/living_world/playtest.gif",
     "playtest/living_world/report.json",
+    "playtest/sable_art_tour/contact_sheet.png",
+    "playtest/sable_art_tour/report.json",
     "verification_report.json",
+    "playthrough/report.json",
+    "playthrough/contact_sheet.png",
+    "folded_pixels.json",
+    "unfolded_pixels.json",
+    "q14_tail.json",
+    "q14_tail.csv",
+    "q14_tail.png",
+    "two_sentinels.json",
+    "two_sentinels.png",
+    "reprojection.json",
 )
 IGNORED_PARTS = {".git", "__pycache__", ".pytest_cache", "dist"}
 IGNORED_SUFFIXES = {".pyc", ".pyo", ".DS_Store"}
@@ -158,6 +170,11 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",
     ], ROOT)
+    run([python, "tools/playthrough.py"], ROOT)
+    run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
+         "--output-dir", "build/playtest/sable_art_tour"], ROOT)
+    run(["make", "variants"], ROOT)
+    run(["make", "research-tail"], ROOT, timeout=600)
     run([python, "tools/release_check.py"], ROOT)
     if regenerate_previews:
         run([python, "tools/make_preview.py"], ROOT)
@@ -194,6 +211,16 @@ def iter_source_files() -> Iterable[tuple[Path, Path]]:
         if not source.is_file():
             raise RuntimeError(f"missing generated release file: build/{name}")
         yield source, Path("build") / name
+    # Preserve optional independent/profiling evidence without requiring an
+    # external emulator core for clean-room source builds.
+    for name in ("sameboy_cgbe.json", "sameboy_cgb0.json",
+                 "sameboy_cgbe_start.png", "sameboy_cgbe_final.png",
+                 "sameboy_cgb0_start.png", "sameboy_cgb0_final.png",
+                 "mgba_cgb.json", "mgba_cgb_start.png", "mgba_cgb_final.png",
+                 "profile-beta.json"):
+        source = ROOT / "build" / name
+        if source.is_file():
+            yield source, Path("build") / name
 
 
 def stage_source_tree(stage_root: Path) -> None:
@@ -315,9 +342,9 @@ def package(
         "living_world_contact_sheet": f"{PROJECT_SLUG}_v{VERSION}_living_world.png",
         "living_world_gif": f"{PROJECT_SLUG}_v{VERSION}_living_world.gif",
         "living_world_report": f"{PROJECT_SLUG}_v{VERSION}_living_world_report.json",
-        "rendering_research": f"{PROJECT_SLUG}_v{VERSION}_rendering_research.json",
+        "rendering_research": f"{PROJECT_SLUG}_v{VERSION}_geometry_tail.json",
         "verification": f"{PROJECT_SLUG}_v{VERSION}_verification_report.json",
-        "renderer_design": f"{PROJECT_SLUG}_v{VERSION}_LIVING_WORLD.md",
+        "renderer_design": f"{PROJECT_SLUG}_v{VERSION}_ARCHITECTURE.md",
         "development_guide": f"{PROJECT_SLUG}_v{VERSION}_DEVELOPMENT.md",
         "clean_room": f"{PROJECT_SLUG}_v{VERSION}_clean_room_verification.json",
         "manifest": f"{PROJECT_SLUG}_v{VERSION}_release_manifest.json",
@@ -399,9 +426,9 @@ def package(
         "living_world_contact_sheet": ROOT / "build" / "playtest" / "living_world" / "contact_sheet.png",
         "living_world_gif": ROOT / "build" / "playtest" / "living_world" / "playtest.gif",
         "living_world_report": ROOT / "build" / "playtest" / "living_world" / "report.json",
-        "rendering_research": ROOT / "research" / "results" / "rendering_v3_results.json",
+        "rendering_research": ROOT / "build" / "q14_tail.json",
         "verification": ROOT / "build" / "verification_report.json",
-        "renderer_design": ROOT / "docs" / "LIVING_WORLD_V6.md",
+        "renderer_design": ROOT / "docs" / "ARCHITECTURE.md",
         "development_guide": ROOT / "docs" / "DEVELOPMENT.md",
         "clean_room": clean_room_build_path,
     }

@@ -1,0 +1,12 @@
+{
+  "name": "sable_art_tour",
+  "world_mode": "living",
+  "actions": [
+    {"pose": [1152, 3456, 192], "updates": 1, "capture": "airlock"},
+    {"pose": [1280, 3328, 205], "updates": 1, "capture": "vent"},
+    {"pose": [896, 3264, 192], "updates": 1, "capture": "utility_light"},
+    {"pose": [704, 3456, 128], "updates": 1, "capture": "sector_07"},
+    {"pose": [1216, 3392, 16], "updates": 1, "capture": "oblique_vent"},
+    {"pose": [2432, 2176, 0], "updates": 1, "capture": "sentinel"}
+  ]
+}

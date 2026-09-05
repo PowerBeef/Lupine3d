@@ -2,148 +2,91 @@
 
 # Lupine 3D
 
-### A living first-person world on the Game Boy Color
-
-**Exact raycasting · depth-aware entities · deterministic builds · no framebuffer**
+### A tile-native first-person world for Game Boy Color
 
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Game%20Boy%20Color-5c2d91.svg)](#hardware-status)
 
-[**Build**](#quick-start) · [**Play**](#controls) · [**Architecture**](docs/ARCHITECTURE.md) · [**Verify**](#verification) · [**Develop**](docs/DEVELOPMENT.md)
+[Build](#quick-start) · [Controls](#controls) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/TEST_REPORT.md)
 
-<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D rendering the Sentinel enemy inside its Game Boy Color first-person world">
+<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D Sentinel, steel-walled environment and industrial HUD">
 
-<sub>160×96 viewport · 4 MiB MBC5 ROM · 37 automated tests · two driven playtest routes</sub>
+<sub>160×96 viewport · 4 MiB MBC5 cartridge · no framebuffer</sub>
 
 </div>
 
----
+## Current implementation
 
-Lupine 3D is an original, CGB-only first-person engine built around the hardware's tile renderer. The current **0.6.3 “Spatial Clarity”** implementation combines geometry-certified walls with a depth-aware billboard renderer, one complete enemy, a dropped pickup, independently animated doors, combat, and a finishable authored level. Its visual language draws on classic industrial-horror shooters while every shipped tile, sprite, map element, and interface graphic remains original to Lupine 3D.
+**0.7.0-beta.2 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
 
-The cartridge runs on the double-speed SM83 and uses both VRAM banks, hidden BG pages, GDMA, OAM, VBlank interrupts, the joypad and audio hardware. There is no bitmap framebuffer, coprocessor, cartridge RAM, imported game code, or borrowed artwork.
+Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
-## Current feature set
+[View the native-resolution art tour](docs/images/sable_outpost.png).
 
-| Rendering | Living world | Platform engineering |
-|---|---|---|
-| 80 adaptive rays → 160 columns | Animated 16×32 Sentinel | 4 MiB MBC5, no cartridge RAM |
-| Corrected Q5 wall-depth buffer | Patrol, chase, attack, hurt, death | Deterministic Python ROM builder |
-| Build-time wall-segment IDs | Exact-grid line of sight | One-VBlank GDMA page publication |
-| Exact boundary-tile cache | Wall-clipped size-LOD billboards | Atomic shadow-OAM DMA |
-| Geometry-only creases and distinct hazard doors | Hitscan, damage, medkit and exit | Live health/objective status panel |
-| Two scene-level VRAM profiles | Radius collision and four moving doors | Optional ±4 px turn reprojection |
+The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, while native tiles, palettes and objects carry the final image.
+
+| Rendering | World and platform |
+|---|---|
+| Certified selective Q14 crossing order | Fixed VBlank-rate simulation |
+| 80 adaptive samples → 160 physical columns | Timestamped held-state and button-edge queue |
+| Corrected Q5 depth and physical segment IDs | Immutable render snapshots in a separate WRAM bank |
+| Folded six-row composition and full 121-pattern atlas | Shared sliding-door geometry for rays, collision and LOS |
+| Masked hardware 8×16 sprites, three size LODs | Four bounded actor slots, depth sorting and OAM admission |
+| Per-face palettes and wall-mounted fixture masks | Atomic BG, attributes, HUD and entity publication |
+| Dedicated 78-pattern HUD with a scanline split | Native pixel art; no imported game assets |
 
 ### Hangar Breach
 
-The included 16×16 level is a compact room-and-corridor graph built specifically for Lupine's single-height projection. It moves through a protected southern start, a staged turn, a real zig-zag gate, a partitioned combat chamber, an optional branch and a separate exit wing.
+A protected airlock leads through a turning corridor into a partitioned combat chamber and an exit wing. Defeat the Sentinel, collect its medkit, open the unlocked exit door and reach the beacon. An optional service branch provides a detour.
 
-The level compiler certifies zero unreachable walkable cells, a 15-step/five-turn critical path, a maximum six-cell sightline, a largest open rectangle of 4×3 cells, at least 11 cells isolated by every door, and zero exposed paint seams or singleton runs. Opening the start airlock leads through an unavoidable Sentinel encounter. The Sentinel patrols, acquires the player through exact grid traversal, chases, attacks, reacts to hits, dies and drops a medkit. Its death unlocks—not automatically opens—the final door, behind which a pulsing world-space beacon marks the completion cell.
+**Cyan and white identify working doors.** Neutral steel marks structure; muted green marks machinery. The ceiling and floor stay distinct, and there is no eye-height decorative rail.
 
-The level, safe spawn, four door records, pickup, exit, material profile, and VRAM profile are authored in [`levels/living_world.json`](levels/living_world.json) and compiled into a compact bank-friendly payload.
+The level compiler checks safe spawn clearance, reachability, meaningful door gates, short sightlines and room sizes. Content lives in [living_world.json](levels/living_world.json); [two_sentinels.json](levels/two_sentinels.json) exercises multiple actors.
 
-### Spatial Clarity presentation
+## How it fits
 
-The current art pass uses a restrained soot, gunmetal, oxidized-bulkhead, bone and warning-red palette. Physical segment IDs now describe geometry independently from material paint. A true plane break receives one narrow dark crease, a material change remains a soft fill transition, ordinary cell boundaries receive no full-height rib, and projected door runs retain their wider framed centre signal. The former eye-height machinery rail is disabled, removing its horizon-locked stripe and its compositor cost.
+Upper wall tiles are composed once. Lower rows reuse their patterns with CGB Y-flip and paired floor palettes. Signed BG addressing places world patterns at **$8800–$97FF**. A line-96 STAT interrupt switches to unsigned addressing for the HUD, which occupies otherwise unused bank-0 patterns alongside the separate masked-object pool. See the [visual design and graphics budget](docs/SABLE_OUTPOST.md).
 
-The foreground layer now includes an original twin-bore industrial weapon with visible gloves, a horned skull-faced Sentinel with distinct walk/attack/hurt silhouettes, a medical-crate pickup, a pulsing exit beacon, a corner reticle and a dense warning-rail status plate. Health and exit-objective digits are updated on both BG pages during safe VBlanks and deferred beside pathological 120-block commits.
+The renderer yields at ray and tile-column boundaries to service queued simulation ticks. It then resumes the same untouched camera/world snapshot. Completed frames publish all matching data together; larger packets prepare hidden patterns in one VBlank and finish publication in the next.
 
-## Rendering architecture
+Wall depth remains Q5; interpolated samples use conservative bounds. Sprite masks operate on individual pixel bits but obtain occlusion from those two-pixel depth samples. This is not arbitrary-precision geometry or unrestricted sprite scaling.
 
-```mermaid
-flowchart TD
-    A["Stable player pose"] --> B["Adaptive signed-error DDA"]
-    B --> C["Top, face, depth and segment buffers"]
-    C --> D["160-column wall reconstruction"]
-    C --> E["Entity transform and wall clipping"]
-    D --> F["Tile-native wall compositor"]
-    E --> G["Depth-aware shadow OAM"]
-    F --> H["Hidden BG page"]
-    G --> I["VBlank publication"]
-    H --> I
-```
+### Measured routes
 
-Each two-pixel ray sample records projected top, style, face position, corrected perpendicular distance, and an authored continuous-surface ID. Segment identity prevents adaptive interpolation across disconnected walls; it is also expanded to all 160 physical columns before presentation events are classified. Depth lets billboard strips reject themselves against the wall already occupying that screen region.
+Project-harness CPU cycles include publication waits.
 
-The wall compositor reuses static ceiling, floor and seam tiles, consults an exact corpus-trained boundary atlas, and generates only the remaining boundary cells. A miss is never approximate—it falls through to the exact compositor.
-
-### Scene-level VRAM profiles
-
-| Profile | Exact wall atlas | Freed tile IDs | Intended use |
-|---|---:|---:|---|
-| Renderer-heavy | 121 patterns | 0 | Maximum exact wall-cache coverage |
-| Entity-heavy | 80 patterns | 41 | Sentinel, pickup, effects and exit beacon |
-
-Both payloads coexist in ROM. The active level selects its profile during loading. Across the 24,384-view atlas corpus, the entity-heavy cache peaks at 58 generated tiles against a capacity of 96 and produces zero overflows.
-
-### Hybrid billboard renderer
-
-The first entity path uses normal CGB objects instead of merging actors into the BG compositor. It supports 8×16 far and 16×32 near representations, divides near billboards into eight-pixel strips, rejects each strip against `RAY_DEPTH[80]`, and submits visible strips through a 160-byte shadow-OAM image.
-
-OAM entries 0–17 are permanently reserved for the weapon, muzzle flash and crosshair. Entities use entries 18–39. The exit beacon uses one 8×8 object at distance and a mirrored 16×16 panel nearby. Publication is deferred when a pathological wall frame would leave insufficient VBlank budget; the next safe frame publishes the complete OAM image atomically.
-
-## Measured behavior
-
-The spatial-coherence route contains nine inspected, frozen RGB captures. The Hangar Breach route drives the safe start, meaningful normal and locked doors, combat, pickup, exit beacon and level completion.
-
-| Driven result | Empty-world oracle | Living World |
+| Result | Coherence tour | Combat diagnostic |
 |---|---:|---:|
-| Mean cycles/update | **842,190** | **821,901** |
-| Maximum cycles/update | **1,126,232** | **1,125,632** |
-| Minimum updates/s | **7.448** | **7.452** |
-| Maximum dynamic tiles | **40 / 96** | **40 / 96** |
-| Maximum total ray casts | **56** | **56** |
-| Maximum visible OAM entries | **18 / 40** | **26 / 40** |
-| Maximum objects on one scanline | **4 / 10** | **5 / 10** |
-| Unsafe GDMA starts | **0** | **0** |
-| Current RGB captures exact | **9 / 9** | State-driven captures |
+| Mean cycles/update | 919,079 | 1,243,063 |
+| Maximum cycles/update | 1,265,284 | 1,967,352 |
+| Minimum visual updates/s | 6.63 | 4.26 |
+| Peak dynamic tiles | 18 / 96 | 24 / 96 |
+| Peak objects per scanline | 4 / 10 | 7 / 10 |
+| Unsafe GDMA starts | 0 | 0 |
 
-Geometry is also measured across **24,384 views** and **3,901,440 physical columns** against an independent floating camera-plane oracle.
-
-| Geometry result | Measurement |
-|---|---:|
-| Mean wall-top error | **0.243 px** |
-| P95 wall-top error | **0.794 px** |
-| P99 wall-top error | **1.136 px** |
-| Wrong visible wall segment | **0.254%** |
-| Wrong material | **0.0209%** |
-
-The retained 41-pixel maximum is a known one-column quantized-ray/float-oracle segment disagreement. The test suite preserves its pose, column, surfaces and map neighborhood. A full-corpus experiment found that a proposed boundary correction improved only one of 3.9 million columns, so it was rejected instead of adding a brittle visual heuristic.
+Simulation cadence and displayed frame rate are different: controls are sampled each VBlank, but new geometry appears only when a complete render is ready. This beta prioritizes correctness, physical interaction and entity support; combat rendering still needs more timing headroom.
 
 ## Quick start
 
-Requirements: **Python 3.10+**, `make`, and Pillow. The setup script creates a local virtual environment and installs the pinned dependencies.
+Requirements: Python 3.10+, Pillow and `make`.
 
 ```sh
-git clone https://github.com/PowerBeef/Lupine3d.git
-cd Lupine3d
 python3 tools/dev_setup.py
-make qa
-make preview
+make build
+make test
+make playtest playtest-world
+make playthrough variants
 ```
 
-The ROM is written to `build/lupine3d.gb`.
-
-Useful development targets:
+Open **`build/lupine3d.gb`** in a Game Boy Color emulator with MBC5 support.
 
 ```sh
-make build                 # deterministic 4 MiB cartridge image
-make test                  # 37 ROM/host differential tests
-make playtest              # nine-capture exact empty-world oracle
-make playtest-world        # Sentinel combat and level-completion route
-make research-atlas-all    # regenerate both VRAM-profile caches
-make research-tail         # preserve exceptional geometry evidence
-make verify                # consolidated verification report
+# External cores must first be built at the documented pinned revisions.
+make sameboy SAMEBOY_DIR=/absolute/path/to/SameBoy
+make mgba MGBA_DIR=/absolute/path/to/mgba
 ```
 
-Enable the experimental VBlank turn-reprojection build with:
-
-```sh
-LUPINE3D_REPROJECTION=1 python3 tools/build_rom.py
-```
-
-It scrolls the previous 3D page by at most four pixels while a full update is rendering, uses guard tiles on both viewport edges, resets on the next exact page publication, and restores `SCX` at scanline 96 so the HUD remains stationary. It is compile-time optional pending independent emulator and original-LCD evaluation.
+See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling and diagnostic switches.
 
 ## Controls
 
@@ -152,55 +95,25 @@ It scrolls the previous 3D page by at most four pixels while a full update is re
 | D-pad Up / Down | Move forward / backward |
 | D-pad Left / Right | Turn |
 | A | Fire |
-| B | Open/interact with the door ahead |
+| B | Interact with the door ahead |
+| Start | Restart after death or level completion |
 
-Short button presses are sampled and edge-latched every VBlank, even during a long visual update. The renderer always sees one stable camera snapshot.
+## Verification and limits
 
-## Verification
+**72 automated tests**, nine reviewed RGB fixtures, a six-view art tour, a 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 226 verified updates without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
 
-Every push and pull request performs a deterministic ROM build, runs all 37 tests, executes both driven playtests, checks the nine RGB oracles, and retains the ROM, manifests, telemetry, and contact sheets as CI evidence.
+The combat diagnostic averages 1.287 million CPU cycles per update, with its slowest view at approximately 3.98 visual updates/s. The added artwork has a measured cost; controls and simulation continue at VBlank cadence.
 
-The suite executes the generated SM83 program and verifies:
+The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. CI is configured to repeat them; local results are not a claim that a new GitHub CI run has executed.
 
-- cartridge headers, checksums, bank layout and deterministic ROM bytes;
-- exact 80-ray descriptors, depth and segment buffers;
-- exact 160-column reconstruction, physical segments, dynamic tiles and hidden tile map;
-- both exact atlas payloads and the complete authored level;
-- OAM total/per-scanline limits, wall occlusion and deferred DMA;
-- safe-spawn and spatial-readability validation, collision, line of sight, AI and combat;
-- independent normal/locked door state, pickup, exit beacon and completion;
-- VBlank input latching, optional reprojection bounds and HUD reset;
-- one-fresh-VBlank GDMA ordering and page alternation;
-- the frozen reference-ROM hash, current 0.6.3 visual oracle and exceptional-tail certificate.
-
-The harness is project-specific and cycle-aware; it is not presented as an independent emulator.
-
-## Hardware status
-
-The ROM is CGB-only (`$0143 = $C0`) and uses an MBC5 cartridge (`$0147 = $19`) with no external RAM. It requires support for a **4 MiB MBC5 image**, double-speed mode, both VRAM banks, GDMA and OAM DMA.
-
-Original Game Boy Color certification has not been completed in this environment. The exact release candidate still needs to pass maintained independent emulators and an original CGB with an MBC5-capable flash cartridge. See the [hardware acceptance checklist](docs/HARDWARE_TEST_CHECKLIST.md).
-
-## Documentation
+**Original CGB and flash-cartridge testing remains pending.** Neither emulator lane uses the Nintendo boot ROM. Optional ±4-pixel turning reprojection remains disabled: it shifts published world sprites with the BG, but extends edge tiles rather than rendering new guard geometry. Its LCD behavior and perceptual benefit need hardware/user evaluation.
 
 | Document | Purpose |
 |---|---|
-| [Living World design](docs/LIVING_WORLD_V6.md) | Entity, level, OAM, door and reprojection architecture |
-| [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, rendering and runtime layout |
-| [Development harness](docs/DEVELOPMENT.md) | Build, playtest, scenario and telemetry workflows |
-| [Performance engineering](docs/PERFORMANCE_V4.md) | ROM-for-compute design and measured hot-path work |
-| [Research decisions](docs/RESEARCH_AND_DECISIONS.md) | Hardware research and accepted/rejected experiments |
-| [Test report](docs/TEST_REPORT.md) | Automated evidence, budgets and limitations |
-| [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Independent emulator and original-device procedure |
+| [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
+| [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
+| [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
+| [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |
+| [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Physical acceptance procedure |
 
-## Scope
-
-Lupine 3D now proves a playable engine slice, not a general-purpose content suite. It has one authored 16×16 level, one enemy type, one pickup, four independently stateful doors and one marked exit. Multi-entity scenes, projectile actors, more levels and materials, door closing/crushing, animation streaming, saving, and textured floor/ceiling casting remain future work.
-
-Code and original assets are available under the [MIT License](LICENSE). “Lupine 3D” is an independent project name; see [NOTICE.md](NOTICE.md) for the naming and asset statement.
-
-<div align="center">
-
-Built sideways into a living world the Game Boy Color was never supposed to draw. 🐺
-
-</div>
+Code and original assets use the [MIT License](LICENSE). See [NOTICE.md](NOTICE.md) for naming and asset details.

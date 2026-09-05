@@ -1,150 +1,103 @@
 # Development and playtesting
 
-## Quick start
+See [implementation status](OVERHAUL_IMPLEMENTATION.md) for rendering contracts and [Sable Outpost](SABLE_OUTPOST.md) for current art, wall fixtures and HUD allocation.
 
-Lupine 3D uses a deterministic Python ROM generator instead of RGBDS or GBDK.
-Python 3.10+ and Pillow are the only host requirements.
+## Build and verify
 
 ```sh
 python3 tools/dev_setup.py
-.venv/bin/python tools/build_rom.py
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python tools/playtest.py
-.venv/bin/python tools/playtest.py --scenario playtests/living_world.json \
-  --output-dir build/playtest/living_world
+make test
+make playtest playtest-world playtest-art
+make playthrough variants
+make research-tail
+python3 tools/release_check.py
 ```
 
-On an offline machine that already exposes Pillow to the system interpreter:
+Requirements: Python 3.10+, Pillow and make. `tools/dev_setup.py --offline` can use an already installed Pillow. The generated environment is local and excluded from releases.
+
+The default ROM is `build/lupine3d.gb`. The builder also writes symbols, a listing and memory/configuration metadata. `make preview` regenerates real emulator captures, not illustrative mockups.
+
+## Independent cores
+
+Pin SameBoy to `213a12ce93d66b105a113debd9396306066a7cfc`:
 
 ```sh
-python3 tools/dev_setup.py --offline
+git clone https://github.com/LIJI32/SameBoy.git /your/path/SameBoy
+git -C /your/path/SameBoy checkout 213a12ce93d66b105a113debd9396306066a7cfc
+make -C /your/path/SameBoy lib -j2 CONF=release DISABLE_DEBUGGER=1 DISABLE_CHEATS=1 DISABLE_REWIND=1
+make sameboy SAMEBOY_DIR=/your/path/SameBoy
 ```
 
-The setup command creates `.venv`, verifies Pillow, builds the 4 MiB CGB-only
-MBC5 ROM,
-and runs the main engine regression module. The generated environment is local
-and is intentionally excluded from release archives.
+Pin mGBA to `507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6`:
 
-## Make targets
+```sh
+git clone https://github.com/mgba-emu/mgba.git /your/path/mgba
+git -C /your/path/mgba checkout 507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6
+cmake -S /your/path/mgba -B /your/path/mgba/build \
+  -DLIBMGBA_ONLY=ON -DBUILD_STATIC=ON -DBUILD_SHARED=OFF \
+  -DBUILD_QT=OFF -DBUILD_SDL=OFF -DUSE_FFMPEG=OFF -DUSE_LIBZIP=OFF \
+  -DUSE_SQLITE3=OFF -DUSE_LZMA=OFF -DUSE_PNG=OFF -DUSE_ELF=OFF \
+  -DUSE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build /your/path/mgba/build -j2
+make mgba MGBA_DIR=/your/path/mgba
+```
 
-| Target | Purpose |
-|---|---|
-| `make setup` | Create and smoke-test `.venv` |
-| `make build` | Emit ROM, symbols, listing, and manifest |
-| `make test` | Run ROM/host, gameplay, DMA, and v0.1 regression tests |
-| `make playtest` | Drive the default gameplay scenario and capture artifacts |
-| `make playtest-world` | Drive Sentinel combat, pickup, and level completion |
-| `make research-v3` | Compare the current renderer with the retained fidelity baseline |
-| `make research-atlas` | Regenerate the v0.4 exact boundary atlas |
-| `make research-atlas-entity` | Regenerate the 80-pattern entity-profile atlas |
-| `make research-atlas-all` | Regenerate both scene-level VRAM profiles |
-| `make research-atlas-pareto` | Build and drive candidate atlas sizes without changing production assets |
-| `make research-tail` | Scan and preserve rare geometry-tail failures |
-| `make qa` | Build, test, playtest, and run the fidelity research gate |
+Adapters require a C compiler. The mGBA adapter consumes the exact library build defines from `flags.make` because public struct layout is conditional. These cores are external, not vendored. Both lanes bind reports and screenshots to the exact ROM SHA and reject mismatched source/configuration.
 
-## Playtest scenario format
+SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Only SameBoy's adapter instruments GDMA writes/page flips. Neither constitutes physical CGB or Nintendo boot-ROM certification.
 
-`tools/playtest.py` executes the emitted ROM in `tools/sm83emu.py`. Inputs are
-sampled at the main-loop boundary and every VBlank. Rising edges are retained
-until the next stable simulation step; each scenario update ends only after
-the hidden page has been committed and displayed.
+## Content
+
+The active level is `levels/living_world.json`. Select another at build time with `LUPINE3D_LEVEL`. The compiler supports one to four Sentinel spawns and optional per-face records:
+
+```json
+{"surfaces": [{"x": 2, "y": 3, "side": "east", "profile": "machinery"}]}
+```
+
+Profiles: `structure`, `machinery`, `door`. Door colour is reserved for actual doors. These records affect palette selection, not collision or physical segment continuity. Faces are west/east/north/south. Existing spawn, reachability, door-cut, sightline and room-size validation remains active.
+
+`levels/two_sentinels.json` is a bounded multi-actor acceptance scene, not the default difficulty.
+
+## Pose diagnostics versus controller completion
+
+`tools/playtest.py` drives the actual generated ROM. Each update ends at a published page. Every update validates pair/physical descriptors, depth/segments/profiles, exact tile bytes, all 384 tile-map and attribute bytes, cast/event counts, capacity, input overflow, OAM and GDMA safety.
 
 ```json
 {
   "name": "example",
   "world_mode": "living",
-  "pixel_oracle": "optional_capture_pixels.json",
   "actions": [
-    {"pose": [384, 384, 0], "updates": 1, "capture": "start"},
-    {"buttons": ["up"], "updates": 4, "capture": "forward"},
-    {"buttons": ["right"], "updates": 3, "capture": "turn"},
-    {"buttons": ["a"], "updates": 1, "capture": "fire",
-     "expect": {"sentinel_health": 2}}
+    {"pose": [2176, 2176, 0], "updates": 2, "capture": "encounter"},
+    {"aim_at_sentinel": true, "buttons": ["a"], "updates": 2,
+     "capture": "hit", "expect": {"sentinel_health": 2}}
   ]
 }
 ```
 
-Buttons are `up`, `down`, `left`, `right`, `a`, and `b`. A `pose` is an
-optional diagnostic teleport in Q8.8 coordinates followed by an 8-bit angle.
-It is useful for deterministic visual coverage; ordinary actions remain driven
-through the ROM joypad routine.
+Buttons: directions, A, B, Select, Start. Optional `pose` sets Q8 coordinates/angle; `aim_at_sentinel` adjusts only camera aim; `pose_at_drop` relocates only the camera to the defeated actor's actual drop. These are explicit diagnostic injections. Expectations apply at an action's final update because queued input affects the next snapshot, not the frame already rendering.
 
-Run a custom scenario with:
+The coherence tour freezes nine reviewed raw-RGB hashes in `v070_beta_capture_pixels.json`. The combat diagnostic has state assertions but no frozen gameplay RGB oracle. Older fixtures remain historical.
 
-```sh
-.venv/bin/python tools/playtest.py \
-  --scenario playtests/my_route.json \
-  --output-dir build/playtest/my_route \
-  --record-all
-```
+`make playthrough` is separate: no teleporting or game-RAM writes. Its bot reads live state and generates controller input until combat, pickup and exit complete. It is functional verification, not a blind human readability test.
 
-Every update checks:
+## Experiments and performance
 
-- 80-ray adaptive descriptors against the host oracle;
-- all 80 corrected-depth and surface-segment certificates;
-- all 160 final pixel descriptors and segment IDs, including exact edge recasts;
-- material-event and cast counters;
-- generated boundary tile bytes and the complete 384-byte view map;
-- dynamic-tile capacity and overflow state;
-- one-VBlank GDMA commit safety.
-- total and per-scanline OAM limits;
-- optional authored world-state expectations.
+`make variants` builds variants in memory without overwriting the playable ROM:
 
-When `pixel_oracle` is present, each named capture is also hashed as raw RGB
-pixels and compared with the referenced JSON map. The default coherence tour
-uses `playtests/v063_capture_pixels.json`; this makes any visible departure
-from the accepted current presentation fail the playtest independently of PNG
-compression metadata. Older oracle files remain historical evidence rather
-than the active acceptance target.
+- two-Sentinel render/admission scene;
+- folded versus unfolded rendering with frozen simulation, nine RGB matches;
+- reprojection clamp, immutable published world X, fixed UI and map/attribute guards.
 
-Outputs include individual PNGs, `playtest.gif`, `contact_sheet.png`, and
-`report.json` with per-update cycles, pose, casts, material events, tile count,
-commit blocks, and validation results.
+Default configuration is folding on, Q14 order on, fixed simulation on, full atlas and reprojection off. Research flags include `LUPINE3D_FOLDED=0`, `LUPINE3D_COMPACT_ATLAS=1` and `LUPINE3D_REPROJECTION=1`. Always use matching flags for the ROM and host validator. Experimental configurations are not all release-certified.
 
-The harness models the MBC5 nine-bit ROM-bank register used by the exact
-projection/product tables, VBlank/STAT IF generation, interrupt dispatch, EI delay,
-RETI, live joypad reads, OAM DMA, and the hardware object budgets. It remains project-scoped evidence, not a replacement for SameBoy/mGBA and
-original Game Boy Color testing. Use `docs/HARDWARE_TEST_CHECKLIST.md` before a
-hardware-certified release.
+`python3 tools/profile_rendering.py --output build/profile-beta.json` measures generated-code stages. Cooperative simulation yields receive a separate category; interrupt costs remain charged to the active category. Use the complete playtest reports for frame-rate claims.
 
-## Builder boundaries
+`make research-tail` runs the full current host geometry scan on the retained benchmark map and writes `build/q14_tail.*`; it does not overwrite historical tail evidence. Other `research-*` targets retain the original atlas/geometry laboratories. Treat their versioned reports as archived unless freshly regenerated under a stated configuration.
 
-`tools/build_rom.py` is the stable compatibility facade and final linker. The
-current implementation is split under `tools/lupine3d_v4/`:
+## Packaging
 
-- `layout.py`: hardware addresses, HRAM ABI, cartridge and renderer constants;
-- `resources.py`: tables, palettes, tiles, and generated resource bytes;
-- `reference.py`: host geometry and compositor oracles;
-- `emitter.py`: emitted SM83 routines.
-- `levels.py`: authored JSON validation, compact headers, and segment IDs;
-- `living_world.py`: OAM, entity projection, AI, collision, doors, and reprojection.
+`python3 tools/package_release.py --output-dir dist` runs gates, stages an allow-listed source tree, rebuilds, writes a deterministic ZIP, extracts into another clean directory, reruns all tests and compares ROM bytes.
 
-The active content lives in `levels/living_world.json`. Override it at build
-time with `LUPINE3D_LEVEL=/absolute/path/to/level.json`; the resident slice
-supports one to four authored material-3 doors, one Sentinel, one Sentinel
-drop, and one empty exit cell. Current `lupine-level-v2` gameplay levels also
-require safe-spawn metadata and one Sentinel-locked exit door.
+After manually running the same gates, `--reuse-verified-working-tree` reuses current evidence but still performs clean-room rebuild/extraction/tests. Release checks reject playtest or available independent-emulator reports for a different ROM SHA. A test inventory alone is not test execution; the packager actually runs the suite.
 
-`make playtest` rebuilds the active Hangar Breach level in empty-world mode and
-checks nine inspected spatial-coherence pixel oracles. `make playtest-world`
-uses the same authored geometry with entities, door timing, combat and level
-completion enabled. The renderer benchmark remains an independent research
-fixture exercised by `make research-v3` and the differential suite.
-
-Enable the opt-in reprojection variant with `LUPINE3D_REPROJECTION=1`. The
-test suite builds this variant in a fresh subprocess so the environment-backed
-compile flag cannot be masked by Python module caching.
-
-Research and tests should continue importing `build_rom`; the facade preserves
-the established public API while the implementation modules remain narrow.
-
-## Exceptional-tail workflow
-
-`research/tail_failure_lab.py` scans the full 24,384-view corpus and writes
-JSON, CSV, and a comparison sheet. Each retained event includes the pose,
-physical column, expected and actual segment identities, top values, material,
-cast counters, and local map neighborhood. The regression suite also freezes
-one known 41-pixel occlusion-discontinuity case. A full-corpus narrow-boundary
-experiment changed only one of 3,901,440 columns, so that heuristic is not in
-the runtime; future proposals must beat the retained corpus rather than one
-headline maximum.
+Do not claim hardware certification until the exact candidate passes [the physical checklist](HARDWARE_TEST_CHECKLIST.md).

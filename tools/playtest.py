@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from sm83emu import CGB, parse_symbols  # noqa: E402
 BUTTON_BITS = {
     "right": 0x01, "left": 0x02, "up": 0x04, "down": 0x08,
     "a": 0x10, "b": 0x20,
+    "select": 0x40, "start": 0x80,
 }
 
 WORLD_STATE_FIELDS = {
@@ -51,11 +53,45 @@ def read_block(cgb: CGB, address: int, count: int) -> bytes:
     return bytes(cgb.read8(address + index) for index in range(count))
 
 
+def set_test_world_byte(cgb: CGB, address: int, value: int) -> None:
+    """Explicit scenario injection into both snapshot and live banks.
+
+    Used only by pose-based diagnostics, never by the controller playthrough.
+    Do not copy the whole stale snapshot back over a newer simulated world.
+    """
+    cgb.write8(address, value)
+    if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000:
+        cgb.wramx[2][address - 0xD000] = value
+
+
 def button_mask(names: list[str]) -> int:
     unknown = sorted(set(names) - BUTTON_BITS.keys())
     if unknown:
         raise ValueError(f"unknown buttons: {', '.join(unknown)}")
     return sum(BUTTON_BITS[name] for name in names)
+
+
+def apply_diagnostic_camera(cgb: CGB, action: dict[str, Any]) -> None:
+    """Pose-only injections shared by diagnostic playtests and the profiler."""
+    def live16(address: int) -> int:
+        if br.FIXED_SIMULATION:
+            offset = address - 0xD000
+            return int.from_bytes(cgb.wramx[2][offset:offset + 2], "little")
+        return cgb.read16(address)
+    if action.get("pose_at_drop"):
+        for player_address, enemy_address in ((br.PLAYER_XL, br.SENTINEL_XL), (br.PLAYER_YL, br.SENTINEL_YL)):
+            value = live16(enemy_address)
+            set_test_world_byte(cgb, player_address, value & 255)
+            set_test_world_byte(cgb, player_address + 1, value >> 8)
+    if "pose" in action:
+        x, y, angle = action["pose"]
+        for address, value in ((br.PLAYER_XL, x & 255), (br.PLAYER_XH, x >> 8),
+                               (br.PLAYER_YL, y & 255), (br.PLAYER_YH, y >> 8), (br.ANGLE, angle)):
+            set_test_world_byte(cgb, address, int(value))
+    if action.get("aim_at_sentinel"):
+        dx = live16(br.SENTINEL_XL) - live16(br.PLAYER_XL)
+        dy = live16(br.SENTINEL_YL) - live16(br.PLAYER_YL)
+        set_test_world_byte(cgb, br.ANGLE, round(math.atan2(dy, dx) * 128 / math.pi) & 255)
 
 
 def validate_frame(cgb: CGB) -> dict[str, Any]:
@@ -70,6 +106,7 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         )
         for index, door in enumerate(br.ACTIVE_LEVEL.doors)
     }
+    if not cgb.read8(br.WORLD_MODE): door_states = {}
     pair = br.reference_adaptive_descriptor_view(x_q8, y_q8, angle, grid, door_states)
     pixel = br.reference_pixel_descriptor_view(x_q8, y_q8, angle, grid, door_states)
 
@@ -101,6 +138,9 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "dynamic_tiles_exact": read_block(cgb, br.DYNAMIC_TILES, len(dynamic)) == dynamic,
         "view_map_exact": read_block(cgb, br.VIEW_MAP, len(view_map)) == view_map,
         "no_dynamic_overflow": not overflow and cgb.read8(br.DYN_OVERFLOW) == 0,
+        "pixel_surface_profiles_exact": list(read_block(cgb, br.PIXEL_SURFACE, 160)) == pixel[10],
+        "surface_attribute_packet_exact": read_block(cgb, br.VIEW_ATTRIBUTES, 384) == br.surface_attributes(pixel[10], cgb.read8(br.CURRENT_PAGE)),
+        "input_queue_no_overflow": cgb.read8(br.INPUT_QUEUE_OVERFLOW) == 0,
     }
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
@@ -119,14 +159,17 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
 def oam_budget(cgb: CGB) -> dict[str, int]:
     visible = 0
     scanlines = [0] * 144
+    height = 16 if cgb.io[0x40] & 4 else 8
     for index in range(40):
         offset = index * 4
         y = cgb.oam[offset] - 16
         x = cgb.oam[offset + 1] - 8
-        if x <= -8 or x >= 160 or y <= -8 or y >= 144:
+        if y <= -height or y >= 144:
             continue
-        visible += 1
-        for scanline in range(max(0, y), min(144, y + 8)):
+        if -8 < x < 160:
+            visible += 1
+        # CGB's ten-object selection tests Y, even for X-offscreen objects.
+        for scanline in range(max(0, y), min(144, y + height)):
             scanlines[scanline] += 1
     return {"visible_oam": visible, "max_oam_per_scanline": max(scanlines, default=0)}
 
@@ -167,7 +210,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
     world_mode = str(scenario.get("world_mode", "living")).lower()
     if world_mode not in ("empty", "living"):
         raise ValueError(f"unknown world_mode: {world_mode}")
-    cgb.write8(br.WORLD_MODE, br.WORLD_MODE_EMPTY if world_mode == "empty" else br.WORLD_MODE_LIVING)
+    set_test_world_byte(cgb, br.WORLD_MODE, br.WORLD_MODE_EMPTY if world_mode == "empty" else br.WORLD_MODE_LIVING)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     captures: list[tuple[str, Image.Image]] = []
@@ -175,11 +218,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
     capture_index = 0
 
     for action_index, action in enumerate(scenario["actions"]):
-        if "pose" in action:
-            x_q8, y_q8, angle = action["pose"]
-            cgb.write16(br.PLAYER_XL, int(x_q8))
-            cgb.write16(br.PLAYER_YL, int(y_q8))
-            cgb.write8(br.ANGLE, int(angle))
+        apply_diagnostic_camera(cgb, action)
         buttons = [str(name).lower() for name in action.get("buttons", [])]
         mask = button_mask(buttons)
         cgb.button_provider = lambda _iteration, _swaps, value=mask: value
@@ -195,7 +234,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
             validation = validate_frame(cgb)
             expected_world = {
                 str(name): int(value) for name, value in action.get("expect", {}).items()
-            }
+            } if within_action == action_updates - 1 else {}
             unknown_expectations = sorted(set(expected_world) - WORLD_STATE_FIELDS.keys())
             if unknown_expectations:
                 raise ValueError(f"unknown world expectations: {', '.join(unknown_expectations)}")
@@ -210,7 +249,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
             expected_doors = {
                 str(name): int(value)
                 for name, value in action.get("expect_doors", {}).items()
-            }
+            } if within_action == action_updates - 1 else {}
             door_states = door_snapshot(cgb, br.DOOR_STATE_OFFSET)
             door_fractions = door_snapshot(cgb, br.DOOR_FRACTION_OFFSET)
             unknown_doors = sorted(set(expected_doors) - set(door_states))

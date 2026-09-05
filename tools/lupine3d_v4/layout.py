@@ -40,8 +40,77 @@ VIEW_MAP = 0xC600               # 12 rows * 32 bytes = 384 bytes
 DYNAMIC_TILE_CAPACITY = 96
 OAM_SHADOW = 0xC800             # atomic 40-entry OAM publication source
 OAM_BYTES = 160
-ENTITY_OAM_FIRST = 18
-ENTITY_OAM_COUNT = 22
+ENTITY_FOOT_Y = 0xC8A0
+AI_CATCHUP_BUDGET = 0xC8A1
+PUBLISHED_WORLD_X = 0xC8A2    # 16 immutable base X positions for reprojection
+COPY_REMAINDER = 0xC8B2
+SIM_CLOCK = 0xC8D0             # monotonic VBlank clock (wraps modulo 65536)
+INPUT_QUEUE_HEAD = 0xC8D2
+INPUT_QUEUE_TAIL = 0xC8D3
+INPUT_QUEUE_OVERFLOW = 0xC8D4
+SIM_READY = 0xC8D5
+SIM_TICK = 0xC8D6              # last consumed timestamp, not render count
+SIM_BUDGET = 0xC8D8
+FRAME_TICK = 0xC8DA
+SIM_STEPS = 0xC8DC             # diagnostic 16-bit consumed record count
+WORLD_COPY_BUFFER = 0xC900     # 256 map + 8 pose + 128 world bytes
+RENDER_HRAM_SAVE = 0xCB00
+INPUT_QUEUE = 0xCC00           # 64 x [tick low, tick high, held, edges]
+INPUT_QUEUE_CAPACITY = 64
+FIXED_SIMULATION = os.environ.get("LUPINE3D_FIXED_SIM", "1") != "0"
+STACK_TOP = 0xCFFF             # fixed WRAM: safe across future SVBK changes
+DYNAMIC_TILE_VRAM = 0x9000
+BG_LCDC = 0x87                # signed BG; hardware 8x16 OBJ mode
+HUD_UNSIGNED = True           # line-96 STAT selects bank-0 OBJ-only HUD patterns
+HUD_TILE_BASE = 32
+DECAL_RECORD = 0xD9E0          # x/y Q8, segment, kind, side, along-cell, door index
+DECAL_INDEX = 0xD9E9
+DECAL_USED = 0xD9EA
+DECAL_PROJECTING = 0xD9EB
+DECAL_HEIGHT = 0xD9EC
+DECAL_Y = 0xD9ED
+DECAL_SOURCE = 0xD9EE
+DECAL_WIDE = 0xD9EF
+DECAL_SAVED = 0xD9F0           # four public projection bytes restored after decor
+DECAL_COLUMN = 0xD9F4
+HUD_PACKET = 0xD9F5           # eleven tile IDs prepared before VBlank
+WEAPON_TILE_BASE = 64          # bank 1 $8400, disjoint from all BG patterns
+FOLDED_COMPOSITOR = os.environ.get("LUPINE3D_FOLDED", "1") != "0"
+
+
+def bg_tile_address(tile_id: int) -> int:
+    """LCDC.4=0: IDs 0..127 at $9000, IDs 128..255 at $8800."""
+    if not 0 <= tile_id <= 255:
+        raise ValueError("BG tile ID outside byte range")
+    return 0x9000 + (tile_id if tile_id < 128 else tile_id - 256) * 16
+ENTITY_OAM_FIRST = 10          # eight weapon pairs, crosshair, muzzle
+ENTITY_OAM_COUNT = 16          # bounded 32-pattern masked publication packet
+MASK_TILE_COUNT = 0xD8D0
+MASK_BITS = 0xD8D1
+MASK_OAM_Y = 0xD8D2
+MASK_OAM_X = 0xD8D3
+MASK_SOURCE_TILE = 0xD8D4
+MASK_ATTRIBUTES = 0xD8D5
+MASK_ROWS = 0xD8D6
+MASK_SCAN_START = 0xD8D7
+MASK_SCAN_COUNT = 0xD8D8
+ENTITY_SLOT = 0xD8D9
+LOD_HISTORY = 0xD8E0           # four actor histories + generic beacon
+WORLD_SCANLINES = 0xD900      # 144 selected-object counters
+ENTITY_SLOTS = 0xD990         # four fixed 16-byte actor slots
+ACTOR_COUNT = 0xD9D0
+ACTOR_DEPTHS = 0xD9D1
+ACTOR_BEST = 0xD9D5
+ACTOR_BEST_DEPTH = 0xD9D6
+ACTOR_PASS = 0xD9D7
+MAX_ACTORS = 4
+MASK_TILES = 0xDA00          # at most 32 patterns = 512 bytes
+VIEW_ATTRIBUTES = 0xDC00      # hidden 12x32 attribute packet
+RAY_SURFACE = 0xDE00
+PIXEL_SURFACE = 0xDE80
+SURFACE_RESULT = 0xD8F0
+SURFACE_COLUMN = 0xD8F1
+SURFACE_PROFILE = 0xD8F2
 
 # MBC5 turns otherwise-idle cartridge space into an exact arithmetic unit.
 # Banks 0/1 retain the complete 32 KiB engine image; banks 2..145 contain a
@@ -52,21 +121,48 @@ ROM_BANKS = ROM_BYTES // 0x4000
 PROJECTION_LUT_BASE_BANK = 2
 PROJECTION_LUT_CORRECTION_MIN = 110
 PROJECTION_LUT_CORRECTION_COUNT = 18
-PROJECTION_LUT_COMPONENTS = 256
+PROJECTION_LUT_COMPONENTS = 128
 PROJECTION_LUT_DISTANCES = 512
+PROJECTION_LUT_RECORD_BYTES = 2
 PROJECTION_LUT_BYTES = (
     PROJECTION_LUT_COMPONENTS
     * PROJECTION_LUT_CORRECTION_COUNT
     * PROJECTION_LUT_DISTANCES
+    * PROJECTION_LUT_RECORD_BYTES
 )
 PRODUCT_LUT_BASE_BANK = PROJECTION_LUT_BASE_BANK + PROJECTION_LUT_BYTES // 0x4000
-PRODUCT_LUT_MULTIPLIERS = 128
+PRODUCT_LUT_MULTIPLIERS = 256  # full bytes also accelerate Q14 partial products
 PRODUCT_LUT_MULTIPLICANDS = 256
 PRODUCT_LUT_BYTES = PRODUCT_LUT_MULTIPLIERS * PRODUCT_LUT_MULTIPLICANDS * 2
 BANKED_ATLAS_ROM_BANK = PRODUCT_LUT_BASE_BANK + PRODUCT_LUT_BYTES // 0x4000
 BANKED_ATLAS_ROM_ADDRESS = 0x4000
 SEGMENT_TABLE_ROM_BANK = BANKED_ATLAS_ROM_BANK + 1
 SEGMENT_TABLE_ROM_ADDRESS = 0x4000
+BOOT_ASSETS_ROM_BANK = SEGMENT_TABLE_ROM_BANK + 1
+Q14_ROM_BANK = BOOT_ASSETS_ROM_BANK + 1
+Q14_ORDER_ENABLED = os.environ.get("LUPINE3D_Q14", "1") != "0"
+# One 1-KiB page per camera angle: 80 pair rays, 160 physical rays,
+# centre ray, then padding. Sixteen pages fit in each of sixteen banks.
+Q14_ROM_BYTES = 256 * 1024
+Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
+Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
+Q14_Y = 0xD8A4
+Q14_ERROR = 0xD8A6             # signed 32-bit crossing error
+Q14_PRODUCT = 0xD8AA           # 32-bit multiplication result
+Q14_MULTIPLICAND = 0xD8AE      # 32-bit shifted multiplicand
+Q14_MULTIPLIER = 0xD8B2        # 16-bit multiplier
+Q14_FALLBACKS = 0xD8B4         # diagnostic count per rendered update
+Q14_ACTIVE = 0xD8B5
+DOOR_ACTIVE_ORIENTATION = 0xD8B6
+DOOR_PLANE_DISTANCE = 0xD8B8
+DOOR_DIVISOR = 0xD8BA
+DOOR_PARALLEL = 0xD8BC
+DOOR_RAY_MATERIAL = 0xD8BE
+Q14_LOADED = 0xD8BF
+COLLISION_X = 0xD8C0
+COLLISION_Y = 0xD8C2
+LOS_TARGET_X = 0xD8C4
+LOS_TARGET_Y = 0xD8C6
 
 # The active level remains a compact 16x16 WRAM grid. Additional authored
 # levels and their graphics stay banked in ROM until a level transition.
@@ -385,6 +481,7 @@ SURFACE_RAIL_TILE_BASE = WALL_TILE_BASE + len(STATIC_WALL_MASKS)
 STATIC_VIEW_TILES = 2 + len(STATIC_WALL_MASKS) + SURFACE_RAIL_VARIANTS
 ATLAS_TILE_BASE = SURFACE_RAIL_TILE_BASE + SURFACE_RAIL_VARIANTS
 FOV_DEGREES = 60.5
+CAMERA_FOCAL_PIXELS = round(80 / math.tan(math.radians(FOV_DEGREES / 2)))
 RAY_VECTOR_SCALE = 127
 
 TILE_ATLAS_TILES = (TILE_ATLAS_ASSETS / "tile_atlas_tiles.bin").read_bytes()
@@ -399,6 +496,14 @@ ENTITY_ATLAS_TILES = (ENTITY_ATLAS_ASSETS / "tile_atlas_tiles.bin").read_bytes()
 ENTITY_ATLAS_BUCKET_START = (ENTITY_ATLAS_ASSETS / "tile_atlas_bucket_start.bin").read_bytes()
 ENTITY_ATLAS_BUCKET_COUNT = (ENTITY_ATLAS_ASSETS / "tile_atlas_bucket_count.bin").read_bytes()
 ENTITY_ATLAS_ENTRIES = (ENTITY_ATLAS_ASSETS / "tile_atlas_entries.bin").read_bytes()
+# Signed BG allocation decouples OBJ art from the wall atlas. Keep the measured
+# 80-pattern option for A/B research, but ship the full cache with entities.
+COMPACT_ENTITY_ATLAS = os.environ.get("LUPINE3D_COMPACT_ATLAS", "0") == "1"
+if not COMPACT_ENTITY_ATLAS:
+    ENTITY_ATLAS_TILES = RENDERER_ATLAS_TILES
+    ENTITY_ATLAS_BUCKET_START = RENDERER_ATLAS_BUCKET_START
+    ENTITY_ATLAS_BUCKET_COUNT = RENDERER_ATLAS_BUCKET_COUNT
+    ENTITY_ATLAS_ENTRIES = RENDERER_ATLAS_ENTRIES
 # The active level selects the entity cache. Compatibility names describe the
 # current profile so host compositor/oracle code stays profile-aware.
 if ACTIVE_LEVEL.vram_profile == 1:
@@ -492,7 +597,7 @@ SENTINEL_DEAD = 5
 AI_TICK_INTERVAL = 4
 PLAYER_RADIUS_Q8 = 0x38
 ENTITY_ATLAS_PATTERN_COUNT = len(ENTITY_ATLAS_TILES) // 16
-ENTITY_TILE_BASE = ATLAS_TILE_BASE + ENTITY_ATLAS_PATTERN_COUNT
+ENTITY_TILE_BASE = 0
 SENTINEL_NEAR_TILE_BASE = ENTITY_TILE_BASE
 SENTINEL_NEAR_FRAMES = 4
 SENTINEL_NEAR_TILES_PER_FRAME = 8
@@ -500,14 +605,16 @@ SENTINEL_FAR_TILE_BASE = SENTINEL_NEAR_TILE_BASE + SENTINEL_NEAR_FRAMES * SENTIN
 SENTINEL_FAR_FRAMES = 2
 SENTINEL_FAR_TILES_PER_FRAME = 2
 PICKUP_TILE = SENTINEL_FAR_TILE_BASE + SENTINEL_FAR_FRAMES * SENTINEL_FAR_TILES_PER_FRAME
-HIT_EFFECT_TILE_BASE = PICKUP_TILE + 1
-EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 2
+HIT_EFFECT_TILE_BASE = PICKUP_TILE + 2
+EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 4
 EXIT_BEACON_FRAMES = 2
-ENTITY_TILE_LIMIT = 240
+SENTINEL_MID_TILE_BASE = EXIT_BEACON_TILE + EXIT_BEACON_FRAMES * 2
+SENTINEL_MID_FRAMES = 2
+ENTITY_TILE_LIMIT = WEAPON_TILE_BASE
 if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")
 
-HUD_DIGIT_BASE = 241
+HUD_DIGIT_BASE = 32
 HUD_HEALTH_TENS_X = 2
 HUD_HEALTH_ONES_X = 3
 HUD_STATUS_TENS_X = 16

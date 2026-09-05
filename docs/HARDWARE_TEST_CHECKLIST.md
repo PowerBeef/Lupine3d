@@ -1,4 +1,4 @@
-# Lupine 3D 0.6.3 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.7.0-beta.2 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.6.3 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.6.3_SHA256SUMS.txt` |
+| ROM version | 0.7.0-beta.2 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.2_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -33,15 +33,17 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] A produces shot sound and visible muzzle flash.
 - [ ] The southern start chamber is safe and the Sentinel is not visible before leaving it.
 - [ ] B opens each normal door only when it is directly ahead.
-- [ ] Every door retracts over eight visible updates and blocks passage until fully open.
+- [ ] Every door slides across its cell in 32 simulation ticks; sight and passage open according to the actual aperture and player radius.
 - [ ] The exit door rejects B with the locked sound before the Sentinel dies.
-- [ ] Sentinel far and near LODs render without tile corruption.
+- [ ] Sentinel far, medium and near LODs render without tile corruption or threshold chatter.
 - [ ] Sentinel strips disappear behind walls and return when line of sight clears.
 - [ ] Sentinel patrol, chase, attack, hurt and death states are observable.
 - [ ] Three centred shots kill the Sentinel and reveal its medkit.
 - [ ] Killing the Sentinel unlocks the exit door and reveals the pulsing exit beacon.
 - [ ] The medkit can be collected and entering the marked exit completes the level.
 - [ ] Very short A/B taps are not lost during visually complex updates.
+- [ ] Repeated presses and releases remain distinct; the input overflow counter stays zero.
+- [ ] Start restarts after death and after level completion.
 - [ ] Weapon/crosshair remain stable.
 - [ ] Page flips show no tearing or mixed old/new tiles.
 - [ ] Run for at least 30 minutes without lockup.
@@ -55,13 +57,7 @@ Inspect where possible:
 - OAM line limits;
 - CGB double-speed state.
 
-Expected page protocol:
-
-```text
-hidden tile bank: dynamic tiles → $8000
-VBK = 0:         tile IDs      → hidden $9800/$9C00
-same VBlank:     LCDC map bit flips after both transfers
-```
+Expected page protocol: hidden dynamic BG patterns target $9000, masked OBJ patterns target $8000, attributes target the hidden map in bank 1, and tile IDs target the same map in bank 0. HUD/OAM publish before LCDC flips. Large packets prepare hidden dynamic patterns in an earlier VBlank; the final visible packet remains coherent. Maximum payload is 176 blocks, split into at most 96 and 80 blocks when staged.
 
 ## Gate B — original CGB smoke test
 
@@ -104,10 +100,9 @@ Watch for:
 - [ ] Sentinel or pickup disappearance caused by the 40-object limit.
 - [ ] horizontal sprite loss caused by exceeding 10 objects on one scanline.
 
-The measured research maximum is 58 dynamic tiles; the hard cap is 96. Any apparent overflow on hardware is a release blocker even if the host corpus passes.
+The dynamic hard cap is 96 patterns. Forced maximum-packet tests also populate all 32 masked patterns. Any overflow or unsafe publication on hardware is a release blocker even if host tests pass.
 
-The driven Living World maximum is 26 visible OAM entries and five objects on
-one scanline. Any entity loss below those values is also a release blocker.
+The current combat diagnostic peaks at 14 visible OAM entries and seven objects on one scanline; the two-enemy scene uses 17 total and six per scanline. World admission allows at most four world objects per scanline. Check masking and all-dead exit unlock with multiple actors.
 
 ## Gate D — timing-sensitive observations
 

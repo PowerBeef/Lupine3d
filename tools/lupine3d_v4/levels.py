@@ -78,6 +78,7 @@ class CompiledLevel:
     height: int
     grid: bytes
     segment_table: bytes
+    surface_table: bytes
     player_x_q8: int
     player_y_q8: int
     player_angle: int
@@ -89,6 +90,7 @@ class CompiledLevel:
     palette_profile: int
     vram_profile: int
     readability: ReadabilityReport | None = None
+    fixtures: tuple[tuple[int, int, int, int], ...] = ()
 
     def header_bytes(self) -> bytes:
         """Fixed active-level header consumed by the resident SM83 loader."""
@@ -145,7 +147,9 @@ def build_segment_table(grid: bytes, width: int, height: int) -> bytes:
         if not material(x, y):
             return False
         dx, dy = ((-1, 0), (1, 0), (0, -1), (0, 1))[side]
-        return material(x + dx, y + dy) == 0
+        # Opening a door exposes its jambs. Allocate those latent faces at
+        # build time as well; ID zero must never masquerade as continuity.
+        return material(x + dx, y + dy) in (0, 3)
 
     def allocate(cells: list[tuple[int, int]], side: int) -> None:
         nonlocal next_id
@@ -428,6 +432,31 @@ def _validate_spawn(
             )
 
 
+def build_surface_table(grid: bytes, overrides: list[dict[str, Any]], width: int = 16) -> bytes:
+    """One presentation profile per oriented face, independent of geometry.
+
+    Deliberately small initial vocabulary: neutral structure, machinery and
+    cyan doors. Unknown profiles/duplicate records are errors, not ignored.
+    """
+    profiles = {"structure": 0, "machinery": 1, "door": 2}
+    sides = {"west": 0, "east": 1, "north": 2, "south": 3}
+    result = bytearray(profile for material in grid for profile in [(1 if material == 2 else 2 if material == 3 else 0)] * 4)
+    seen = set()
+    for item in overrides:
+        x, y = int(item["x"]), int(item["y"])
+        if not 0 <= x < width or not 0 <= y < len(grid) // width or not grid[y * width + x]:
+            raise ValueError("surface record must address a solid cell")
+        index = (y * width + x) * 4 + sides[str(item["side"])]
+        if index in seen:
+            raise ValueError("duplicate per-face surface record")
+        seen.add(index)
+        profile = profiles[str(item["profile"])]
+        if (grid[y * width + x] == 3) != (profile == 2):
+            raise ValueError("the door colour signal is reserved for functioning doors")
+        result[index] = profile
+    return bytes(result)
+
+
 def compile_level(path: Path) -> CompiledLevel:
     source = json.loads(path.read_text(encoding="utf-8"))
     level_format = str(source.get("format"))
@@ -505,7 +534,7 @@ def compile_level(path: Path) -> CompiledLevel:
         PickupSpec(str(item["kind"]), str(item["source"]), _bounded_int(item, "value", 1, 255))
         for item in source.get("pickups", [])
     )
-    if len(entities) != 1 or entities[0].kind != "sentinel":
+    if not 1 <= len(entities) <= 4 or any(entity.kind != "sentinel" for entity in entities):
         raise ValueError("the resident v0.6 slice requires exactly one Sentinel")
     if len(pickups) != 1 or pickups[0].source != "sentinel_drop":
         raise ValueError("the resident v0.6 slice requires one Sentinel drop")
@@ -577,9 +606,27 @@ def compile_level(path: Path) -> CompiledLevel:
                 "readability: exposed material paint is too fragmented "
                 f"({readability.material_singleton_runs} singleton runs > {max_singletons})"
             )
+    fixtures = []
+    sides = {"west": 0, "east": 1, "north": 2, "south": 3}
+    kinds = {"vent": 0, "light": 1, "access": 2, "sector": 3}
+    for fixture in source.get("fixtures", []):
+        x = _bounded_int(fixture, "x", 0, width-1); y = _bounded_int(fixture, "y", 0, height-1)
+        side = sides[fixture["side"]]; kind = kinds[fixture["kind"]]
+        dx,dy = ((-1,0),(1,0),(0,-1),(0,1))[side]
+        if not grid[y*width+x] or not (0 <= x+dx < width and 0 <= y+dy < height):
+            raise ValueError("fixture requires an interior wall face")
+        if grid[(y+dy)*width+x+dx] not in (0,3): raise ValueError("fixture face must be exposed")
+        if grid[y*width+x] == 3:
+            door = next(d for d in doors if d.x==x and d.y==y)
+            if side//2 != door.orientation: raise ValueError("door fixture must face the moving panel")
+        record = (x,y,side,kind)
+        if record in fixtures: raise ValueError("duplicate wall fixture")
+        fixtures.append(record)
+    if len(fixtures) > 16: raise ValueError("at most 16 authored wall fixtures")
     return CompiledLevel(
         format=level_format, name=str(source["name"]), width=width, height=height, grid=grid,
         segment_table=build_segment_table(grid, width, height),
+        surface_table=build_surface_table(grid, source.get("surfaces", []), width),
         player_x_q8=player_x_q8,
         player_y_q8=player_y_q8,
         player_angle=_bounded_int(spawn, "angle", 0, 255),
@@ -588,6 +635,7 @@ def compile_level(path: Path) -> CompiledLevel:
         palette_profile=PALETTE_IDS[str(source["palette_profile"])],
         vram_profile=PROFILE_IDS[str(source["vram_profile"])],
         readability=readability,
+        fixtures=tuple(fixtures),
     )
 
 

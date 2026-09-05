@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import csv
 import heapq
+import hashlib
 import json
 import statistics
 import sys
@@ -285,7 +286,7 @@ def main() -> None:
     parser.add_argument("--top", type=int, default=64)
     parser.add_argument("--angle-step", type=int, default=4)
     parser.add_argument("--quick", action="store_true", help="scan a small CI-friendly subset")
-    parser.add_argument("--output-prefix", type=Path, default=RESULTS / "tail_failures_v4")
+    parser.add_argument("--output-prefix", type=Path, default=ROOT / "build" / "q14_tail")
     args = parser.parse_args()
     positions = geometry.corpus_positions()
     if args.quick:
@@ -297,6 +298,13 @@ def main() -> None:
         angle_step=args.angle_step,
         positions=positions,
     )
+    report["configuration"] = {
+        "q14_order": engine.Q14_ORDER_ENABLED,
+        "folded": engine.FOLDED_COMPOSITOR,
+        "level_grid_sha256": hashlib.sha256(engine.make_map()).hexdigest(),
+        "benchmark_rom_sha256": hashlib.sha256(engine.make_rom()[0]).hexdigest(),
+        "scope": "host floating comparison on this configured level; not an independent-emulator corpus",
+    }
     args.output_prefix.parent.mkdir(parents=True, exist_ok=True)
     args.output_prefix.with_suffix(".json").write_text(
         json.dumps(report, indent=2) + "\n", encoding="utf-8",

@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world qa preview package clean
+.PHONY: all setup build test research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -34,7 +34,7 @@ research-atlas-pareto:
 	$(PYTHON) research/build_tile_atlas_v4.py --pareto
 
 research-tail:
-	$(PYTHON) research/tail_failure_lab.py
+	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/tail_failure_lab.py --output-prefix build/q14_tail --angle-step 4
 
 verify: build test research
 	$(PYTHON) tools/release_check.py
@@ -43,9 +43,33 @@ playtest:
 	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py
 
+playtest-art: build
+	$(PYTHON) tools/playtest.py --scenario playtests/sable_art_tour.json --output-dir build/playtest/sable_art_tour
+
 playtest-world:
 	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
+
+.PHONY: playthrough sameboy mgba variants
+playthrough: build
+	$(PYTHON) tools/playthrough.py
+
+# Build SameBoy's lib target first. The core is external and revision-pinned
+# by CI; it is not vendored into the source/release bundle.
+sameboy: build
+	test -n "$(SAMEBOY_DIR)"
+	$(PYTHON) tools/sameboy_verify.py --core "$(SAMEBOY_DIR)"
+
+mgba: build
+	test -n "$(MGBA_DIR)"
+	$(PYTHON) tools/mgba_verify.py --core "$(MGBA_DIR)"
+
+variants:
+	LUPINE3D_REPROJECTION=1 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json
+	LUPINE3D_LEVEL=levels/two_sentinels.json $(PYTHON) tools/verify_variants.py two-actors --output build/two_sentinels.json
+	$(PYTHON) tools/verify_variants.py folding --output build/folded_pixels.json
+	LUPINE3D_FOLDED=0 $(PYTHON) tools/verify_variants.py folding --output build/unfolded_pixels.json
+	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","unfolded")); assert len(a)==9 and a==b'
 
 qa: build test playtest playtest-world research-v3
 

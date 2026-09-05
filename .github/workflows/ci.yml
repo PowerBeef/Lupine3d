@@ -35,7 +35,38 @@ jobs:
         run: make test
 
       - name: Run driven playtest and pixel oracle
-        run: make playtest playtest-world
+        run: make playtest playtest-world playtest-art
+
+      - name: Complete the level with controller input only
+        run: make playthrough
+
+      - name: Verify two-actor, folding and reprojection variants
+        run: make variants
+
+      - name: Check out pinned independent emulator
+        uses: actions/checkout@v4
+        with:
+          repository: LIJI32/SameBoy
+          ref: 213a12ce93d66b105a113debd9396306066a7cfc
+          path: build/deps/SameBoy
+
+      - name: Verify CPU and PPU in SameBoy CGB-0 and CGB-E
+        run: |
+          make -C build/deps/SameBoy lib -j2 CONF=release DISABLE_DEBUGGER=1 DISABLE_CHEATS=1 DISABLE_REWIND=1
+          make sameboy SAMEBOY_DIR=build/deps/SameBoy
+
+      - name: Check out pinned mGBA core
+        uses: actions/checkout@v4
+        with:
+          repository: mgba-emu/mgba
+          ref: 507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6
+          path: build/deps/mgba
+
+      - name: Verify CPU and PPU in mGBA
+        run: |
+          cmake -S build/deps/mgba -B build/deps/mgba/build -DLIBMGBA_ONLY=ON -DBUILD_STATIC=ON -DBUILD_SHARED=OFF -DBUILD_QT=OFF -DBUILD_SDL=OFF -DUSE_FFMPEG=OFF -DUSE_LIBZIP=OFF -DUSE_SQLITE3=OFF -DUSE_LZMA=OFF -DUSE_PNG=OFF -DUSE_ELF=OFF -DUSE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/deps/mgba/build -j2
+          make mgba MGBA_DIR=build/deps/mgba
 
       - name: Upload ROM and verification evidence
         uses: actions/upload-artifact@v4
@@ -50,3 +81,14 @@ jobs:
             build/playtest/coherence_tour/contact_sheet.png
             build/playtest/living_world/report.json
             build/playtest/living_world/contact_sheet.png
+            build/playtest/sable_art_tour/report.json
+            build/playtest/sable_art_tour/contact_sheet.png
+            build/playthrough/report.json
+            build/playthrough/contact_sheet.png
+            build/sameboy_*.json
+            build/sameboy_*.ppm
+            build/mgba_*.json
+            build/mgba_*.png
+            build/two_sentinels.*
+            build/reprojection.json
+            build/*folded_pixels.json

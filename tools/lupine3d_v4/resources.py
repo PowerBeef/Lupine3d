@@ -205,7 +205,9 @@ def make_weapon_tiles() -> bytes:
     for x, y in ((5, 26), (8, 25), (10, 28), (26, 26), (23, 25), (21, 28)):
         px[y][x] = 2
 
-    return _split_pixels(px, 32, 32)
+    tiles = _split_pixels(px, 32, 32)
+    return b"".join(tiles[(row * 4 + col) * 16:(row * 4 + col + 1) * 16]
+                    for pair in range(2) for col in range(4) for row in (pair * 2, pair * 2 + 1))
 
 
 def _sentinel_near_frame(frame: int) -> bytes:
@@ -275,10 +277,11 @@ def _sentinel_far_frame(frame: int) -> bytes:
 
 
 def make_entity_tiles() -> bytes:
-    """Entity-heavy profile payload occupying only the 41 freed tile IDs."""
+    """ROM-source animation cels and wall fixtures; VRAM receives masked pairs."""
     out = bytearray()
     for frame in range(SENTINEL_NEAR_FRAMES):
-        out.extend(_sentinel_near_frame(frame))
+        tiles = _sentinel_near_frame(frame)
+        out.extend(b"".join(tiles[i * 16:(i + 1) * 16] for i in (0, 2, 4, 6, 1, 3, 5, 7)))
     for frame in range(SENTINEL_FAR_FRAMES):
         out.extend(_sentinel_far_frame(frame))
 
@@ -286,10 +289,10 @@ def make_entity_tiles() -> bytes:
     for y in range(2, 7):
         for x in range(1, 7): pickup[y][x] = 1 if y in (2, 6) or x in (1, 6) else 3
     for x, y in ((3, 3), (4, 3), (3, 4), (4, 4), (3, 5), (4, 5), (2, 4), (5, 4)):
-        pickup[y][x] = 3
-    pickup[1][3] = pickup[1][4] = 2
-    pickup[4][3] = pickup[4][4] = pickup[3][3] = pickup[5][3] = 2
+        pickup[y][x] = 2
+    pickup[1][3] = pickup[1][4] = 1
     out.extend(tile_from_pixels(pickup))
+    out.extend(bytes(16))
 
     for phase in range(2):
         effect = [[0] * 8 for _ in range(8)]
@@ -298,6 +301,7 @@ def make_entity_tiles() -> bytes:
                      (4 - phase, 4 - phase), (4 + phase, 4 + phase)):
             if 0 <= x < 8 and 0 <= y < 8: effect[y][x] = 3
         out.extend(tile_from_pixels(effect))
+        out.extend(bytes(16))
 
     # A high-contrast diegetic exit beacon consumes the final two tiles freed
     # by the entity profile. The armoured chevron remains legible at 8x8.
@@ -311,9 +315,24 @@ def make_entity_tiles() -> bytes:
         for x, y in ((3, 2), (4, 2), (4, 3), (5, 3), (4, 4), (5, 4), (3, 5), (4, 5)):
             beacon[y][x] = 3
         out.extend(tile_from_pixels(beacon))
+        out.extend(bytes(16))
 
-    expected_tiles = (EXIT_BEACON_TILE + EXIT_BEACON_FRAMES) - ENTITY_TILE_BASE
+    # Medium 16x16 LOD keeps width while reducing height. Derived from the
+    # same authored cels; adjacent vertical tiles are paired for 8x16 mode.
+    for frame in range(SENTINEL_MID_FRAMES):
+        source = _sentinel_near_frame(frame)
+        px = [[0] * 16 for _ in range(16)]
+        for y in range(16):
+            for x in range(16):
+                offset = ((y * 2 // 8) * 2 + x // 8) * 16 + (y * 2 % 8) * 2
+                px[y][x] = ((source[offset] >> (7 - x % 8)) & 1) | (((source[offset + 1] >> (7 - x % 8)) & 1) << 1)
+        tiles = _split_pixels(px, 16, 16)
+        out.extend(b"".join(tiles[i * 16:(i + 1) * 16] for i in (0, 2, 1, 3)))
+
+    expected_tiles = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * 4 - ENTITY_TILE_BASE
     assert len(out) == expected_tiles * 16
+    from .artwork import make_fixture_tiles
+    out.extend(make_fixture_tiles())
     return bytes(out)
 
 
@@ -321,16 +340,21 @@ def make_oam_shadow() -> bytes:
     """Initial 40-entry OAM image with UI capacity permanently reserved."""
     data = bytearray(OAM_BYTES)
     # Existing 4x4 weapon grid keeps OAM indices 0..15 and guaranteed priority.
-    for row in range(4):
+    for row in range(2):
         for col in range(4):
             index = row * 4 + col
             data[index * 4:index * 4 + 4] = bytes((
-                64 + row * 8 + 16, 64 + col * 8 + 8,
-                240 + row * 4 + col, 0x08,
+                64 + row * 16 + 16, 64 + col * 8 + 8,
+                WEAPON_TILE_BASE + (row * 4 + col) * 2, 0x0D if row == 1 and col in (0,3) else 0x08,
             ))
-    data[16 * 4:16 * 4 + 4] = bytes((44 + 16, 76 + 8, 254, 0x01))
-    data[17 * 4:17 * 4 + 4] = bytes((0, 76 + 8, 253, 0x01))
+    data[8 * 4:8 * 4 + 4] = bytes((44 + 16, 76 + 8, 80, 0x0E))
+    data[9 * 4:9 * 4 + 4] = bytes((0, 76 + 8, 82, 0x0B))
     return bytes(data)
+
+
+def make_obj_ui_tiles() -> bytes:
+    from .artwork import make_obj_ui_tiles as authored
+    return authored()
 
 
 def make_static_view_tiles() -> bytes:
@@ -467,6 +491,19 @@ def make_attrmap(view_bank: int) -> bytes:
     for y in range(12):
         for x in range(20):
             data[y * 32 + x] = (view_bank << 3) | row_palettes[y]
+            if FOLDED_COMPOSITOR and y >= 6:
+                data[y * 32 + x] |= 0x40 | 2
+    return bytes(data)
+
+
+# Authored native art replaces the retained early generator functions. Keeping
+# the wall/table generators independent preserves their numerical contracts.
+from .artwork import make_weapon_tiles, _sentinel_near_frame, _sentinel_far_frame
+
+
+def make_tilemap() -> bytes:
+    from .artwork import hud_assets
+    data = bytearray(hud_assets()[1]); data[:384] = bytes([CEILING_TILE]) * 384
     return bytes(data)
 
 
@@ -481,8 +518,8 @@ def make_tables() -> dict[str, bytes]:
         rad = angle * math.tau / 256.0
         step_dx.append(round(math.cos(rad) * 64) & 0xFF)
         step_dy.append(round(math.sin(rad) * 64) & 0xFF)
-        move_dx.append(round(math.cos(rad) * 20) & 0xFF)
-        move_dy.append(round(math.sin(rad) * 20) & 0xFF)
+        move_dx.append(round(math.cos(rad) * (4 if FIXED_SIMULATION else 20)) & 0xFF)
+        move_dy.append(round(math.sin(rad) * (4 if FIXED_SIMULATION else 20)) & 0xFF)
 
     # The render-direction table increases angular precision while keeping
     # every signed component representable in one byte. Magnitude 127 is
@@ -556,8 +593,9 @@ def make_tables() -> dict[str, bytes]:
 def make_projection_top_lut() -> bytes:
     """Exhaustive, integer-exact replacement for multiply/divide projection.
 
-    The table is indexed in 512-byte slices so the low nine-bit distance is
-    the address within a slice.  Thirty-two slices fit each MBC5 bank.
+    Each record contains (top, saturated perpendicular Q5 depth). Sixteen
+    1024-byte slices fit each MBC5 bank. Live components are only 0..127, so
+    retaining depth costs no additional ROM compared with the old table.
     Component zero is populated defensively even though an axial hit always
     selects the other non-zero vector component.
     """
@@ -576,7 +614,8 @@ def make_projection_top_lut() -> bytes:
                     (distance * correction + safe_component // 2) // safe_component,
                 )
                 out[cursor] = 48 - projection[perpendicular]
-                cursor += 1
+                out[cursor + 1] = min(255, perpendicular)
+                cursor += PROJECTION_LUT_RECORD_BYTES
     assert cursor == PROJECTION_LUT_BYTES
     return bytes(out)
 

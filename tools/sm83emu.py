@@ -98,6 +98,7 @@ class CGB:
         self.gdma_vblank_violations = 0
         self.interrupt_events: list[dict[str, int]] = []
         self.scx_events: list[dict[str, int]] = []
+        self.raster_lcdc: dict[int, tuple[int, int, int]] = {}
         self._pending_commit_event_indexes: list[int] = []
         self.last_lcdc = 0x91
         self.io[LCDC & 0x7F] = 0x91
@@ -227,7 +228,10 @@ class CGB:
         if addr == LCDC:
             old = self.io[LCDC & 0x7F]
             self.io[LCDC & 0x7F] = value
+            if old & value & 0x80 and self.ly < 144 and (old ^ value) & 0x10:
+                self.raster_lcdc[self.ly] = (0x10, value & 0x10, old & 0x10)
             if not (value & 0x80):
+                self.raster_lcdc.clear()
                 self.ly = 0
                 self.ppu_dots = 0
                 self._pending_commit_event_indexes.clear()
@@ -241,8 +245,8 @@ class CGB:
                 events = [self.gdma_events[i] for i in self._pending_commit_event_indexes]
                 blocks = sum(int(event["blocks"]) for event in events)
                 same_frame = bool(events) and all(int(event["frame"]) == int(events[0]["frame"]) for event in events)
-                vblank_safe = bool(events) and same_frame and all(bool(event["vblank_safe_start"]) for event in events)
-                vblank_safe = vblank_safe and self.frame_count == int(events[0]["frame"]) and self.ly >= 144
+                vblank_safe = bool(events) and all(bool(event["vblank_safe_complete"]) for event in events)
+                vblank_safe = vblank_safe and self.frame_count == int(events[-1]["frame"]) and self.ly >= 144
                 self.commit_events.append({
                     "swap": self.page_swaps + 1,
                     "displayed_map": 1 if value & 0x08 else 0,
@@ -251,6 +255,7 @@ class CGB:
                     "blocks": blocks,
                     "event_count": len(events),
                     "vblank_safe": vblank_safe,
+                    "staged": not same_frame,
                     "events": tuple(events),
                 })
                 self._pending_commit_event_indexes.clear()
@@ -305,11 +310,14 @@ class CGB:
         dst = 0x8000 | ((self.io[HDMA3 & 0x7F] & 0x1F) << 8) | (self.io[HDMA4 & 0x7F] & 0xF0)
         lcd_on = bool(self.io[LCDC & 0x7F] & 0x80)
         vblank_safe_start = (not lcd_on) or self.ly >= 144
+        complete = (not lcd_on) or (self.ly >= 144 and
+            self.ly * 456 + self.ppu_dots + blocks * 32 + 16 <= 154 * 456)
         event: dict[str, int | bool] = {
             "frame": self.frame_count, "ly": self.ly,
             "bank": self.io[VBK & 0x7F] & 1,
             "source": src, "destination": dst, "blocks": blocks,
             "lcd_on": lcd_on, "vblank_safe_start": vblank_safe_start,
+            "vblank_safe_complete": complete,
         }
         self.gdma_events.append(event)
         if lcd_on:
@@ -700,24 +708,45 @@ class CGB:
         pixels = image.load()
         lcdc = self.io[LCDC & 0x7F]
         tilemap_base = 0x1C00 if (lcdc & 0x08) else 0x1800
+        bg_colors = [[0] * 160 for _ in range(144)]
+        bg_priority = [[False] * 160 for _ in range(144)]
         # Background.
         for y in range(144):
+            line_lcdc = lcdc
+            if self.raster_lcdc:
+                _, (mask, _, before) = min(self.raster_lcdc.items())
+                line_lcdc = (line_lcdc & ~mask) | before
+            for line, (mask, value, _) in sorted(self.raster_lcdc.items()):
+                if y >= line: line_lcdc = (line_lcdc & ~mask) | value
             for x in range(160):
-                map_index = tilemap_base + (y // 8) * 32 + (x // 8)
+                bx, by = (x + self.io[0x43]) & 255, (y + self.io[0x42]) & 255
+                base = tilemap_base
+                wx, wy = self.io[0x4B] - 7, self.io[0x4A]
+                if lcdc & 0x20 and y >= wy and x >= wx and wx < 160:
+                    bx, by = x - wx, y - wy
+                    base = 0x1C00 if lcdc & 0x40 else 0x1800
+                map_index = base + (by // 8) * 32 + (bx // 8)
                 tile = self.vram[0][map_index]
                 attr = self.vram[1][map_index]
                 bank = (attr >> 3) & 1
-                tx = x & 7; ty = y & 7
+                tx = bx & 7; ty = by & 7
                 if attr & 0x20: tx = 7 - tx
                 if attr & 0x40: ty = 7 - ty
-                tile_addr = tile * 16 + ty * 2
+                tile_base = tile * 16 if line_lcdc & 0x10 else 0x1000 + (tile if tile < 128 else tile - 256) * 16
+                tile_addr = tile_base + ty * 2
                 lo = self.vram[bank][tile_addr]; hi = self.vram[bank][tile_addr + 1]
                 bit = 7 - tx
                 color = ((lo >> bit) & 1) | (((hi >> bit) & 1) << 1)
+                bg_colors[y][x] = color
+                bg_priority[y][x] = bool(attr & 0x80)
                 pixels[x, y] = self._rgb_from_palette(self.bg_palette, attr & 7, color)
+        background = image.copy().load()
         # OBJ. Draw high OAM indices first so lower indices win.
         if lcdc & 0x02:
             sprite_height = 16 if lcdc & 0x04 else 8
+            selected = [set([i for i in range(40)
+                             if self.oam[i * 4] - 16 <= y < self.oam[i * 4] - 16 + sprite_height][:10])
+                        for y in range(144)]
             for index in range(39, -1, -1):
                 off = index * 4
                 sy = self.oam[off] - 16; sx = self.oam[off + 1] - 8
@@ -728,6 +757,7 @@ class CGB:
                 for py in range(sprite_height):
                     yy = sy + py
                     if not 0 <= yy < 144: continue
+                    if index not in selected[yy]: continue
                     source_y = sprite_height - 1 - py if attr & 0x40 else py
                     tile_index = tile + source_y // 8
                     row = source_y & 7
@@ -741,6 +771,9 @@ class CGB:
                         bit = 7 - source_x
                         color = ((lo >> bit) & 1) | (((hi >> bit) & 1) << 1)
                         if color == 0: continue
+                        if lcdc & 1 and bg_colors[yy][xx] and (bg_priority[yy][xx] or attr & 0x80):
+                            pixels[xx, yy] = background[xx, yy]
+                            continue
                         pixels[xx, yy] = self._rgb_from_palette(self.obj_palette, attr & 7, color)
         return image
 

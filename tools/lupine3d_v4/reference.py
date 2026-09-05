@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from .layout import *  # noqa: F401,F403
 from .resources import *  # noqa: F401,F403
+from .precision import q14_direction
+from .door_geometry import door_intersection
 
 def reference_grid() -> bytes:
     """Immutable baseline map shared by host-side differential models."""
@@ -29,6 +31,7 @@ class ReferenceRayHit:
     along: int
     depth_q5: int
     segment_id: int
+    surface_profile: int
 
 
 def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
@@ -39,6 +42,8 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     """Byte-exact host model shared by pair-centre and physical-pixel rays."""
     if not 0 <= ray_index < count:
         raise ValueError(f"ray index out of range: {ray_index}")
+    if door_states is None and grid is None:
+        door_states = {(door.x, door.y): (0, 0) for door in ACTIVE_LEVEL.doors}
     tables = make_tables()
     offsets = tables[offsets_key]
     corrections = tables[corrections_key]
@@ -52,25 +57,40 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     dx = dx_raw - 256 if dx_raw & 0x80 else dx_raw
     dy = dy_raw - 256 if dy_raw & 0x80 else dy_raw
     ax, ay = abs(dx), abs(dy)
+    # Use the independent direct Q14 traversal as oracle. The emitted ROM
+    # may take its inexpensive certified coarse path, but must select the
+    # same cell/face as this higher precision ray.
+    order_dx, order_dy = (q14_direction(player_angle, ray_index + (80 if count == 160 else 0))
+                          if Q14_ORDER_ENABLED else (dx, dy))
+    order_ax, order_ay = abs(order_dx), abs(order_dy)
     mx, my = player_x_q8 >> 8, player_y_q8 >> 8
     fx, fy = player_x_q8 & 0xFF, player_y_q8 & 0xFF
-    nx = (256 - fx if dx > 0 else fx) if dx else 0x7FFF
-    ny = (256 - fy if dy > 0 else fy) if dy else 0x7FFF
-    sx = 1 if dx > 0 else -1
-    sy = 1 if dy > 0 else -1
-    if dx == 0:
+    nx = (256 - fx if order_dx > 0 else fx) if order_dx else 0x7FFF
+    ny = (256 - fy if order_dy > 0 else fy) if order_dy else 0x7FFF
+    sx = 1 if order_dx > 0 else -1
+    sy = 1 if order_dy > 0 else -1
+    if order_dx == 0:
         err = 0x7FFF
-    elif dy == 0:
+    elif order_dy == 0:
         err = -0x8000
     else:
-        err = nx * ay - ny * ax
+        err = nx * order_ay - ny * order_ax
     cells = grid if grid is not None else reference_grid()
     material = 1
     axis = 0
     distance = 0x0FFF
     crossings = 0
-    for crossings in range(1, 33):
-        choose_x = dx != 0 and (dy == 0 or err <= 0)
+    for crossings in range(0, 33):
+        if crossings == 0:
+            if door_states is not None and cells[my * 16 + mx] == 3 and (mx, my) in door_states:
+                spec = next((d for d in ACTIVE_LEVEL.doors if (d.x, d.y) == (mx, my)), None)
+                state, fraction = door_states[mx, my]
+                local = door_intersection(player_x_q8, player_y_q8, order_dx, order_dy, mx, my, spec.orientation, fraction) if spec is not None else None
+                if state != 2 and local is not None:
+                    axis, distance, material = spec.orientation, local, 3
+                    break
+            continue
+        choose_x = order_dx != 0 and (order_dy == 0 or err <= 0)
         if choose_x:
             mx += sx
             axis, distance = 0, nx
@@ -81,25 +101,31 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
             material = 1
             break
         material = cells[my * 16 + mx]
+        if material == 3 and door_states is not None and (mx, my) in door_states:
+            state, fraction = door_states[mx, my]
+            spec = next((d for d in ACTIVE_LEVEL.doors if (d.x, d.y) == (mx, my)), None)
+            if spec is not None:
+                door_distance = door_intersection(player_x_q8, player_y_q8, order_dx, order_dy,
+                                                   mx, my, spec.orientation, fraction)
+                if state == 2 or door_distance is None:
+                    material = 0
+                else:
+                    axis, distance = spec.orientation, door_distance
         if material:
             break
         if choose_x:
             nx += 256
-            err += 256 * ay
+            err += 256 * order_ay
         else:
             ny += 256
-            err -= 256 * ax
+            err -= 256 * order_ax
 
     component = ax if axis == 0 else ay
     d32 = min(511, (distance + 4) >> 3)
     perp32 = 511 if component == 0 else min(511, (d32 * corr + component // 2) // component)
     projection = tables["projection_half"]
     top = 48 - projection[perp32]
-    depth_q5 = make_top_depth_lut()[top]
-    if material == 3 and door_states is not None:
-        state, fraction = door_states.get((mx, my), (0, 0))
-        if state == 1:
-            top = min(47, top + fraction // 8)
+    depth_q5 = min(255, perp32)
     style = 4 if material == 3 else (2 + axis if material == 2 else axis)
     if axis == 0:
         plane, along = mx + (1 if sx < 0 else 0), my
@@ -115,6 +141,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
         material=material, crossings=crossings, top=top, style=style,
         face_key=face_key, along=along & 0xFF,
         depth_q5=depth_q5, segment_id=segment_id,
+        surface_profile=ACTIVE_LEVEL.surface_table[(my * 16 + mx) * 4 + side],
     )
 
 
@@ -159,6 +186,7 @@ def reference_full_descriptor_view(player_x_q8: int, player_y_q8: int, player_an
 def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int,
                                        grid: bytes | None = None,
                                        door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                                       *, include_surfaces: bool = False,
                                        ) -> tuple[list[int], list[int], list[int], list[int], int, list[int], list[int]]:
     """Apply the ROM's validated one-level affine span reconstruction."""
     hits = [
@@ -171,6 +199,7 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
     full_alongs = [hit.along for hit in hits]
     full_depths = [hit.depth_q5 for hit in hits]
     full_segments = [hit.segment_id for hit in hits]
+    surfaces = [hit.surface_profile for hit in hits]
     tops = [0] * RAYS
     styles = [0] * RAYS
     keys = [0] * RAYS
@@ -189,6 +218,7 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
         same_face = (
             keys[i - 1] == keys[i + 1]
             and segments[i - 1] == segments[i + 1]
+            and surfaces[i - 1] == surfaces[i + 1]
             and abs(alongs[i - 1] - alongs[i + 1]) <= 1
             and abs(tops[i - 1] - tops[i + 1]) <= 2
         )
@@ -197,11 +227,13 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
             styles[i], keys[i], alongs[i] = styles[i - 1], keys[i - 1], alongs[i - 1]
             depths[i] = make_top_depth_lut()[tops[i]]
             segments[i] = segments[i - 1]
+            surfaces[i] = surfaces[i - 1]
         else:
             tops[i], styles[i], keys[i], alongs[i] = full_tops[i], full_styles[i], full_keys[i], full_alongs[i]
             depths[i], segments[i] = full_depths[i], full_segments[i]
             cast_count += 1
-    return tops, styles, keys, alongs, cast_count, depths, segments
+    result = tops, styles, keys, alongs, cast_count, depths, segments
+    return (*result, surfaces) if include_surfaces else result
 
 
 def decorate_surface_events(
@@ -261,14 +293,15 @@ def reference_pixel_descriptor_view(
     crease decoration. The returned counters are total casts, edge recasts,
     and classified surface events.
     """
-    tops, styles, keys, alongs, adaptive_casts, depths, segments = reference_adaptive_descriptor_view(
-        player_x_q8, player_y_q8, player_angle, grid, door_states
+    tops, styles, keys, alongs, adaptive_casts, depths, segments, surfaces = reference_adaptive_descriptor_view(
+        player_x_q8, player_y_q8, player_angle, grid, door_states, include_surfaces=True,
     )
     pixel_tops = [0] * PHYSICAL_COLUMNS
     pixel_styles = [0] * PHYSICAL_COLUMNS
     pixel_keys = [0] * PHYSICAL_COLUMNS
     pixel_alongs = [0] * PHYSICAL_COLUMNS
     pixel_segments = [0] * PHYSICAL_COLUMNS
+    pixel_surfaces = [0] * PHYSICAL_COLUMNS
 
     for i in range(RAYS):
         current = tops[i]
@@ -281,6 +314,7 @@ def reference_pixel_descriptor_view(
             pixel_keys[output] = keys[i]
             pixel_alongs[output] = alongs[i]
             pixel_segments[output] = segments[i]
+            pixel_surfaces[output] = surfaces[i]
 
     edge_recasts = 0
     for i in range(RAYS - 1):
@@ -295,6 +329,7 @@ def reference_pixel_descriptor_view(
             pixel_keys[pixel_index] = hit.face_key
             pixel_alongs[pixel_index] = hit.along
             pixel_segments[pixel_index] = hit.segment_id
+            pixel_surfaces[pixel_index] = hit.surface_profile
             edge_recasts += 1
 
     pixel_styles, events = decorate_surface_events(
@@ -304,7 +339,7 @@ def reference_pixel_descriptor_view(
     return (
         pixel_tops, pixel_styles, pixel_keys, pixel_alongs,
         adaptive_casts + edge_recasts, edge_recasts, events, depths, segments,
-        pixel_segments,
+        pixel_segments, pixel_surfaces,
     )
 
 
@@ -387,7 +422,7 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
         detail_mask = surface_detail_mask(col_styles)
         static_wall_tile = make_seam_tile_lookup()[dark_mask]
 
-        for tile_row in range(12):
+        for tile_row in range(6 if FOLDED_COMPOSITOR else 12):
             y0 = tile_row * 8
             if y0 + 7 < min_top:
                 tile_id = CEILING_TILE
@@ -415,5 +450,7 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
                     else:
                         dynamic.extend(tile)
             view_map[tile_row * 32 + tile_col] = tile_id
+            if FOLDED_COMPOSITOR:
+                view_map[(11 - tile_row) * 32 + tile_col] = tile_id
 
     return bytes(dynamic), bytes(view_map), len(dynamic) // 16, overflow
