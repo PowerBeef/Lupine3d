@@ -124,6 +124,10 @@ def main() -> None:
     if not v3_research_path.exists():
         raise SystemExit("missing v0.3 rendering research; run `make research-v3`")
     v3_research = json.loads(v3_research_path.read_text(encoding="utf-8"))
+    current_geometry_path = v2.BUILD / "static_geometry/rendering_v3_results.json"
+    if not current_geometry_path.is_file():
+        raise SystemExit("missing current static geometry comparison; run `make research-v3`")
+    current_geometry = json.loads(current_geometry_path.read_text())
     atlas_research_path = ROOT / "research" / "results" / "tile_atlas_v4.json"
     if not atlas_research_path.exists():
         raise SystemExit("missing v0.4 atlas research; run `make research-atlas`")
@@ -193,9 +197,9 @@ def main() -> None:
         "adaptive_wall_identity_zero_mismatches": research["adaptive_spans"]["wall_key_mismatches_vs_full_exact"] == 0,
         "adaptive_style_zero_mismatches": research["adaptive_spans"]["style_mismatches_vs_full_exact"] == 0,
         "dynamic_tile_corpus_zero_overflow": research["boundary_tile_renderer"]["overflow_views"] == 0,
-        "current_dynamic_tile_stress_zero_overflow": v3_research["current"]["overflow_views"] == 0,
-        "v3_mean_geometry_error_improved": v3_research["improvement"]["mean_top_error_reduction_pct"] > 20.0,
-        "v3_wrong_segments_improved": v3_research["improvement"]["wrong_segment_reduction_pct"] > 25.0,
+        "current_dynamic_tile_stress_zero_overflow": current_geometry["current"]["overflow_views"] == 0 and current_geometry["corpus"]["views"] == 24384 and current_geometry["configuration"]["static_cell_geometry"] and current_geometry["configuration"]["benchmark_rom_sha256"] == current_tail["configuration"]["benchmark_rom_sha256"],
+        "v3_mean_geometry_error_improved": current_geometry["improvement"]["mean_top_error_reduction_pct"] > 20.0,
+        "v3_wrong_segments_improved": current_geometry["improvement"]["wrong_segment_reduction_pct"] > 25.0,
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
         "driven_playtest_exact_current_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
@@ -378,6 +382,7 @@ def main() -> None:
         "sable_art_playtest": art_playtest["summary"],
         "controller_completion": {key: value for key, value in completion.items() if key != "updates"},
         "current_q14_tail": {key: current_tail[key] for key in ("corpus", "tail", "configuration")},
+        "current_static_geometry": current_geometry,
         "independent_emulators": independent,
         "wall_reuse": {**wall_reuse, "frozen": {key: value for key, value in wall_reuse["frozen"].items() if key != "rows"}},
         "test_inventory_is_not_test_execution": True,

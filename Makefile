@@ -17,7 +17,7 @@ research:
 	$(PYTHON) research/geometry_v2_lab.py
 
 research-v3:
-	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/rendering_v3_lab.py
+	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/rendering_v3_lab.py --output-dir build/static_geometry --accuracy-only
 
 research-atlas:
 	$(PYTHON) research/build_tile_atlas_v4.py
@@ -40,7 +40,7 @@ research-atlas-pareto:
 research-tail:
 	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/tail_failure_lab.py --output-prefix build/q14_tail --angle-step 4
 
-verify: build test research
+verify: build test research research-v3
 	$(PYTHON) tools/release_check.py
 
 playtest:

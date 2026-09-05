@@ -44,6 +44,8 @@ TOP_LEVEL_FILES = (
 TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
 BUILD_FILES = (
     "atlas_verification.json",
+    "static_geometry/rendering_v3_results.json",
+    "static_geometry/rendering_v3_accuracy.csv",
     "build_manifest.json",
     "harness_action.png",
     "harness_action_v060.png",
@@ -185,11 +187,13 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     run([python, "research/build_tile_atlas_v4.py", "--verify-assets"], ROOT)
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT, timeout=600)
-    run([python, "research/geometry_v2_lab.py"], ROOT)
+    # Versioned research/results files are retained historical evidence.
+    # Current comparisons write separately and use identical oracle geometry.
     benchmark_env = {
         "LUPINE3D_LEVEL": str((ROOT / "levels" / "renderer_benchmark.json").resolve()),
     }
-    run([python, "research/rendering_v3_lab.py"], ROOT, env_overrides=benchmark_env)
+    run([python, "research/rendering_v3_lab.py", "--output-dir", "build/static_geometry", "--accuracy-only"],
+        ROOT, env_overrides=benchmark_env)
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "tools/playtest.py"], ROOT)
     run([python, "tools/build_rom.py"], ROOT)

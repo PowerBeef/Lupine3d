@@ -33,7 +33,8 @@ Coverage includes:
 - Foreground queue overflow, sequence/generation wrap, reload ownership,
   coherent OAM publication and maximum 176-block staged transfers.
 - The coherence/world/art routes, controller-only completion/restart, variants,
-  short motion checks and the full 24,384-view geometry-tail scan.
+  short motion checks, the full 24,384-view geometry-tail scan and a fresh
+  static-cell accuracy comparison with matching oracle geometry.
 - Both committed atlas profiles: training hashes, complete bucket directories,
   all 510 signature/pattern comparisons and eleven validated forced-full
   diagnostic presentations per profile.

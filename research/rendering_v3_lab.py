@@ -9,6 +9,8 @@ actual tile/attribute output at identical poses.
 from __future__ import annotations
 
 import csv
+import argparse
+import hashlib
 import json
 import statistics
 import sys
@@ -106,7 +108,13 @@ def benchmark_rom_cycles(poses: Sequence[tuple[int, int, int]]) -> dict[str, flo
     }
 
 
-def run() -> dict[str, object]:
+def run(*, measure_cycles: bool = True) -> dict[str, object]:
+    # The floating and v2 oracles describe solid cell faces. Passing this
+    # explicit grid suppresses the current model's implicit finite-door setup;
+    # comparing a door centre plane to a cell face is a different experiment.
+    static_grid = bytes(geometry.GRID_BYTES)
+    if static_grid != v3.make_map():
+        raise ValueError("accuracy comparison requires the retained benchmark map")
     positions = geometry.corpus_positions()
     angles = range(0, 256, 4)
     v2_errors: list[float] = []
@@ -141,7 +149,7 @@ def run() -> dict[str, object]:
             old_segments = segments_for(old_keys, old_alongs, angle, old_offsets)
             old_materials = [(key >> 5) & 3 for key in old_keys]
 
-            new = v3.reference_pixel_descriptor_view(x_q8, y_q8, angle)
+            new = v3.reference_pixel_descriptor_view(x_q8, y_q8, angle, static_grid)
             new_tops, new_styles, new_keys, new_alongs = new[:4]
             new_segments = segments_for(new_keys, new_alongs, angle, v3.make_tables()["physical_offsets"])
             new_materials = [(key >> 5) & 3 for key in new_keys]
@@ -174,6 +182,12 @@ def run() -> dict[str, object]:
         (0x08E0, 0x0180, 16), (0x0520, 0x0B80, 192),
     ]
     return {
+        "configuration": {
+            "scope": "static-cell host geometry; finite doors and runtime timing are qualified separately",
+            "static_cell_geometry": True,
+            "level_grid_sha256": hashlib.sha256(static_grid).hexdigest(),
+            "benchmark_rom_sha256": hashlib.sha256(v3.make_rom()[0]).hexdigest(),
+        },
         "corpus": {"views": views, "physical_column_samples": samples},
         "v0.2.2": {
             **old_stats,
@@ -202,7 +216,7 @@ def run() -> dict[str, object]:
             "wrong_segment_reduction_pct": 100.0 * (1.0 - v3_wrong_segments / v2_wrong_segments),
             "wrong_material_reduction_pct": 100.0 * (1.0 - v3_wrong_materials / v2_wrong_materials),
         },
-        "representative_rom_cycles": benchmark_rom_cycles(poses),
+        **({"representative_rom_cycles": benchmark_rom_cycles(poses)} if measure_cycles else {}),
     }
 
 
@@ -259,11 +273,16 @@ def write_csv(results: dict[str, object], path: Path) -> None:
 
 
 def main() -> None:
-    RESULTS.mkdir(parents=True, exist_ok=True)
-    results = run()
-    (RESULTS / "rendering_v3_results.json").write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
-    write_csv(results, RESULTS / "rendering_v3_accuracy.csv")
-    make_comparison(RESULTS / "rendering_v3_before_after.png")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output-dir", type=Path, default=RESULTS)
+    parser.add_argument("--accuracy-only", action="store_true", help="run the static host corpus without legacy ROM probes")
+    args = parser.parse_args()
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    results = run(measure_cycles=not args.accuracy_only)
+    (args.output_dir / "rendering_v3_results.json").write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    write_csv(results, args.output_dir / "rendering_v3_accuracy.csv")
+    if not args.accuracy_only:
+        make_comparison(args.output_dir / "rendering_v3_before_after.png")
     print(json.dumps(results, indent=2))
 
 
