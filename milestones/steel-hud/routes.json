@@ -1,0 +1,74 @@
+{
+  "playtest": {
+    "rom_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+    "summary": {
+      "update_count": 11,
+      "background_page_swaps": 9,
+      "reused_wall_updates": 2,
+      "executed_casts": 423,
+      "capture_count": 9,
+      "mean_cycles": 878879.2727272727,
+      "max_cycles": 1268816,
+      "min_updates_per_second": 6.611366817568505,
+      "max_dynamic_tiles": 21,
+      "max_total_casts": 56,
+      "max_visible_oam": 11,
+      "max_oam_per_scanline": 4,
+      "oam_limits_respected": true,
+      "gdma_vblank_violations": 0,
+      "pixel_oracle_captures": 9,
+      "pixel_oracle_exact": true,
+      "failed_updates": [],
+      "passed": true
+    },
+    "full_report_sha256": "a6e2dd633ec38f3311def6094e7ceb7759830ef1e87b4e919e5f67e2880de732"
+  },
+  "world": {
+    "rom_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+    "summary": {
+      "update_count": 47,
+      "background_page_swaps": 23,
+      "reused_wall_updates": 24,
+      "executed_casts": 1140,
+      "capture_count": 14,
+      "mean_cycles": 749446.8936170213,
+      "max_cycles": 1825860,
+      "min_updates_per_second": 4.594332533710142,
+      "max_dynamic_tiles": 27,
+      "max_total_casts": 59,
+      "max_visible_oam": 16,
+      "max_oam_per_scanline": 5,
+      "oam_limits_respected": true,
+      "gdma_vblank_violations": 0,
+      "pixel_oracle_captures": 0,
+      "pixel_oracle_exact": true,
+      "failed_updates": [],
+      "passed": true
+    },
+    "full_report_sha256": "84bb66d2052a95d6ffa0f2a44a555f5b57d8202b2e7290965184f9dc55f760e9"
+  },
+  "art": {
+    "rom_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+    "summary": {
+      "update_count": 6,
+      "background_page_swaps": 6,
+      "reused_wall_updates": 0,
+      "executed_casts": 264,
+      "capture_count": 6,
+      "mean_cycles": 1096299.3333333333,
+      "max_cycles": 1263992,
+      "min_updates_per_second": 6.63659896581624,
+      "max_dynamic_tiles": 18,
+      "max_total_casts": 53,
+      "max_visible_oam": 14,
+      "max_oam_per_scanline": 6,
+      "oam_limits_respected": true,
+      "gdma_vblank_violations": 0,
+      "pixel_oracle_captures": 0,
+      "pixel_oracle_exact": true,
+      "failed_updates": [],
+      "passed": true
+    },
+    "full_report_sha256": "b55d111ea3f879f280433bb4af82a9c76bb8dd9a46f41134cac643909add015b"
+  }
+}

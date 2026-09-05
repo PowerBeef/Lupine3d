@@ -1,0 +1,534 @@
+{
+  "schema": "sable.native.v1",
+  "assets": {
+    "sentinel_near": {
+      "file": "native/sentinel_near.png",
+      "size": [
+        16,
+        32
+      ],
+      "frames": [
+        "idle_a",
+        "idle_b",
+        "walk_left",
+        "walk_pass_a",
+        "walk_right",
+        "walk_pass_b",
+        "attack_raise",
+        "attack_fire",
+        "hurt",
+        "death_kneel",
+        "death_fall",
+        "death_down"
+      ],
+      "ticks": [
+        32,
+        32,
+        8,
+        8,
+        8,
+        8,
+        4,
+        4,
+        8,
+        12,
+        12,
+        12
+      ],
+      "anchor": [
+        8,
+        32
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          39,
+          28,
+          32
+        ],
+        [
+          170,
+          53,
+          50
+        ],
+        [
+          238,
+          218,
+          175
+        ]
+      ],
+      "sha256": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360"
+    },
+    "sentinel_mid": {
+      "file": "native/sentinel_mid.png",
+      "size": [
+        16,
+        16
+      ],
+      "frames": [
+        "idle_a",
+        "idle_b",
+        "walk_left",
+        "walk_pass_a",
+        "walk_right",
+        "walk_pass_b",
+        "attack_raise",
+        "attack_fire",
+        "hurt",
+        "death_kneel",
+        "death_fall",
+        "death_down"
+      ],
+      "ticks": [
+        32,
+        32,
+        8,
+        8,
+        8,
+        8,
+        4,
+        4,
+        8,
+        12,
+        12,
+        12
+      ],
+      "anchor": [
+        8,
+        16
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          39,
+          28,
+          32
+        ],
+        [
+          170,
+          53,
+          50
+        ],
+        [
+          238,
+          218,
+          175
+        ]
+      ],
+      "sha256": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914"
+    },
+    "sentinel_far": {
+      "file": "native/sentinel_far.png",
+      "size": [
+        8,
+        16
+      ],
+      "frames": [
+        "idle_a",
+        "idle_b",
+        "walk_left",
+        "walk_pass_a",
+        "walk_right",
+        "walk_pass_b",
+        "attack_raise",
+        "attack_fire",
+        "hurt",
+        "death_kneel",
+        "death_fall",
+        "death_down"
+      ],
+      "ticks": [
+        32,
+        32,
+        8,
+        8,
+        8,
+        8,
+        4,
+        4,
+        8,
+        12,
+        12,
+        12
+      ],
+      "anchor": [
+        4,
+        16
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          39,
+          28,
+          32
+        ],
+        [
+          170,
+          53,
+          50
+        ],
+        [
+          238,
+          218,
+          175
+        ]
+      ],
+      "sha256": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64"
+    },
+    "shotgun": {
+      "file": "native/shotgun.png",
+      "size": [
+        32,
+        32
+      ],
+      "frames": [
+        "idle",
+        "recoil",
+        "pump_back",
+        "pump_forward",
+        "recovery"
+      ],
+      "ticks": [
+        0,
+        4,
+        6,
+        6,
+        8
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "5aadb2e7f6845e2f4cb11a9685516a1ffec9f5d468ea98e7c64ba4adda6cea00"
+    },
+    "helmet": {
+      "file": "native/helmet.png",
+      "size": [
+        16,
+        16
+      ],
+      "frames": [
+        "normal",
+        "blink",
+        "hurt",
+        "dead"
+      ],
+      "ticks": [
+        0,
+        4,
+        8,
+        0
+      ],
+      "anchor": [
+        8,
+        16
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          25,
+          32,
+          35
+        ],
+        [
+          89,
+          129,
+          126
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c"
+    },
+    "flash": {
+      "file": "native/flash.png",
+      "size": [
+        8,
+        16
+      ],
+      "frames": [
+        "a",
+        "b"
+      ],
+      "ticks": [
+        1,
+        1
+      ],
+      "anchor": [
+        4,
+        16
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448"
+    },
+    "reticle": {
+      "file": "native/reticle.png",
+      "size": [
+        8,
+        16
+      ],
+      "frames": [
+        "a"
+      ],
+      "ticks": [
+        1
+      ],
+      "anchor": [
+        4,
+        16
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9"
+    },
+    "hud": {
+      "file": "native/hud.png",
+      "size": [
+        160,
+        32
+      ],
+      "frames": [
+        "panel"
+      ],
+      "ticks": [
+        0
+      ],
+      "anchor": [
+        80,
+        32
+      ],
+      "palette": [
+        [
+          16,
+          24,
+          32
+        ],
+        [
+          41,
+          58,
+          66
+        ],
+        [
+          238,
+          230,
+          197
+        ],
+        [
+          82,
+          132,
+          132
+        ]
+      ],
+      "sha256": "9cde69004789a336a1ddc05beeebc63590498668f18a57952071d6260d816218"
+    },
+    "hud_slim": {
+      "file": "native/hud_slim.png",
+      "size": [
+        160,
+        24
+      ],
+      "frames": [
+        "panel"
+      ],
+      "ticks": [
+        0
+      ],
+      "anchor": [
+        80,
+        24
+      ],
+      "palette": [
+        [
+          16,
+          24,
+          32
+        ],
+        [
+          41,
+          58,
+          66
+        ],
+        [
+          238,
+          230,
+          197
+        ],
+        [
+          82,
+          132,
+          132
+        ]
+      ],
+      "sha256": "a44b1d2552c0f661cfd5f215ffbb6445a6359dc317b23d13a67df27e4370e7e4"
+    },
+    "hud_steel": {
+      "file": "native/hud_steel.png",
+      "size": [
+        160,
+        24
+      ],
+      "frames": [
+        "panel"
+      ],
+      "ticks": [
+        0
+      ],
+      "anchor": [
+        80,
+        24
+      ],
+      "palette": [
+        [
+          16,
+          24,
+          32
+        ],
+        [
+          102,
+          119,
+          122
+        ],
+        [
+          238,
+          230,
+          197
+        ],
+        [
+          82,
+          132,
+          132
+        ]
+      ],
+      "sha256": "9e2541d386d69b5eb0f3c3450d4babceb315f7dd1663e6fd491c5ae5eb700d96"
+    },
+    "helmet_steel": {
+      "file": "native/helmet_steel.png",
+      "size": [
+        16,
+        16
+      ],
+      "frames": [
+        "normal",
+        "blink",
+        "hurt",
+        "dead"
+      ],
+      "ticks": [
+        0,
+        4,
+        8,
+        0
+      ],
+      "anchor": [
+        8,
+        16
+      ],
+      "palette": [
+        [
+          16,
+          24,
+          32
+        ],
+        [
+          102,
+          119,
+          122
+        ],
+        [
+          238,
+          230,
+          197
+        ],
+        [
+          82,
+          132,
+          132
+        ]
+      ],
+      "sha256": "c9e595bbc583df33c95dbeae9970c98a9b1fd4fa50a9eeb444ea64c3d59bc362"
+    }
+  },
+  "preview_note": "Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence."
+}

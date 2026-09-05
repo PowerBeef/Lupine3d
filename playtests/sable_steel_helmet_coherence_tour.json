@@ -1,0 +1,84 @@
+{
+  "name": "sable_steel_helmet_coherence_tour",
+  "world_mode": "empty",
+  "actions": [
+    {
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "updates": 1,
+      "capture": "protected_start"
+    },
+    {
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "updates": 1,
+      "capture": "airlock_approach"
+    },
+    {
+      "buttons": [
+        "b"
+      ],
+      "updates": 2,
+      "capture": "airlock_open"
+    },
+    {
+      "pose": [
+        896,
+        2432,
+        192
+      ],
+      "updates": 1,
+      "capture": "corridor_turn"
+    },
+    {
+      "pose": [
+        1728,
+        1920,
+        0
+      ],
+      "updates": 1,
+      "capture": "zigzag_gate"
+    },
+    {
+      "buttons": [
+        "b"
+      ],
+      "updates": 2,
+      "capture": "zigzag_open"
+    },
+    {
+      "pose": [
+        2176,
+        1920,
+        64
+      ],
+      "updates": 1,
+      "capture": "combat_partition"
+    },
+    {
+      "pose": [
+        2176,
+        2176,
+        0
+      ],
+      "updates": 1,
+      "capture": "machinery_chamber"
+    },
+    {
+      "pose": [
+        2432,
+        2688,
+        64
+      ],
+      "updates": 1,
+      "capture": "exit_approach"
+    }
+  ],
+  "pixel_oracle": "sable_steel_helmet_capture_pixels.json"
+}

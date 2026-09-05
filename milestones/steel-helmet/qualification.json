@@ -1,0 +1,17 @@
+{
+  "schema": "sable.helmet-qualification.v1",
+  "rom_sha256": "fd7c95e7f3237ca130d0fabe763190a1622d51dc7d49ff0c1fa7e704fb873f4c",
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "hud_theme": "steel-helmet-v1",
+  "hud_patterns": 82,
+  "hud_pattern_capacity": 96,
+  "hud_packet_bytes": 16,
+  "resident_free_bytes": 3123,
+  "fixed_rom_free_bytes": 1808,
+  "tests_passed": 140,
+  "tests_log_sha256": "f4229371382c471df83442ca608f29ca960a7ad549354a587ef8828c30806ee3",
+  "timing_scope": "Direct HUD subroutine comparison; no new sustained benchmark",
+  "published_release": false,
+  "physical_hardware_tested": false,
+  "passed": true
+}

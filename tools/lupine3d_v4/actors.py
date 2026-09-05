@@ -25,12 +25,12 @@ def emit_actors(a: Assembler) -> None:
     a.label("actor_save")
     a.call("actor_pointer"); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
     a.ld_rr_nn("hl", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
-    for address in (PICKUP_ACTIVE, PICKUP_COLLECTED):
+    for address in ((PICKUP_ACTIVE, PICKUP_COLLECTED, ACTOR_REACTION_TICK, ACTOR_REACTION_TICK+1, ACTOR_REACTION, ACTOR_REACTION_RESERVED) if SABLE_ART else (PICKUP_ACTIVE, PICKUP_COLLECTED)):
         a.ld_a_abs(address); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.ret()
     a.label("actor_load")
     a.call("actor_pointer"); a.ld_rr_nn("de", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
-    for address in (PICKUP_ACTIVE, PICKUP_COLLECTED):
+    for address in ((PICKUP_ACTIVE, PICKUP_COLLECTED, ACTOR_REACTION_TICK, ACTOR_REACTION_TICK+1, ACTOR_REACTION, ACTOR_REACTION_RESERVED) if SABLE_ART else (PICKUP_ACTIVE, PICKUP_COLLECTED)):
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.ret()
     a.label("save_primary_actor")
@@ -53,6 +53,7 @@ def emit_actors(a: Assembler) -> None:
     a.call("save_primary_actor")
     a.label("actor_update_loop")
     a.call("actor_load"); a.call("collect_pickup_and_exit")
+    if SABLE_ART: a.call("expire_actor_reaction")
     a.ld_a_abs(SIM_TICK); a.and_n(AI_TICK_INTERVAL - 1); a.jr("actor_update_store", "nz")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.jr("actor_update_store", "z")
     a.call("sentinel_ai_tick")
@@ -113,3 +114,17 @@ def emit_actors(a: Assembler) -> None:
     a.call("select_nearest_actor"); a.ld_a_abs(ACTOR_BEST); a.cp_n(255); a.jp("restore_primary_actor", "z")
     a.ld_abs_a(ENTITY_SLOT); a.call("actor_load"); a.call("player_fire_single"); a.call("actor_save")
     a.call("check_all_actors_dead"); a.jp("restore_primary_actor")
+
+    if SABLE_ART and ART_ANIMATION:
+        a.label("render_cosmetic_deaths")
+        a.xor_r("a"); a.ld_abs_a(ENTITY_SLOT)
+        a.label("corpse_loop"); a.call("actor_load")
+        a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.jr("corpse_next","nz")
+        a.ld_a_abs(ACTOR_REACTION); a.cp_n(3); a.jr("corpse_next","nz")
+        from .animation import age
+        age(a,ACTOR_REACTION_TICK,FRAME_TICK)
+        a.ld_r_r("a","h"); a.or_r("a"); a.jr("corpse_next","nz")
+        a.ld_r_r("a","l"); a.cp_n(36); a.jr("corpse_next","nc")
+        a.call("render_sentinel_actor")
+        a.label("corpse_next"); a.call("actor_next"); a.jr("corpse_loop","nz")
+        a.jp("restore_primary_actor")

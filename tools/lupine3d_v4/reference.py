@@ -124,7 +124,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     d32 = min(511, (distance + 4) >> 3)
     perp32 = 511 if component == 0 else min(511, (d32 * corr + component // 2) // component)
     projection = tables["projection_half"]
-    top = 48 - projection[perp32]
+    top = HORIZON - projection[perp32]
     depth_q5 = min(255, perp32)
     if NEAR_FIELD:
         from .near_field import project_near_reference
@@ -251,7 +251,7 @@ def decorate_surface_events(
     events = 0
     for i in range(1, PHYSICAL_COLUMNS):
         if segments[i - 1] != segments[i]:
-            if tops[i] <= 40:
+            if tops[i] <= HORIZON - 8:
                 decorated[i] = CREASE_STYLE
             events += 1
         elif keys[i - 1] != keys[i]:
@@ -269,13 +269,13 @@ def decorate_surface_events(
               (keys[i], segments[i], alongs[i]) == (keys[start], segments[start], alongs[start])):
             i += 1
         end = i - 1
-        if tops[start] <= 40:
+        if tops[start] <= HORIZON - 8:
             decorated[start] = CREASE_STYLE
-        if tops[end] <= 40:
+        if tops[end] <= HORIZON - 8:
             decorated[end] = CREASE_STYLE
         if end - start + 1 >= 3:
             middle = (start + end) // 2
-            if tops[middle] <= 32:
+            if tops[middle] <= HORIZON - 16:
                 decorated[middle] = DOOR_SPINE_STYLE
                 if middle + 1 <= end:
                     decorated[middle + 1] = DOOR_SPINE_STYLE
@@ -376,9 +376,11 @@ def reference_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: 
 
 def reference_strip_state(top: int, tile_y0: int) -> int:
     """Host equivalent of ``compute_strip_state`` in the ROM."""
+    if SLIM_DISPLAY and tile_y0 == 56 and top in (57,58):
+        return top - 38
     if tile_y0 + 7 < top:
         return 0
-    bottom = 96 - top
+    bottom = VIEW_HEIGHT - top
     if tile_y0 >= bottom:
         return 1
     if tile_y0 < top:
@@ -409,7 +411,7 @@ def reference_tile_signature_and_bytes(
             color = 0 if region == "ceiling" else 1 if region == "floor" else wall_color(style, pixel, row)
             top_edge = 3 <= state <= 10 and row == state - 3
             bottom_edge = 11 <= state <= 18 and row == state - 11
-            if region == "wall" and (top_edge or bottom_edge):
+            if region == "wall" and (top_edge or bottom_edge or (state in (19,20) and row in (state-18,25-state))):
                 color = 3
             if color & 1:
                 tile[row * 2] |= mask
@@ -434,7 +436,7 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
         raise ValueError(f"expected {PHYSICAL_COLUMNS} physical-pixel descriptors")
 
     dynamic = bytearray()
-    view_map = bytearray([CEILING_TILE] * (12 * 32))
+    view_map = bytearray([CEILING_TILE] * VIEW_MAP_BYTES)
     overflow = False
     atlas = tile_atlas_signature_map()
 
@@ -448,17 +450,17 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
         detail_mask = surface_detail_mask(col_styles)
         static_wall_tile = make_seam_tile_lookup()[dark_mask]
 
-        for tile_row in range(6 if FOLDED_COMPOSITOR else 12):
+        for tile_row in range(FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS):
             y0 = tile_row * 8
             if y0 + 7 < min_top:
                 tile_id = CEILING_TILE
-            elif y0 >= 96 - min_top:
+            elif y0 >= VIEW_HEIGHT - min_top:
                 tile_id = FLOOR_TILE
             elif (y0 == SURFACE_RAIL_Y0 and detail_mask == 0xFF
                   and dark_mask in (0x00, 0xFF)
-                  and y0 >= max_top and y0 + 7 < 96 - max_top):
+                  and y0 >= max_top and y0 + 7 < VIEW_HEIGHT - max_top):
                 tile_id = SURFACE_RAIL_TILE_BASE + int(dark_mask == 0xFF)
-            elif (y0 >= max_top and y0 + 7 < 96 - max_top and static_wall_tile
+            elif (y0 >= max_top and y0 + 7 < VIEW_HEIGHT - max_top and static_wall_tile
                   and not (y0 == SURFACE_RAIL_Y0 and detail_mask)):
                 tile_id = static_wall_tile
             else:
@@ -477,6 +479,6 @@ def reference_compose_view(tops: list[int], styles: list[int]) -> tuple[bytes, b
                         dynamic.extend(tile)
             view_map[tile_row * 32 + tile_col] = tile_id
             if FOLDED_COMPOSITOR:
-                view_map[(11 - tile_row) * 32 + tile_col] = tile_id
+                view_map[(VIEW_ROWS - 1 - tile_row) * 32 + tile_col] = tile_id
 
     return bytes(dynamic), bytes(view_map), len(dynamic) // 16, overflow

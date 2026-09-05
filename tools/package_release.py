@@ -33,6 +33,7 @@ ARCHIVE_ROOT = f"{PROJECT_SLUG}_v{VERSION}"
 TOP_LEVEL_FILES = (
     ".gitignore",
     "AGENTS.md",
+    "CONTRIBUTING.md",
     "LICENSE",
     "Makefile",
     "NOTICE.md",
@@ -148,6 +149,15 @@ def ensure_required_outputs(root: Path) -> None:
         raise RuntimeError("missing release outputs: " + ", ".join(missing))
 
 
+def qualification_directory(root: Path) -> Path:
+    current = root / "build" / "rendering_qualification"
+    if (current / "report.json").is_file():
+        return current
+    # Release CI may reuse executed sustained/core evidence only when it binds
+    # to the identical rebuilt ROM. Validation below checks every file hash.
+    return root / "milestones" / f"v{VERSION}" / "qualification"
+
+
 def validate_verification_report(root: Path) -> dict[str, object]:
     report_path = root / "build" / "verification_report.json"
     report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -171,22 +181,30 @@ def validate_verification_report(root: Path) -> dict[str, object]:
         route = result["driven_route"]
         if not route["full_geometry_only"] or route["updates"] != 11 or route["gdma_vblank_violations"]:
             raise RuntimeError("atlas full-composition route failed")
-    rendering_path = root / "build" / "rendering_qualification" / "report.json"
-    if rendering_path.is_file():
-        rendering = json.loads(rendering_path.read_text())
-        if not rendering["passed"] or rendering["rom_sha256"] != report["rom"]["sha256"]:
-            raise RuntimeError("rendering qualification belongs to another ROM or failed")
-        for entry in rendering["evidence"].values():
-            if sha256_file(rendering_path.parent / entry["path"]) != entry["sha256"]:
-                raise RuntimeError("rendering evidence changed: " + entry["path"])
+    rendering_path = qualification_directory(root) / "report.json"
+    if not rendering_path.is_file():
+        raise RuntimeError("missing ROM-bound release qualification; run qualify_sable_release.py")
+    rendering = json.loads(rendering_path.read_text())
+    if (not rendering["passed"] or rendering["rom_sha256"] != report["rom"]["sha256"]
+            or rendering.get("version") != VERSION
+            or rendering.get("physical_hardware_tested") is not False):
+        raise RuntimeError("rendering qualification belongs to another ROM/version or failed")
+    for entry in rendering["evidence"].values():
+        if sha256_file(rendering_path.parent / entry["path"]) != entry["sha256"]:
+            raise RuntimeError("rendering evidence changed: " + entry["path"])
     return report
 
 
 def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     python = sys.executable
-    run([python, "research/build_tile_atlas_v4.py", "--verify-assets"], ROOT)
+    # Authored atlas keys use the original 96-line training domain. The
+    # production translated lookup domain is independently checked below.
+    run([python, "research/build_tile_atlas_v4.py", "--verify-assets"], ROOT,
+        env_overrides={"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy",
+                       "LUPINE3D_ART_ANIMATION": "0"})
     run([python, "tools/build_rom.py"], ROOT)
-    run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT, timeout=600)
+    run([python, "tools/run_tests.py"], ROOT, timeout=600)
+    run([python, "tools/check_sable.py", "--output-dir", "build/v08/art-checks"], ROOT)
     # Versioned research/results files are retained historical evidence.
     # Current comparisons write separately and use identical oracle geometry.
     benchmark_env = {
@@ -201,7 +219,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",
     ], ROOT)
-    run([python, "tools/playthrough.py"], ROOT)
+    run([python, "tools/playthrough.py", "--restart"], ROOT)
     run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
          "--output-dir", "build/playtest/sable_art_tour"], ROOT)
     run(["make", "variants"], ROOT)
@@ -254,11 +272,11 @@ def iter_source_files() -> Iterable[tuple[Path, Path]]:
         source = ROOT / "build" / name
         if source.is_file():
             yield source, Path("build") / name
-    rendering = ROOT / "build" / "rendering_qualification"
+    rendering = qualification_directory(ROOT)
     if (rendering / "report.json").is_file():
         for source in sorted(rendering.rglob("*")):
             if source.is_file() and not source.is_symlink():
-                yield source, source.relative_to(ROOT)
+                yield source, Path("build/rendering_qualification") / source.relative_to(rendering)
 
 
 def stage_source_tree(stage_root: Path) -> None:
@@ -279,7 +297,7 @@ def build_and_compare(
     test_result: subprocess.CompletedProcess[str] | None = None
     if run_tests:
         test_result = run(
-            [python, "-m", "unittest", "discover", "-s", "tests", "-v"],
+            [python, "tools/run_tests.py"],
             root,
             capture=True,
             timeout=600,
@@ -494,7 +512,7 @@ def package(
     external_manifest = {
         "project": "Lupine 3D",
         "version": VERSION,
-        "publication_status": "local package verified; original-hardware qualification pending",
+        "publication_status": "emulator-qualified package; physical hardware unavailable",
         "physical_hardware_tested": False,
         "rom": {
             "bytes": len(expected_rom),

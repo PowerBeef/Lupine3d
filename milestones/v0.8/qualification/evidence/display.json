@@ -1,0 +1,93 @@
+{
+  "schema": "sable.display.v2",
+  "legacy_sha256": "48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99",
+  "compact_geometry_sha256": "ef105848d695431e4ad491b73e4524aa42c45bf561160bc10dd60d0a6977a706",
+  "world_objects_hidden_for_geometry_comparison": true,
+  "scenes": [
+    {
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": false,
+      "tile_boundary_accent_changes": 176,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": false,
+      "tile_boundary_accent_changes": 8,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        896,
+        2432,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": false,
+      "tile_boundary_accent_changes": 144,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        2176,
+        2176,
+        0
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": true,
+      "tile_boundary_accent_changes": 0,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        2432,
+        2688,
+        64
+      ],
+      "unclipped_columns": 0,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": true,
+      "tile_boundary_accent_changes": 0,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "unclipped_columns": 0,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": true,
+      "tile_boundary_accent_changes": 0,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "unclipped_columns": 105,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": false,
+      "tile_boundary_accent_changes": 172,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    }
+  ],
+  "passed": true
+}

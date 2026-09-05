@@ -1,0 +1,24 @@
+{
+  "schema": "sable.hud-spacing-qualification.v1",
+  "rom_sha256": "a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb",
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "hud_theme": "steel-objective-spaced-v1",
+  "hud_patterns": 94,
+  "hud_pattern_capacity": 96,
+  "hud_packet_bytes": 16,
+  "hud_status_pattern_format": {
+    "version": 2,
+    "vertical_pair_ids": true,
+    "lower_tile_id_delta": 1,
+    "extra_map_writes_per_commit": 6
+  },
+  "resident_free_bytes": 3123,
+  "fixed_rom_free_bytes": 1776,
+  "tests_passed": 140,
+  "tests_log_sha256": "ca03323054eda12fbf1cc84390965bdeb3a7a14a2e49d62c0b8a88eda9f8042e",
+  "publication_delta_cpu_t_cycles": 108,
+  "timing_scope": "Direct subroutine comparison; no new sustained benchmark",
+  "physical_hardware_tested": false,
+  "published_release": false,
+  "passed": true
+}

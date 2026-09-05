@@ -99,5 +99,5 @@ def emit_actor_precision(a: Assembler):
     a.ld_a_abs(DECAL_PROJECTING); a.or_r("a"); a.jr("actor_precision_foot","nz"); a.call("choose_entity_lod")
     a.label("actor_precision_foot")
     for i,value in enumerate((0,30,0,0)): a.ld_r_n("a",value); a.ld_abs_a(Q14_PRODUCT+i)  # 30*256
-    a.call("actor_project_ratio"); a.ld_a_abs(Q14_PRODUCT); a.add_a_n(48); a.cp_n(97)
-    a.jp("entity_foot_in_view","c"); a.ld_r_n("a",96); a.jp("entity_foot_in_view")
+    a.call("actor_project_ratio"); a.ld_a_abs(Q14_PRODUCT); a.add_a_n(HORIZON); a.cp_n(VIEW_HEIGHT+1)
+    a.jp("entity_foot_in_view","c"); a.ld_r_n("a",VIEW_HEIGHT); a.jp("entity_foot_in_view")

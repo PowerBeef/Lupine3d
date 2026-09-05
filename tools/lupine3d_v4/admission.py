@@ -7,17 +7,17 @@ from .layout import *
 
 
 def emit_admission(a: Assembler):
-    if not SCANLINE_ADMISSION: return
+    if not (SCANLINE_ADMISSION or SABLE_ART): return
     a.label("seed_foreground_scanlines")
     # Predict the submitted muzzle without decrementing the snapshot's FLASH.
     # A foreground event may activate it between world commits, so that mode
     # reserves its maximum Y occupancy even while the current flash is hidden.
     if not FOREGROUND_PUBLICATION:
-        a.ld_a_abs(FLASH); a.or_r("a"); a.ld_r_n("a",0); a.jr("seed_muzzle_ready","z"); a.ld_r_n("a",72)
+        a.ld_a_abs(FLASH); a.or_r("a"); a.ld_r_n("a",0); a.jr("seed_muzzle_ready","z"); a.ld_r_n("a",VIEW_HEIGHT - 24)
         a.label("seed_muzzle_ready"); a.ld_abs_a(OAM_SHADOW+9*4)
     for index in range(ENTITY_OAM_FIRST):
         end=f"seed_ui_{index}_done"
-        if FOREGROUND_PUBLICATION and index==9: a.ld_r_n("a",72)
+        if FOREGROUND_PUBLICATION and index==9: a.ld_r_n("a",VIEW_HEIGHT - 24)
         else: a.ld_a_abs(OAM_SHADOW+index*4)
         a.or_r("a"); a.jr(end,"z"); a.cp_n(160); a.jr(end,"nc")
         a.ld_r_r("c","a"); a.sub_n(16); a.jr(f"seed_ui_{index}_start","nc"); a.xor_r("a")
@@ -52,7 +52,7 @@ def emit_admission(a: Assembler):
     a.label("admission_strip_next")
     a.ld_rr_nn("de",5); a.add_hl_rr("de"); a.dec_r("c"); a.jr("admission_count_overlap","nz")
     a.label("admission_line_ready")
-    a.ld_r_r("a","b"); a.cp_n(11); a.jr("admission_fail","nc")
+    a.ld_r_r("a","b"); a.cp_n(11 if SCANLINE_ADMISSION else 5); a.jr("admission_fail","nc")
     a.ld_rr_nn("hl",ADMISSION_LINE); a.inc_r("(hl)"); a.ld_a_hl(); a.cp_n(144); a.jr("admission_line_loop","c")
     a.ld_r_n("a",1); a.ret()
     a.label("admission_fail"); a.xor_r("a"); a.ret()

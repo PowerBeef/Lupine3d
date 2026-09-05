@@ -1,0 +1,254 @@
+{
+  "schema": "lupine3d.quality-budget.v1",
+  "timing_unit": "cpu_t_cycles",
+  "formula": "Q <= (B + P) / 2",
+  "baseline_sha256": "8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3",
+  "performance_sha256": "48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99",
+  "quality_sha256": "b261d21913255efc9a74d7be4c0b5f46b40f9cf1fec5bf3bb50dd5785c7142a0",
+  "cases": {
+    "walking": {
+      "metrics": {
+        "mean": {
+          "baseline": 1212118.0827250609,
+          "performance": 1151487.3287356321,
+          "quality": 1348012.761394102,
+          "limit": 1181802.7057303465,
+          "remaining_cycles": -166210.0556637554,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1264528,
+          "performance": 1264268,
+          "quality": 1404520,
+          "limit": 1264398.0,
+          "remaining_cycles": -140122.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+      "sample_counts": {
+        "baseline": 411,
+        "performance": 435,
+        "quality": 373
+      },
+      "full_geometry_hz": 6.217777454212453,
+      "ten_hz_target_reached": false
+    },
+    "turning": {
+      "metrics": {
+        "mean": {
+          "baseline": 921810.3486238532,
+          "performance": 866183.9103448276,
+          "quality": 1058544.7073684211,
+          "limit": 893997.1294843403,
+          "remaining_cycles": -164547.57788408082,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1123780,
+          "performance": 983424,
+          "quality": 1264052,
+          "limit": 1053602.0,
+          "remaining_cycles": -210450.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "e40db87604e474c948ef26afb790c785927af1fd12429e84c42f751fed55d7d7",
+      "sample_counts": {
+        "baseline": 545,
+        "performance": 580,
+        "quality": 475
+      },
+      "full_geometry_hz": 7.918081334324494,
+      "ten_hz_target_reached": false
+    },
+    "walking_turning": {
+      "metrics": {
+        "mean": {
+          "baseline": 980133.2475633528,
+          "performance": 906581.8555956678,
+          "quality": 1122341.017857143,
+          "limit": 943357.5515795103,
+          "remaining_cycles": -178983.46627763263,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1123924,
+          "performance": 1123992,
+          "quality": 1264068,
+          "limit": 1123958.0,
+          "remaining_cycles": -140110.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "0573d0c872b579050b4f6db7649d24b6dbc38bced15c76f4b6ec111bf1b716e1",
+      "sample_counts": {
+        "baseline": 513,
+        "performance": 554,
+        "quality": 448
+      },
+      "full_geometry_hz": 7.468000862275632,
+      "ten_hz_target_reached": false
+    },
+    "moving_fire": {
+      "metrics": {
+        "mean": {
+          "baseline": 978764.1481481482,
+          "performance": 906581.8267148015,
+          "quality": 1124851.812080537,
+          "limit": 942672.9874314748,
+          "remaining_cycles": -182178.82464906212,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1123944,
+          "performance": 1123916,
+          "quality": 1264116,
+          "limit": 1123930.0,
+          "remaining_cycles": -140186.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "266a8d0dd8fe5f5fdf3bf9b9697a4e230234df9589a5ed0a34870b79b44df9d9",
+      "sample_counts": {
+        "baseline": 513,
+        "performance": 554,
+        "quality": 447
+      },
+      "full_geometry_hz": 7.451331217493767,
+      "ten_hz_target_reached": false
+    },
+    "open_door": {
+      "metrics": {
+        "mean": {
+          "baseline": 1271866.97721519,
+          "performance": 1225335.3073170732,
+          "quality": 1419982.3615819209,
+          "limit": 1248601.1422661315,
+          "remaining_cycles": -171381.2193157894,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1404404,
+          "performance": 1264160,
+          "quality": 1544932,
+          "limit": 1334282.0,
+          "remaining_cycles": -210650.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+      "sample_counts": {
+        "baseline": 395,
+        "performance": 410,
+        "quality": 354
+      },
+      "full_geometry_hz": 5.901054299686044,
+      "ten_hz_target_reached": false
+    },
+    "closed_door": {
+      "metrics": {
+        "mean": {
+          "baseline": 1035855.6041237114,
+          "performance": 963201.8349328215,
+          "quality": 1225347.531707317,
+          "limit": 999528.7195282665,
+          "remaining_cycles": -225818.81217905064,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1124580,
+          "performance": 1124568,
+          "quality": 1264064,
+          "limit": 1124574.0,
+          "remaining_cycles": -139490.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+      "sample_counts": {
+        "baseline": 485,
+        "performance": 521,
+        "quality": 410
+      },
+      "full_geometry_hz": 6.834554197587166,
+      "ten_hz_target_reached": false
+    },
+    "two_actor_corner": {
+      "metrics": {
+        "mean": {
+          "baseline": 1348764.4289544236,
+          "performance": 1283439.989769821,
+          "quality": 1522386.8363636364,
+          "limit": 1316102.2093621222,
+          "remaining_cycles": -206284.6270015142,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1825784,
+          "performance": 1685396,
+          "quality": 1966252,
+          "limit": 1755590.0,
+          "remaining_cycles": -210662.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "f90e0f8324bc70e82c129e8eacc4afa8ae9566fd40c4e36d045d5b4b4ee8c924",
+      "sample_counts": {
+        "baseline": 373,
+        "performance": 391,
+        "quality": 330
+      },
+      "full_geometry_hz": 5.500982996644017,
+      "ten_hz_target_reached": false
+    },
+    "opening_door": {
+      "metrics": {
+        "mean": {
+          "baseline": 1180695.2,
+          "performance": 1096428.0,
+          "quality": 1405433.6,
+          "limit": 1138561.6,
+          "remaining_cycles": -266872.0,
+          "passed": false
+        },
+        "p95": {
+          "baseline": 1404896,
+          "performance": 1264456,
+          "quality": 1685380,
+          "limit": 1334676.0,
+          "remaining_cycles": -350704.0,
+          "passed": false
+        }
+      },
+      "passed": false,
+      "input_replay_sha256": "fffc348977a8ff5840340a681c797b1adfcd6f703ffdd90ecf193460efa723a1",
+      "sample_counts": {
+        "baseline": 5,
+        "performance": 5,
+        "quality": 5
+      },
+      "full_geometry_hz": 0.0833482225843052,
+      "ten_hz_target_reached": false
+    }
+  },
+  "passed": false,
+  "scope": "Timing budget only; correctness, resource, visual and publication gates remain separate",
+  "eligible_for_promotion": false,
+  "default_enabled": true,
+  "promotion_basis": "Owner explicitly accepted the art and enlarged-viewport performance tradeoff; the mathematical gate is unchanged",
+  "original_report_sha256": {
+    "build/experiments/strips-sustained/motion_benchmark.json": "ee70bda36a158c8e77c1f53ba04f9e64cb789ceb9d64f4c2cad3e338d185cd62",
+    "build/experiments/performance-sustained/motion_benchmark.json": "a0af5cbc7509957b59cd1813e634f4b638a9ff6f3567f2961274c507a643c778",
+    "build/experiments/contention-visible/motion_benchmark.json": "c994ef5c22f3b72f037ce8130b8a3cd8540b84c25ae46ce14a2075bd9a9d556c",
+    "build/experiments/door-interaction-sustained/motion_benchmark.json": "34333b2d0e9d6850d93d3c37b5faabaa0a7b82b0618cc985de05c22e44824397"
+  },
+  "quality_report_sha256": "40fe85804d277e50ea5c4460af1d08a37017863b91508442385d2f55bbac00c4"
+}

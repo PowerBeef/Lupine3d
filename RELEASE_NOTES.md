@@ -1,3 +1,25 @@
+# Lupine 3D v0.8 — Sable Outpost
+
+A visual overhaul with native animated sprites, a larger world view and a cleaner steel HUD.
+
+- Expand the world from 160×96 to **160×120** while cutting the HUD from 48 to **24 pixels**. Preserve horizontal FOV and projection scale.
+- Make the original Sable art and animation the default: five shotgun cels, two flashes, twelve Sentinel frames at three sizes and four helmet states. Include generated masters, native indexed sources, metadata and deterministic compilation.
+- Replace the cluttered panel with readable health, the approved armoured helmet, an enemies-remaining skull and **GOAL / HUNT → GOAL / EXIT**. Keep the upper/lower rails intact and space objective text below the top border.
+- Preserve coherent snapshots, pending fire feedback, immediate gameplay death and bounded cosmetic death animation. Preload weapon cels and animate through OAM references.
+- Qualify the taller display with 480-byte staging and bounded hidden-map CPU copies. Keep the 176-block staged GDMA ceiling, object/mask limits and 3,000-byte resident reserve.
+- Retain legacy artwork, the exact beta.6 ROM path, historical oracles and disabled rendering experiments. Reprojection and foreground-only feedback remain off.
+- Overhaul the README, development/art/architecture guides, test report and AGENTS.md. Correct research tooling to use explicit viewport domains and preserve archived results.
+
+**Performance:** active sustained scenes measure **5.50–7.92 full geometry updates/s**. The larger view and animation miss the original mean/p95 half-gains budget; the owner explicitly accepted that visual tradeoff. The ten-full-updates/s target remains unmet. Cached presentations are counted separately.
+
+**Qualification:** 140 tests, 86 release checks, nine current RGB fixtures, 53 frozen wall-reuse comparisons, controller-only completion/restart, eight sustained scenarios and 87 frozen scenes matching pinned SameBoy CGB-0/E and mGBA. Source archives rebuild byte-for-byte and run the suite after extraction. Emulator-qualified only; physical hardware and original boot-ROM testing are unavailable.
+
+**ROM SHA-256:** `a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb`.
+
+Download `Lupine3D_v0.8.gb` to play or the `_complete.zip` for source, assets and evidence. See [the v0.8 test report](docs/TEST_REPORT.md), [architecture](docs/ARCHITECTURE.md) and [development guide](docs/DEVELOPMENT.md).
+
+---
+
 # Lupine 3D 0.7.0-beta.6 — Rendering qualification
 
 - Enable compact folded strips, invariant camera setup, narrow cooperative-yield contexts and exact attribute padding. The existing nine-image visual oracle and 53 frozen comparisons remain exact.
@@ -12,7 +34,7 @@
 
 Production ROM SHA-256: `48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99`.
 See [implementation and evidence](docs/RENDERING_IMPLEMENTATION.md) and the
-[current test report](docs/TEST_REPORT.md). The version update changes release
+[beta.6 test report](docs/TEST_REPORT_BETA6.md). The version update changes release
 metadata; the production ROM is byte-identical to the qualified performance
 milestone.
 

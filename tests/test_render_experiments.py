@@ -123,7 +123,7 @@ class ObservationContracts(unittest.TestCase):
 
     def test_production_defaults_preserve_historical_diagnostic_commands(self):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
-                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"})
+                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation"})
         for legacy, experiment in (("FOLDED", "COMPACT_STRIPS"),
                                    ("PREPARED_RAYS", "CAMERA_SETUP"),
                                    ("REPROJECTION", "NARROW_YIELDS")):

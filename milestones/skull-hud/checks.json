@@ -1,0 +1,276 @@
+{
+  "schema": "sable.qualification.v1",
+  "rom_sha256": "d377b4d38c9130260beff17c11db9fe78ba2a6f71cf29ba9f63d786c7cddc33e",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "projection_storage": "direct",
+    "display": "slim",
+    "art": "sable-v2",
+    "art_animation": true
+  },
+  "checks": {
+    "cold_art_and_raster_boundary": true,
+    "every_translated_atlas_pattern": true,
+    "centre_tile_two_boundary_coverage": true,
+    "complete_legal_strip_selector_domain": true,
+    "publication_cpu_and_dma_windows": true,
+    "geometry_and_all_published_rows": true,
+    "independent_near_plane_clipping": true,
+    "all_36_emitted_enemy_cels": true,
+    "weapon_phases_rapid_restarts_wrap_pending_flash": true,
+    "reaction_and_death_clock_wrap": true,
+    "hud_portraits_snapshot_packet_and_bounds": true,
+    "objective_transition_and_terminal_publication": true,
+    "continuous_divider_all_dynamic_states_and_both_maps": true,
+    "steel_chassis_and_portrait_highlights_all_states": true,
+    "hud_icon_exit_and_all_actor_counts": true,
+    "atomic_capacity_fallback_no_partial_actor": true,
+    "snapshot_and_reload_clock_ownership": true,
+    "terminal_state_wrap_cannot_replay_cosmetics": true
+  },
+  "assets": {
+    "schema": "sable.native.v1",
+    "sha256": "56d1ddd721bd5c0c892d9d80704362b6c9a59cbd7aed1f5eab114a0ce9b19741",
+    "assets": {
+      "sentinel_near": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360",
+      "sentinel_mid": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914",
+      "sentinel_far": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64",
+      "shotgun": "5aadb2e7f6845e2f4cb11a9685516a1ffec9f5d468ea98e7c64ba4adda6cea00",
+      "helmet": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c",
+      "flash": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448",
+      "reticle": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9",
+      "hud": "9cde69004789a336a1ddc05beeebc63590498668f18a57952071d6260d816218",
+      "hud_slim": "a44b1d2552c0f661cfd5f215ffbb6445a6359dc317b23d13a67df27e4370e7e4",
+      "hud_steel": "9e2541d386d69b5eb0f3c3450d4babceb315f7dd1663e6fd491c5ae5eb700d96",
+      "helmet_steel": "c9e595bbc583df33c95dbeae9970c98a9b1fd4fa50a9eeb444ea64c3d59bc362"
+    }
+  },
+  "publication_windows": [
+    {
+      "dynamic": 0,
+      "mask": 0,
+      "blocks": 48,
+      "commit_ly": 152,
+      "staged": false
+    },
+    {
+      "dynamic": 8,
+      "mask": 0,
+      "blocks": 56,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 0,
+      "blocks": 57,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 16,
+      "blocks": 64,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 18,
+      "blocks": 66,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 32,
+      "blocks": 80,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 16,
+      "blocks": 72,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 16,
+      "blocks": 73,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 24,
+      "mask": 0,
+      "blocks": 72,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 25,
+      "mask": 0,
+      "blocks": 73,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 48,
+      "mask": 0,
+      "blocks": 96,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 49,
+      "mask": 0,
+      "blocks": 97,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 16,
+      "mask": 32,
+      "blocks": 96,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 17,
+      "mask": 32,
+      "blocks": 97,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 71,
+      "mask": 0,
+      "blocks": 119,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 72,
+      "mask": 0,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 73,
+      "mask": 0,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 40,
+      "mask": 32,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 41,
+      "mask": 32,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 0,
+      "blocks": 144,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 16,
+      "blocks": 160,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 32,
+      "blocks": 176,
+      "commit_ly": 152,
+      "staged": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "pose-0.png",
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "pixels_sha256": "23cf8cd755d58ad57bc68d372813bce1926ae959854899c60b2572771cadf305"
+    },
+    {
+      "file": "pose-1.png",
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "pixels_sha256": "22652fae3babec9a4fb2786ce7be33c61af695a37b2f1be0d2eb13901d06e4d6"
+    },
+    {
+      "file": "pose-2.png",
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "pixels_sha256": "c0581effa063cbbd4bc3cbb21538b20de2d19e7b5ee94e2f32b6361d986f033c"
+    },
+    {
+      "file": "pose-3.png",
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "pixels_sha256": "46f96ca10f3083ac74021634678db408009ff2ff2fbbf6dc42071af2742c98f9"
+    },
+    {
+      "file": "pose-4.png",
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "pixels_sha256": "f66b663dec56489098a73d2a4f4d27e2c46e85ed9f1b45691b0739f1c2a072c8"
+    },
+    {
+      "file": "pose-5.png",
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "pixels_sha256": "dfe170410b9ef44ab47f158f376094a7f57d75b560c567a172f8ee10fffd65b6"
+    }
+  ],
+  "physical_hardware_tested": false,
+  "passed": true
+}

@@ -145,7 +145,7 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "view_map_exact": read_block(cgb, br.VIEW_MAP, len(view_map)) == view_map,
         "no_dynamic_overflow": not overflow and cgb.read8(br.DYN_OVERFLOW) == 0,
         "pixel_surface_profiles_exact": list(read_block(cgb, br.PIXEL_SURFACE, 160)) == pixel[10],
-        "surface_attribute_packet_exact": read_block(cgb, br.VIEW_ATTRIBUTES, 384) == br.surface_attributes(pixel[10], cgb.read8(br.CURRENT_PAGE)),
+        "surface_attribute_packet_exact": read_block(cgb, br.VIEW_ATTRIBUTES, br.VIEW_MAP_BYTES) == br.surface_attributes(pixel[10], cgb.read8(br.CURRENT_PAGE)),
         "input_queue_no_overflow": cgb.read8(br.INPUT_QUEUE_OVERFLOW) == 0,
     }
     page = cgb.read8(br.CURRENT_PAGE)
@@ -153,8 +153,8 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         checks["queried_physical_depth_exact"] = all(cgb.read8(br.PIXEL_DEPTH+x)==depth for x,depth in physical_depths.items())
         checks["no_unqueried_actor_depth"] = cgb.read8(br.PHYSICAL_DEPTH_MISSING)==0
     offset = 0x1C00 if page else 0x1800
-    checks["published_map_exact"] = bytes(cgb.vram[0][offset:offset+384]) == view_map
-    checks["published_attributes_exact"] = bytes(cgb.vram[1][offset:offset+384]) == br.surface_attributes(pixel[10], page)
+    checks["published_map_exact"] = bytes(cgb.vram[0][offset:offset+br.VIEW_MAP_BYTES]) == view_map
+    checks["published_attributes_exact"] = bytes(cgb.vram[1][offset:offset+br.VIEW_MAP_BYTES]) == br.surface_attributes(pixel[10], page)
     if cgb.explicit_presentations:
         mask_bytes = cgb.read8(br.MASK_TILE_COUNT) * 16
         obj_page = cgb.read8(br.OBJ_PAGE)
@@ -387,7 +387,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rom", type=Path, default=ROOT / "build" / "lupine3d.gb")
     parser.add_argument("--symbols", type=Path, default=ROOT / "build" / "lupine3d.sym")
-    parser.add_argument("--scenario", type=Path, default=ROOT / "playtests" / "coherence_tour.json")
+    parser.add_argument("--scenario", type=Path, default=ROOT / "playtests" / ("sable_objective_spaced_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART else "coherence_tour.json"))
     parser.add_argument("--output-dir", type=Path, default=ROOT / "build" / "playtest" / "coherence_tour")
     parser.add_argument("--record-all", action="store_true")
     args = parser.parse_args()

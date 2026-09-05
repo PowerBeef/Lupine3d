@@ -68,7 +68,7 @@ def emit_surface_scan(a: Assembler):
     a.ld_a_abs(EVENT_COUNT); a.inc_r("a"); a.ld_abs_a(EVENT_COUNT); a.jr("event_boundary_done")
     a.label("event_physical_break")
     column_pointer(a, PIXEL_TOPS)
-    a.ld_a_hl(); a.cp_n(41); a.jr("event_physical_lod_skip", "nc")
+    a.ld_a_hl(); a.cp_n(HORIZON - 7); a.jr("event_physical_lod_skip", "nc")
     column_pointer(a, PIXEL_STYLES)
     a.ld_hl_n(CREASE_STYLE)
     a.label("event_physical_lod_skip")

@@ -44,6 +44,7 @@ def emit_level_loader(a: Assembler) -> None:
         OAM_DIRTY, OAM_DEFERRED,
     ):
         a.ld_abs_a(address)
+    if SABLE_ART or COMPACT_DISPLAY: a.call("init_art_clocks")
     a.call("init_actors"); a.ret()
 
 
@@ -80,8 +81,8 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_abs_a(MASK_TILE_COUNT)
     a.ld_rr_nn("hl", WORLD_SCANLINES); a.ld_r_n("b", 144)
     a.label("clear_world_scanlines"); a.ldi_hl_a(); a.dec_r("b"); a.jr("clear_world_scanlines", "nz")
-    if SCANLINE_ADMISSION:
-        a.ld_abs_a(ADMISSION_MODE); a.call("seed_foreground_scanlines")
+    if SCANLINE_ADMISSION or SABLE_ART: a.ld_abs_a(ADMISSION_MODE)
+    if SCANLINE_ADMISSION: a.call("seed_foreground_scanlines")
     a.ld_r_n("a", 255); a.ld_abs_a(MASK_BITS)
     a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY); a.ret()
 
@@ -241,7 +242,7 @@ def emit_entity_projection(a: Assembler) -> None:
     # Wall projection places the floor at horizon + 30/depth-in-tiles.
     # Forward is Q4, so project the billboard's feet using 480/forward.
     a.ld_rr_nn("hl", 480); a.ld_a_abs(ENTITY_FORWARD); a.ld_r_r("b", "a"); a.call("div_u16_u8_sat")
-    a.add_a_n(48); a.cp_n(97); a.jr("entity_foot_in_view", "c"); a.ld_r_n("a", 96)
+    a.add_a_n(HORIZON); a.cp_n(VIEW_HEIGHT + 1); a.jr("entity_foot_in_view", "c"); a.ld_r_n("a", VIEW_HEIGHT)
     a.label("entity_foot_in_view"); a.add_a_n(16); a.ld_abs_a(ENTITY_FOOT_Y)
     a.ld_a_abs(DECAL_PROJECTING); a.or_r("a"); a.jr("entity_project_occlusion", "z")
     a.ld_r_n("a", 1); a.ld_abs_a(SENTINEL_VISIBLE); a.ret()
@@ -443,6 +444,8 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
     a.ld_r_n("a", SENTINEL_ATTACK); a.ld_abs_a(SENTINEL_STATE)
     a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
+    if SABLE_ART:
+        a.ld_r_n("a",1); a.call("stamp_actor_reaction"); a.call("stamp_player_hurt")
     a.ld_r_n("a", 8); a.ld_abs_a(SENTINEL_COOLDOWN)
     a.ld_a_abs(PLAYER_HEALTH); a.sub_n(8); a.jr("ai_health_store", "nc"); a.xor_r("a")
     a.label("ai_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("ai_animate")
@@ -518,7 +521,11 @@ def emit_world_update(a: Assembler) -> None:
     a.call("cast_one_v2")
     a.ld_a_abs(DEPTH_RESULT); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_DEPTH); a.cp_r("b"); a.ret("nc")
+    if SABLE_ART:
+        a.ld_r_n("a",2); a.call("stamp_actor_reaction")
     a.ld_a_abs(SENTINEL_HEALTH); a.dec_r("a"); a.ld_abs_a(SENTINEL_HEALTH); a.jr("sentinel_survived_hit", "nz")
+    if SABLE_ART:
+        a.ld_r_n("a",3); a.call("stamp_actor_reaction")
     a.ld_r_n("a", SENTINEL_DEAD); a.ld_abs_a(SENTINEL_STATE)
     a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE); a.ret()
     a.label("sentinel_survived_hit"); a.ld_r_n("a", SENTINEL_HURT); a.ld_abs_a(SENTINEL_STATE); a.ld_r_n("a", 3); a.ld_abs_a(SENTINEL_ANIM); a.ret()

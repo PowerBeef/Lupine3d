@@ -31,10 +31,10 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes):
         A("ROM", l.BOOT_ASSETS_ROM_BANK * 0x4000, l.BOOT_ASSETS_ROM_BANK * 0x4000 + boot_bytes, "boot art and authored state"),
         A("ROM", l.Q14_ROM_BANK * 0x4000, l.Q14_ROM_BANK * 0x4000 + l.Q14_ROM_BYTES, "Q14 directions"),
         A("ROM", l.RAY_SETUP_ROM_BANK * 0x4000, l.RAY_SETUP_ROM_BANK * 0x4000 + l.RAY_SETUP_ROM_BYTES, "prepared rays and packet padding"),
-        A("ROM", 237 * 0x4000, 237 * 0x4000 + 7296, "unfolded diagnostic strips (reserved)"),
+        A("ROM", 237 * 0x4000, 237 * 0x4000 + l.MICRO_STATE_COUNT*384, "unfolded diagnostic strips (reserved)"),
         A("WRAM0", 0xC000, 0xC600, "dynamic BG patterns", "composition through publication"),
-        A("WRAM0", 0xC600, 0xC780, "BG map", "composition through publication"),
-        A("WRAM0", 0xC780, 0xC790, "diagnostic strip scratch", "one strip lookup"),
+        A("WRAM0", 0xC600, 0xC600 + l.VIEW_MAP_BYTES, "BG map", "composition through publication"),
+        A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", 0xC8D0, 0xC8DE, "simulation/input clocks"),
@@ -55,6 +55,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes):
         A("WRAM1", 0xD3B0, 0xD3C4, "required physical-column coverage"),
         A("WRAM1", 0xD3C4, 0xD3D6, "Q8 actor transform scratch", "one uninterrupted projection"),
         A("WRAM1", 0xD3D6, 0xD3D8, "near-field perpendicular Q8 scratch", "one projection"),
+        A("WRAM1", 0xD3D8, 0xD400, "compact HUD packet and animation scratch"),
         A("WRAM1", 0xD400, 0xD720, "physical descriptors and ray depth/segments"),
         A("WRAM1", 0xD720, 0xD7A0, "snapshot world and entity projection"),
         A("WRAM1", 0xD800, 0xD8A0, "physical segments"),
@@ -64,7 +65,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes):
         A("WRAM1", 0xD8F0, 0xD8F7, "surface and prepared projection metadata"),
         A("WRAM1", 0xD900, 0xDA00, "scanlines, actor slots, decor and HUD"),
         A("WRAM1", 0xDA00, 0xDC00, "masked OBJ patterns"),
-        A("WRAM1", 0xDC00, 0xDD80, "BG attributes"),
+        A("WRAM1", 0xDC00, 0xDC00 + l.VIEW_MAP_BYTES, "BG attributes"),
         A("WRAM1", 0xDE00, 0xDE50, "ray surface profiles"),
         A("WRAM1", 0xDE80, 0xDF20, "physical surface profiles"),
         A("WRAM1", 0xDF20, 0xDF42, "wall cache metadata"),
@@ -92,6 +93,11 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes):
     for start, count in l.WORLD_COPY_RANGES:
         for low, high in reserved:
             assert start + count <= low or high <= start
+    assert l.EXIT_CELL_Y < l.SHOT_TICK < l.ART_STATE_END <= l.VRAM_PROFILE + 128
+    assert l.HUD_PACKET + l.HUD_PACKET_BYTES <= (0xD400 if l.COMPACT_DISPLAY else l.MASK_TILES)
+    assert l.WEAPON_TILE_BASE >= 32
+    assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128
+    assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*4 + 64 <= 256
     assert sum(count for _, count in l.WORLD_COPY_RANGES) == 457
     assert l.WORLD_COPY_BUFFER + 457 <= l.RENDER_HRAM_SAVE
     return dict(schema="lupine3d.allocations.v1", ranges=[asdict(r) for r in rows],

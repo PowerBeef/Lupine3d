@@ -1,0 +1,166 @@
+{
+  "schema": "lupine3d.motion.v2",
+  "candidate_sha256": "20273801b51ba7188d6d55d3b7a653cac4697883b98d18e5ea88ed703c0e2134",
+  "cases": {
+    "walking": {
+      "candidate": {
+        "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 382,
+          "mean": 1314782.7015706806,
+          "p50": 1264060,
+          "p95": 1404512,
+          "p99": 1404524,
+          "worst": 1404532
+        },
+        "full_geometry_updates_hz": 6.367807191774694,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "turning": {
+      "candidate": {
+        "input_replay_sha256": "e40db87604e474c948ef26afb790c785927af1fd12429e84c42f751fed55d7d7",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 475,
+          "mean": 1057066.2989473685,
+          "p50": 983164,
+          "p95": 1264044,
+          "p99": 1264076,
+          "worst": 1268924
+        },
+        "full_geometry_updates_hz": 7.918085047697823,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "walking_turning": {
+      "candidate": {
+        "input_replay_sha256": "0573d0c872b579050b4f6db7649d24b6dbc38bced15c76f4b6ec111bf1b716e1",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 452,
+          "mean": 1112098.0530973452,
+          "p50": 1123572,
+          "p95": 1264064,
+          "p99": 1404484,
+          "worst": 1404508
+        },
+        "full_geometry_updates_hz": 7.534683034861929,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "opening_door": {
+      "candidate": {
+        "input_replay_sha256": "fffc348977a8ff5840340a681c797b1adfcd6f703ffdd90ecf193460efa723a1",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 5,
+          "mean": 1293076.8,
+          "p50": 1264036,
+          "p95": 1544976,
+          "p99": 1544976,
+          "worst": 1544976
+        },
+        "full_geometry_updates_hz": 0.0833482603474214,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "moving_fire": {
+      "candidate": {
+        "input_replay_sha256": "266a8d0dd8fe5f5fdf3bf9b9697a4e230234df9589a5ed0a34870b79b44df9d9",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 452,
+          "mean": 1112098.0707964601,
+          "p50": 1123560,
+          "p95": 1264116,
+          "p99": 1404436,
+          "worst": 1404544
+        },
+        "full_geometry_updates_hz": 7.534683034861929,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "open_door": {
+      "candidate": {
+        "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 360,
+          "mean": 1394755.5555555555,
+          "p50": 1404476,
+          "p95": 1404524,
+          "p99": 1404532,
+          "worst": 1544892
+        },
+        "full_geometry_updates_hz": 6.001075222022378,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "closed_door": {
+      "candidate": {
+        "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 422,
+          "mean": 1189837.8388625593,
+          "p50": 1123628,
+          "p95": 1264068,
+          "p99": 1264080,
+          "worst": 1264084
+        },
+        "full_geometry_updates_hz": 7.034593452902066,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    },
+    "two_actor_corner": {
+      "candidate": {
+        "input_replay_sha256": "f90e0f8324bc70e82c129e8eacc4afa8ae9566fd40c4e36d045d5b4b4ee8c924",
+        "lcd_frame_counter_delta": 3584,
+        "full_frame_cycles": {
+          "count": 337,
+          "mean": 1492848.3442136499,
+          "p50": 1544892,
+          "p95": 1966240,
+          "p99": 2247128,
+          "worst": 2387656
+        },
+        "full_geometry_updates_hz": 5.617673104642216,
+        "observation": {
+          "timing_unit": "cpu_t_cycles",
+          "timing_reconciled": true,
+          "game_ram_writes_after_trial_start": 0
+        }
+      }
+    }
+  }
+}

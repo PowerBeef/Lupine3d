@@ -50,6 +50,23 @@ def resolve(environ=None):
     if storage != "direct" and "projection_storage" not in IMPLEMENTED:
         raise ValueError("Projection compaction has not been implemented")
     result["projection_storage"] = storage
+    # The owner accepted the compact art tradeoff. Historical incompatible
+    # diagnostics retain their implicit legacy profile; explicit conflicts fail.
+    legacy_diagnostic = (env.get("LUPINE3D_REPROJECTION", "0") == "1"
+                         or env.get("LUPINE3D_FIXED_SIM", "1") == "0"
+                         or result["foreground_publication"])
+    display = env.get("LUPINE3D_DISPLAY", "legacy" if legacy_diagnostic else "slim")
+    art = env.get("LUPINE3D_ART", "legacy" if display == "legacy" or legacy_diagnostic else "sable-v2")
+    animation = env.get("LUPINE3D_ART_ANIMATION", "1" if art == "sable-v2" else "0")
+    if display not in ("legacy", "compact", "slim") or art not in ("legacy", "sable-v2"):
+        raise ValueError("DISPLAY must be legacy/compact/slim; ART must be legacy/sable-v2")
+    if animation not in ("0", "1") or (animation == "1" and art != "sable-v2"):
+        raise ValueError("ART_ANIMATION requires sable-v2 art and a 0/1 value")
+    if (display != "legacy" or art == "sable-v2") and (result["foreground_publication"] or env.get("LUPINE3D_REPROJECTION", "0") == "1"):
+        raise ValueError("Compact display/new art exclude the experimental foreground/reprojection lanes")
+    if (display != "legacy" or art == "sable-v2") and env.get("LUPINE3D_FIXED_SIM", "1") == "0":
+        raise ValueError("Compact display/new art require accepted fixed simulation ticks")
+    result.update(display=display, art=art, art_animation=animation == "1")
     if result["compact_strips"] and env.get("LUPINE3D_FOLDED", "1") == "0":
         raise ValueError("Compact strips require folded rendering; disable COMPACT_STRIPS for the unfolded oracle")
     if result["anchor_packets"] and (env.get("LUPINE3D_Q14", "1") == "0" or env.get("LUPINE3D_PREPARED_RAYS", "1") == "0"):

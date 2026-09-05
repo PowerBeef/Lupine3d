@@ -83,6 +83,7 @@ def emit_hud_system(a: Assembler) -> None:
     """Large health/remaining-hostile digits and a literal exit-status label."""
     from .artwork import hud_assets
     a.label("prepare_hud_tiles")
+    if SABLE_ART: a.call("animate_weapon")
     for item, name in enumerate(("health", "hostiles")):
         if name == "health":
             a.ld_a_abs(PLAYER_HEALTH); a.cp_n(100); a.jr("hud_health_ready", "c")
@@ -97,36 +98,60 @@ def emit_hud_system(a: Assembler) -> None:
         a.ld_r_n("b", 0); a.label(f"hud_{name}_divide")
         a.cp_n(10); a.jr(f"hud_{name}_digits", "c")
         a.sub_n(10); a.inc_r("b"); a.jr(f"hud_{name}_divide")
-        a.label(f"hud_{name}_digits"); a.add_a_r("a"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("c", "a")
-        a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_n(HUD_DIGIT_BASE); a.ld_r_r("b", "a")
-        for row in (0,1):
+        a.label(f"hud_{name}_digits")
+        small = COMPACT_DISPLAY and item == 1
+        if not small: a.add_a_r("a")
+        a.add_a_n(HUD_SMALL_DIGIT_BASE if small else HUD_DIGIT_BASE); a.ld_r_r("c", "a")
+        a.ld_r_r("a", "b")
+        if not small: a.add_a_r("a")
+        a.add_a_n(HUD_SMALL_DIGIT_BASE if small else HUD_DIGIT_BASE); a.ld_r_r("b", "a")
+        for row in ((0,) if small else (0,1)):
             a.ld_rr_nn("hl", HUD_PACKET + item*4 + row*2)
-            a.ld_r_r("a", "b")
-            if row: a.inc_r("a")
-            a.ldi_hl_a(); a.ld_r_r("a", "c")
+            if not (SLIM_DISPLAY and item == 1):
+                a.ld_r_r("a", "b")
+                if row: a.inc_r("a")
+                a.ldi_hl_a()
+            a.ld_r_r("a", "c")
             if row: a.inc_r("a")
             a.ld_hl_a()
     a.ld_a_abs(EXIT_ACTIVE); a.and_n(1); a.ld_r_r("b", "a")
     a.ld_a_abs(PLAYER_HEALTH); a.or_r("a"); a.jr("hud_status_alive", "nz"); a.ld_r_n("b", 2)
     a.label("hud_status_alive"); a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("hud_status_ready", "z"); a.ld_r_n("b", 3)
     a.label("hud_status_ready")
-    a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_r("b"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_r_r("a", "b"); a.add_a_r("a")
+    if COMPACT_DISPLAY: a.add_a_r("a")
+    a.add_a_r("b"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "hud_status_records"); a.add_hl_rr("de")
-    for i in range(3):
-        a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + 8 + i)
+    for i in range(5 if COMPACT_DISPLAY else 3):
+        a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + HUD_STATUS_OFFSET + i)
+    if COMPACT_DISPLAY: a.jp("prepare_compact_hud")
     a.ret()
     a.label("update_hud_tiles")
     a.ld_rr_nn("hl", HUD_PACKET)
     a.xor_r("a"); a.ldh_n_a(VBK)
     for item, column in enumerate((HUD_HEALTH_TENS_X, HUD_STATUS_TENS_X)):
-        for row in (0,1):
-            for digit in (0,1):
+        for row in ((0,) if COMPACT_DISPLAY and item == 1 else (0,1)):
+            for digit in ((0,) if SLIM_DISPLAY and item == 1 else (0,1)):
                 a.ldi_a_hl()
                 for base in (0x9800, 0x9C00):
-                    a.ld_abs_a(base + (HUD_ROW+row)*32 + column + digit)
+                    a.ld_abs_a(base + ((HUD_HEALTH_ROW if item == 0 else HUD_ROW)+row)*32 + column + digit)
+    if COMPACT_DISPLAY:
+        for i in range(2):
+            a.ldi_a_hl()
+            for base in (0x9800, 0x9C00): a.ld_abs_a(base+HUD_CAPTION_ROW*32+HUD_CAPTION_X+i)
     for i in range(3):
         a.ldi_a_hl()
-        for base in (0x9800, 0x9C00): a.ld_abs_a(base+17*32+16+i)
+        for base in (0x9800, 0x9C00): a.ld_abs_a(base+HUD_STATUS_ROW*32+16+i)
+        if SLIM_DISPLAY:
+            # Paired source patterns carry the lowered glyph's last pixel row
+            # and the chassis rail. No new packet bytes or VRAM patterns are
+            # uploaded at runtime; A is overwritten by the next packet read.
+            a.inc_r('a')
+            for base in (0x9800,0x9C00):a.ld_abs_a(base+(HUD_STATUS_ROW+1)*32+16+i)
+    if COMPACT_DISPLAY:
+        for i in range(HUD_PORTRAIT_TILES):
+            a.ldi_a_hl()
+            for base in (0x9800,0x9C00):a.ld_abs_a(base+(HUD_PORTRAIT_ROW+i//2)*32+9+i%2)
     a.ret()
 def emit_vram_init(a: Assembler) -> None:
     def copy_atlas(length: int) -> None:
@@ -153,7 +178,7 @@ def emit_vram_init(a: Assembler) -> None:
     # The map upload covers all 32 bytes of each of the twelve viewport rows.
     # Initialize the hidden padding once instead of relying on WRAM power-on
     # contents that happen to be zero in the project harness.
-    a.ld_rr_nn("hl", VIEW_MAP); a.ld_rr_nn("bc", 12 * 32); a.ld_r_n("d", CEILING_TILE)
+    a.ld_rr_nn("hl", VIEW_MAP); a.ld_rr_nn("bc", VIEW_MAP_BYTES); a.ld_r_n("d", CEILING_TILE)
     a.label("init_view_map_loop")
     a.ld_r_r("a", "d"); a.ldi_hl_a(); a.dec_rr("bc")
     a.ld_r_r("a", "b"); a.or_r("c"); a.jr("init_view_map_loop", "nz")
@@ -170,8 +195,8 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     a.call("upload_profile_tiles")
-    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", 256); a.call("copy_bc")
-    a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8500); a.ld_rr_nn("bc", 64); a.call("copy_bc")
+    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", 1280 if SABLE_ART else 256); a.call("copy_bc")
+    a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.xor_r("a"); a.ldh_n_a(VBK)
@@ -201,6 +226,22 @@ def emit_dma(a: Assembler) -> None:
     a.ld_r_n("a", 0x17); a.ldh_n_a(HDMA5)  # 24 blocks = 384 bytes
     a.ret()
 
+    if COMPACT_DISPLAY:
+        spans = [("map", VIEW_MAP, 0, 384, VIEW_MAP_BYTES-384),
+                 ("attributes", VIEW_ATTRIBUTES, 1, 416 if SLIM_DISPLAY else 384, 64)]
+        if SLIM_DISPLAY: spans.append(("attribute_prefix", VIEW_ATTRIBUTES, 1, 384, 32))
+        for name, source, bank, offset, length in spans:
+            a.label("upload_extra_" + name)
+            # Fixed-ROM routine, HL/DE/A clobbered, no yields, hidden map only.
+            a.ld_r_n("a", bank); a.ldh_n_a(VBK)
+            a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.or_r("a")
+            a.ld_r_n("d", 0x99); a.jr("extra_" + name + "_page", "z")
+            a.ld_r_n("d", 0x9D); a.label("extra_" + name + "_page")
+            a.ld_r_n("e", offset & 255); a.ld_rr_nn("hl", source + offset)
+            for _ in range(length):
+                a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
+            a.ret()
+
     a.label("upload_initial_both_pages")
     # Dynamic tile pixels live in the VRAM bank selected by each page's
     # preloaded attribute map. Tile-number maps themselves always live in
@@ -208,13 +249,21 @@ def emit_dma(a: Assembler) -> None:
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE)  # hidden page = 0 -> 9800
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
+    if COMPACT_DISPLAY: a.call("upload_extra_map")
     a.ld_r_n("a", 1); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE)     # hidden page = 1 -> 9C00
     a.ldh_n_a(VBK); a.call("upload_view_map")
+    if COMPACT_DISPLAY: a.call("upload_extra_map")
     # Build both initial attribute packets using the same page rule as normal
     # publication. LCD is off, so no staging or partial-packet exposure.
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
+    if COMPACT_DISPLAY:
+        if SLIM_DISPLAY: a.call("upload_extra_attribute_prefix")
+        a.call("upload_extra_attributes")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
+    if COMPACT_DISPLAY:
+        if SLIM_DISPLAY: a.call("upload_extra_attribute_prefix")
+        a.call("upload_extra_attributes")
     a.call("upload_masked_tiles"); a.call("publish_oam_packet")
     a.ld_a_abs(OBJ_PAGE); a.xor_n(1); a.ld_abs_a(OBJ_PAGE)
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes")
@@ -232,10 +281,19 @@ def emit_dma(a: Assembler) -> None:
     # Stage large packets in hidden memory, retaining the old complete BG/OAM
     # epoch. Publish map, HUD and OAM together in the following VBlank.
     # Reserve the HUD/OAM tail and avoid the CGB's early LY=0 on line 153.
-    a.ld_a_abs(MASK_TILE_COUNT); a.ld_r_r("b", "a"); a.ld_a_abs(DYN_COUNT); a.add_a_r("b"); a.cp_n(25); a.jr("upload_packet_ready", "c")
-    a.call("wait_vblank")
-    a.label("upload_packet_ready")
-    a.call("upload_masked_tiles")
+    if COMPACT_DISPLAY:
+        a.ld_a_abs(MASK_TILE_COUNT); a.ld_r_r("b", "a"); a.ld_a_abs(DYN_COUNT); a.add_a_r("b")
+        a.cp_n(49 if SLIM_DISPLAY else 73); a.jr("upload_packet_ready", "c")
+        a.call("wait_vblank")
+        a.label("upload_packet_ready"); a.call("upload_extra_map"); a.call("upload_masked_tiles")
+        if SLIM_DISPLAY: a.call("upload_extra_attribute_prefix")
+        # CPU attribute rows and the coherent HUD/OAM tail own the final
+        # interval. Small packets share the preceding interval with patterns.
+        a.call("wait_vblank")
+    else:
+        a.ld_a_abs(MASK_TILE_COUNT); a.ld_r_r("b", "a"); a.ld_a_abs(DYN_COUNT); a.add_a_r("b"); a.cp_n(25); a.jr("upload_packet_ready", "c")
+        a.call("wait_vblank")
+        a.label("upload_packet_ready"); a.call("upload_masked_tiles")
     if FOREGROUND_PUBLICATION:
         # The larger ISR plus a maximal OBJ upload cannot share the map/HUD
         # tail safely. Keep old world ownership for one further VBlank.
@@ -247,6 +305,7 @@ def emit_dma(a: Assembler) -> None:
         a.ld_a_abs(MASK_TILE_COUNT); a.cp_n(25); a.jr("reprojection_packet_fits", "c")
         a.call("wait_vblank"); a.label("reprojection_packet_fits")
     a.call("upload_surface_attributes")
+    if COMPACT_DISPLAY: a.call("upload_extra_attributes")
     # Upload tile numbers after the matching hidden bank-1 attributes.
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
     a.call("update_hud_tiles")
@@ -325,6 +384,7 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(PRESSED); a.and_n(0x20); a.jr("no_open_door", "z"); a.call("open_door")
     a.label("no_open_door")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
+    if SABLE_ART: a.call("stamp_shot")
     a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH)
     if FOREGROUND_PUBLICATION: a.call("enqueue_foreground_fire")
     a.call("sound_shoot"); a.call("player_fire_hitscan")
@@ -336,7 +396,7 @@ def emit_input_system(a: Assembler) -> None:
         a.ld_a_abs(FG_ACTIVE); a.or_r("a"); a.jr("muzzle_hidden","z")
         a.ld_r_n("b",72); a.jp("muzzle_shadow_compare")
     a.ld_a_abs(FLASH); a.or_r("a"); a.jr("muzzle_hidden", "z")
-    a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", 56 + 16); a.jr("muzzle_shadow_compare")
+    a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", VIEW_HEIGHT - 40 + 16); a.jr("muzzle_shadow_compare")
     a.label("muzzle_hidden"); a.ld_r_n("b", 0)
     a.label("muzzle_shadow_compare")
     a.ld_a_abs(OAM_SHADOW + 9 * 4); a.cp_r("b"); a.ret("z")
@@ -719,15 +779,15 @@ def emit_projection_and_casting(a: Assembler) -> None:
     from .columns import emit_surface_scan, emit_surface_scan_end
     emit_surface_scan(a)
     # Frame at run start.
-    a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("door_start_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
+    a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(HORIZON - 7); a.jr("door_start_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
     a.label("door_start_lod_done")
     # Frame at inclusive run end.
-    a.ld_a_abs(DOOR_RUN_END); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(41); a.jr("door_end_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
+    a.ld_a_abs(DOOR_RUN_END); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(HORIZON - 7); a.jr("door_end_lod_done", "nc"); a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", CREASE_STYLE); a.ld_hl_a()
     a.label("door_end_lod_done")
     # Require a three-pixel run before adding its centre spine.
     a.ld_a_abs(DOOR_RUN_END); a.ld_r_r("b", "a"); a.ld_a_abs(DOOR_RUN_START); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.cp_n(3); a.jr("door_event_count", "c")
     a.dec_r("a"); a.cb("srl", "a"); a.add_a_r("c"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(33); a.jr("door_event_count", "nc")
+    a.ld_rr_nn("hl", PIXEL_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_n(HORIZON - 15); a.jr("door_event_count", "nc")
     a.ld_rr_nn("hl", PIXEL_STYLES); a.add_hl_rr("de"); a.ld_r_n("a", DOOR_SPINE_STYLE); a.ldi_hl_a(); a.ld_hl_a()
     emit_surface_scan_end(a)
 
@@ -762,6 +822,13 @@ def emit_renderer(a: Assembler) -> None:
         a.ret()
 
     a.label("compute_strip_state")  # input A top, output A state
+    if SLIM_DISPLAY:
+        # The odd viewport has one self-mirrored centre tile. The farthest
+        # legal walls occupy its middle four/six pixels; both edges belong
+        # in one strip. A=top, clobbers B; all other rows use the old selector.
+        a.ld_r_r('b','a');a.ld_a_abs(TILE_Y0);a.cp_n(56);a.ld_r_r('a','b');a.jr('strip_ordinary','nz')
+        a.cp_n(57);a.jr('strip_ordinary','c');a.sub_n(48 if COMPACT_STRIPS else 38);a.ret()
+        a.label('strip_ordinary')
     if COMPACT_STRIPS:
         # Folded y0 is 0..40, top is 0..46. Emit the stored-state index
         # directly: ceiling=0, wall=1, boundary=top-y0+1 (2..8).
@@ -783,7 +850,7 @@ def emit_general_strip_selector(a: Assembler) -> None:
     """Original 19-state selector, retained as the unfolded image oracle."""
     a.ld_r_r("b", "a")
     a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("b"); a.jr("strip_ceiling", "c")
-    a.ld_r_n("a", 96); a.sub_r("b"); a.ld_r_r("c", "a")  # C = bottom
+    a.ld_r_n("a", VIEW_HEIGHT); a.sub_r("b"); a.ld_r_r("c", "a")  # C = bottom
     a.ld_a_abs(TILE_Y0); a.cp_r("c"); a.jr("strip_floor", "nc")
     a.cp_r("b"); a.jr("strip_top_edge", "c")
     a.add_a_n(7); a.cp_r("c"); a.jr("strip_wall", "c")
@@ -946,9 +1013,9 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.label("classify_row")
     a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.ld_r_r("b", "a")
     a.ld_a_abs(MIN_TOP); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.cp_r("c"); a.jr("row_ceiling", "c")
-    a.ld_r_n("a", 96); a.sub_r("c"); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_Y0); a.cp_r("b"); a.jr("row_floor", "nc")
+    a.ld_r_n("a", VIEW_HEIGHT); a.sub_r("c"); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_Y0); a.cp_r("b"); a.jr("row_floor", "nc")
     a.ld_a_abs(MAX_TOP); a.ld_r_r("c", "a"); a.ld_a_abs(TILE_Y0); a.cp_r("c"); a.jr("row_dynamic", "c")
-    a.ld_r_n("a", 96); a.sub_r("c"); a.ld_r_r("c", "a"); a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("c"); a.jr("row_dynamic", "nc")
+    a.ld_r_n("a", VIEW_HEIGHT); a.sub_r("c"); a.ld_r_r("c", "a"); a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.cp_r("c"); a.jr("row_dynamic", "nc")
     if SURFACE_DETAIL_ENABLED:
         a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.jr("row_static_lookup", "nz")
         a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.jr("row_static_lookup", "nz")
@@ -975,7 +1042,7 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.call("scan_column")
     a.xor_r("a"); a.ld_abs_a(TILE_ROW); a.ld_abs_a(TILE_Y0)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
-    a.ld_r_n("a", 6 if FOLDED_COMPOSITOR else 12); a.ld_abs_a(ROW_RENDER_COUNT)
+    a.ld_r_n("a", FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS); a.ld_abs_a(ROW_RENDER_COUNT)
     a.label("render_row_loop")
     a.call("classify_row")
     a.ld_a_abs(DYNAMIC_FLAG); a.or_r("a"); a.jr("render_static_tile", "z")
@@ -998,9 +1065,9 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.label("render_static_tile")
     a.label("render_write_tile")
     if FOLDED_COMPOSITOR:
-        # Mirror map position around viewport row 5.5. Patterns need neither
+        # Mirror map position around the viewport centre. Patterns need neither
         # a second composition nor a second DMA; lower attrs supply Y-flip.
-        a.ld_r_n("a", 11); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_ROW); a.ld_r_r("c", "a")
+        a.ld_r_n("a", VIEW_ROWS - 1); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_ROW); a.ld_r_r("c", "a")
         a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
         for _ in range(5): a.add_hl_rr("hl")
         a.ld_a_abs(COLUMN_MAP_L); a.ld_r_r("e", "a"); a.ld_a_abs(COLUMN_MAP_H); a.ld_r_r("d", "a"); a.add_hl_rr("de")

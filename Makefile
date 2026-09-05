@@ -11,7 +11,7 @@ build:
 	$(PYTHON) tools/build_rom.py
 
 test: build
-	$(PYTHON) -m unittest discover -s tests -v
+	$(PYTHON) tools/run_tests.py
 
 research:
 	$(PYTHON) research/geometry_v2_lab.py
@@ -32,7 +32,7 @@ research-atlas-all: research-atlas research-atlas-entity
 
 .PHONY: atlas-check
 atlas-check:
-	$(PYTHON) research/build_tile_atlas_v4.py --verify-assets
+	LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 $(PYTHON) research/build_tile_atlas_v4.py --verify-assets
 
 research-atlas-pareto:
 	$(PYTHON) research/build_tile_atlas_v4.py --pareto
@@ -102,3 +102,15 @@ package:
 
 clean:
 	rm -rf build __pycache__ tools/__pycache__ tests/__pycache__ research/__pycache__ .pytest_cache
+
+.PHONY: sable-build sable-check sable-sustained
+# Alternate output directory for the production art profile.
+sable-build:
+	LUPINE3D_DISPLAY=slim LUPINE3D_ART=sable-v2 $(PYTHON) tools/build_rom.py --output-dir build/sable-v2/rom
+
+sable-check:
+	$(PYTHON) tools/check_display.py
+	LUPINE3D_DISPLAY=slim LUPINE3D_ART=sable-v2 $(PYTHON) tools/check_sable.py
+
+sable-sustained:
+	LUPINE3D_DISPLAY=slim LUPINE3D_ART=sable-v2 $(PYTHON) tools/sable_sustained.py

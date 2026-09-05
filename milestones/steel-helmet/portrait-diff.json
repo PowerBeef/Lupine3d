@@ -1,0 +1,15 @@
+{
+  "schema": "sable.portrait-diff.v1",
+  "changed_pixels": 156,
+  "allowed_rectangle": [
+    72,
+    124,
+    88,
+    140
+  ],
+  "unchanged_outside_portrait": true,
+  "rom_sha256": "fd7c95e7f3237ca130d0fabe763190a1622d51dc7d49ff0c1fa7e704fb873f4c",
+  "baseline_rom_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+  "candidate_image_sha256": "173aa3705aed49a3738ee41296b2e1922915be2defe15ce5750dad25dbd46806",
+  "baseline_image_sha256": "bcd587e5220eb170744c954fce401dfa0d1c041f00ad5439a85dc0b4219f832d"
+}

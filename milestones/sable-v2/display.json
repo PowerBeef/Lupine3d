@@ -1,0 +1,86 @@
+{
+  "schema": "sable.display.v1",
+  "legacy_sha256": "48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99",
+  "compact_geometry_sha256": "89b36e9419889860dc2c8cf2dbc55adc72305ee46e72ed93c03a4b821a23e000",
+  "world_objects_hidden_for_geometry_comparison": true,
+  "scenes": [
+    {
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        896,
+        2432,
+        192
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        2176,
+        2176,
+        0
+      ],
+      "unclipped_columns": 160,
+      "unclipped_scene": true,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": null
+    },
+    {
+      "pose": [
+        2432,
+        2688,
+        64
+      ],
+      "unclipped_columns": 0,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "unclipped_columns": 0,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": true,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "unclipped_columns": 105,
+      "unclipped_scene": false,
+      "central_96_rgb_exact": false,
+      "clipped_scene_validation": "full emitted descriptors and compositor checked against Q5 reference"
+    }
+  ],
+  "passed": true
+}

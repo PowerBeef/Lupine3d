@@ -1,0 +1,57 @@
+{
+  "schema": "sable.profile-smoke.v1",
+  "profiles": [
+    {
+      "sha256": "1986d86dac7c07f29892c3fb5dec1263b87791cbea3ba1d2336b02a36ec18ea1",
+      "configuration": {
+        "compact_strips": true,
+        "incremental_certificate": false,
+        "camera_setup": true,
+        "dynamic_tile_cache": false,
+        "cache_key_mix": false,
+        "narrow_yields": true,
+        "attribute_padding": true,
+        "anchor_packets": false,
+        "packet_bounds_reuse": false,
+        "physical_depth": false,
+        "actor_precision": false,
+        "scanline_admission": false,
+        "door_identity": false,
+        "near_field": false,
+        "foreground_publication": false,
+        "projection_storage": "direct",
+        "display": "compact",
+        "art": "sable-v2",
+        "art_animation": false
+      },
+      "published_frames": 3,
+      "passed": true
+    },
+    {
+      "sha256": "8bcad116a6965ac1d2987c1357b859157b622916818b5feefa2652cafae310fc",
+      "configuration": {
+        "compact_strips": true,
+        "incremental_certificate": false,
+        "camera_setup": true,
+        "dynamic_tile_cache": false,
+        "cache_key_mix": false,
+        "narrow_yields": true,
+        "attribute_padding": true,
+        "anchor_packets": false,
+        "packet_bounds_reuse": false,
+        "physical_depth": false,
+        "actor_precision": false,
+        "scanline_admission": false,
+        "door_identity": false,
+        "near_field": false,
+        "foreground_publication": false,
+        "projection_storage": "direct",
+        "display": "legacy",
+        "art": "sable-v2",
+        "art_animation": true
+      },
+      "published_frames": 3,
+      "passed": true
+    }
+  ]
+}

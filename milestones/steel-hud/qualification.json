@@ -1,0 +1,63 @@
+{
+  "schema": "sable.steel-hud-qualification.v1",
+  "rom_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "projection_storage": "direct",
+    "display": "slim",
+    "art": "sable-v2",
+    "art_animation": true,
+    "folded": true,
+    "q14": true,
+    "prepared_rays": true,
+    "wall_reuse": true,
+    "fixed_simulation": true,
+    "reprojection": false,
+    "level": "Sable Outpost",
+    "level_map_sha256": "3df9f70cb9357a3284ef77ae48d1ceca292a07b979358ca8f8a1b824415f421d",
+    "active_atlas_sha256": "ed98bf70e5f323825d3ca036588443d609bcb9d83f2f9a40771881c3ad8f6549"
+  },
+  "display": {
+    "name": "slim",
+    "viewport": [
+      160,
+      120
+    ],
+    "horizon": 60,
+    "hud_height": 24,
+    "map_bytes": 480,
+    "hud_theme": "steel-v1",
+    "extra_cpu_bytes_per_full_packet": 192
+  },
+  "hud_patterns": 85,
+  "hud_pattern_capacity": 96,
+  "hud_packet_bytes": 16,
+  "resident_free_bytes": 3123,
+  "fixed_rom_free_bytes": 1808,
+  "physical_hardware_tested": false,
+  "published_release": false,
+  "tests": {
+    "full_suite_before_final_portrait_pixels_and_blink_phase": 140,
+    "final_focused_sable_tests": 3,
+    "final_emitted_asset_checks": true,
+    "final_independent_witness_scenes": 87,
+    "final_controller_completion_and_restart": true
+  },
+  "performance_scope": "Four 10-second controller A/B scenarios against prior 24-pixel HUD; identical mean and p95. Original B/P budget remains unchanged and previously failed under owner-approved quality tradeoff.",
+  "passed": true
+}

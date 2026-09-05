@@ -71,6 +71,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     if FOREGROUND_PUBLICATION:
         for address in range(FG_HEAD,FG_CHANGED+1): a.ld_abs_a(address)
     a.ld_r_n("a", 1); a.ld_abs_a(OBJ_PAGE)
+    if SABLE_ART or COMPACT_DISPLAY:
+        a.xor_r("a")
+        for address in (SIM_TICK,SIM_TICK+1,FRAME_TICK,FRAME_TICK+1):a.ld_abs_a(address)
     a.call("load_level")
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
@@ -86,7 +89,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC)
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
     if ENABLE_MICRO_REPROJECTION or HUD_UNSIGNED:
-        a.ld_r_n("a", 96); a.ldh_n_a(LYC); a.ld_r_n("a", 0x40); a.ldh_n_a(STAT)
+        a.ld_r_n("a", VIEW_HEIGHT); a.ldh_n_a(LYC); a.ld_r_n("a", 0x40); a.ldh_n_a(STAT)
         a.ld_r_n("a", 3); a.ld_abs_a(0xFFFF)
     else:
         a.ld_r_n("a", 1); a.ld_abs_a(0xFFFF)
@@ -119,6 +122,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     emit_packets(a)
     emit_physical_depth(a)
     emit_actor_precision(a)
+    from lupine3d_v4.animation import emit_animation
+    emit_animation(a)
     emit_admission(a)
     emit_projection_storage(a)
     emit_near_field(a)
@@ -137,7 +142,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
     a.label("door_data"); a.bytes(ACTIVE_LEVEL.door_bytes(), "fixed-capacity authored door records")
     a.label("actor_records"); a.bytes(actor_records(), "four bounded Sentinel slots")
-    a.label("hud_status_records"); a.bytes(bytes(i for ids in hud_assets()[3].values() for i in ids), "LOCK OPEN DEAD DONE")
+    a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
     for name, payload in make_boot_assets():
         a.labels[name] = cold_address
@@ -165,6 +170,16 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         0, rgb15(2, 3, 4), rgb15(20, 24, 23), rgb15(13, 28, 26),
         0, rgb15(6, 1, 1), rgb15(31, 7, 3), rgb15(31, 26, 17),
     ]
+    if SABLE_ART:
+        from lupine3d_v4.sprite_assets import manifest as sprite_manifest
+        for index,name in ((0,'shotgun'),(1,'sentinel_near')):
+            colours=sprite_manifest()['assets'][name]['palette']
+            obj_palette_values[index*4:index*4+4]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in colours]
+    if COMPACT_DISPLAY:
+        bg_palette_values[4:8]=[rgb15(2,3,4),rgb15(5,7,8),rgb15(29,28,24),rgb15(10,16,16)]
+        if SLIM_DISPLAY:
+            from lupine3d_v4.steel_hud import PALETTE
+            bg_palette_values[4:8]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in PALETTE]
     # Lower-half Y-flip reuses upper patterns; outside-wall colour zero
     # becomes the floor without recolouring a single wall pixel. The same
     # pair also preserves unfurled colour-index-one floor pixels.
@@ -235,7 +250,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "hram_dma_bytes": OAM_DMA_STUB_BYTES,
             "vram_bg_pattern_range": [0x8800, 0x9800],
             "vram_obj_only_range": [0x8000, 0x8800],
-            "bank1_obj_patterns_used": ENTITY_OAM_COUNT * 2 + 20,
+            "bank1_obj_patterns_used": ENTITY_OAM_COUNT * 2 + (86 if SABLE_ART else 20),
             "bank0_hud_patterns_used": len(hud_assets()[0]) // 16,
         },
         "renderer": "certified Q14 crossing order, Q5 projection, folded signed-BG compositor and masked 8x16 entities",
@@ -261,17 +276,32 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "signature_offset": 4, "pattern_offset": 14,
             "staging_range": [DYNAMIC_CACHE_STAGE, DYNAMIC_CACHE_POINTER+2],
         },
-        "publication": "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
+        "publication": "atomic BG/HUD/OAM; compact high-pressure packets use three VBlanks" if COMPACT_DISPLAY else "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,
         "folded_compositor": FOLDED_COMPOSITOR,
-        "composited_tile_rows": 6 if FOLDED_COMPOSITOR else 12,
+        "composited_tile_rows": FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS,
         "obj_only_patterns_per_bank": 128,
         "art_direction": "Sable Outpost",
+        "display_configuration": {"name": RENDER_CONFIG["display"], "viewport": list(VIEWPORT),
+                                  "horizon": HORIZON, "hud_height": HUD_HEIGHT, "map_bytes": VIEW_MAP_BYTES,
+                                  "hud_theme": "steel-objective-spaced-v1" if SLIM_DISPLAY else "sable-strip" if COMPACT_DISPLAY else "legacy",
+                                  "extra_cpu_bytes_per_full_packet": (VIEW_MAP_BYTES-384)*2},
+        "native_art": __import__('lupine3d_v4.sprite_assets', fromlist=['evidence']).evidence() if SABLE_ART or COMPACT_DISPLAY else None,
+        "art_animation": ART_ANIMATION,
+        "foreground_obj_allocation": {"first":WEAPON_TILE_BASE,"patterns":86 if SABLE_ART else 20,
+                                      "reticle":RETICLE_TILE,"flash":MUZZLE_TILE},
+        "entity_source_patterns":len(make_entity_tiles())//16,
         "hud_patterns": len(hud_assets()[0]) // 16,
         "hud_unsigned_bank0_range": [0x8200, 0x8800],
-        "hud_stat_split_line": 96,
-        "hud_packet_bytes": 11,
+        "hud_stat_split_line": VIEW_HEIGHT,
+        "hud_packet_bytes": HUD_PACKET_BYTES,
+        "hud_status_pattern_format": {
+            "version": 2 if SLIM_DISPLAY else 1,
+            "vertical_pair_ids": SLIM_DISPLAY,
+            "lower_tile_id_delta": 1 if SLIM_DISPLAY else 0,
+            "extra_map_writes_per_commit": 6 if SLIM_DISPLAY else 0,
+        },
         "authored_wall_fixtures": len(ACTIVE_LEVEL.fixtures),
         "wall_fixture_oam_budget": 4,
         "wall_fixture_occlusion": "physical segment and along-face cell stencil",
@@ -286,7 +316,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                                   "meaning": "actual query under current exact wall key and projection configuration; Q5"},
         "dynamic_tile_capacity": DYNAMIC_TILE_CAPACITY,
         "dynamic_tile_buffer_bytes": DYNAMIC_TILE_CAPACITY * 16,
-        "view_map_buffer_bytes": 384,
+        "view_map_buffer_bytes": VIEW_MAP_BYTES,
         "maximum_commit_bytes": DYNAMIC_TILE_CAPACITY * 16 + 768 + ENTITY_OAM_COUNT * 32,
         "maximum_commit_blocks": DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
         "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
@@ -386,7 +416,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "microstrip_states": MICRO_STATE_COUNT,
         "microstrip_rom_bytes": len(microstrips) + len(pair_microstrips),
         "microstrip_format": {
-            "version": 2, "logical_states": MICRO_STATE_COUNT,
+            "version": 3 if SLIM_DISPLAY else 2, "logical_states": MICRO_STATE_COUNT,
             "stored_states": list(STORED_STRIP_STATES),
             "stored_state_count": STORED_STRIP_COUNT,
             "table_bytes": len(microstrips) + len(pair_microstrips),

@@ -320,6 +320,10 @@ def make_entity_tiles() -> bytes:
     # Medium 16x16 LOD keeps width while reducing height. Derived from the
     # same authored cels; adjacent vertical tiles are paired for 8x16 mode.
     for frame in range(SENTINEL_MID_FRAMES):
+        if SABLE_ART:
+            from .sprite_assets import compile_frame
+            out.extend(compile_frame('sentinel_mid', frame, paired=True))
+            continue
         source = _sentinel_near_frame(frame)
         px = [[0] * 16 for _ in range(16)]
         for y in range(16):
@@ -344,11 +348,11 @@ def make_oam_shadow() -> bytes:
         for col in range(4):
             index = row * 4 + col
             data[index * 4:index * 4 + 4] = bytes((
-                64 + row * 16 + 16, 64 + col * 8 + 8,
+                VIEW_HEIGHT - 32 + row * 16 + 16, 64 + col * 8 + 8,
                 WEAPON_TILE_BASE + (row * 4 + col) * 2, 0x0D if row == 1 and col in (0,3) else 0x08,
             ))
-    data[8 * 4:8 * 4 + 4] = bytes((44 + 16, 76 + 8, 80, 0x0E))
-    data[9 * 4:9 * 4 + 4] = bytes((0, 76 + 8, 82, 0x0B))
+    data[8 * 4:8 * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0E))
+    data[9 * 4:9 * 4 + 4] = bytes((0, 76 + 8, MUZZLE_TILE, 0x0B))
     return bytes(data)
 
 
@@ -373,6 +377,9 @@ def make_static_view_tiles() -> bytes:
 
 
 def microstrip_region(state: int, row: int) -> str:
+    if state in (19,20):
+        inset=state-18
+        return "ceiling" if row < inset else "floor" if row >= 8-inset else "wall"
     if state == 0:
         return "ceiling"
     if state == 1:
@@ -404,7 +411,7 @@ def make_microstrips(states=None) -> bytes:
                     color = 0 if region == "ceiling" else 1 if region == "floor" else wall_color(style, pixel, row)
                     top_edge = 3 <= state <= 10 and row == state - 3
                     bottom_edge = 11 <= state <= 18 and row == state - 11
-                    if region == "wall" and (top_edge or bottom_edge):
+                    if region == "wall" and (top_edge or bottom_edge or (state in (19,20) and row in (state-18,25-state))):
                         color = 3
                     out.extend((mask if color & 1 else 0, mask if color & 2 else 0))
     assert len(out) == 2 * len(states) * 8 * 16
@@ -424,7 +431,7 @@ def make_pair_microstrips(states=None) -> bytes:
                     color = 0 if region == "ceiling" else 1 if region == "floor" else wall_color(style, pair * 2, row)
                     top_edge = 3 <= state <= 10 and row == state - 3
                     bottom_edge = 11 <= state <= 18 and row == state - 11
-                    if region == "wall" and (top_edge or bottom_edge):
+                    if region == "wall" and (top_edge or bottom_edge or (state in (19,20) and row in (state-18,25-state))):
                         color = 3
                     out.extend((mask if color & 1 else 0, mask if color & 2 else 0))
     assert len(out) == 2 * len(states) * 4 * 16
@@ -489,11 +496,11 @@ def make_attrmap(view_bank: int) -> bytes:
     # modest tile-row changes read as the old horizontal-banding defect.  Keep
     # the viewport phase-free and reserve the additional palettes for future
     # face/material selection rather than screen-space gradients.
-    row_palettes = (0,) * 12
-    for y in range(12):
+    row_palettes = (0,) * VIEW_ROWS
+    for y in range(VIEW_ROWS):
         for x in range(20):
             data[y * 32 + x] = (view_bank << 3) | row_palettes[y]
-            if FOLDED_COMPOSITOR and y >= 6:
+            if FOLDED_COMPOSITOR and y >= FOLDED_ROWS:
                 data[y * 32 + x] |= 0x40 | 2
     return bytes(data)
 
@@ -505,7 +512,7 @@ from .artwork import make_weapon_tiles, _sentinel_near_frame, _sentinel_far_fram
 
 def make_tilemap() -> bytes:
     from .artwork import hud_assets
-    data = bytearray(hud_assets()[1]); data[:384] = bytes([CEILING_TILE]) * 384
+    data = bytearray(hud_assets()[1]); data[:VIEW_MAP_BYTES] = bytes([CEILING_TILE]) * VIEW_MAP_BYTES
     return bytes(data)
 
 
@@ -574,9 +581,9 @@ def make_tables() -> dict[str, bytes]:
     projection_half = bytearray()
     for perpendicular_thirty_seconds in range(512):
         if perpendicular_thirty_seconds == 0:
-            half = 48
+            half = HORIZON
         else:
-            half = max(2, min(48, round(960.0 / perpendicular_thirty_seconds)))
+            half = max(2, min(HORIZON, round(960.0 / perpendicular_thirty_seconds)))
         projection_half.append(half)
 
     return {
@@ -615,7 +622,7 @@ def make_projection_top_lut() -> bytes:
                     511,
                     (distance * correction + safe_component // 2) // safe_component,
                 )
-                out[cursor] = 48 - projection[perpendicular]
+                out[cursor] = HORIZON - projection[perpendicular]
                 out[cursor + 1] = min(255, perpendicular)
                 cursor += PROJECTION_LUT_RECORD_BYTES
     assert cursor == PROJECTION_LUT_BYTES
@@ -648,7 +655,7 @@ def make_top_depth_lut() -> bytes:
     projection = make_tables()["projection_half"]
     buckets: list[list[int]] = [[] for _ in range(256)]
     for depth, half_height in enumerate(projection):
-        buckets[48 - half_height].append(depth)
+        buckets[HORIZON - half_height].append(depth)
     result = bytearray(256)
     for top, depths in enumerate(buckets):
         result[top] = min(255, min(depths)) if depths else 255

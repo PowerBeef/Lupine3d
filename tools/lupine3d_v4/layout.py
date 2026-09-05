@@ -24,6 +24,16 @@ ASSETS = ROOT / "assets"
 TILE_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_TILE_ATLAS_DIR", ASSETS))
 ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / "entity_atlas_80"))
 ACTIVE_LEVEL = level_codec.active_level(ROOT)
+SLIM_DISPLAY = RENDER_CONFIG["display"] == "slim"
+COMPACT_DISPLAY = RENDER_CONFIG["display"] != "legacy"
+SABLE_ART = RENDER_CONFIG["art"] == "sable-v2"
+ART_ANIMATION = RENDER_CONFIG["art_animation"]
+VIEW_HEIGHT = 120 if SLIM_DISPLAY else 112 if COMPACT_DISPLAY else 96
+HORIZON = VIEW_HEIGHT // 2
+VIEW_ROWS = VIEW_HEIGHT // 8
+FOLDED_ROWS = (VIEW_ROWS + 1) // 2
+VIEW_MAP_BYTES = VIEW_ROWS * 32
+HUD_HEIGHT = 144 - VIEW_HEIGHT
 
 # Hardware registers (LDH offsets).
 P1 = v1.P1
@@ -72,7 +82,7 @@ FIXED_SIMULATION = os.environ.get("LUPINE3D_FIXED_SIM", "1") != "0"
 STACK_TOP = 0xCFFF             # fixed WRAM: safe across future SVBK changes
 DYNAMIC_TILE_VRAM = 0x9000
 BG_LCDC = 0x87                # signed BG; hardware 8x16 OBJ mode
-HUD_UNSIGNED = True           # line-96 STAT selects bank-0 OBJ-only HUD patterns
+HUD_UNSIGNED = True           # viewport-boundary STAT selects bank-0 OBJ-only HUD patterns
 HUD_TILE_BASE = 32
 DECAL_RECORD = 0xD9E0          # x/y Q8, segment, kind, side, along-cell, door index
 DECAL_INDEX = 0xD9E9
@@ -84,12 +94,12 @@ DECAL_SOURCE = 0xD9EE
 DECAL_WIDE = 0xD9EF
 DECAL_SAVED = 0xD9F0           # four public projection bytes restored after decor
 DECAL_COLUMN = 0xD9F4
-HUD_PACKET = 0xD9F5           # eleven tile IDs prepared before VBlank
-WEAPON_TILE_BASE = 64          # bank 1 $8400, disjoint from all BG patterns
+HUD_PACKET = 0xD3D8 if COMPACT_DISPLAY else 0xD9F5           # immutable tile IDs prepared before VBlank
+WEAPON_TILE_BASE = 32 if SABLE_ART else 64          # bank 1 $8400, disjoint from all BG patterns
 FOLDED_COMPOSITOR = os.environ.get("LUPINE3D_FOLDED", "1") != "0"
 COMPACT_STRIPS = RENDER_CONFIG["compact_strips"]
 UNFOLDED_STRIP_ROM_BANK = 237
-STRIP_SCRATCH = 0xC780         # 16 bytes; diagnostic bank lookup only
+STRIP_SCRATCH = 0xC8E0 if SLIM_DISPLAY else 0xC7C0 if COMPACT_DISPLAY else 0xC780
 INCREMENTAL_CERTIFICATE = RENDER_CONFIG["incremental_certificate"]
 DYNAMIC_TILE_CACHE = RENDER_CONFIG["dynamic_tile_cache"]
 CACHE_KEY_MIX = RENDER_CONFIG["cache_key_mix"]
@@ -523,7 +533,7 @@ DETAIL_MASK = STYLE_DIFF
 RAYS = 80
 PHYSICAL_COLUMNS = 160
 RAY_WIDTH = 2
-VIEWPORT = (160, 96)
+VIEWPORT = (160, VIEW_HEIGHT)
 RAY_DIRECTION_BITS = 10
 RAY_DIRECTION_COUNT = 1 << RAY_DIRECTION_BITS
 RAY_PLAYER_SHIFT = RAY_DIRECTION_BITS - 8
@@ -540,8 +550,8 @@ TECH_RIB_STYLE = 6
 DOOR_SPINE_STYLE = 7
 SURFACE_RAIL_Y0 = 48
 SURFACE_DETAIL_ENABLED = False
-MICRO_STATE_COUNT = 19
-FOLDED_STORED_STATES = (0, 2, 4, 5, 6, 7, 8, 9, 10)
+MICRO_STATE_COUNT = 21 if SLIM_DISPLAY else 19
+FOLDED_STORED_STATES = (0, 2, 4, 5, 6, 7, 8, 9, 10) + ((19, 20) if SLIM_DISPLAY else ())
 STORED_STRIP_STATES = FOLDED_STORED_STATES if COMPACT_STRIPS else tuple(range(MICRO_STATE_COUNT))
 STORED_STRIP_COUNT = len(STORED_STRIP_STATES)
 _COMMON_STATIC_WALL_MASKS = (
@@ -575,6 +585,32 @@ ENTITY_ATLAS_TILES = (ENTITY_ATLAS_ASSETS / "tile_atlas_tiles.bin").read_bytes()
 ENTITY_ATLAS_BUCKET_START = (ENTITY_ATLAS_ASSETS / "tile_atlas_bucket_start.bin").read_bytes()
 ENTITY_ATLAS_BUCKET_COUNT = (ENTITY_ATLAS_ASSETS / "tile_atlas_bucket_count.bin").read_bytes()
 ENTITY_ATLAS_ENTRIES = (ENTITY_ATLAS_ASSETS / "tile_atlas_entries.bin").read_bytes()
+# Shift signatures without changing checked-in pattern payloads. The odd
+# slim viewport has different upper/lower row offsets and a new centre row.
+def _translate_atlas(entries):
+    buckets = [[] for _ in range(256)]
+    for offset in range(0, len(entries), 11):
+        record = bytearray(entries[offset:offset+11])
+        # Keep both edge offsets exact when the horizon is half a tile.
+        # Upper rows move eight pixels; lower rows move sixteen, leaving
+        # the self-mirrored centre row to the exact compositor.
+        shift = ((HORIZON - 48)//8)*8
+        record[0] += (VIEW_HEIGHT - 96 - shift) if record[0] >= 48 else shift
+        for index in range(2,10): record[index] += shift
+        key = 0
+        for byte in record[:10]: key = (((key << 1) | (key >> 7)) & 255) ^ byte
+        buckets[key].append(bytes(record))
+    starts, counts, records = bytearray(), bytearray(), bytearray()
+    for bucket in buckets:
+        starts.append(len(records)//11); counts.append(len(bucket))
+        records.extend(b"".join(bucket))
+    return bytes(starts), bytes(counts), bytes(records)
+
+if COMPACT_DISPLAY:
+    RENDERER_ATLAS_BUCKET_START, RENDERER_ATLAS_BUCKET_COUNT, RENDERER_ATLAS_ENTRIES = _translate_atlas(RENDERER_ATLAS_ENTRIES)
+    ENTITY_ATLAS_BUCKET_START, ENTITY_ATLAS_BUCKET_COUNT, ENTITY_ATLAS_ENTRIES = _translate_atlas(ENTITY_ATLAS_ENTRIES)
+    TILE_ATLAS_BUCKET_START, TILE_ATLAS_BUCKET_COUNT, TILE_ATLAS_ENTRIES = RENDERER_ATLAS_BUCKET_START, RENDERER_ATLAS_BUCKET_COUNT, RENDERER_ATLAS_ENTRIES
+
 # Signed BG allocation decouples OBJ art from the wall atlas. Keep the measured
 # 80-pattern option for A/B research, but ship the full cache with entities.
 COMPACT_ENTITY_ATLAS = os.environ.get("LUPINE3D_COMPACT_ATLAS", "0") == "1"
@@ -678,27 +714,37 @@ PLAYER_RADIUS_Q8 = 0x38
 ENTITY_ATLAS_PATTERN_COUNT = len(ENTITY_ATLAS_TILES) // 16
 ENTITY_TILE_BASE = 0
 SENTINEL_NEAR_TILE_BASE = ENTITY_TILE_BASE
-SENTINEL_NEAR_FRAMES = 4
+SENTINEL_NEAR_FRAMES = 12 if SABLE_ART else 4
 SENTINEL_NEAR_TILES_PER_FRAME = 8
 SENTINEL_FAR_TILE_BASE = SENTINEL_NEAR_TILE_BASE + SENTINEL_NEAR_FRAMES * SENTINEL_NEAR_TILES_PER_FRAME
-SENTINEL_FAR_FRAMES = 2
+SENTINEL_FAR_FRAMES = 12 if SABLE_ART else 2
 SENTINEL_FAR_TILES_PER_FRAME = 2
 PICKUP_TILE = SENTINEL_FAR_TILE_BASE + SENTINEL_FAR_FRAMES * SENTINEL_FAR_TILES_PER_FRAME
 HIT_EFFECT_TILE_BASE = PICKUP_TILE + 2
 EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 4
 EXIT_BEACON_FRAMES = 2
 SENTINEL_MID_TILE_BASE = EXIT_BEACON_TILE + EXIT_BEACON_FRAMES * 2
-SENTINEL_MID_FRAMES = 2
-ENTITY_TILE_LIMIT = WEAPON_TILE_BASE
+SENTINEL_MID_FRAMES = 12 if SABLE_ART else 2
+ENTITY_TILE_LIMIT = 256 if SABLE_ART else WEAPON_TILE_BASE
 if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")
 
 HUD_DIGIT_BASE = 32
-HUD_HEALTH_TENS_X = 2
-HUD_HEALTH_ONES_X = 3
-HUD_STATUS_TENS_X = 16
-HUD_STATUS_ONES_X = 17
-HUD_ROW = 14
+HUD_SMALL_DIGIT_BASE = 52
+HUD_PACKET_BYTES = 16 if SLIM_DISPLAY else 15 if COMPACT_DISPLAY else 11
+HUD_STATUS_OFFSET = 5 if SLIM_DISPLAY else 6 if COMPACT_DISPLAY else 8
+HUD_PORTRAIT_OFFSET = 10 if SLIM_DISPLAY else 11
+HUD_PORTRAIT_TILES = 6 if SLIM_DISPLAY else 4
+HUD_HEALTH_TENS_X = 3 if COMPACT_DISPLAY else 2
+HUD_HEALTH_ONES_X = HUD_HEALTH_TENS_X + 1
+HUD_STATUS_TENS_X = 14 if SLIM_DISPLAY else 15 if COMPACT_DISPLAY else 16
+HUD_STATUS_ONES_X = HUD_STATUS_TENS_X + 1
+HUD_ROW = VIEW_ROWS + 1 if COMPACT_DISPLAY else 14
+HUD_HEALTH_ROW = VIEW_ROWS if SLIM_DISPLAY else HUD_ROW
+HUD_PORTRAIT_ROW = VIEW_ROWS if SLIM_DISPLAY else HUD_ROW
+HUD_STATUS_ROW = VIEW_ROWS + 1 if SLIM_DISPLAY else HUD_ROW + 1 if COMPACT_DISPLAY else 17
+HUD_CAPTION_ROW = VIEW_ROWS if SLIM_DISPLAY else HUD_STATUS_ROW
+HUD_CAPTION_X = 16 if SLIM_DISPLAY else 13
 
 ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"
 REPROJECT_LIMIT = 4
@@ -706,3 +752,18 @@ REPROJECT_GDMA_THRESHOLD = 72
 
 # Shared by snapshot emission and the allocation/lifetime validator.
 WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, 65))
+
+RETICLE_TILE = 112 if SABLE_ART else 80
+MUZZLE_TILE = RETICLE_TILE + 2
+
+# Existing copied world slack: persistent cosmetic clocks, isolated per bank.
+SHOT_TICK=0xD77A
+SHOT_ACTIVE=0xD77C
+HURT_TICK=0xD77D
+HURT_ACTIVE=0xD77F
+HINT_TICK=0xD780
+HINT_ACTIVE=0xD782
+ACTOR_REACTION_TICK=0xD783
+ACTOR_REACTION=0xD785
+ACTOR_REACTION_RESERVED=0xD786
+ART_STATE_END=0xD787

@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "lcd_frames": 480,
+  "page_swaps": 26,
+  "presentations": 270,
+  "moved": true,
+  "turned": true,
+  "starting_door_open": true,
+  "input_queue_overflow": 0,
+  "foreground_publications": 0,
+  "mixed_world_oam": 0,
+  "bootstrap": "mGBA built-in skip-BIOS",
+  "dma_write_instrumentation": false,
+  "core": "mGBA",
+  "core_commit": "507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6",
+  "rom_sha256": "a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb",
+  "physical_hardware_tested": false,
+  "original_boot_rom_tested": false,
+  "startup_rgb_matches_host": true,
+  "startup_rgb_scope": "separate frozen snapshot; controller smoke remains unpatched"
+}

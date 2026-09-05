@@ -17,8 +17,8 @@ def project_near_reference(distance,component,record,legacy_top,legacy_depth):
     if record>240 or legacy_depth>=64 or not component: return legacy_top,legacy_depth
     perpendicular=(distance*near_corrections()[record]+component//2)//component
     if perpendicular>=512:return legacy_top,legacy_depth
-    half=min(48,(7680+max(1,perpendicular)//2)//max(1,perpendicular))
-    return 48-half,min(255,(perpendicular+4)//8)
+    half=min(HORIZON,(7680+max(1,perpendicular)//2)//max(1,perpendicular))
+    return HORIZON-half,min(255,(perpendicular+4)//8)
 
 
 def emit_near_field(a: Assembler):
@@ -54,6 +54,6 @@ def emit_near_field(a: Assembler):
     for i,v in enumerate((0,30,0,0)):a.ld_r_n("a",v);a.ld_abs_a(Q14_PRODUCT+i)
     a.call("near_round_divide")
     a.ld_a_abs(Q14_PRODUCT+1);a.or_r("a");a.jr("near_clipped","nz")
-    a.ld_a_abs(Q14_PRODUCT);a.cp_n(49);a.jr("near_clipped","nc")
-    a.ld_r_r("b","a");a.ld_r_n("a",48);a.sub_r("b");a.ld_abs_a(TOP_RESULT);a.ret()
+    a.ld_a_abs(Q14_PRODUCT);a.cp_n(HORIZON + 1);a.jr("near_clipped","nc")
+    a.ld_r_r("b","a");a.ld_r_n("a",HORIZON);a.sub_r("b");a.ld_abs_a(TOP_RESULT);a.ret()
     a.label("near_clipped");a.xor_r("a");a.ld_abs_a(TOP_RESULT);a.ret()

@@ -1,0 +1,272 @@
+{
+  "schema": "sable.qualification.v1",
+  "rom_sha256": "b261d21913255efc9a74d7be4c0b5f46b40f9cf1fec5bf3bb50dd5785c7142a0",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "projection_storage": "direct",
+    "display": "slim",
+    "art": "sable-v2",
+    "art_animation": true
+  },
+  "checks": {
+    "cold_art_and_raster_boundary": true,
+    "every_translated_atlas_pattern": true,
+    "centre_tile_two_boundary_coverage": true,
+    "complete_legal_strip_selector_domain": true,
+    "publication_cpu_and_dma_windows": true,
+    "geometry_and_all_published_rows": true,
+    "independent_near_plane_clipping": true,
+    "all_36_emitted_enemy_cels": true,
+    "weapon_phases_rapid_restarts_wrap_pending_flash": true,
+    "reaction_and_death_clock_wrap": true,
+    "hud_portraits_snapshot_packet_and_bounds": true,
+    "continuous_divider_all_dynamic_states_and_both_maps": true,
+    "hud_icon_exit_and_all_actor_counts": true,
+    "atomic_capacity_fallback_no_partial_actor": true,
+    "snapshot_and_reload_clock_ownership": true,
+    "terminal_state_wrap_cannot_replay_cosmetics": true
+  },
+  "assets": {
+    "schema": "sable.native.v1",
+    "sha256": "1ab51fe7ed26a0c27e3c8061e536e2446cbe41dd2ec07d5b71e65e0f9e45c8d9",
+    "assets": {
+      "sentinel_near": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360",
+      "sentinel_mid": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914",
+      "sentinel_far": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64",
+      "shotgun": "5aadb2e7f6845e2f4cb11a9685516a1ffec9f5d468ea98e7c64ba4adda6cea00",
+      "helmet": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c",
+      "flash": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448",
+      "reticle": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9",
+      "hud": "9cde69004789a336a1ddc05beeebc63590498668f18a57952071d6260d816218",
+      "hud_slim": "a44b1d2552c0f661cfd5f215ffbb6445a6359dc317b23d13a67df27e4370e7e4"
+    }
+  },
+  "publication_windows": [
+    {
+      "dynamic": 0,
+      "mask": 0,
+      "blocks": 48,
+      "commit_ly": 152,
+      "staged": false
+    },
+    {
+      "dynamic": 8,
+      "mask": 0,
+      "blocks": 56,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 0,
+      "blocks": 57,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 16,
+      "blocks": 64,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 18,
+      "blocks": 66,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 32,
+      "blocks": 80,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 16,
+      "blocks": 72,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 16,
+      "blocks": 73,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 24,
+      "mask": 0,
+      "blocks": 72,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 25,
+      "mask": 0,
+      "blocks": 73,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 48,
+      "mask": 0,
+      "blocks": 96,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 49,
+      "mask": 0,
+      "blocks": 97,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 16,
+      "mask": 32,
+      "blocks": 96,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 17,
+      "mask": 32,
+      "blocks": 97,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 71,
+      "mask": 0,
+      "blocks": 119,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 72,
+      "mask": 0,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 73,
+      "mask": 0,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 40,
+      "mask": 32,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 41,
+      "mask": 32,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 0,
+      "blocks": 144,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 16,
+      "blocks": 160,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 32,
+      "blocks": 176,
+      "commit_ly": 152,
+      "staged": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "pose-0.png",
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "pixels_sha256": "8370c7503a993981b24aab3086440eb08276cd141bf862f94156ebb73a6b0a3e"
+    },
+    {
+      "file": "pose-1.png",
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "pixels_sha256": "a564615f3cb2858e61d74acac4c8865f8fe31624338496970cdbd0a1c0b8c2bf"
+    },
+    {
+      "file": "pose-2.png",
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "pixels_sha256": "37517a6f0c76482d9649798d471009af804adf54858ec394b92c57d63531d583"
+    },
+    {
+      "file": "pose-3.png",
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "pixels_sha256": "8ae05edde65ae76773b70bda8a11a60394ce1c86cd569a91007947f2001b21b4"
+    },
+    {
+      "file": "pose-4.png",
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "pixels_sha256": "fd28f8c06b5d1e495d21137e450d6e4065a38110c9387101f84b535b31546982"
+    },
+    {
+      "file": "pose-5.png",
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "pixels_sha256": "891eb508c536fc71ee3f44bf0290ab75f9ebd7c2f778a14607b2f814488e5075"
+    }
+  ],
+  "physical_hardware_tested": false,
+  "passed": true
+}

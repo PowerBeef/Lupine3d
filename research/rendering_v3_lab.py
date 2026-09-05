@@ -119,6 +119,7 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
     angles = range(0, 256, 4)
     v2_errors: list[float] = []
     v3_errors: list[float] = []
+    common_viewport_errors: list[float] = []
     v2_wrong_segments = v3_wrong_segments = 0
     v2_wrong_materials = v3_wrong_materials = 0
     v2_casts: list[int] = []
@@ -137,6 +138,14 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
                 for x in range(v3.PHYSICAL_COLUMNS)
             ]
             reference_tops = [hit.top for hit in reference]
+            # v2 retains its 48-pixel horizon. Compare the current renderer
+            # with its own projection origin, including near-wall clipping;
+            # translating already clipped legacy tops would be incorrect.
+            current_reference_tops = [
+                geometry.float_camera_hit(x_q8 / 256.0, y_q8 / 256.0, angle,
+                                          x + 0.5, horizon=v3.HORIZON).top
+                for x in range(v3.PHYSICAL_COLUMNS)
+            ]
             reference_segments = [hit.segment for hit in reference]
             reference_materials = [hit.material for hit in reference]
 
@@ -155,7 +164,14 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
             new_materials = [(key >> 5) & 3 for key in new_keys]
 
             v2_errors.extend(abs(float(a) - b) for a, b in zip(old_tops, reference_tops))
-            v3_errors.extend(abs(float(a) - b) for a, b in zip(new_tops, reference_tops))
+            v3_errors.extend(abs(float(a) - b) for a, b in zip(new_tops, current_reference_tops))
+            # Historical improvement gates compare the same 96-pixel window.
+            # Newly exposed near-wall edges are reported above, separately.
+            shift = v3.HORIZON - 48
+            common_viewport_errors.extend(
+                abs(max(0.0, float(a) - shift) - max(0.0, b - shift))
+                for a, b in zip(new_tops, current_reference_tops)
+            )
             v2_wrong_segments += sum(a != b for a, b in zip(old_segments, reference_segments))
             v3_wrong_segments += sum(a != b for a, b in zip(new_segments, reference_segments))
             v2_wrong_materials += sum(a != b for a, b in zip(old_materials, reference_materials))
@@ -176,6 +192,7 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
     samples = views * v3.PHYSICAL_COLUMNS
     old_stats = summarize_errors(v2_errors)
     new_stats = summarize_errors(v3_errors)
+    common_stats = summarize_errors(common_viewport_errors)
     poses = [
         (0x0180, 0x0180, 0), (0x0680, 0x0120, 64),
         (0x0880, 0x0580, 144), (0x0D80, 0x0D80, 224),
@@ -185,10 +202,16 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
         "configuration": {
             "scope": "static-cell host geometry; finite doors and runtime timing are qualified separately",
             "static_cell_geometry": True,
+            "legacy_horizon": 48,
+            "current_horizon": v3.HORIZON,
             "level_grid_sha256": hashlib.sha256(static_grid).hexdigest(),
             "benchmark_rom_sha256": hashlib.sha256(v3.make_rom()[0]).hexdigest(),
         },
         "corpus": {"views": views, "physical_column_samples": samples},
+        "common_96_pixel_window": {
+            **common_stats,
+            "mean_top_error_reduction_pct": 100.0 * (1.0 - common_stats["mean_px"] / old_stats["mean_px"]),
+        },
         "v0.2.2": {
             **old_stats,
             "wrong_segment_pct": 100.0 * v2_wrong_segments / samples,

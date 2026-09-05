@@ -13,6 +13,7 @@ static uint32_t pixels[160 * 144];
 static unsigned swaps, unsafe_dma, unsafe_flips, dma_starts, frame;
 static unsigned presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes;
 static unsigned foreground_publications, mixed_world_oam;
+static unsigned unsafe_cpu_map_writes, visible_world_map_writes;
 
 static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -28,6 +29,13 @@ static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 static bool write_hook(GB_gameboy_t *gb, uint16_t address, uint8_t value)
 {
     uint8_t lcdc = GB_read_memory(gb, 0xff40);
+    if (address >= 0x9800 && address < 0xa000 && (lcdc & 0x80)) {
+        unsigned ly = GB_read_memory(gb, 0xff44);
+        if (ly < 144 || ly >= 153) unsafe_cpu_map_writes++;
+        unsigned world_bytes = (GB_read_memory(gb, 0xff45) / 8) * 32;
+        if ((address & 0x3ff) < world_bytes &&
+            ((address >= 0x9c00) == ((lcdc & 8) != 0))) visible_world_map_writes++;
+    }
     if (address == 0xff55 && !(value & 0x80) && (lcdc & 0x80)) {
         dma_starts++;
         if (GB_read_memory(gb, 0xff44) < 144) unsafe_dma++;
@@ -125,9 +133,9 @@ int main(int argc, char **argv)
             }
             if (objects>max_objects) max_objects=objects;
         }
-        bool passed=!unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10;
-        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u}\n",
-               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam);
+        bool passed=!unsafe_cpu_map_writes && !visible_world_map_writes && !unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10;
+        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u}\n",
+               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes);
         GB_dealloc(gb); return passed?0:1;
     }
     unsigned initial_angle = 0, initial_y = 0;
@@ -155,15 +163,15 @@ int main(int argc, char **argv)
     bool door_open = GB_read_memory(gb, 0xd764) == 2;
     bool passed = presentations >= 30 && reused > 0 && swaps >= 10 && dma_starts >= 30
         && !unsafe_dma && !unsafe_flips && !unsafe_presentations && !unsafe_oam && !visible_mask_writes
-        && !mixed_world_oam && (!foreground_test || foreground_publications>0)
+        && !unsafe_cpu_map_writes && !visible_world_map_writes && !mixed_world_oam && (!foreground_test || foreground_publications>0)
         && angle != initial_angle && y != initial_y && door_open && GB_is_cgb_in_cgb_mode(gb);
     printf("{\"passed\":%s,\"model\":%u,\"lcd_frames\":%u,\"page_swaps\":%u,"
            "\"gdma_starts\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_page_flips\":%u,"
            "\"presentations\":%u,\"reused_presentations\":%u,\"unsafe_presentations\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,"
-           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
+           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
            passed ? "true" : "false", model, frame, swaps, dma_starts, unsafe_dma,
            unsafe_flips, presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes,
-           foreground_publications, mixed_world_oam,
+           foreground_publications, mixed_world_oam, unsafe_cpu_map_writes, visible_world_map_writes,
            y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
            door_open ? "true" : "false");
     GB_dealloc(gb);

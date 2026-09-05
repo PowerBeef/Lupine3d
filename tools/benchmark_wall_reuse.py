@@ -35,11 +35,11 @@ def packet(c):
              (br.RAY_DEPTH,80),(br.RAY_SEGMENT,80),(br.RAY_SURFACE,80),
              (br.PIXEL_TOPS,160),(br.PIXEL_STYLES,160),(br.PIXEL_KEYS,160),
              (br.PIXEL_ALONG,160),(br.PIXEL_SEGMENT,160),(br.PIXEL_SURFACE,160),
-             (br.DYNAMIC_TILES,c.read8(br.DYN_COUNT)*16),(br.VIEW_MAP,384),
-             (br.MASK_TILES,c.read8(br.MASK_TILE_COUNT)*16),(br.HUD_PACKET,11))
+             (br.DYNAMIC_TILES,c.read8(br.DYN_COUNT)*16),(br.VIEW_MAP,br.VIEW_MAP_BYTES),
+             (br.MASK_TILES,c.read8(br.MASK_TILE_COUNT)*16),(br.HUD_PACKET,br.HUD_PACKET_BYTES))
     data = b"".join(read_block(c,*span) for span in spans)
     # The BG page may differ by design; compare its palette/flip semantics.
-    data += bytes(value & ~8 for value in read_block(c,br.VIEW_ATTRIBUTES,384))
+    data += bytes(value & ~8 for value in read_block(c,br.VIEW_ATTRIBUTES,br.VIEW_MAP_BYTES))
     data += bytes(c.oam)
     return dict(packet_sha256=hashlib.sha256(data).hexdigest(),
                 rgb_sha256=hashlib.sha256(c.render_screen().tobytes()).hexdigest())
@@ -85,7 +85,13 @@ def live(rom, labels, case, *, full=False):
     c.button_provider = keys
     last_count, last_cycle, last_anim = c.presentations, c.cycles, None
     anim_changes = 0
-    while c.frame_count-base_frame < 72:
+    measurement_end = None
+    # Preserve the 72-LCD timing window, then allow pending final taps to
+    # publish under a bounded, input-free drain. No game-RAM writes occur.
+    while c.frame_count-base_frame < 120:
+        if c.frame_count-base_frame >= 72:
+            if measurement_end is None: measurement_end = c.cycles
+            if all('publication_ms' in p for p in presses.values()): break
         relative = c.frame_count-base_frame
         if relative in pulses and relative not in presses:
             presses[relative] = dict(onset_cycle=c.cycles)
@@ -95,7 +101,8 @@ def live(rom, labels, case, *, full=False):
         validate_frame(c)
         event = c.commit_events[-1]
         assert event["vblank_safe"] and oam_budget(c)["max_oam_per_scanline"] <= 10
-        updates.append(dict(cycles=c.cycles-last_cycle,reused=event["reused"],blocks=event["blocks"]))
+        if measurement_end is None:
+            updates.append(dict(cycles=c.cycles-last_cycle,reused=event["reused"],blocks=event["blocks"]))
         last_cycle = c.cycles
         if c.read8(br.SENTINEL_VISIBLE) and c.read8(br.SENTINEL_STATE) != br.SENTINEL_DEAD:
             anim = c.read8(br.SENTINEL_ANIM)
@@ -113,8 +120,8 @@ def live(rom, labels, case, *, full=False):
                 press["muzzle_scanline_ms"] = (scan_cycle-press["onset_cycle"])*1000/CPU_HZ
     assert len(presses) == len(pulses) and all("publication_ms" in p for p in presses.values()), (case,presses)
     assert c.read8(br.INPUT_QUEUE_OVERFLOW) == 0
-    elapsed = (c.cycles-start)/CPU_HZ
-    return dict(lcd_frames=72,elapsed_seconds=elapsed,presentations=len(updates),
+    elapsed = (measurement_end-start)/CPU_HZ
+    return dict(lcd_frames=72,feedback_drain_lcd_frames=max(0,c.frame_count-base_frame-72),elapsed_seconds=elapsed,presentations=len(updates),
                 display_updates_hz=len(updates)/elapsed,
                 full_updates=sum(not u["reused"] for u in updates),
                 reused_updates=sum(u["reused"] for u in updates),

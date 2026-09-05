@@ -1,0 +1,341 @@
+{
+  "schema": "sable.quality-inputs.v1",
+  "source_report_sha256": {
+    "build/experiments/strips-sustained/motion_benchmark.json": "ee70bda36a158c8e77c1f53ba04f9e64cb789ceb9d64f4c2cad3e338d185cd62",
+    "build/experiments/performance-sustained/motion_benchmark.json": "a0af5cbc7509957b59cd1813e634f4b638a9ff6f3567f2961274c507a643c778",
+    "build/experiments/contention-visible/motion_benchmark.json": "c994ef5c22f3b72f037ce8130b8a3cd8540b84c25ae46ce14a2075bd9a9d556c",
+    "build/experiments/door-interaction-sustained/motion_benchmark.json": "34333b2d0e9d6850d93d3c37b5faabaa0a7b82b0618cc985de05c22e44824397"
+  },
+  "baseline": {
+    "schema": "lupine3d.motion.v2",
+    "baseline_sha256": "8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3",
+    "cases": {
+      "walking": {
+        "baseline": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 411,
+            "mean": 1212118.0827250609,
+            "p50": 1264012,
+            "p95": 1264528,
+            "p99": 1264568,
+            "worst": 1264568
+          },
+          "full_geometry_updates_hz": 6.851213222607185,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "turning": {
+        "baseline": {
+          "input_replay_sha256": "e40db87604e474c948ef26afb790c785927af1fd12429e84c42f751fed55d7d7",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 545,
+            "mean": 921810.3486238532,
+            "p50": 842960,
+            "p95": 1123780,
+            "p99": 1123904,
+            "worst": 1127932
+          },
+          "full_geometry_updates_hz": 9.084942107836778,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "walking_turning": {
+        "baseline": {
+          "input_replay_sha256": "0573d0c872b579050b4f6db7649d24b6dbc38bced15c76f4b6ec111bf1b716e1",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 513,
+            "mean": 980133.2475633528,
+            "p50": 983116,
+            "p95": 1123924,
+            "p99": 1264260,
+            "worst": 1264368
+          },
+          "full_geometry_updates_hz": 8.551514314349113,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "moving_fire": {
+        "baseline": {
+          "input_replay_sha256": "266a8d0dd8fe5f5fdf3bf9b9697a4e230234df9589a5ed0a34870b79b44df9d9",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 513,
+            "mean": 978764.1481481482,
+            "p50": 983120,
+            "p95": 1123944,
+            "p99": 1264228,
+            "worst": 1264352
+          },
+          "full_geometry_updates_hz": 8.551514314349113,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "open_door": {
+        "baseline": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 395,
+            "mean": 1271866.97721519,
+            "p50": 1264032,
+            "p95": 1404404,
+            "p99": 1404768,
+            "worst": 1404768
+          },
+          "full_geometry_updates_hz": 6.584505187743301,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "closed_door": {
+        "baseline": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 485,
+            "mean": 1035855.6041237114,
+            "p50": 983256,
+            "p95": 1124580,
+            "p99": 1124652,
+            "worst": 1124652
+          },
+          "full_geometry_updates_hz": 8.08475734771965,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "two_actor_corner": {
+        "baseline": {
+          "input_replay_sha256": "f90e0f8324bc70e82c129e8eacc4afa8ae9566fd40c4e36d045d5b4b4ee8c924",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 373,
+            "mean": 1348764.4289544236,
+            "p50": 1264128,
+            "p95": 1825784,
+            "p99": 1966488,
+            "worst": 2106772
+          },
+          "full_geometry_updates_hz": 6.2177590688048525,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "opening_door": {
+        "baseline": {
+          "input_replay_sha256": "fffc348977a8ff5840340a681c797b1adfcd6f703ffdd90ecf193460efa723a1",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 5,
+            "mean": 1180695.2,
+            "p50": 1124148,
+            "p95": 1404896,
+            "p99": 1404896,
+            "worst": 1404896
+          },
+          "full_geometry_updates_hz": 0.08334801323150982,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      }
+    }
+  },
+  "performance": {
+    "schema": "lupine3d.motion.v2",
+    "candidate_sha256": "48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99",
+    "cases": {
+      "walking": {
+        "candidate": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 435,
+            "mean": 1151487.3287356321,
+            "p50": 1123612,
+            "p95": 1264268,
+            "p99": 1264560,
+            "worst": 1264592
+          },
+          "full_geometry_updates_hz": 7.251283952446465,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "turning": {
+        "candidate": {
+          "input_replay_sha256": "e40db87604e474c948ef26afb790c785927af1fd12429e84c42f751fed55d7d7",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 580,
+            "mean": 866183.9103448276,
+            "p50": 842692,
+            "p95": 983424,
+            "p99": 1123772,
+            "worst": 1127920
+          },
+          "full_geometry_updates_hz": 9.668378603261953,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "walking_turning": {
+        "candidate": {
+          "input_replay_sha256": "0573d0c872b579050b4f6db7649d24b6dbc38bced15c76f4b6ec111bf1b716e1",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 554,
+            "mean": 906581.8555956678,
+            "p50": 842812,
+            "p95": 1123992,
+            "p99": 1262592,
+            "worst": 1264232
+          },
+          "full_geometry_updates_hz": 9.234968527943314,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "moving_fire": {
+        "candidate": {
+          "input_replay_sha256": "266a8d0dd8fe5f5fdf3bf9b9697a4e230234df9589a5ed0a34870b79b44df9d9",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 554,
+            "mean": 906581.8267148015,
+            "p50": 842812,
+            "p95": 1123916,
+            "p99": 1263236,
+            "worst": 1264448
+          },
+          "full_geometry_updates_hz": 9.234968601349248,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "open_door": {
+        "candidate": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 410,
+            "mean": 1225335.3073170732,
+            "p50": 1263968,
+            "p95": 1264160,
+            "p99": 1264192,
+            "worst": 1264192
+          },
+          "full_geometry_updates_hz": 6.834549851521051,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "closed_door": {
+        "candidate": {
+          "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 521,
+            "mean": 963201.8349328215,
+            "p50": 983140,
+            "p95": 1124568,
+            "p99": 1124612,
+            "worst": 1262504
+          },
+          "full_geometry_updates_hz": 8.684863254856324,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "two_actor_corner": {
+        "candidate": {
+          "input_replay_sha256": "f90e0f8324bc70e82c129e8eacc4afa8ae9566fd40c4e36d045d5b4b4ee8c924",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 391,
+            "mean": 1283439.989769821,
+            "p50": 1264060,
+            "p95": 1685396,
+            "p99": 1825936,
+            "worst": 2106900
+          },
+          "full_geometry_updates_hz": 6.5178118370699405,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      },
+      "opening_door": {
+        "candidate": {
+          "input_replay_sha256": "fffc348977a8ff5840340a681c797b1adfcd6f703ffdd90ecf193460efa723a1",
+          "lcd_frame_counter_delta": 3584,
+          "full_frame_cycles": {
+            "count": 5,
+            "mean": 1096428.0,
+            "p50": 1123892,
+            "p95": 1264456,
+            "p99": 1264456,
+            "worst": 1264456
+          },
+          "full_geometry_updates_hz": 0.08334801521903142,
+          "observation": {
+            "timing_unit": "cpu_t_cycles",
+            "timing_reconciled": true,
+            "game_ram_writes_after_trial_start": 0
+          }
+        }
+      }
+    }
+  }
+}

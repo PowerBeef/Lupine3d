@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "rom_sha256": "b261d21913255efc9a74d7be4c0b5f46b40f9cf1fec5bf3bb50dd5785c7142a0",
+  "game_ram_injections": 0,
+  "controller_only": true,
+  "blind_navigation": false,
+  "schema": "lupine3d.controller-route.v2",
+  "input_replay_sha256": "cb72b09579de6503a1e8c4f3d703acfed8ec913eab163629a6373996eb06d84c",
+  "input_replay_encoding": "one controller byte per LCD interval; adaptive controller recorded for replay",
+  "lcd_intervals": 1938,
+  "completion_update": 232,
+  "restart_verified": true,
+  "update_count": 234,
+  "health_remaining": 99,
+  "sentinel_dead": true,
+  "pickup_collected": true,
+  "level_complete": true,
+  "unsafe_gdma_starts": 0
+}

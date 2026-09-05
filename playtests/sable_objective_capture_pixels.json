@@ -1,0 +1,11 @@
+{
+  "01_protected_start.png": "9adadd6e3b1697a9f60e16142659ad97e59391158b658930d50ad50d6f452c8c",
+  "02_airlock_approach.png": "654f2504c60da4d1443ecebaffc8d437cd855df14c8ce7bfa7f0c529a03b7545",
+  "03_airlock_open.png": "afba0cf7c40a31f2a70b4b0c1700f2e8dfdbac5f023c55e6aa6694c112debed1",
+  "04_corridor_turn.png": "60dc6d746761358ca3a6a181aca52edba8fc71dbd9cc160cf0d2e448f82ce055",
+  "05_zigzag_gate.png": "654f2504c60da4d1443ecebaffc8d437cd855df14c8ce7bfa7f0c529a03b7545",
+  "06_zigzag_open.png": "ffc038ec6d1b2ff117ffbff2bdb8693a9b6186b14b1bd9e80b04ed9c2ee1b56d",
+  "07_combat_partition.png": "7f15f83a777f0f32c2e0f1d383b813e639d82bc9206c388c8d4abd3f01637805",
+  "08_machinery_chamber.png": "1268f24b6bb9792ab4648c8f4a26f77483a71388e64b85dca87d4a2aa3c59d63",
+  "09_exit_approach.png": "fd76f4630c5acc23dec23931cf4cd8cdffce83a5093480b9d01fd59e7c5209f9"
+}

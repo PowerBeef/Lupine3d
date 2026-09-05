@@ -1,186 +1,168 @@
-# Lupine 3D 0.7.0-beta.6 architecture
+# Lupine 3D v0.8 architecture
 
-Lupine is a CGB-only 4 MiB MBC5 engine with no cartridge RAM. Python generates SM83 code, tables and original graphics. Runtime uses double-speed execution, native tiles, two VRAM banks, two BG maps and hardware 8×16 objects.
+Lupine generates a CGB-only, 4 MiB MBC5 cartridge with no cartridge RAM.
+Python emits SM83 machine code, fixed-point tables and native 2bpp assets.
+The console runs in double-speed mode using tiles and 8×16 hardware sprites;
+there is no framebuffer. This document describes the default slim/Sable build.
+Historical beta.6 measurements are retained in [its test report](TEST_REPORT_BETA6.md).
 
-## Frame and simulation ownership
+## Frame, input and simulation ownership
 
-VBlank interrupts sample controls into a timestamped ring queue; they never simulate. The renderer cooperatively yields at ray and tile-column boundaries. The production contexts save only the state live at those documented boundaries; the generic full-HRAM ABI remains available. Each yield selects WRAM bank 2, consumes at most four simulation packets, restores bank 1 and resumes. Queue debt is retained.
+VBlank samples controls into a timestamped ring queue. Simulation runs at
+cooperative ray/column yields, consuming at most four queued packets per service.
+It owns WRAM bank 2. Queue debt and button edges survive slow rendering.
+The narrow production yield contexts preserve live registers/state; the generic
+full-HRAM ABI remains a diagnostic reference.
 
-At frame start, live map/player/world/actor records are copied through a 457-byte fixed-WRAM staging buffer into bank 1. All rendering, depth tests, animation selection and publication use that immutable snapshot. Bank 2 continues moving actors and doors while the snapshot renders.
+At snapshot creation, 457 bytes of map/player/world/actor state pass through
+fixed WRAM into bank 1. Geometry, animation, HUD and OAM all use that immutable
+snapshot while simulation continues in bank 2. Animation uses accepted ticks,
+not host time or the number of rendered frames.
 
-A full frame proceeds through 80 adaptive descriptors, 160 physical columns, six folded tile rows, palette attributes, masked entity patterns and shadow OAM. Before casting, a 290-byte exact comparison checks camera, map, door records, configuration and reload generation. A hit retains the matching wall view/depth and renders only entities, fixtures and HUD. Publication occurs only when its complete packet is ready. See [wall reuse](WALL_REUSE.md).
+An exact 290-byte wall-key comparison covers camera, map, door state,
+configuration and reload generation. A miss casts/reconstructs the view,
+composes tiles, prepares masks/entities and builds a complete publication packet.
+A hit retains matching walls/depth and refreshes entities/HUD only. Bank ownership
+for the published BG and OBJ patterns can consequently differ. See
+[wall reuse](WALL_REUSE.md).
 
-## Cartridge banks
+## Display and geometry
 
-| Banks | Contents |
-|---|---|
+| Profile | World | Horizon | HUD | World rows | Folded rows | STAT switch |
+| --- | --- | --- | --- | --- | --- | --- |
+| `slim` (default) | 160×120 | 60 | 24 px | 15 | 8 | 120 |
+| `compact` | 160×112 | 56 | 32 px | 14 | 7 | 112 |
+| `legacy` | 160×96 | 48 | 48 px | 12 | 6 | 96 |
+
+Horizontal FOV and projection scale are unchanged. Taller profiles reveal more
+vertically; they do not stretch the old image. The weapon is anchored to the
+world's lower edge. The STAT handler changes BG tile addressing at the HUD
+boundary. Legacy plus legacy art/animation-off reproduces the beta.6 ROM.
+
+Positions use Q8.8. Prepared directions and crossing certificates use Q14 and
+the existing tie convention; terminal distance/projection use Q5. Forty even
+anchors plus anchor 79 feed adaptive pair reconstruction, physical edge recasts
+and conservative interpolation over 160 columns. Surface identity is independent
+of material colour. Collision, wall rays, LOS and hitscan share finite door
+geometry. Physical-depth and higher-precision actor experiments remain disabled;
+production height-derived mask depth is not labelled a continuous geometric query.
+
+The signed-BG compositor folds upper/lower wall tiles using vertical attributes.
+Legacy/compact use 19 logical strip states and nine stored states; slim needs
+21/11 because the centre tile can contain both boundaries (states 19/20).
+The fixed reference retains all logical states. The unfolded diagnostic reads
+bank 237 through a fixed 16-byte scratch, then restores bank 1.
+
+Static classification precedes exact atlas lookup. The checked-in atlas was
+trained in the legacy domain; eligible keys are translated for larger horizons,
+and misses use the exact compositor. `make atlas-check` verifies legacy training
+assets; Sable validation checks production lookups. This release does not retrain
+or replace the atlas. Dynamic allocation is bounded to 96 patterns.
+
+## ROM allocation
+
+| Banks | Ownership |
+| --- | --- |
 | 0–1 | Resident engine, level records and hot metadata |
-| 2–145 | Paired projection top/depth LUT: 2,359,296 bytes |
-| 146–153 | Complete 8×8 product LUT: 131,072 bytes |
+| 2–145 | Direct paired projection top/depth tables: 2,359,296 bytes |
+| 146–153 | 8×8 multiplication tables: 131,072 bytes |
 | 154 | Alternate atlas/dictionary |
-| 155 | Physical segments: 1,024 bytes; oriented-face profiles: 1,024 bytes |
-| 156 | Cold boot assets and startup map: 9,514 bytes |
+| 155 | Physical segments and oriented-face profiles |
+| 156 | Cold startup/map/art assets: 12,810 bytes |
 | 157–172 | Q14 camera directions: 262,144 bytes |
-| 173–236 | Prepared coarse/Q14 ray metadata and projection pointers: 1,048,576 bytes |
-| 237 | Reserved unfolded diagnostic strips: 7,296 bytes; unused by production |
-| 238–255 | Unallocated cartridge capacity: 294,912 bytes |
+| 173–236 | Prepared ray metadata: 1,048,576 bytes |
+| 237 | Unfolded diagnostic strip allocation: 8,064 bytes |
+| 238–255 | Unallocated cartridge capacity |
 
-Banked lookups restore ROM bank 1. Executing bank-switching routines stay below $4000; the builder asserts the boundary. The accepted rendering configuration ends at $68CD, leaving 5,939 resident bytes below $8000 and preserving the 3,000-byte reserve. Its fixed code ends at $3090. Compact strips save 3,840 table bytes and 2,816 net linked bytes versus the review baseline; they do not enlarge fixed ROM. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. Unaligned fixture records follow the hot tables; the startup map lives in cold bank 156. The loader restores bank 1 after copying it.
+For the qualified v0.8 ROM, fixed code ends at `$3910` (1,776 bytes below
+`$4000`); resident data ends at `$73CD`, leaving **3,123 bytes** below `$8000`.
+The required reserve remains 3,000 bytes. Saving resident table data does not
+increase the fixed-code ceiling. Code that changes ROM banks stays below `$4000`
+and restores bank 1 before returning. Prepared scalar records 0–240 and the
+raw-query sentinel are unchanged; disabled packets own only records 241–250.
 
-## Geometry and projection
+## RAM and video allocation
 
-Positions are Q8.8 on a 16×16 map; angles are 256 units/turn. Static walls use material 1/2, doors 3 and empty cells 0.
+`allocation.py` checks ranges and lifetimes; the build manifest records resolved
+allocations. Important owners are:
 
-The coarse signed-error DDA maintains next-boundary distances and the sign of `nextX*absY - nextY*absX`. For supported camera records, an error certificate determines whether coarse and Q14 traversal must choose the same crossing. At the first uncertain crossing, compute the fine 32-bit error at the current cell and continue in Q14. Earlier certified cells need no retraversal. Degenerate coarse components and casts beginning inside a door still initialize from the player. See the [continuation proof and performance contract](RUNTIME_PERFORMANCE.md).
+| Resource | Ownership |
+| --- | --- |
+| Fixed WRAM `$C600–$C7DF` | 480-byte world map staging |
+| Fixed WRAM `$C8E0–$C8EF` | Unfolded strip scratch, outside the enlarged map |
+| Fixed WRAM `$CE00–$CFFF` | 512-byte reserved stack |
+| WRAM bank 1 | Immutable render snapshot, descriptors, masks and staging |
+| Bank 1 `$D3D8–$D3E7` | 16-byte HUD publication packet |
+| Bank 1 `$DC00–$DDDF` | 480-byte attribute staging |
+| WRAM bank 2 | Authoritative live simulation state |
+| WRAM bank 3 | Reserved 128×32-byte dynamic-cache experiment |
+| WRAM bank 4 | Reserved foreground buffers/event queue experiment |
+| WRAM banks 5–7 | Available |
+| HRAM | 111 state bytes and a separate 10-byte DMA stub |
+| BG patterns | Static/atlas tiles plus at most 96 dynamic patterns |
+| Bank-0 HUD patterns | 94 of 96, `$8200–$87DF` |
+| Bank-1 OBJ patterns | 86 preloaded weapon/UI plus 32 masked world patterns |
+| OAM | 40 hardware objects; world pool 16, at most four per scanline |
 
-A 1,024-byte direction page per camera angle contains 80 pair-centre vectors, 160 physical-centre vectors and one centre hitscan vector. The 64 retained severe tail rays choose their floating-oracle cell/axis in generated code. This does not eliminate every continuous-camera error.
+The 242-pattern enemy/fixture **ROM source dictionary** is distinct from resident
+VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware selects
+at most ten objects per scanline, including Y-overlapping objects hidden in X.
+Living actors and gameplay pickups have priority over cosmetic death sprites.
 
-Aligned sixteen-byte records precompute each camera/ray pair’s coarse components, steps, angle, correction, projection pointers and absolute Q14 components. Loading a record marks fine components ready for doors and precision continuation. Raw probes, generic LOS and full Q14 restart retain their original paths. Four banked WRAM bytes at $D8F3–$D8F6 hold the X/Y projection pointers. The production snapshot also computes its bank and camera-page contribution once; public queries retain self-contained setup. `LUPINE3D_PREPARED_RAYS=0` retains the arithmetic build. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md).
+## Publication and timing
 
-Projection still uses the paired integer Q5 LUT. Cast depth is corrected perpendicular Q5 distance, saturated to 255. Adaptive interpolation uses conservative height-class depth bounds. Wall geometry is not a floating-point continuous oracle.
+A full packet contains at most 176 GDMA blocks: 96 BG, 32 OBJ, 24 map and 24
+attribute blocks. The retained bulk map transfers cover twelve rows. Slim's
+three additional rows require **192 bounded CPU-copy bytes** into hidden maps:
+96 map + 32 attribute bytes during the pattern stage, then 64 attribute bytes
+in the final commit. HUD and OAM are committed with matching bank/map state.
 
-### Sliding doors
+The first stage remains bounded to 96 blocks. Above 48 dynamic+mask patterns,
+an additional VBlank precedes the pattern stage. Full packets therefore use
+two or three VBlanks; cached packets use one. Writes must finish before line
+153. No partially prepared row or mask bank becomes visible. GDMA and OAM DMA
+halt CPU execution and are counted as work, not background transfers.
 
-A door is a finite segment at the centre of its cell, with an authored normal axis. Fraction F exposes the along-panel interval [0,F); the remaining [F,256) is solid and translates into the positive-axis jamb. Fully open state removes the cell.
+The steel HUD retains a 16-byte packet: four health IDs, one enemy count,
+two caption IDs, three status IDs and six portrait IDs. Text starts at HUD y=4
+and y=10. Each main status ID names a vertical tile pair; its lower ID is written
+into the third HUD row on both maps. The final one-pixel spacing fix adds six
+map writes, **108 CPU T-cycles** (about 12.9 µs), without extra pattern DMA.
+See [HUD layout and captures](STEEL_HUD.md).
 
-Wall rays, current-pose hitscan and exact player-to-enemy LOS share this plane intersection. Axis-separated player/actor collision expands the same panel by radius 56/256 tile. Door intersection alone uses bounded integer division; ordinary grid crossing does not. The sixteen quotient bits are processed in four groups. BC holds the quotient, HL the remainder, DE the divisor, and a two-byte stack entry holds the group count. Overflow leaves the original numerator for the existing rejection path.
+CPU T-cycles are canonical: double-speed CPU frequency is 8,388,608 Hz. One LCD
+interval remains 70,224 base-speed clocks, about 16.74 ms (140,448 double-speed
+CPU T-cycles). Full geometry updates, cached presentations and experimental
+foreground publications are separate counters. [Current evidence](TEST_REPORT.md)
+documents the accepted visual/performance tradeoff; ten sustained full updates/s
+is a target, not an achieved guarantee.
 
-Each opening takes 32 simulation ticks (eight fraction units/tick). Rays may pass before a radius-sized player fits. There are four independent door records and an all-enemies-dead exit lock. Closing/reversing/crushing doors are not implemented.
+## Art and animation
 
-### Reconstruction and physical identity
+Original generated concepts are adapted into indexed PNGs and deterministically
+compiled into 2bpp data. Builds do not generate images or download assets.
+The shotgun has five preloaded cels; flashes have two. Sentinels have twelve
+frames at each of three deliberately authored sizes. The HUD uses the approved
+armoured helmet with normal/blink/hurt/dead states. Snapshot timing selects cels;
+OAM references animate the weapon without runtime pattern uploads.
 
-41 mandatory anchor rays are cast. Odd samples interpolate only when plane/material, physical segment, surface profile, adjacency and a two-pixel slope bound agree. Other samples recast. The physical-column pass selectively recasts discontinuities.
+Accepted fire restarts recoil and preserves pending flash feedback until it is
+published. Gameplay death happens immediately; a short three-pose death visual
+is cosmetic and can be omitted under capacity pressure. Scene generation,
+restart and tick wraparound preserve coherent state. Details and source locations
+are in [Sable Outpost](SABLE_OUTPOST.md).
 
-The physical-column expansion streams neighbouring tops through registers and sequentially duplicates the other five descriptor arrays. Surface scans retain the previous segment/key/cell in registers, then scan door runs separately to preserve stencil precedence. Door scanning temporarily saves four stack bytes; no new descriptor buffer is allocated.
+## Feature gates and references
 
-Static materials can share one physical segment on a continuous exposed plane. Doors split segments; latent jamb faces receive IDs before opening. Surface colour metadata never defines physical continuity.
+Compact strips, invariant camera setup, narrow yields and CPU attribute padding
+are the accepted exact-output improvements. Sable art/animation and slim display
+are enabled by the owner's explicit acceptance of their measured cost. The
+original mean/p95 half-gains budget remains recorded as failed.
 
-| Address | Bytes | Snapshot descriptors |
-|---|---:|---|
-| $D200 / $D250 | 80 each | Ray top / style |
-| $D300 / $D350 | 80 each | Ray face key / along-face cell |
-| $D400 / $D4A0 | 160 each | Physical top / style |
-| $D540 / $D5E0 | 160 each | Physical face key / along |
-| $D680 / $D6D0 | 80 each | Ray depth / segment |
-| $D800 | 160 | Physical segment |
-| $DE00 | 80 | Ray surface profile |
-| $DE80 | 160 | Physical surface profile |
-
-## Tile and palette composition
-
-| BG IDs | Purpose |
-|---|---|
-| 0–95 | Dynamic boundaries, 96-pattern capacity |
-| 96–97 | Ceiling/floor |
-| 98–118 | Phase-free static wall/edge vocabulary |
-| 119–239 | Full 121-pattern exact atlas |
-| 240–255 | Retained legacy art; unused by the active HUD |
-
-Signed BG addressing maps IDs 0–127 to $9000–$97FF and 128–255 to $8800–$8FFF. Atlas upload splits at ID 128. Unsigned OBJ patterns occupy the non-overlapping $8000–$87FF region in both banks.
-
-The active HUD uses 78 bank-0 patterns at $8200–$86DF. A line-96 STAT interrupt switches LCDC.4 to unsigned addressing for its six rows; VBlank restores signed addressing. Masked world OBJ pages occupy only $8000–$81FF. Weapon/UI OBJ art resides at $8400–$853F in bank 1. See [the complete art allocation](SABLE_OUTPOST.md).
-
-Only six upper rows are composed. Lower rows reuse IDs with Y-flip and a matching floor palette; `LUPINE3D_FOLDED=0` retains the unfolded oracle. This relies on symmetric full-height walls and does not support pitch or arbitrary sector heights.
-
-The logical microstrip model still has 19 states. Production stores only states
-`[0,2,4,5,6,7,8,9,10]`, indexed densely for both styles and strip widths. The
-unfolded diagnostic reads all 19 states from bank 237 into a fixed 16-byte
-scratch buffer and restores bank 1. Exact CPU initialization of attribute
-padding preserves the 384-byte upload layout.
-
-Per-face content selects structure, machinery or functional-door profiles. A uniform eight-pixel group selects its profile's palette; a mixed group falls back to neutral to avoid inventing a material edge. Upper/lower palette pairs are 0/2, 5/6 and 3/4 respectively; HUD uses 1. All share consistent ceiling/floor colours.
-
-No eye-height rail or full-height decorative cell ribs are emitted. True corners receive narrow dark edges; doors have run-derived frames and a brighter centre signal.
-
-## Entities and OAM
-
-Hardware 8×16 mode uses aligned even/odd pattern pairs. Four fixed 16-byte slots reuse Sentinel AI, health, hurt/death animation and dropped pickups. The compiler accepts one to four spawns; the production level uses one.
-
-Three pre-scaled sizes—16×32, 16×16, 8×16—share the wall camera focal length and project feet from forward depth. Hysteresis prevents threshold chatter. Candidate actors are depth-sorted nearest first. Hitscan selects the nearest aimed candidate and then performs a fresh wall query, never trusting stale render visibility.
-
-Every eight-pixel strip computes a visibility bitmask against the 80-sample conservative depth buffer. Both bitplanes of its ROM-source cel are ANDed with that mask into staging. Mask patterns alternate banks using an independent OBJ owner; fully occluded strips allocate nothing. BG and OBJ owners may differ after a cached presentation.
-
-OAM entries 0–9 reserve weapon, crosshair and muzzle flash. World entries 10–25 admit at most 16 objects, and at most four world objects per scanline. The Y-selected scanline budget includes X-offscreen hardware objects. Unused entries are hidden. The bounded world limit leaves room for UI without exceeding 40 total / ten per scanline.
-
-Sixteen authored wall fixtures share that pool after actors and the exit. At most four fixture objects are submitted. Their masks require physical segment and along-face cell agreement. Pre-scaled cels sit at the upper wall quarter; door access marks translate with the sliding panel. The completed world-copy staging buffer temporarily holds fixture visibility, preserving wall attributes across cached updates.
-
-## Fixed and banked WRAM
-
-| Range | Purpose |
-|---|---|
-| $C000–$C5FF | Dynamic BG patterns |
-| $C600–$C77F | Hidden tile map |
-| $C800–$C89F | Shadow OAM |
-| $C8A0–$C8B2 | Fixed render/AI scratch, published entity X and bulk-copy remainder |
-| $C8B3–$C8B9 | OBJ owner, cache flags, presentation serial and reload generation |
-| $C8D0–$C8DD | 16-bit clocks, queue cursors, budget and diagnostics |
-| $C900–$CAC8 | World-copy staging, 457 bytes; first 256 reused for fixture visibility after copy |
-| $CB00–$CB6E | HRAM save area |
-| $CC00–$CCFF | 64×4 input ring; 63 usable records |
-| $CD00–$CDFF | Exact cached map key |
-| $CE00–$CFFF | Reserved stack, top $CFFF |
-| $D000–$D7FF | Banked map/player/descriptors/world/scratch |
-| $D8A0–$D8FF | Wide ray/door/mask/profile scratch |
-| $D900–$D98F | 144 scanline admission counters |
-| $D990–$D9CF | Four actor slots |
-| $D9D0–$D9D7 | Actor count and sorting scratch |
-| $D9E0–$D9F4 | Wall-fixture scratch and saved projection |
-| $D9F5–$D9FF | Eleven prepared HUD tile IDs |
-| $DA00–$DBFF | 32 masked patterns |
-| $DC00–$DD7F | Hidden attribute packet |
-| $DE00–$DF1F | Ray and physical surface buffers, including alignment gap |
-| $DF20–$DF41 | Exact camera/configuration/door/generation key |
-
-HRAM uses $FF80–$FFEE (111 bytes). The ten-byte OAM DMA stub uses $FFF4–$FFFD. ISR-owned input bytes are excluded from render-save restoration.
-
-`allocation.py` validates a complete ledger at link time, including ranges
-reserved for disabled experiments. End addresses in its manifest are exclusive.
-The 457-byte snapshot-copy spans are asserted disjoint from render-only state.
-
-| Additional reservation | Ownership |
-|---|---|
-| Fixed $C780–$C78F | Unfolded strip scratch |
-| Fixed $C8BA–$C8CD | Foreground queue/publication ownership |
-| Fixed $CB70–$CB7F / $CB80–$CB99 | Cache key staging / atomic actor admission |
-| Bank 1 $D2A0–$D2FF | Current packet and two pending siblings, no recursion |
-| Bank 1 $D3A0–$D3D7 | Certificate/camera, coverage, actor transform and near-plane scratch |
-| Bank 1 $DF42–$DF55 / $DF60–$DFFF | 160 validity bits / 160 physical depths |
-| Bank 3 $D000–$DFFF | 128 complete-key, 32-byte dynamic-cache entries |
-| Bank 4 $D000–$D09F / $D100–$D19F | Foreground-composite / published-world OAM |
-| Bank 4 $D200–$D29F | Sixteen ten-byte event slots, fifteen usable |
-
-Banks 5–7 remain free. Scratch lifetime reuse is declared explicitly; overlapping
-allocations are rejected even when comments assign different lifetimes.
-
-Queue entries contain a 16-bit tick, held state and rising edges. Overflow never overwrites pending entries: it increments a saturating diagnostic and preserves an OR-latched edge. It is finite capacity, not an unlimited event log.
-
-## Publication
-
-Maximum packet: 96 dynamic BG blocks + 32 masked OBJ blocks + 24 attribute blocks + 24 map blocks = 176 GDMA blocks / 2,816 bytes, plus HUD writes and OAM DMA.
-
-When dynamic-plus-mask patterns exceed 24, hidden dynamic patterns upload in one VBlank; masked patterns, attributes, map, HUD and OAM finish together in the next. The first stage is at most 96 blocks; final stage at most 80. Small packets fit one VBlank. The old complete frame stays visible until publication. HUD values are computed before waiting; only the eleven prepared IDs are written during publication. OAM DMA waits 160 M-cycles in HRAM. Boundary tests require completion before line 153.
-
-With optional reprojection or foreground publication enabled, more than 24 masked patterns trigger an additional wait after their upload. That stress case can use three VBlanks to preserve headroom; the default build uses at most two.
-
-Tile numbers upload with VBK=0; attributes with VBK=1; BG pattern bank follows the hidden BG page. Mask patterns target the hidden OBJ bank independently. LCDC map selection changes only after the matching complete full packet. A cached update uploads only 0–32 mask patterns plus HUD/OAM in one VBlank and leaves the viewport maps and BG owner untouched. `PRESENT_SERIAL` advances after either path; physical BG flips are counted separately. SameBoy checks GDMA/OAM starts, final publication and writes against the published mask bank.
-
-## Optional reprojection
-
-`LUPINE3D_REPROJECTION=1` enables a ±4-pixel SCX shift at VBlank. Only published world OAM X moves with the BG; foreground UI remains fixed. The ISR reads immutable published X, not the next shadow packet. Exact commits reset the offset.
-
-Guard columns extend the nearest edge tile/attribute; they are not extra rendered rays. A line-96 STAT split resets SCX for the HUD, not a Window-layer conversion. The experiment remains off by default pending perceptual and physical LCD testing.
-
-## Content and modules
-
-The [rendering implementation ledger](RENDERING_IMPLEMENTATION.md) records all
-experimental interfaces and measured enable/disable decisions. `configuration.py`
-resolves flags and build identity; `allocation.py` enforces memory boundaries.
-`tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`,
-`admission.py`, `projection_storage.py`, `near_field.py`, and `foreground.py`
-own the corresponding separately selectable kernels. Production enables compact
-strips, camera setup, narrow yields and attribute padding. Other new kernels
-remain disabled after their performance or quality gates.
-
-`levels.py` compiles JSON legality/readability, physical segments, oriented-face profiles and fixtures. `columns.py` emits streamed expansion/events; `ray_setup.py` generates and loads prepared ray records; `precision.py` owns Q14 tables/traversal; `door_geometry.py` shared panel queries; `simulation.py` queues/bank snapshots; `actors.py` bounded actor reuse; `masked_entities.py` LOD/masks/admission; `surfaces.py` palette packets; `artwork.py` native graphics; `world_decor.py` mounted fixtures. The legacy-named `lupine3d_v4` package remains a stable import path, not a version claim.
-
-The active map is compiled into the cartridge and loaded into live WRAM. Multiple spawns and per-face profiles are supported; streamed multi-level asset loading is not yet a runtime feature.
+Dynamic caching, packet traversal, physical depth, actor precision, scanline
+admission, paged projection, near-field precision and foreground publication
+remain experiments. Reprojection is disabled. Build flags and format versions
+are recorded in the manifest; unsupported explicit combinations fail.
+[Rendering milestone evidence](RENDERING_IMPLEMENTATION.md) describes the earlier
+performance work, while [development guidance](DEVELOPMENT.md) explains how to
+build references and qualify changes without overwriting historical evidence.

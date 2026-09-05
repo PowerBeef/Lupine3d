@@ -124,9 +124,16 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         dx, dy = live16(br.SENTINEL_XL) - px, live16(br.SENTINEL_YL) - py
         target = round(math.atan2(dy, dx) * 256 / math.tau) & 255
         delta = (target - angle + 128) % 256 - 128
-        if abs(delta) > 1: return 1 if delta > 0 else 2
-        return 16 if not cgb.read16(br.SIM_CLOCK) & 2 else 0
-    for _ in range(20):
+        # Keep steering to the target rather than parking one degree away:
+        # at close range the legacy Q4 transform can put that pose outside
+        # the aim window. Fire while making the final small correction.
+        steering = (1 if delta > 0 else 2) if delta else 0
+        fire = 16 if abs(delta) <= 3 and not cgb.read16(br.SIM_CLOCK) & 2 else 0
+        return steering | fire
+    # Cached presentations can run much faster than simulation cooldowns.
+    # Bound combat by five seconds of LCD time, independent of render cadence.
+    combat_start = cgb.frame_count
+    while cgb.frame_count - combat_start < 300:
         if live8(br.SENTINEL_STATE) == br.SENTINEL_DEAD:
             break
         step(aiming)

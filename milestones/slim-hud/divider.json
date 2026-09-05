@@ -1,0 +1,6 @@
+{
+  "changed_pixels": 48,
+  "only_scanline": 120,
+  "world_pixels_unchanged": true,
+  "scope": "frozen protected-start screenshot; dynamic divider states separately verified"
+}

@@ -1,0 +1,489 @@
+{
+  "schema": "lupine3d.motion.v2",
+  "timing_unit": "cpu_t_cycles",
+  "cpu_hz": 8388608,
+  "lcd_cpu_cycles": 140448,
+  "requested_duration_seconds": 10.0,
+  "candidate_sha256": "2915cb06207620e4553f3af4f811fd94c13c8407ea358c27b5da9cb424111942",
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "initial_diagnostic_setup": true,
+  "game_ram_writes_after_trial_start": 0,
+  "physical_hardware_tested": false,
+  "cases": {
+    "walking": {
+      "candidate": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.978817462921143,
+        "scenario": "walking",
+        "input_replay_sha256": "083774fe9e829d83a2d651d796c1687e20e6a0fc04d4acbea020b3aec8f8d034",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 17,
+            "unique_angles": 1
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 10,
+            "unique_angles": 1
+          }
+        ],
+        "presentations": 63,
+        "full_geometry_updates": 62,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 6.213161051434893,
+        "presentations_hz": 6.313373326458037,
+        "full_mean_cycles": 1345662.064516129,
+        "full_max_cycles": 1404524,
+        "full_frame_cycles": {
+          "count": 62,
+          "mean": 1345662.064516129,
+          "p50": 1404452,
+          "p95": 1404512,
+          "p99": 1404524,
+          "worst": 1404524
+        },
+        "all_frame_cycles": {
+          "count": 63,
+          "mean": 1326453.4603174604,
+          "p50": 1404452,
+          "p95": 1404512,
+          "p99": 1404524,
+          "worst": 1404524
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1326453.4603174604,
+        "max_cycles": 1404524,
+        "unique_positions": 17,
+        "unique_angles": 1,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      },
+      "baseline": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.978817462921143,
+        "scenario": "walking",
+        "input_replay_sha256": "083774fe9e829d83a2d651d796c1687e20e6a0fc04d4acbea020b3aec8f8d034",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 17,
+            "unique_angles": 1
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 10,
+            "unique_angles": 1
+          }
+        ],
+        "presentations": 63,
+        "full_geometry_updates": 62,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 6.213161051434893,
+        "presentations_hz": 6.313373326458037,
+        "full_mean_cycles": 1345662.064516129,
+        "full_max_cycles": 1404524,
+        "full_frame_cycles": {
+          "count": 62,
+          "mean": 1345662.064516129,
+          "p50": 1404452,
+          "p95": 1404512,
+          "p99": 1404524,
+          "worst": 1404524
+        },
+        "all_frame_cycles": {
+          "count": 63,
+          "mean": 1326453.4603174604,
+          "p50": 1404452,
+          "p95": 1404512,
+          "p99": 1404524,
+          "worst": 1404524
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1326453.4603174604,
+        "max_cycles": 1404524,
+        "unique_positions": 17,
+        "unique_angles": 1,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      }
+    },
+    "turning": {
+      "candidate": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.9788179397583,
+        "scenario": "turning",
+        "input_replay_sha256": "69efc3dfd7375b2a2c986595e4c726a81dd56e62ae98e604f7338a9a01a0390b",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 1,
+            "unique_angles": 39
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 1,
+            "unique_angles": 34
+          }
+        ],
+        "presentations": 79,
+        "full_geometry_updates": 78,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 7.816557078291505,
+        "presentations_hz": 7.916769348526012,
+        "full_mean_cycles": 1067828.0512820513,
+        "full_max_cycles": 1268932,
+        "full_frame_cycles": {
+          "count": 78,
+          "mean": 1067828.0512820513,
+          "p50": 983172,
+          "p95": 1264060,
+          "p99": 1268932,
+          "worst": 1268932
+        },
+        "all_frame_cycles": {
+          "count": 79,
+          "mean": 1056026.6835443038,
+          "p50": 983172,
+          "p95": 1264060,
+          "p99": 1268932,
+          "worst": 1268932
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1056026.6835443038,
+        "max_cycles": 1268932,
+        "unique_positions": 1,
+        "unique_angles": 66,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      },
+      "baseline": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.9788179397583,
+        "scenario": "turning",
+        "input_replay_sha256": "69efc3dfd7375b2a2c986595e4c726a81dd56e62ae98e604f7338a9a01a0390b",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 1,
+            "unique_angles": 39
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 1,
+            "unique_angles": 34
+          }
+        ],
+        "presentations": 79,
+        "full_geometry_updates": 78,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 7.816557078291505,
+        "presentations_hz": 7.916769348526012,
+        "full_mean_cycles": 1067828.0512820513,
+        "full_max_cycles": 1268932,
+        "full_frame_cycles": {
+          "count": 78,
+          "mean": 1067828.0512820513,
+          "p50": 983172,
+          "p95": 1264060,
+          "p99": 1268932,
+          "worst": 1268932
+        },
+        "all_frame_cycles": {
+          "count": 79,
+          "mean": 1056026.6835443038,
+          "p50": 983172,
+          "p95": 1264060,
+          "p99": 1268932,
+          "worst": 1268932
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1056026.6835443038,
+        "max_cycles": 1268932,
+        "unique_positions": 1,
+        "unique_angles": 66,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      }
+    },
+    "moving_fire": {
+      "candidate": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.978816986083984,
+        "scenario": "moving_fire",
+        "input_replay_sha256": "82e1722653f490dd48467a33a678dfb80eb7a7f90b1351b4b030dae04e454f64",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 36,
+            "unique_angles": 37
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 37,
+            "unique_angles": 37
+          }
+        ],
+        "presentations": 74,
+        "full_geometry_updates": 73,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 7.315496426260003,
+        "presentations_hz": 7.415708706071784,
+        "full_mean_cycles": 1135195.7808219178,
+        "full_max_cycles": 1404592,
+        "full_frame_cycles": {
+          "count": 73,
+          "mean": 1135195.7808219178,
+          "p50": 1123588,
+          "p95": 1404428,
+          "p99": 1404592,
+          "worst": 1404592
+        },
+        "all_frame_cycles": {
+          "count": 74,
+          "mean": 1121686.6486486488,
+          "p50": 1123580,
+          "p95": 1404428,
+          "p99": 1404592,
+          "worst": 1404592
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1121686.6486486488,
+        "max_cycles": 1404592,
+        "unique_positions": 73,
+        "unique_angles": 70,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      },
+      "baseline": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.978816986083984,
+        "scenario": "moving_fire",
+        "input_replay_sha256": "82e1722653f490dd48467a33a678dfb80eb7a7f90b1351b4b030dae04e454f64",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 36,
+            "unique_angles": 37
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 37,
+            "unique_angles": 37
+          }
+        ],
+        "presentations": 74,
+        "full_geometry_updates": 73,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 7.315496426260003,
+        "presentations_hz": 7.415708706071784,
+        "full_mean_cycles": 1135195.7808219178,
+        "full_max_cycles": 1404592,
+        "full_frame_cycles": {
+          "count": 73,
+          "mean": 1135195.7808219178,
+          "p50": 1123588,
+          "p95": 1404428,
+          "p99": 1404592,
+          "worst": 1404592
+        },
+        "all_frame_cycles": {
+          "count": 74,
+          "mean": 1121686.6486486488,
+          "p50": 1123580,
+          "p95": 1404428,
+          "p99": 1404592,
+          "worst": 1404592
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135520.0,
+          "p50": 135520,
+          "p95": 135520,
+          "p99": 135520,
+          "worst": 135520
+        },
+        "mean_cycles": 1121686.6486486488,
+        "max_cycles": 1404592,
+        "unique_positions": 73,
+        "unique_angles": 70,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      }
+    },
+    "two_actor_corner": {
+      "candidate": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.97881555557251,
+        "scenario": "two_actor_corner",
+        "input_replay_sha256": "52a24ca7f992021fc7b1b8f823a01b56afc9b73e61fd7276cd8bc1edacac7501",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 24,
+            "unique_angles": 23
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 18,
+            "unique_angles": 22
+          }
+        ],
+        "presentations": 46,
+        "full_geometry_updates": 45,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 4.509553237996315,
+        "presentations_hz": 4.60976553217401,
+        "full_mean_cycles": 1844664.888888889,
+        "full_max_cycles": 2247188,
+        "full_frame_cycles": {
+          "count": 45,
+          "mean": 1844664.888888889,
+          "p50": 1825840,
+          "p95": 2247140,
+          "p99": 2247188,
+          "worst": 2247188
+        },
+        "all_frame_cycles": {
+          "count": 46,
+          "mean": 1807503.9130434783,
+          "p50": 1825824,
+          "p95": 2247140,
+          "p99": 2247188,
+          "worst": 2247188
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135260.0,
+          "p50": 135260,
+          "p95": 135260,
+          "p99": 135260,
+          "worst": 135260
+        },
+        "mean_cycles": 1807503.9130434783,
+        "max_cycles": 2247188,
+        "unique_positions": 42,
+        "unique_angles": 45,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      },
+      "baseline": {
+        "lcd_frame_counter_delta": 597,
+        "elapsed_seconds": 9.97881555557251,
+        "scenario": "two_actor_corner",
+        "input_replay_sha256": "52a24ca7f992021fc7b1b8f823a01b56afc9b73e61fd7276cd8bc1edacac7501",
+        "input_replay_encoding": "one held-button byte per LCD interval, starting at trial frame zero",
+        "motion_windows": [
+          {
+            "start_lcd_frame": 0,
+            "unique_positions": 24,
+            "unique_angles": 23
+          },
+          {
+            "start_lcd_frame": 300,
+            "unique_positions": 18,
+            "unique_angles": 22
+          }
+        ],
+        "presentations": 46,
+        "full_geometry_updates": 45,
+        "reused_updates": 1,
+        "refinement_publications": 0,
+        "full_geometry_updates_hz": 4.509553237996315,
+        "presentations_hz": 4.60976553217401,
+        "full_mean_cycles": 1844664.888888889,
+        "full_max_cycles": 2247188,
+        "full_frame_cycles": {
+          "count": 45,
+          "mean": 1844664.888888889,
+          "p50": 1825840,
+          "p95": 2247140,
+          "p99": 2247188,
+          "worst": 2247188
+        },
+        "all_frame_cycles": {
+          "count": 46,
+          "mean": 1807503.9130434783,
+          "p50": 1825824,
+          "p95": 2247140,
+          "p99": 2247188,
+          "worst": 2247188
+        },
+        "cached_frame_cycles": {
+          "count": 1,
+          "mean": 135260.0,
+          "p50": 135260,
+          "p95": 135260,
+          "p99": 135260,
+          "worst": 135260
+        },
+        "mean_cycles": 1807503.9130434783,
+        "max_cycles": 2247188,
+        "unique_positions": 42,
+        "unique_angles": 45,
+        "wall_invalidation_exact": true,
+        "input_queue_overflow": 0,
+        "unsafe_gdma_starts": 0
+      }
+    }
+  },
+  "baseline_sha256": "b261d21913255efc9a74d7be4c0b5f46b40f9cf1fec5bf3bb50dd5785c7142a0",
+  "passed": true,
+  "full_report_sha256": "6753ea4cf2e99b7bd186680d3385ce26193b0b7c09a52b6e98a7ac57f8d6a781"
+}

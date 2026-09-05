@@ -56,7 +56,7 @@ def emit_world_decor(a: Assembler):
     a.label("fixture_door_y"); a.ld_a_abs(ENTITY_WORLD_YL); a.add_a_r("b"); a.ld_abs_a(ENTITY_WORLD_YL)
     a.label("fixture_project"); a.call("project_entity")
     a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.jp("fixture_advance","z")
-    a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(64); a.cp_n(6); a.jp("fixture_advance","c")
+    a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(HORIZON + 16); a.cp_n(6); a.jp("fixture_advance","c")
     a.ld_r_r("b","a"); a.cb("srl","a"); a.ld_r_r("c","a")
     a.ld_r_n("a",64); a.sub_r("c"); a.ld_abs_a(DECAL_Y)
     a.ld_r_n("d",16); a.ld_r_n("e",0)

@@ -19,7 +19,7 @@ def emit_masked_entities(a: Assembler) -> None:
     a.label("submit_masked_oam")  # B=Y, C=X, D=even source cel, E=palette
     for source, target in (("b", MASK_OAM_Y), ("c", MASK_OAM_X), ("d", MASK_SOURCE_TILE), ("e", MASK_ATTRIBUTES)):
         a.ld_r_r("a", source); a.ld_abs_a(target)
-    if SCANLINE_ADMISSION:
+    if SCANLINE_ADMISSION or SABLE_ART:
         a.ld_a_abs(ADMISSION_MODE); a.or_r("a"); a.jp("collect_actor_strip","nz")
     a.ld_a_abs(MASK_BITS); a.or_r("a"); a.ret("z")
     a.ld_a_abs(SENTINEL_OAM_USED); a.cp_n(ENTITY_OAM_COUNT); a.ret("nc")
@@ -72,15 +72,17 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("render_world_decor", "z")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(VRAM_PROFILE_ENTITY); a.jr("render_world_decor", "nz")
     a.call("render_actor_slots"); a.call("render_exit_beacon")
+    if SABLE_ART and ART_ANIMATION: a.call("render_cosmetic_deaths")
     a.label("render_world_decor"); a.jp("render_wall_fixtures")
 
     a.label("render_sentinel_actor")
+    if SABLE_ART: a.call("select_actor_animation")
     a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
-    if SCANLINE_ADMISSION: a.jp("render_actor_atomic")
+    if SCANLINE_ADMISSION or SABLE_ART: a.jp("render_actor_atomic")
     a.label("render_actor_selected_lod")
     a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jp("render_far_pair", "z")
     a.or_r("a"); a.jp("render_medium_pairs", "nz")
-    a.ld_a_abs(SENTINEL_ANIM); a.and_n(3)
+    a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 3)
     for _ in range(3): a.add_a_r("a")
     a.add_a_n(SENTINEL_NEAR_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)
     for col, visible in ((0, ENTITY_SCREEN_LEFT), (1, ENTITY_SCREEN_RIGHT)):
@@ -92,7 +94,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
             a.ld_r_n("e", 1); a.call("submit_masked_oam")
     a.ret()
     a.label("render_medium_pairs")
-    a.ld_a_abs(SENTINEL_ANIM); a.and_n(1); a.add_a_r("a"); a.add_a_r("a"); a.add_a_n(SENTINEL_MID_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)
+    a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 1); a.add_a_r("a"); a.add_a_r("a"); a.add_a_n(SENTINEL_MID_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)
     for col, visible in ((0, ENTITY_SCREEN_LEFT), (1, ENTITY_SCREEN_RIGHT)):
         a.ld_a_abs(visible); a.ld_abs_a(MASK_BITS)
         a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(16); a.ld_r_r("b", "a")
@@ -102,7 +104,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ret()
     a.label("render_far_pair")
     a.ld_a_abs(ENTITY_SCREEN_LEFT); a.ld_abs_a(MASK_BITS)
-    a.ld_a_abs(SENTINEL_ANIM); a.and_n(1); a.add_a_r("a"); a.add_a_n(SENTINEL_FAR_TILE_BASE); a.ld_r_r("d", "a")
+    a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 1); a.add_a_r("a"); a.add_a_n(SENTINEL_FAR_TILE_BASE); a.ld_r_r("d", "a")
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(16); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
     a.ld_r_n("e", 1); a.jp("submit_masked_oam")

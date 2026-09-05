@@ -1,55 +1,62 @@
-# Sable Outpost — visual implementation
+# Sable Outpost: v0.8 art and animation
 
-The environment, actors, weapon and interface share one original native-pixel art direction. The level retains its safe start, meaningful gates, combat partition and marked exit. Collision topology is unchanged; all sixteen fixtures are decorative.
+The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. The game keeps its safe start, four sliding doors, combat partition, healing pickup and marked exit. Sixteen wall fixtures add landmarks without changing collision geometry.
 
-| Visual signal | Meaning |
+## Visual language
+
+| Signal | Meaning |
 |---|---|
-| Gunmetal blue-grey | Structural walls |
-| Muted desaturated green | Machinery surfaces |
-| Teal panels, pale cyan edges and access emblem | Functional sliding door |
-| Amber caged lamp or sector marking | Local landmark |
-| Red armour | Hostile Sentinel |
-| Green/cream medical crate | Healing pickup |
-| Pale cyan beacon | Unlocked exit |
+| Blue-grey steel | Structural walls |
+| Muted green | Machinery surfaces |
+| Teal panels and pale cyan edges | Functional sliding doors |
+| Amber lights and sector marks | Local landmarks |
+| Red armour | Hostile Sentinels |
+| Green medical crate | Healing pickup |
+| Exit beacon | Available level exit |
 
-Ceiling and floor remain distinct flat tones. There are no eye-height rails, repeated screen-space texture rows or material-driven false corners. Surface palette changes remain separate from physical segment identity.
+The ceiling and floor stay visually distinct. There are no eye-height rails, material-colour false corners or repeated screen-space texture bands. Physical segment identity remains independent of surface colour.
 
-## Wall-mounted detail
+## Native sprite sources
 
-`levels/living_world.json` authors wall cell, exposed side and fixture kind. The compiler rejects empty cells, buried faces, incorrectly oriented door fixtures and excess content. Records compile to sixteen-byte resident entries; art stays in the cold asset bank.
+Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame metadata live in `assets/sable_v2/`. `tools/adapt_sable_art.py` is an offline authoring step; builds consume the versioned PNGs and never generate images. `sprite_assets.py` validates binary transparency, palette indices, dimensions and source hashes before 2bpp compilation.
 
-Fixtures share the camera transform, project at the upper quarter of the wall and use 16×16, 8×8 and 4×4 cels. A compressed 8×16 variant covers oblique close views; tangent close views are suppressed. These discrete LOD billboards approximate wall decals; they are not arbitrary perspective-correct UV textures. Very distant details disappear.
+| Asset | Native size | Cels |
+|---|---|---:|
+| Shotgun | 32×32 | 5: idle, recoil, pump back, pump forward, recovery |
+| Muzzle flash | 8×16 | 2 |
+| Sentinel | 16×32, 16×16, 8×16 | 12 per size: idle, walk, attack, hurt, death |
+| Player helmet | 16×16 | 4: normal, blink, hurt, dead |
+| Reticle | 8×16 | 1 |
+| Steel panel | 160×24 | Static base with dynamic tile regions |
 
-Every submitted eight-pixel strip must match both the physical wall segment and its along-face map cell. Door emblems move with the sliding panel and disappear into the jamb. Actors and the exit submit first. Decorations may consume at most four remaining OAM entries, subject to the same sixteen-world-object/four-per-scanline admission limits.
+The current helmet is the armoured, narrow-visor portrait retained after review. Its authored source is `steel_hud.py`. Preserve that selected face when editing the interface. The skull counts **living enemies remaining**; the objective reads **GOAL/HUNT**, then **GOAL/EXIT**. DEAD/DONE clear GOAL. See [HUD implementation](STEEL_HUD.md).
 
-A temporary 256-byte visibility table borrows the completed world-copy staging buffer at $C900. Snapshot copying has finished, and no simulation yield occurs inside fixture rendering. This avoids repeatedly searching all 80 rays and preserves the wall attribute packet for cached updates without another permanent allocation.
+## Animation and gameplay
 
-## HUD and native graphics budget
+Accepted simulation ticks enter immutable render snapshots. Walking phases last eight ticks; idle motion is slower. Attack, hurt and firing select short reactions. Accepted shots restart recoil, and pending flashes survive until they can be published. The gun's preloaded cels animate through OAM references, without per-frame weapon-pattern uploads.
 
-| Physical range | VRAM bank | Use |
-|---|---:|---|
-| $8000–$81FF | 0 and 1 | Double-buffered masked world objects, 32 patterns per page |
-| $8200–$86DF | 0 | 78 HUD patterns, including ten two-tile digits |
-| $86E0–$87FF | 0 | 18 spare HUD patterns |
-| $8400–$853F | 1 | Shotgun, reticle and flash, 20 patterns |
-| $8800–$97FF | 0 and 1 | Signed world patterns, including the complete wall atlas |
+Death animation is cosmetic: enemy death, pickup availability and exit activation happen immediately. Three death poses span roughly 0.6 simulation seconds where capacity permits. Living actors and gameplay pickups take priority over cosmetic corpses. Visible animation cadence depends on full or cached presentation timing; the experimental fast foreground lane remains disabled.
 
-The world uses signed BG addressing. LYC=96 triggers a short STAT handler that enables unsigned BG addressing before the first HUD tile fetch. VBlank restores signed addressing. Only the addressing bit changes; the selected world page remains intact. This gives the bottom 160×48 panel an independent vocabulary while retaining the 160×96 viewport.
+## Graphics and publication budgets
 
-Health and remaining hostiles use 8×16 digits. Exit state is literal LOCK, OPEN, DEAD or DONE. The central helmet portrait is static. The footer shows A FIRE / B USE; Start restarts after death or completion. No menu, inventory or save system is implied.
+| Resource | v0.8 allocation |
+|---|---|
+| World / HUD | 160×120 / 160×24; horizon 60, STAT split at line 120 |
+| HUD patterns | 94 of 96, bank 0 $8200–$87DF |
+| Weapon, reticle and flash | 86 preloaded patterns, bank 1 $8200–$875F |
+| Enemy and fixture ROM dictionary | 242 source patterns, before runtime masks |
+| Masked world OBJ patterns | 32 per VRAM bank, $8000–$81FF |
+| World admission | 16 objects; four per scanline; hardware limit ten per line |
+| Dynamic BG patterns | 96 |
+| HUD packet | 16 bytes, including six portrait tile IDs |
+| Full packet | At most 176 DMA blocks, staged across two or three VBlanks |
 
-The source bank contains 118 entity/fixture patterns, but only masked pairs selected for the current frame enter the 32-pattern VRAM pool. All native art is authored in `artwork.py`; no external game's assets are used.
+Pattern source indices and resident VRAM tile IDs are different domains. The lowered objective text uses vertically paired preloaded patterns; ID+1 supplies the last text row and chassis rail. That adds 108 CPU T-cycles per HUD publication and no DMA blocks.
 
-## Publication and evidence
+Fixtures project at the upper quarter of a wall, use discrete size levels, and require matching physical segment and along-face cell identity. Door emblems move with the finite panel. Fixtures are bounded billboards, not arbitrary perspective-correct textures, and consume at most four remaining world OAM entries after higher-priority objects.
 
-Eleven HUD tile IDs are prepared in WRAM before waiting for VBlank. The display window performs bounded tile writes, graphics transfers, OAM DMA and page selection. Single-window dynamic-plus-mask work is capped at 24 patterns. Larger default packets stage over two VBlanks, with at most 96 blocks first and 80 last. Optional reprojection reserves another window for exceptionally large OBJ packets because it also copies published object coordinates.
+## Verification and history
 
-For an exact wall-cache hit, independent OBJ ownership permits a single-VBlank upload of at most 32 masked patterns plus HUD/OAM. The BG viewport is untouched; its page need not match the published OBJ bank. Sequential HUD packet reads save 76 CPU cycles in the publication window. See [wall reuse](WALL_REUSE.md).
+The current oracle is `playtests/sable_objective_spaced_capture_pixels.json`. Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
 
-The HRAM OAM routine uses the documented 40-iteration, four-M-cycle loop: 160 M-cycles total. Boundary tests require publication before scanline 153, accounting conservatively for CGB's early LY reset. These constraints were verified in the project harness and the final independent emulator lanes.
-
-Primary hardware references: [Pan Docs LCDC](https://gbdev.io/pandocs/LCDC.html), [STAT](https://gbdev.io/pandocs/STAT.html), [OAM DMA](https://gbdev.io/pandocs/OAM_DMA_Transfer.html). Source text was checked in the gbdev/pandocs repository at `fe246067b695b5404a4a6a47efb4fd6d921ececb`.
-
-Nine coherence captures were visually inspected before accepting `playtests/v070_sable_capture_pixels.json`. `playtests/sable_art_tour.json` covers near and oblique vents, lighting, sector signage, the starting door and a Sentinel. Functional checks include exact wall descriptors/tiles, segment/cell masks, HUD VRAM bounds, raster-vector timing, packet snapshots, object capacity and controller-only completion. See [the candidate evidence](TEST_REPORT.md).
-
-The arithmetic and [wall-reuse passes](WALL_REUSE.md) retain the same artwork and reviewed pixels. Acceptance ceilings remain 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles. Geometry, byte exactness, overflow and timing gates were not relaxed. Physical CGB, flash-cartridge and human LCD/readability validation remain pending.
+See [v0.8 qualification](TEST_REPORT.md), [architecture](ARCHITECTURE.md), and the preserved [beta.6 art contract](SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.

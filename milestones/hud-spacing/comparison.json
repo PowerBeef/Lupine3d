@@ -1,0 +1,142 @@
+{
+  "schema": "sable.hud-comparison.v2",
+  "baseline_sha256": "fd7c95e7f3237ca130d0fabe763190a1622d51dc7d49ff0c1fa7e704fb873f4c",
+  "candidate_sha256": "a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb",
+  "timing_unit": "cpu_t_cycles",
+  "diagnostic_setup": true,
+  "expected_publication_delta_cycles": 108,
+  "scope": "HUD subroutine timing and frozen world RGB; live motion measured separately",
+  "world": [
+    {
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "world_and_foreground_rgb_exact": true
+    },
+    {
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "world_and_foreground_rgb_exact": true
+    },
+    {
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "world_and_foreground_rgb_exact": true
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "world_and_foreground_rgb_exact": true
+    },
+    {
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "world_and_foreground_rgb_exact": true
+    },
+    {
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "world_and_foreground_rgb_exact": true
+    }
+  ],
+  "hud_work": [
+    {
+      "state": [
+        99,
+        0,
+        8,
+        0
+      ],
+      "baseline": {
+        "prepare_hud_tiles": 1804,
+        "update_hud_tiles": 684
+      },
+      "candidate": {
+        "prepare_hud_tiles": 1804,
+        "update_hud_tiles": 792
+      }
+    },
+    {
+      "state": [
+        99,
+        0,
+        0,
+        0
+      ],
+      "baseline": {
+        "prepare_hud_tiles": 1804,
+        "update_hud_tiles": 684
+      },
+      "candidate": {
+        "prepare_hud_tiles": 1804,
+        "update_hud_tiles": 792
+      }
+    },
+    {
+      "state": [
+        42,
+        1,
+        8,
+        0
+      ],
+      "baseline": {
+        "prepare_hud_tiles": 1608,
+        "update_hud_tiles": 684
+      },
+      "candidate": {
+        "prepare_hud_tiles": 1608,
+        "update_hud_tiles": 792
+      }
+    },
+    {
+      "state": [
+        0,
+        0,
+        8,
+        0
+      ],
+      "baseline": {
+        "prepare_hud_tiles": 1452,
+        "update_hud_tiles": 684
+      },
+      "candidate": {
+        "prepare_hud_tiles": 1452,
+        "update_hud_tiles": 792
+      }
+    },
+    {
+      "state": [
+        79,
+        0,
+        8,
+        1
+      ],
+      "baseline": {
+        "prepare_hud_tiles": 1728,
+        "update_hud_tiles": 684
+      },
+      "candidate": {
+        "prepare_hud_tiles": 1728,
+        "update_hud_tiles": 792
+      }
+    }
+  ],
+  "passed": true
+}

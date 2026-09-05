@@ -111,7 +111,7 @@ def inspect_pose(player_x_q8: int, player_y_q8: int, angle: int,
     cells = grid if grid is not None else engine.reference_grid()
     oracle = [
         geometry.float_camera_hit(
-            player_x_q8 / 256.0, player_y_q8 / 256.0, angle, column + 0.5,
+            player_x_q8 / 256.0, player_y_q8 / 256.0, angle, column + 0.5, horizon=engine.HORIZON,
         )
         for column in range(engine.PHYSICAL_COLUMNS)
     ]
@@ -262,7 +262,7 @@ def make_sheet(records: Sequence[TailRecord], path: Path, *, pose_count: int = 8
     for panel, (x_q8, y_q8, angle) in enumerate(poses):
         y_base = panel * panel_h
         expected = [
-            geometry.float_camera_hit(x_q8 / 256.0, y_q8 / 256.0, angle, x + 0.5)
+            geometry.float_camera_hit(x_q8 / 256.0, y_q8 / 256.0, angle, x + 0.5, horizon=engine.HORIZON)
             for x in range(engine.PHYSICAL_COLUMNS)
         ]
         actual = engine.reference_pixel_descriptor_view(x_q8, y_q8, angle)
@@ -301,6 +301,8 @@ def main() -> None:
     report["configuration"] = {
         "q14_order": engine.Q14_ORDER_ENABLED,
         "folded": engine.FOLDED_COMPOSITOR,
+        "viewport": list(engine.VIEWPORT),
+        "horizon": engine.HORIZON,
         "level_grid_sha256": hashlib.sha256(engine.make_map()).hexdigest(),
         "benchmark_rom_sha256": hashlib.sha256(engine.make_rom()[0]).hexdigest(),
         "scope": "host floating comparison on this configured level; not an independent-emulator corpus",

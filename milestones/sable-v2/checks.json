@@ -1,0 +1,204 @@
+{
+  "schema": "sable.qualification.v1",
+  "rom_sha256": "20273801b51ba7188d6d55d3b7a653cac4697883b98d18e5ea88ed703c0e2134",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "projection_storage": "direct",
+    "display": "compact",
+    "art": "sable-v2",
+    "art_animation": true
+  },
+  "checks": {
+    "cold_art_and_raster_boundary": true,
+    "every_translated_atlas_pattern": true,
+    "publication_cpu_and_dma_windows": true,
+    "geometry_and_fourteen_published_rows": true,
+    "independent_near_plane_clipping": true,
+    "all_36_emitted_enemy_cels": true,
+    "weapon_phases_rapid_restarts_wrap_pending_flash": true,
+    "reaction_and_death_clock_wrap": true,
+    "hud_portraits_snapshot_packet_and_bounds": true,
+    "atomic_capacity_fallback_no_partial_actor": true,
+    "snapshot_and_reload_clock_ownership": true,
+    "terminal_state_wrap_cannot_replay_cosmetics": true
+  },
+  "assets": {
+    "schema": "sable.native.v1",
+    "sha256": "15497b70ec43703cc7c69a15093151aa42d35bdcd76733e649ffc1381b831003",
+    "assets": {
+      "sentinel_near": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360",
+      "sentinel_mid": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914",
+      "sentinel_far": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64",
+      "shotgun": "5aadb2e7f6845e2f4cb11a9685516a1ffec9f5d468ea98e7c64ba4adda6cea00",
+      "helmet": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c",
+      "flash": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448",
+      "reticle": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9",
+      "hud": "aaeae43203047b9ab7973562c509dcb1c8a6a9a26ff757ceaad4c2ece314ca55"
+    }
+  },
+  "publication_windows": [
+    {
+      "dynamic": 0,
+      "mask": 0,
+      "blocks": 48,
+      "commit_ly": 152,
+      "staged": false
+    },
+    {
+      "dynamic": 8,
+      "mask": 0,
+      "blocks": 56,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 0,
+      "blocks": 57,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 16,
+      "blocks": 64,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 18,
+      "blocks": 66,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 71,
+      "mask": 0,
+      "blocks": 119,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 72,
+      "mask": 0,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 73,
+      "mask": 0,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 40,
+      "mask": 32,
+      "blocks": 120,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 41,
+      "mask": 32,
+      "blocks": 121,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 0,
+      "blocks": 144,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 16,
+      "blocks": 160,
+      "commit_ly": 152,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 32,
+      "blocks": 176,
+      "commit_ly": 152,
+      "staged": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "pose-0.png",
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "pixels_sha256": "a2f61d3d1fb5a37dd7c5212758cfc20cc11e762a5819660a2023aba4de8557b6"
+    },
+    {
+      "file": "pose-1.png",
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "pixels_sha256": "05e0b1e39dd43d2c040f8542c140c699426ee152f70925bc236e23bab5fbe786"
+    },
+    {
+      "file": "pose-2.png",
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "pixels_sha256": "372027304dbf45ef9e5ca3a782f7acc5d61e5655a4d163201ebf6cf549a5d03c"
+    },
+    {
+      "file": "pose-3.png",
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "pixels_sha256": "a362eeab82ddf4730acb7e3a784e6a74846eada5e6de1b069e0402faadeceee6"
+    },
+    {
+      "file": "pose-4.png",
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "pixels_sha256": "937483a170dfc7c091568a114b2f054da93a362d797cb18078b9d044a7ae0088"
+    },
+    {
+      "file": "pose-5.png",
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "pixels_sha256": "022dc5bdfcc41f088cbed2e387ac20bedf5a01764a129e7d38e7c3cfc2b91cd3"
+    }
+  ],
+  "physical_hardware_tested": false,
+  "passed": true
+}

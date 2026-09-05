@@ -1,0 +1,56 @@
+{
+  "schema": "sable.slim-delivery.v1",
+  "rom_sha256": "b261d21913255efc9a74d7be4c0b5f46b40f9cf1fec5bf3bb50dd5785c7142a0",
+  "configuration": {
+    "name": "slim",
+    "viewport": [
+      160,
+      120
+    ],
+    "horizon": 60,
+    "hud_height": 24,
+    "map_bytes": 480,
+    "extra_cpu_bytes_per_full_packet": 192
+  },
+  "art": "sable-v2",
+  "animation_default": true,
+  "hud_patterns": 69,
+  "hud_packet_bytes": 16,
+  "microstrip_format": {
+    "version": 3,
+    "logical_states": 21,
+    "stored_states": [
+      0,
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      19,
+      20
+    ],
+    "stored_state_count": 11,
+    "table_bytes": 4224,
+    "table_bytes_saved": 3072,
+    "placement": "resident",
+    "bank": null,
+    "scratch_bytes": 0,
+    "net_linked_savings_from_review": 0
+  },
+  "owner_accepted_performance_tradeoff": true,
+  "physical_hardware_tested": false,
+  "published_release": false,
+  "test_count": 140,
+  "final_art_tests": 3,
+  "historical_legacy_sha256": "48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99",
+  "reports": {
+    "checks.json": "e636ff2a9b709d71f4ecd1a10e52e193ccde5e027b7855d804d57aebd0104f10",
+    "display.json": "91e319b098bce77c7257409f25eded85fc380611f880481ba5ffb3abadd8c02d",
+    "independent.json": "4fa3c651b10d4553cf78589844c1d98676b519342ab5879e6aaa061f33affa0e",
+    "quality-budget.json": "f57da53b4a7b6b0fe747d8475ba24548ee06786a74f66b5db8dbce930f3f2724",
+    "divider.json": "efd020001092c60156453f879172872e8459d9a2d403dbb633fcc4fe921ee0b4"
+  }
+}

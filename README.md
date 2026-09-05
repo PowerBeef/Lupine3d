@@ -2,162 +2,91 @@
 
 # Lupine 3D
 
-### A tile-native first-person world for Game Boy Color
+### Sable Outpost · A first-person game for Game Boy Color
 
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 
-[Download beta.6](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.7.0-beta.6) · [Build](#quick-start) · [Controls](#controls) · [Architecture](docs/ARCHITECTURE.md) · [Verification](docs/TEST_REPORT.md)
+[**Download v0.8**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.8) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
 
-<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Lupine 3D Sentinel, steel-walled environment and industrial HUD">
+<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Sable Outpost running in the emulator: industrial walls, a Sentinel, shotgun and compact steel HUD">
 
-<sub>160×96 viewport · 4 MiB MBC5 cartridge · no framebuffer</sub>
+<sub>160×120 world view · Animated native sprites · 4 MiB MBC5 ROM · CGB only</sub>
 
 </div>
 
-## Current implementation
+Explore an industrial outpost, open its sliding doors, defeat the Sentinels and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
 
-**0.7.0-beta.6 — Rendering qualification** improves the Sable Outpost renderer while preserving its reviewed images and gameplay. The playable industrial outpost includes a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+**v0.8 brings the Sable visual overhaul:** an animated shotgun, red-armoured enemies, a compact steel instrument panel and a larger view of the world. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
 
-The release enables compact folded strips, camera setup computed once per snapshot, smaller save/restore contexts at documented yield boundaries, and exact attribute-padding initialization. Mean full-frame time improves **3.7–7.5%** across the six primary sustained scenarios. Resident free space increases from **3,123 to 5,939 bytes**, preserving the 3,000-byte reserve.
+## What's new in v0.8
 
-Release packaging preserves the qualified atlas assets. `make atlas-check` verifies both stored profiles against their recorded hashes and exact compositor output before measuring complete diagnostic frames.
+- **More world, less HUD.** The 24-pixel panel is half the height of beta.6's HUD. The 160×120 viewport shows 25% more world area at the same projection scale and horizontal field of view.
+- **Animated equipment and enemies.** Five weapon cels, two flashes, twelve Sentinel cels at each of three sizes, and four helmet portrait states. Animation follows accepted simulation ticks and coherent frame publication.
+- **A readable steel HUD.** Large health digits, an armoured portrait, a skull counting enemies remaining, and a HUNT/EXIT objective. No permanent controls footer or unsupported ammunition indicators.
+- **Preserved engine contracts.** Deterministic builds, immutable render snapshots, exact wall reuse and bounded graphics publication. Legacy artwork and historical image fixtures remain available.
 
-Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
+<img src="docs/images/sable_objective_spaced_states_4x.png" width="640" alt="HUD states: hunt with one enemy remaining, exit with zero enemies, dead and done">
 
-[View the native-resolution art tour](docs/images/sable_outpost.png).
+## How to play
 
-The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, precision rays continue from certified crossings, and door division keeps its working values in CPU registers. Sequential column/event scans keep working values in registers; aligned cartridge records provide coarse and Q14 directions plus exact projection pointers. Native tiles, palettes and objects carry the final image.
+Open `Lupine3D_v0.8.gb` in a Game Boy Color emulator with MBC5 support. The monochrome Game Boy is not supported. There is no save system.
 
-| Rendering | World and platform |
+| Game Boy button | Action |
 |---|---|
-| Certified selective Q14 crossing order | Fixed VBlank-rate simulation |
-| 80 adaptive samples → 160 physical columns | Timestamped held-state and button-edge queue |
-| Corrected Q5 depth and physical segment IDs | Immutable render snapshots in a separate WRAM bank |
-| Folded six-row composition, nine stored strip states and full 121-pattern atlas | Shared sliding-door geometry for rays, collision and LOS |
-| Masked hardware 8×16 sprites, three size LODs | Four bounded actor slots, depth sorting and OAM admission |
-| Per-face palettes and wall-mounted fixture masks | Atomic BG, attributes, HUD and entity publication |
-| Exact reuse of unchanged wall views | Independent sprite/HUD updates with retained wall depth |
-| Dedicated 78-pattern HUD with a scanline split | Native pixel art; no imported game assets |
+| D-pad Up / Down | Move forward / backward |
+| D-pad Left / Right | Turn |
+| A | Fire the shotgun |
+| B | Use a nearby door |
+| Start | Restart after death or completion |
 
-### Hangar Breach
+The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means clear the outpost; **GOAL / EXIT** means the exit is available. Reach it to finish. Doors still open with B. Green medical pickups restore health.
 
-A protected airlock leads through a turning corridor into a partitioned combat chamber and an exit wing. Defeat the Sentinel, collect its medkit, open the unlocked exit door and reach the beacon. An optional service branch provides a detour.
+## Performance and qualification
 
-**Cyan and white identify working doors.** Neutral steel marks structure; muted green marks machinery. The ceiling and floor stay distinct, and there is no eye-height decorative rail.
+Active 60-second scenarios measure **5.50–7.92 full geometry updates/s**. Full geometry updates and cached sprite/HUD presentations run at different rates. Animation follows the engine's coherent cadence. The target of ten sustained full geometry updates per second remains unmet.
 
-The level compiler checks safe spawn clearance, reachability, meaningful door gates, short sightlines and room sizes. Content lives in [living_world.json](levels/living_world.json); [two_sentinels.json](levels/two_sentinels.json) exercises multiple actors.
+v0.8 deliberately trades some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted. Memory, graphics capacity and publication safety limits remain enforced. See the ROM-bound measurements in the [v0.8 test report](docs/TEST_REPORT.md).
 
-## How it fits
+Qualification uses the project harness and pinned **SameBoy CGB-0/CGB-E and mGBA** cores. It is **emulator-qualified**; physical hardware and an original Nintendo boot ROM have not been tested. Reprojection and the experimental foreground feedback lane remain disabled.
 
-Upper wall tiles are composed once. Lower rows reuse their patterns with CGB Y-flip and paired floor palettes. Signed BG addressing places world patterns at **$8800–$97FF**. A line-96 STAT interrupt switches to unsigned addressing for the HUD, which occupies otherwise unused bank-0 patterns alongside the separate masked-object pool. See the [visual design and graphics budget](docs/SABLE_OUTPOST.md).
+## Build from source
 
-The renderer yields at ray and tile-column boundaries to service queued simulation ticks. It then resumes the same untouched camera/world snapshot. An exact camera/map/door check lets unchanged walls stay in VRAM while new entities and HUD publish independently. Full renders publish all matching data together; larger packets prepare hidden patterns in one VBlank and finish publication in the next.
-
-Wall depth remains Q5; interpolated samples use conservative bounds. Sprite masks operate on individual pixel bits but obtain occlusion from those two-pixel depth samples. This is not arbitrary-precision geometry or unrestricted sprite scaling.
-
-### Measured routes
-
-Each sustained scenario runs for 3,584 LCD intervals, approximately 60 emulated
-seconds, with identical controller replays on baseline and candidate ROMs.
-CPU T-cycles include engine work, simulation, interrupts, publication waits and
-DMA. Every five-second movement window must contain real movement or turning.
-
-| Scenario | Full geometry updates/s | Mean T-cycles/full frame | p95 T-cycles/full frame |
-|---|---:|---:|---:|
-| Walking | 7.25 | 1,151,487 | 1,264,268 |
-| Turning | 9.67 | 866,184 | 983,424 |
-| Walking and turning | 9.23 | 906,582 | 1,123,992 |
-| Moving fire | 9.23 | 906,582 | 1,123,916 |
-| Open door | 6.83 | 1,225,335 | 1,264,160 |
-| Closed door | 8.68 | 963,202 | 1,124,568 |
-| Two-actor corner arena | 6.52 | 1,283,440 | 1,685,396 |
-
-The **10 sustained full geometry updates/s target remains unmet**. Cached
-sprite/HUD updates and experimental foreground publications are counted
-separately and never inflate that rate. Trials record zero post-setup game-RAM
-writes, input overflow and unsafe GDMA starts. The door-interaction trial and
-controller-only completion/restart provide separate functional coverage.
-
-See the [rendering implementation and acceptance evidence](docs/RENDERING_IMPLEMENTATION.md)
-for baseline comparisons, memory allocations, replay identities and timing
-definitions. Exact output is checked on identical frozen snapshots; faster
-rendering can change when live actor poses are sampled.
-
-### Gated experiments
-
-Persistent dynamic-tile caching, four-anchor packets, physical-depth refinement,
-Q8.8 actor projection, atomic scanline admission, door-run identity, projection
-page compression, near-field precision and foreground feedback are implemented
-as individually selectable build paths. They remain disabled where performance
-or quality gates failed. Intentional quality changes must retain at least half
-the accepted performance gain for both mean and p95 frame time. The default
-keeps the current Q5 depth model and reviewed visual oracle; reprojection also
-remains disabled.
-
-## Quick start
-
-Requirements: Python 3.10+, Pillow and `make`.
+Requires Python 3.10+, Pillow and Make. RGBDS is not required: Python emits the console's SM83 machine code, tables, level data and 2bpp graphics.
 
 ```sh
 python3 tools/dev_setup.py
 source .venv/bin/activate
 make build
 make test
-make playtest playtest-world
-make playthrough variants
-make wall-reuse motion
 ```
 
-Open **`build/lupine3d.gb`** in a Game Boy Color emulator with MBC5 support.
+The build writes `build/lupine3d.gb`, symbols, a listing and `build/build_manifest.json`. Builds consume checked-in indexed PNGs and never call image generation or require an image API key.
 
 ```sh
-# External cores must first be built at the documented pinned revisions.
-make sameboy SAMEBOY_DIR=/absolute/path/to/SameBoy
-make mgba MGBA_DIR=/absolute/path/to/mgba
+make playtest playtest-world playtest-art
+make playthrough variants wall-reuse motion
 ```
 
-See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling and diagnostic switches.
+| Display profile | World / HUD | Default art |
+|---|---|---|
+| `slim` — default | 160×120 / 160×24 | Sable, animated |
+| `compact` | 160×112 / 160×32 | Sable, animated |
+| `legacy` | 160×96 / 160×48 | Historical, static |
 
-Development takes place directly on **`main`**, without development branches or
-Git worktrees. Optional sustained comparisons run with `make sustained`; they
-also have a separate manual CI job.
+For example, `LUPINE3D_DISPLAY=legacy make build` reproduces the beta.6 visual configuration. Rebuild without overrides to restore the current ROM. Project development takes place directly on `main`.
 
-## Controls
+## Explore the project
 
-| Button | Action |
+| Guide | Contents |
 |---|---|
-| D-pad Up / Down | Move forward / backward |
-| D-pad Left / Right | Turn |
-| A | Fire |
-| B | Interact with the door ahead |
-| Start | Restart after death or level completion |
+| [Documentation index](docs/README.md) | Current guides and historical evidence |
+| [Development](docs/DEVELOPMENT.md) | Setup, emulator cores, diagnostics and releases |
+| [Architecture](docs/ARCHITECTURE.md) | Rendering, memory, simulation and publication |
+| [Sable Outpost art](docs/SABLE_OUTPOST.md) | Visual language, animation sources and budgets |
+| [Steel HUD](docs/STEEL_HUD.md) | Layout, objective text and native tile contracts |
+| [Verification](docs/TEST_REPORT.md) | Current ROM hash, executed checks and performance |
+| [Contributing](CONTRIBUTING.md) | Change requirements and development policy |
+| [Agent guidance](AGENTS.md) | Code map and implementation invariants |
 
-## Verification and limits
-
-**137 automated tests**, nine unchanged reviewed RGB fixtures, 53 frozen-scene comparisons, a six-view art tour and a 24,384-view geometry-tail scan protect the implementation. Fifty-one additional complete-world witnesses cover occlusion, corners, doors, actor motion and admission. Controller-only completion and restart pass without teleporting or changing game RAM; the controller reads state to steer, so this is functional verification rather than a blind human-navigation study.
-
-Validation checks the actual published sprite patterns, OAM banks and viewport VRAM, alongside host geometry and staging buffers. All 290 wall-key bytes are tested for invalidation; cached updates preserve the displayed background exactly.
-
-The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. All 51 frozen worlds agree with the project harness on those lanes for the production, quality and near-field configurations. Releases include checksums and a source bundle that is rebuilt and tested after extraction. Check the CI badge for remote run status.
-
-**No physical CGB or flash cartridge is available.** Development and releases
-use emulator qualification, with hardware status explicitly untested. Neither
-emulator lane uses the Nintendo boot ROM. Physical testing is optional future
-work and does not block releases. Optional ±4-pixel turning reprojection remains
-disabled; its visual benefit has not been accepted.
-
-| Document | Purpose |
-|---|---|
-| [Rendering implementation](docs/RENDERING_IMPLEMENTATION.md) | Current defaults, gated experiments, sustained measurements and qualification |
-| [Agent guidance](AGENTS.md) | Main-only development, architecture contracts and verification commands |
-| [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
-| [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
-| [Gameplay performance](docs/RUNTIME_PERFORMANCE.md) | Implementation steps, exactness proof and measured results |
-| [Streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md) | Historical beta.5 rendering and motion evidence |
-| [Wall reuse and combat latency](docs/WALL_REUSE.md) | Exact caching, independent sprite publication and timing |
-| [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
-| [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |
-| [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Optional procedure for future physical hardware access |
-
-Code and original assets use the [MIT License](LICENSE). See [NOTICE.md](NOTICE.md) for naming and asset details.
+Original code and assets use the [MIT License](LICENSE). See [NOTICE.md](NOTICE.md) for attribution and asset provenance.

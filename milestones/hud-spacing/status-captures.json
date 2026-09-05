@@ -1,0 +1,22 @@
+{
+  "rom_sha256": "a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb",
+  "diagnostic_setup": true,
+  "captures": [
+    {
+      "state": "hunt",
+      "rgb_sha256": "f4e2ebd9872ca22e6a5fd3e1b63236b86fdf6a1b4532d5f1bb0a368a1e94076a"
+    },
+    {
+      "state": "exit",
+      "rgb_sha256": "24325c9e8033427872a57260158cfa95ffd8141e5d6d18bd94b24e799de7cbd7"
+    },
+    {
+      "state": "dead",
+      "rgb_sha256": "a27f297aea6f6a2a2c4e62769f2be100b823bcd60d4b6b3f2e901250df21457b"
+    },
+    {
+      "state": "done",
+      "rgb_sha256": "c90da0936b5989c3ef6df29c44b5947afa819e55db1db7ee056ba383fe81abf8"
+    }
+  ]
+}

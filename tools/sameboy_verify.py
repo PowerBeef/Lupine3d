@@ -16,7 +16,10 @@ PINNED_CORE = "213a12ce93d66b105a113debd9396306066a7cfc"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", type=Path, required=True)
+    parser.add_argument("--rom",type=Path,default=br.BUILD/"lupine3d.gb")
+    parser.add_argument("--output-dir",type=Path,default=br.BUILD)
     args = parser.parse_args()
+    args.output_dir.mkdir(parents=True,exist_ok=True)
     core = args.core.resolve()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=core, text=True).strip()
     if revision != PINNED_CORE:
@@ -26,7 +29,7 @@ def main():
                     str(core / "build/lib/libsameboy.a"), "-lm", "-ldl", "-o", str(executable)], check=True)
     executable.with_suffix(".provenance.json").write_text(json.dumps(dict(core="SameBoy",core_commit=revision,
         adapter_sha256=hashlib.sha256(executable.read_bytes()).hexdigest()),indent=2)+"\n")
-    rom = br.BUILD / "lupine3d.gb"
+    rom = args.rom
     sha = hashlib.sha256(rom.read_bytes()).hexdigest()
     expected_rom, asm, _ = br.make_rom()
     if hashlib.sha256(expected_rom).hexdigest() != sha:
@@ -35,7 +38,7 @@ def main():
     host.run(until_pc=asm.labels["main_loop"], max_steps=2_000_000)
     expected_pixels = host.render_screen().tobytes()
     for name, model in (("cgbe", "205"), ("cgb0", "200")):
-        prefix = br.BUILD / f"sameboy_{name}"
+        prefix = args.output_dir / f"sameboy_{name}"
         result = subprocess.run([str(executable), str(rom), str(prefix), model], text=True, capture_output=True)
         if result.stderr:
             print(result.stderr)
@@ -44,9 +47,13 @@ def main():
                       physical_hardware_tested=False, original_boot_rom_tested=False,
                       color_conversion="linear RGB15, channel*255//31",
                       startup_rgb_matches_host=Image.open(str(prefix) + "_start.ppm").tobytes() == expected_pixels)
+        if br.SABLE_ART or br.COMPACT_DISPLAY:
+            from independent_startup import frozen_startup
+            report['startup_rgb_matches_host']=frozen_startup(executable,rom,args.output_dir/f'sameboy_{name}_frozen',model)
+            report['startup_rgb_scope']='separate frozen snapshot; controller smoke remains unpatched'
         report["passed"] = report["passed"] and report["startup_rgb_matches_host"]
         prefix.with_suffix(".json").write_text(json.dumps(report, indent=2) + "\n")
-        for capture in br.BUILD.glob(f"sameboy_{name}_*.ppm"):
+        for capture in args.output_dir.glob(f"sameboy_{name}_*.ppm"):
             Image.open(capture).save(capture.with_suffix(".png"))
         print(json.dumps(report))
         result.check_returncode()

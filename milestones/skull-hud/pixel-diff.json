@@ -1,0 +1,8 @@
+{
+  "rom_sha256": "d377b4d38c9130260beff17c11db9fe78ba2a6f71cf29ba9f63d786c7cddc33e",
+  "baseline_rom_sha256": "fd7c95e7f3237ca130d0fabe763190a1622d51dc7d49ff0c1fa7e704fb873f4c",
+  "changed_pixels": 147,
+  "unchanged_outside_skull_and_objective": true,
+  "baseline_image_sha256": "173aa3705aed49a3738ee41296b2e1922915be2defe15ce5750dad25dbd46806",
+  "candidate_image_sha256": "890d5292e356ae0f5df2058acb597d44abf68ea6d2352938e4d7ee9aa602c3fc"
+}

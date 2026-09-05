@@ -168,7 +168,7 @@ def float_ray_setup(player_angle: int, screen_x: float) -> tuple[float, float, f
     return ray_x, ray_y, delta_x, delta_y, (-1 if ray_x < 0 else 1), (-1 if ray_y < 0 else 1)
 
 
-def float_camera_hit(px: float, py: float, player_angle: int, screen_x: float) -> FloatHit:
+def float_camera_hit(px: float, py: float, player_angle: int, screen_x: float, *, horizon: float = 48.0) -> FloatHit:
     """Floating camera-plane DDA reference at one physical column center."""
     ray_x, ray_y, delta_x, delta_y, step_x, step_y = float_ray_setup(player_angle, screen_x)
     map_x, map_y = int(math.floor(px)), int(math.floor(py))
@@ -194,9 +194,9 @@ def float_camera_hit(px: float, py: float, player_angle: int, screen_x: float) -
             axis = 1
         material = GRID[map_y][map_x]
         if material:
-            half = max(2.0, min(48.0, 30.0 / max(distance, 1e-12)))
+            half = max(2.0, min(horizon, 30.0 / max(distance, 1e-12)))
             segment = segment_for(map_x, map_y, axis, ray_x, ray_y, material)
-            return FloatHit(48.0 - half, axis, material, map_x, map_y, segment)
+            return FloatHit(horizon - half, axis, material, map_x, map_y, segment)
     raise RuntimeError("floating DDA escaped the enclosed map")
 
 

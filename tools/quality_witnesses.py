@@ -26,6 +26,7 @@ class Scene:
     pose: tuple[int, int, int]
     actors: tuple[tuple[int, int], ...]
     doors: tuple[tuple[int, int, int, int], ...] = ()  # x,y,orientation,aperture
+    art_frame: int = -1
 
 
 def scene_corpus():
@@ -54,6 +55,10 @@ def scene_corpus():
         result.append(replace(base,name=f"near_lod_{distance:04}",actors=((1024+distance,1152),)))
     result.append(replace(base,name="two_actor_corner",grid=bytes(corner),actors=((1984,1408),(1904,1312))))
     result.append(replace(base,name="four_actor_coverage",actors=((1184,1056),(1200,1120),(1200,1184),(1184,1248))))
+    if br.SABLE_ART:
+        for size,distance in (('near',320),('mid',720),('far',1120)):
+            for frame in range(12):
+                result.append(replace(base,name=f'sable_{size}_{frame:02}',actors=((1024+distance,1152),),art_frame=frame))
     return result
 
 
@@ -138,6 +143,17 @@ def setup(c, scene):
         for offset,value in enumerate(data): set_test_world_byte(c,br.ENTITY_SLOTS+index*16+offset,value)
         if index == 0:
             for offset,value in enumerate(data[:10]): set_test_world_byte(c,br.SENTINEL_XL+offset,value)
+    if scene.art_frame >= 0:
+        frame=scene.art_frame
+        state=br.SENTINEL_DORMANT if frame<2 else br.SENTINEL_PATROL if frame<6 else br.SENTINEL_DEAD if frame>=9 else br.SENTINEL_ATTACK
+        tick=32*frame if frame<2 else (frame-2)*8 if frame<6 else (frame-6)*4 if frame<8 else (frame-9)*12 if frame>=9 else 0
+        reaction=1 if frame in (6,7) else 2 if frame==8 else 3 if frame>=9 else 0
+        for address,value in ((br.SENTINEL_STATE,state),(br.ENTITY_SLOTS+4,state),(br.ENTITY_SLOTS+14,reaction),
+                              (br.ACTOR_REACTION,reaction),(br.PICKUP_ACTIVE,int(frame>=9)),(br.ENTITY_SLOTS+10,int(frame>=9)),
+                              (br.ACTOR_REACTION_TICK,0),(br.ACTOR_REACTION_TICK+1,0)):
+            set_test_world_byte(c,address,value)
+        c.write16(br.SIM_TICK,tick)
+        c.write16(br.FRAME_TICK,tick)
     c.write8(br.WALL_CACHE_VALID,0)
 
 
