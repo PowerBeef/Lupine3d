@@ -22,7 +22,7 @@ Fixtures share the camera transform, project at the upper quarter of the wall an
 
 Every submitted eight-pixel strip must match both the physical wall segment and its along-face map cell. Door emblems move with the sliding panel and disappear into the jamb. Actors and the exit submit first. Decorations may consume at most four remaining OAM entries, subject to the same sixteen-world-object/four-per-scanline admission limits.
 
-A temporary 256-byte visibility table reuses the future attribute packet buffer. It is discarded when the complete attribute packet is built before publication. This avoids repeatedly searching all 80 rays without consuming permanent WRAM.
+A temporary 256-byte visibility table borrows the completed world-copy staging buffer at $C900. Snapshot copying has finished, and no simulation yield occurs inside fixture rendering. This avoids repeatedly searching all 80 rays and preserves the wall attribute packet for cached updates without another permanent allocation.
 
 ## HUD and native graphics budget
 
@@ -44,10 +44,12 @@ The source bank contains 118 entity/fixture patterns, but only masked pairs sele
 
 Eleven HUD tile IDs are prepared in WRAM before waiting for VBlank. The display window performs bounded tile writes, graphics transfers, OAM DMA and page selection. Single-window dynamic-plus-mask work is capped at 24 patterns. Larger default packets stage over two VBlanks, with at most 96 blocks first and 80 last. Optional reprojection reserves another window for exceptionally large OBJ packets because it also copies published object coordinates.
 
+For an exact wall-cache hit, independent OBJ ownership permits a single-VBlank upload of at most 32 masked patterns plus HUD/OAM. The BG viewport is untouched; its page need not match the published OBJ bank. Sequential HUD packet reads save 76 CPU cycles in the publication window. See [wall reuse](WALL_REUSE.md).
+
 The HRAM OAM routine uses the documented 40-iteration, four-M-cycle loop: 160 M-cycles total. Boundary tests require publication before scanline 153, accounting conservatively for CGB's early LY reset. These constraints were verified in the project harness and the final independent emulator lanes.
 
 Primary hardware references: [Pan Docs LCDC](https://gbdev.io/pandocs/LCDC.html), [STAT](https://gbdev.io/pandocs/STAT.html), [OAM DMA](https://gbdev.io/pandocs/OAM_DMA_Transfer.html). Source text was checked in the gbdev/pandocs repository at `fe246067b695b5404a4a6a47efb4fd6d921ececb`.
 
 Nine coherence captures were visually inspected before accepting `playtests/v070_sable_capture_pixels.json`. `playtests/sable_art_tour.json` covers near and oblique vents, lighting, sector signage, the starting door and a Sentinel. Functional checks include exact wall descriptors/tiles, segment/cell masks, HUD VRAM bounds, raster-vector timing, packet snapshots, object capacity and controller-only completion. See [the candidate evidence](TEST_REPORT.md).
 
-At the original beta.2 art checkpoint, mean cycles were 1,006,437 for the coherence route and 1,287,407 for the combat diagnostic. The [current performance pass](RUNTIME_PERFORMANCE.md) retains the same artwork and reviewed pixels. Acceptance ceilings remain 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles. Geometry, byte exactness, overflow and timing gates were not relaxed. Physical CGB, flash-cartridge and human LCD/readability validation remain pending.
+The arithmetic and [wall-reuse passes](WALL_REUSE.md) retain the same artwork and reviewed pixels. Acceptance ceilings remain 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles. Geometry, byte exactness, overflow and timing gates were not relaxed. Physical CGB, flash-cartridge and human LCD/readability validation remain pending.

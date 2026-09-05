@@ -46,7 +46,7 @@ def measure(rom, labels, scene):
     cast_start = c.cycles
     c.run(until_pc=labels["render_view"])
     cast_cycles = c.cycles - cast_start
-    c.run(until_swaps=1)
+    c.run(until_presentations=1)
     validate_frame(c)
     groups = {
         "pairs": [(br.RAY_TOPS, 80), (br.RAY_STYLES, 80), (br.RAY_KEYS, 80),
@@ -59,8 +59,16 @@ def measure(rom, labels, scene):
         "objects": [(br.OAM_SHADOW, 160), (br.MASK_TILES, c.read8(br.MASK_TILE_COUNT) * 16)],
         "hud": [(br.HUD_PACKET, 11)],
     }
-    hashes = {name: hashlib.sha256(b"".join(read_block(c, address, count) for address, count in spans)).hexdigest()
-              for name, spans in groups.items()}
+    hashes = {}
+    for name, spans in groups.items():
+        data = bytearray(b"".join(read_block(c, address, count) for address, count in spans))
+        if name == "objects":
+            # Independent OBJ ownership may leave a different stale bank bit
+            # in a Y=0 (disabled) slot. All visible OAM and all other bytes stay
+            # exact; do not normalize palette, tile, X, or enabled objects.
+            for offset in range(0, 160, 4):
+                if data[offset] == 0: data[offset+3] &= ~8
+        hashes[name] = hashlib.sha256(data).hexdigest()
     hashes["rgb"] = hashlib.sha256(c.render_screen().tobytes()).hexdigest()
     return dict(hashes=hashes, cycles=c.cycles - start, cast_cycles=cast_cycles,
                 dynamic_tiles=c.read8(br.DYN_COUNT), casts=c.read8(br.CAST_COUNT))
@@ -84,6 +92,7 @@ def main():
     report = dict(passed=True, simulation_frozen=True, diagnostic_ram_injections=True,
                   baseline_sha256=hashlib.sha256(baseline).hexdigest(),
                   candidate_sha256=hashlib.sha256(candidate).hexdigest(), scene_count=len(rows),
+                  normalization="Only OBJ bank bit 3 in disabled Y=0 OAM slots",
                   exact_groups=list(rows[0]["candidate"]["hashes"]), scenes=rows)
     for key in ("cycles", "cast_cycles"):
         old, new = (statistics.fmean(row[version][key] for row in rows) for version in ("baseline", "candidate"))

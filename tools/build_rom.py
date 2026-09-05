@@ -26,6 +26,7 @@ from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
 from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.world_decor import emit_world_decor, fixture_records
+from lupine3d_v4.wall_cache import emit_wall_cache
 
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
@@ -38,6 +39,7 @@ def make_boot_assets() -> list[tuple[str, bytes]]:
         ("oam_dma_stub", bytes((0x3E, 0xC8, 0xE0, OAM_DMA, 0x3E, 40, 0x3D, 0x20, 0xFD, 0xC9))),
         ("tilemap_data", make_tilemap()), ("attrmap_page0", make_attrmap(0)),
         ("attrmap_page1", make_attrmap(1)),
+        ("map_data", make_map()),
     ]
 
 def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
@@ -50,6 +52,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("startup_wait_vblank")
     a.ldh_a_n(LY); a.cp_n(144); a.jr("startup_wait_vblank", "c")
     a.xor_r("a"); a.ldh_n_a(LCDC); a.ldh_n_a(SCX); a.ldh_n_a(SCY)
+    for address in (WALL_CACHE_VALID, FRAME_REUSED, PRESENT_SERIAL, WALL_CACHE_DISABLE, WALL_EPOCH, WALL_EPOCH + 1):
+        a.ld_abs_a(address)
+    a.ld_r_n("a", 1); a.ld_abs_a(OBJ_PAGE)
     a.call("load_level")
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
@@ -71,7 +76,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         a.call("begin_frame_snapshot")
     else:
         a.call("update_input"); a.call("update_world")
+    a.call("check_wall_reuse"); a.or_r("a"); a.jr("reuse_wall_view", "nz")
     a.call("cast_all"); a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
+    a.label("reuse_wall_view")
+    a.call("render_entities"); a.call("upload_entities_hud"); a.jp("main_loop")
 
     # Runtime routines.
     emit_copy_bulk(a); v1.emit_wait_vblank(a); emit_palette_init(a); emit_hud_system(a)
@@ -83,6 +91,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     emit_precision(a)
     emit_door_geometry(a)
     emit_simulation(a)
+    emit_wall_cache(a)
     emit_actors(a)
     emit_surfaces(a)
     emit_world_decor(a)
@@ -93,7 +102,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
     a.label("door_data"); a.bytes(ACTIVE_LEVEL.door_bytes(), "fixed-capacity authored door records")
     a.label("actor_records"); a.bytes(actor_records(), "four bounded Sentinel slots")
-    a.label("wall_fixture_records"); a.bytes(fixture_records(), "wall-mounted landmarks")
     a.label("hud_status_records"); a.bytes(bytes(i for ids in hud_assets()[3].values() for i in ids), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
     for name, payload in make_boot_assets():
@@ -160,9 +168,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     for style in range(2):
         a.label(f"pair_microstrips_style_{style}")
         a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
-    # The startup map has no alignment requirement. Put it after the hot
-    # aligned tables so modest code growth does not waste another 1 KiB page.
-    a.label("map_data"); a.bytes(make_map(), "compiled 16x16 world map")
+    # Fixtures have no alignment requirement; the startup map is cold/banked.
+    a.label("wall_fixture_records"); a.bytes(fixture_records(), "wall-mounted landmarks")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
     # avoids wasting a complete 1 KiB alignment page as the resident art/UI
     # vocabulary grows.
@@ -217,6 +224,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
         "maximum_final_stage_blocks": 48 + ENTITY_OAM_COUNT * 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
+        "exact_wall_reuse": WALL_REUSE_ENABLED,
+        "wall_cache_key_bytes": 290,
+        "independent_obj_page": True,
+        "presentation_serial_address": PRESENT_SERIAL,
         "simulation_tick_hz": 4194304 / 70224,
         "simulation_clock_bits": 16,
         "timestamped_input_capacity": INPUT_QUEUE_CAPACITY - 1,

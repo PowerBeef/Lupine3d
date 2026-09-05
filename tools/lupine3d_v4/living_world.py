@@ -9,7 +9,10 @@ from .resources import make_entity_tiles, make_oam_shadow  # noqa: F401
 
 def emit_level_loader(a: Assembler) -> None:
     a.label("load_level")
+    a.call("invalidate_wall_cache")
+    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_label("hl", "map_data"); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     # The resident slice consumes a fixed header but the authored source owns
     # all coordinates, profiles, spawns, door metadata, and exit placement.
     a.ld_rr_label("hl", "level_header")

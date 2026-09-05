@@ -51,7 +51,7 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
     cgb = CGB(rom, symbols)
     if scripted:
         cgb.button_provider = default_input
-    snap = cgb.run(until_swaps=10, max_steps=20_000_000)
+    snap = cgb.run(until_presentations=10, max_steps=20_000_000)
     commits = cgb.commit_events
     commit_blocks = [int(event["blocks"]) for event in commits]
     report: dict[str, Any] = {
@@ -60,8 +60,9 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
         "double_speed": cgb.double_speed,
         "main_iterations": cgb.main_iterations,
         "lcdc": f"0x{cgb.io[0x40]:02X}",
-        "estimated_updates_per_second": round(snap.swaps * REFRESH_HZ / snap.frames, 3),
-        "cycles_per_completed_update_including_boot": round(snap.cycles / max(1, snap.swaps), 1),
+        "presentations": cgb.presentations,
+        "estimated_updates_per_second": round(cgb.presentations * REFRESH_HZ / snap.frames, 3),
+        "cycles_per_completed_update_including_boot": round(snap.cycles / max(1, cgb.presentations), 1),
         "gdma_events": len(cgb.gdma_events),
         "commit_events": len(commits),
         "commit_blocks": number_stats(commit_blocks),
@@ -69,8 +70,10 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
     }
     if version == CURRENT_VERSION:
         report.update({
-            "all_commits_single_frame": all(bool(event["vblank_safe"]) for event in commits),
-            "all_commits_bounded_transfers": all(2 <= int(event["event_count"]) <= 4 for event in commits),
+            "all_commits_vblank_safe": all(bool(event["vblank_safe"]) for event in commits),
+            "all_commits_bounded_transfers": all(
+                (int(event["event_count"]) <= 1 and int(event["blocks"]) <= 32) if event["reused"]
+                else 2 <= int(event["event_count"]) <= 4 for event in commits),
             "commit_payload_bytes": number_stats([value * 16 for value in commit_blocks]),
             "last_adaptive_casts": cgb.read8(v2.ADAPTIVE_CASTS),
             "last_edge_recasts": cgb.read8(v2.EDGE_RECASTS),
@@ -146,6 +149,8 @@ def main() -> None:
     completion = json.loads((v2.BUILD / "playthrough/report.json").read_text())
     folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
+    reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
+    wall_reuse = json.loads((v2.BUILD / "wall_reuse.json").read_text())
     current_tail = json.loads((v2.BUILD / "q14_tail.json").read_text())
     independent = {}
     for name in ("sameboy_cgb0.json", "sameboy_cgbe.json", "mgba_cgb.json"):
@@ -173,6 +178,9 @@ def main() -> None:
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
         "masked_8x16_four_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == 4,
         "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
+        "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == 290 and v2_manifest["independent_obj_page"],
+        "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
+        "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],
         "full_current_tail_scan": current_tail["configuration"]["q14_order"] and current_tail["corpus"]["views"] == 24384 and current_tail["tail"]["columns_at_or_above_threshold"] == 0 and current_tail["tail"]["maximum_top_error_px"] < 5,
         "available_independent_evidence_current": all(r["passed"] and r["rom_sha256"] == current_sha for r in independent.values()),
         "integer_dda_zero_mismatches": research["integer_dda_identity"]["mismatches"] == 0,
@@ -256,8 +264,8 @@ def main() -> None:
     runtime_checks = {
         "stationary_no_dynamic_overflow": v2_stationary["dynamic_tile_overflow"] == 0,
         "scripted_no_dynamic_overflow": v2_action["dynamic_tile_overflow"] == 0,
-        "stationary_single_vblank_commits": bool(v2_stationary["all_commits_single_frame"]),
-        "scripted_single_vblank_commits": bool(v2_action["all_commits_single_frame"]),
+        "stationary_vblank_safe_commits": bool(v2_stationary["all_commits_vblank_safe"]),
+        "scripted_vblank_safe_commits": bool(v2_action["all_commits_vblank_safe"]),
         "stationary_bounded_transfers_per_commit": bool(v2_stationary["all_commits_bounded_transfers"]),
         "scripted_bounded_transfers_per_commit": bool(v2_action["all_commits_bounded_transfers"]),
         "stationary_no_unsafe_gdma": v2_stationary["gdma_vblank_violations"] == 0,
@@ -365,6 +373,7 @@ def main() -> None:
         "controller_completion": {key: value for key, value in completion.items() if key != "updates"},
         "current_q14_tail": {key: current_tail[key] for key in ("corpus", "tail", "configuration")},
         "independent_emulators": independent,
+        "wall_reuse": {**wall_reuse, "frozen": {key: value for key, value in wall_reuse["frozen"].items() if key != "rows"}},
         "test_inventory_is_not_test_execution": True,
         "harness": {
             "scope": "project-specific deterministic SM83/CGB smoke-test harness; not an independent cycle-accurate emulator",

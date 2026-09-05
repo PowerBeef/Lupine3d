@@ -17,7 +17,7 @@
 
 ## Current implementation
 
-**0.7.0-beta.3 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+**0.7.0-beta.4 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
 
 Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
@@ -33,6 +33,7 @@ The engine emits SM83 machine code directly from Python. Cartridge tables replac
 | Folded six-row composition and full 121-pattern atlas | Shared sliding-door geometry for rays, collision and LOS |
 | Masked hardware 8×16 sprites, three size LODs | Four bounded actor slots, depth sorting and OAM admission |
 | Per-face palettes and wall-mounted fixture masks | Atomic BG, attributes, HUD and entity publication |
+| Exact reuse of unchanged wall views | Independent sprite/HUD updates with retained wall depth |
 | Dedicated 78-pattern HUD with a scanline split | Native pixel art; no imported game assets |
 
 ### Hangar Breach
@@ -47,7 +48,7 @@ The level compiler checks safe spawn clearance, reachability, meaningful door ga
 
 Upper wall tiles are composed once. Lower rows reuse their patterns with CGB Y-flip and paired floor palettes. Signed BG addressing places world patterns at **$8800–$97FF**. A line-96 STAT interrupt switches to unsigned addressing for the HUD, which occupies otherwise unused bank-0 patterns alongside the separate masked-object pool. See the [visual design and graphics budget](docs/SABLE_OUTPOST.md).
 
-The renderer yields at ray and tile-column boundaries to service queued simulation ticks. It then resumes the same untouched camera/world snapshot. Completed frames publish all matching data together; larger packets prepare hidden patterns in one VBlank and finish publication in the next.
+The renderer yields at ray and tile-column boundaries to service queued simulation ticks. It then resumes the same untouched camera/world snapshot. An exact camera/map/door check lets unchanged walls stay in VRAM while new entities and HUD publish independently. Full renders publish all matching data together; larger packets prepare hidden patterns in one VBlank and finish publication in the next.
 
 Wall depth remains Q5; interpolated samples use conservative bounds. Sprite masks operate on individual pixel bits but obtain occlusion from those two-pixel depth samples. This is not arbitrary-precision geometry or unrestricted sprite scaling.
 
@@ -57,14 +58,17 @@ Project-harness CPU cycles include publication waits.
 
 | Result | Coherence tour | Combat diagnostic |
 |---|---:|---:|
-| Mean cycles/update | 980,902 | 1,218,677 |
-| Maximum cycles/update | 1,265,016 | 1,685,836 |
-| Minimum visual updates/s | 6.63 | 4.98 |
+| Mean cycles/presentation | 878,764 | 692,666 |
+| Maximum cycles/presentation | 1,268,724 | 1,685,828 |
+| Minimum presentations/s | 6.61 | 4.98 |
+| Reused wall views | 2 / 11 | 25 / 47 |
 | Peak dynamic tiles | 18 / 96 | 24 / 96 |
 | Peak objects per scanline | 4 / 10 | 7 / 10 |
 | Unsafe GDMA starts | 0 | 0 |
 
-Simulation cadence and displayed frame rate are different: controls are sampled each VBlank, but new geometry appears only when a complete render is ready. This beta prioritizes correctness, physical interaction and entity support; combat rendering still needs more timing headroom.
+Stationary trials present **59.71 updates/s at the safe start** and **40.37 updates/s in combat**. Three brief fire taps reach the next muzzle scanline in approximately **56 ms** in the combat trial. These are project-emulator measurements for fixed test scenes.
+
+Controls are sampled each VBlank. Sprite/HUD presentations and full geometry renders are counted separately: movement, turning and changing doors still require complete wall rendering. See [wall reuse and latency evidence](docs/WALL_REUSE.md).
 
 ## Quick start
 
@@ -76,6 +80,7 @@ make build
 make test
 make playtest playtest-world
 make playthrough variants
+make wall-reuse
 ```
 
 Open **`build/lupine3d.gb`** in a Game Boy Color emulator with MBC5 support.
@@ -100,9 +105,9 @@ See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling 
 
 ## Verification and limits
 
-**75 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene output comparisons, a six-view art tour, a 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 236 verified updates without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
+**80 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene cache/full-render comparisons, a six-view art tour, a retained 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 233 verified presentations without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
 
-The combat diagnostic averages 1.219 million CPU cycles per update, with its slowest view at approximately 4.98 visual updates/s. Controls and simulation continue at VBlank cadence. The [performance implementation](docs/RUNTIME_PERFORMANCE.md) records exact-output checks, cycle measurements and the ROM budget.
+Validation checks the actual published sprite patterns, OAM banks and viewport VRAM, alongside host geometry and staging buffers. All 290 wall-key bytes are tested for invalidation; cached updates preserve the displayed background exactly.
 
 The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. CI is configured to repeat them; local results are not a claim that a new GitHub CI run has executed.
 
@@ -113,6 +118,7 @@ The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/cont
 | [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
 | [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
 | [Gameplay performance](docs/RUNTIME_PERFORMANCE.md) | Implementation steps, exactness proof and measured results |
+| [Wall reuse and combat latency](docs/WALL_REUSE.md) | Exact caching, independent sprite publication and timing |
 | [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
 | [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |
 | [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Physical acceptance procedure |

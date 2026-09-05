@@ -11,6 +11,7 @@
 
 static uint32_t pixels[160 * 144];
 static unsigned swaps, unsafe_dma, unsafe_flips, dma_starts, frame;
+static unsigned presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes;
 
 static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -29,6 +30,21 @@ static bool write_hook(GB_gameboy_t *gb, uint16_t address, uint8_t value)
     if (address == 0xff55 && !(value & 0x80) && (lcdc & 0x80)) {
         dma_starts++;
         if (GB_read_memory(gb, 0xff44) < 144) unsafe_dma++;
+        if ((GB_read_memory(gb, 0xff53) & 31) < 2) {
+            unsigned bank = GB_read_memory(gb, 0xff4f) & 1;
+            for (unsigned i = 10; i < 26; ++i) {
+                unsigned y = GB_read_memory(gb, 0xfe00 + i*4);
+                if (y && y < 160 && ((GB_read_memory(gb, 0xfe03 + i*4) >> 3) & 1) == bank)
+                    visible_mask_writes++;
+            }
+        }
+    }
+    if (address == 0xff46 && (lcdc & 0x80) &&
+        (GB_read_memory(gb, 0xff44) < 144 || GB_read_memory(gb, 0xff44) >= 153)) unsafe_oam++;
+    if (address == 0xc8b6 && (lcdc & 0x80)) {
+        presentations++;
+        reused += GB_read_memory(gb, 0xc8b5) != 0;
+        if (GB_read_memory(gb, 0xff44) < 144 || GB_read_memory(gb, 0xff44) >= 153) unsafe_presentations++;
     }
     if (address == 0xff40 && (lcdc & value & 0x80) && ((lcdc ^ value) & 8)) {
         swaps++;
@@ -92,13 +108,16 @@ int main(int argc, char **argv)
     unsigned angle = GB_read_memory(gb, 0xd144);
     unsigned y = GB_read_memory(gb, 0xd142) | GB_read_memory(gb, 0xd143) << 8;
     bool door_open = GB_read_memory(gb, 0xd764) == 2;
-    bool passed = swaps >= 30 && dma_starts >= 30 && !unsafe_dma && !unsafe_flips
+    bool passed = presentations >= 30 && reused > 0 && swaps >= 10 && dma_starts >= 30
+        && !unsafe_dma && !unsafe_flips && !unsafe_presentations && !unsafe_oam && !visible_mask_writes
         && angle != initial_angle && y != initial_y && door_open && GB_is_cgb_in_cgb_mode(gb);
     printf("{\"passed\":%s,\"model\":%u,\"lcd_frames\":%u,\"page_swaps\":%u,"
            "\"gdma_starts\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_page_flips\":%u,"
+           "\"presentations\":%u,\"reused_presentations\":%u,\"unsafe_presentations\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,"
            "\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
            passed ? "true" : "false", model, frame, swaps, dma_starts, unsafe_dma,
-           unsafe_flips, y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
+           unsafe_flips, presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes,
+           y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
            door_open ? "true" : "false");
     GB_dealloc(gb);
     return passed ? 0 : 1;

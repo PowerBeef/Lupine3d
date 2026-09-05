@@ -142,6 +142,17 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "surface_attribute_packet_exact": read_block(cgb, br.VIEW_ATTRIBUTES, 384) == br.surface_attributes(pixel[10], cgb.read8(br.CURRENT_PAGE)),
         "input_queue_no_overflow": cgb.read8(br.INPUT_QUEUE_OVERFLOW) == 0,
     }
+    page = cgb.read8(br.CURRENT_PAGE)
+    offset = 0x1C00 if page else 0x1800
+    checks["published_map_exact"] = bytes(cgb.vram[0][offset:offset+384]) == view_map
+    checks["published_attributes_exact"] = bytes(cgb.vram[1][offset:offset+384]) == br.surface_attributes(pixel[10], page)
+    if cgb.explicit_presentations:
+        mask_bytes = cgb.read8(br.MASK_TILE_COUNT) * 16
+        obj_page = cgb.read8(br.OBJ_PAGE)
+        checks["published_mask_patterns_exact"] = bytes(cgb.vram[obj_page][:mask_bytes]) == read_block(cgb, br.MASK_TILES, mask_bytes)
+        checks["published_obj_bank_exact"] = all(
+            ((cgb.oam[i*4+3] >> 3) & 1) == obj_page
+            for i in range(br.ENTITY_OAM_FIRST, br.ENTITY_OAM_FIRST+cgb.read8(br.SENTINEL_OAM_USED)))
     failed = [name for name, passed in checks.items() if not passed]
     if failed:
         raise AssertionError(f"frame validation failed: {', '.join(failed)}")
@@ -152,6 +163,8 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "total_casts": pixel[4],
         "material_events": pixel[6],
         "dynamic_tiles": dynamic_count,
+        "wall_view_reused": bool(cgb.read8(br.FRAME_REUSED)) if cgb.explicit_presentations else False,
+        "executed_casts": 0 if cgb.explicit_presentations and cgb.read8(br.FRAME_REUSED) else pixel[4],
         "checks": checks,
     }
 
@@ -229,8 +242,8 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         for within_action in range(action_updates):
             before_cycles = cgb.cycles
             before_frames = cgb.frame_count
-            target_swap = cgb.page_swaps + 1
-            cgb.run(until_swaps=target_swap, max_steps=3_000_000)
+            target_swap = cgb.presentations + 1
+            cgb.run(until_presentations=target_swap, max_steps=3_000_000)
             validation = validate_frame(cgb)
             expected_world = {
                 str(name): int(value) for name, value in action.get("expect", {}).items()
@@ -327,6 +340,9 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         "updates": updates,
         "summary": {
             "update_count": len(updates),
+            "background_page_swaps": cgb.page_swaps,
+            "reused_wall_updates": sum(item["wall_view_reused"] for item in updates),
+            "executed_casts": sum(item["executed_casts"] for item in updates),
             "capture_count": len(captures),
             "mean_cycles": sum(item["cycles"] for item in updates) / len(updates),
             "max_cycles": max(item["cycles"] for item in updates),

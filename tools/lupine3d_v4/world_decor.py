@@ -22,12 +22,11 @@ def fixture_records():
 def emit_world_decor(a: Assembler):
     a.label("render_wall_fixtures")
     if not ACTIVE_LEVEL.fixtures: a.ret(); return
-    # The attribute packet is rebuilt after decor. Reuse its first 256 bytes
-    # as a transient face-visibility table instead of rescanning 80 rays per
-    # authored fixture; this does not consume additional persistent WRAM.
-    a.ld_rr_nn("hl",VIEW_ATTRIBUTES); a.xor_r("a"); a.ld_r_n("b",0)
+    # Snapshot copying has finished. Its staging buffer is free until the
+    # next snapshot; retain the published attribute packet on cached updates.
+    a.ld_rr_nn("hl",FIXTURE_VISIBILITY); a.xor_r("a"); a.ld_r_n("b",0)
     a.label("fixture_clear_visible"); a.ldi_hl_a(); a.dec_r("b"); a.jr("fixture_clear_visible","nz")
-    a.ld_rr_nn("hl",RAY_SEGMENT); a.ld_r_n("b",80); a.ld_r_n("d",VIEW_ATTRIBUTES>>8)
+    a.ld_rr_nn("hl",RAY_SEGMENT); a.ld_r_n("b",80); a.ld_r_n("d",FIXTURE_VISIBILITY>>8)
     a.label("fixture_mark_visible")
     a.ldi_a_hl(); a.ld_r_r("e","a"); a.ld_r_n("a",1); a.ld_mem_rr_a("de")
     a.dec_r("b"); a.jr("fixture_mark_visible","nz")
@@ -38,7 +37,7 @@ def emit_world_decor(a: Assembler):
     a.ld_a_abs(DECAL_INDEX); a.cb("swap","a"); a.ld_r_r("e","a"); a.ld_r_n("d",0)
     a.ld_rr_label("hl","wall_fixture_records"); a.add_hl_rr("de")
     for _ in range(4): a.inc_rr("hl")
-    a.ld_a_hl(); a.ld_r_r("e","a"); a.ld_r_n("d",VIEW_ATTRIBUTES>>8)
+    a.ld_a_hl(); a.ld_r_r("e","a"); a.ld_r_n("d",FIXTURE_VISIBILITY>>8)
     a.ld_a_mem_rr("de"); a.or_r("a"); a.jp("fixture_advance","z")
     for _ in range(4): a.dec_rr("hl")
     a.ld_rr_nn("de",DECAL_RECORD); a.ld_rr_nn("bc",9); a.call("copy_bc")

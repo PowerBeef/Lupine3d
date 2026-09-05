@@ -43,6 +43,9 @@ jobs:
       - name: Verify two-actor, folding and reprojection variants
         run: make variants
 
+      - name: Verify exact wall reuse and timed combat feedback
+        run: make wall-reuse
+
       - name: Check out pinned independent emulator
         uses: actions/checkout@v4
         with:
@@ -92,3 +95,5 @@ jobs:
             build/two_sentinels.*
             build/reprojection.json
             build/*folded_pixels.json
+            build/reuse_disabled_pixels.json
+            build/wall_reuse.json

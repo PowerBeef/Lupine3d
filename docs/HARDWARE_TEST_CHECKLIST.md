@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.3 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.7.0-beta.4 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.7.0-beta.3 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.3_SHA256SUMS.txt` |
+| ROM version | 0.7.0-beta.4 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.4_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -46,6 +46,10 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] Start restarts after death and after level completion.
 - [ ] Weapon/crosshair remain stable.
 - [ ] Page flips show no tearing or mixed old/new tiles.
+- [ ] Stand still and fire repeatedly: actors/HUD update while the wall page stays fixed.
+- [ ] After several cached updates, turn/move and verify both BG and sprite data remain coherent.
+- [ ] Open a door while stationary: every changing aperture invalidates wall reuse.
+- [ ] Restart from a cached view: no prior-level depth, palettes or fixture masks survive.
 - [ ] Run for at least 30 minutes without lockup.
 
 Inspect where possible:
@@ -58,6 +62,8 @@ Inspect where possible:
 - CGB double-speed state.
 
 Expected page protocol: hidden dynamic BG patterns target $9000, masked OBJ patterns target $8000, attributes target the hidden map in bank 1, and tile IDs target the same map in bank 0. HUD/OAM publish before LCDC flips. Large packets prepare hidden dynamic patterns in an earlier VBlank; the final visible packet remains coherent. Maximum payload is 176 blocks, split into at most 96 and 80 blocks when staged.
+
+BG and OBJ banks have independent owners. Cached updates upload only 0–32 OBJ patterns, HUD and OAM; LCDC's BG map bit remains fixed. Observe $C8B3 (published OBJ bank), $C8B5 (reuse flag) and $C8B6 (wrapping presentation serial). No masked-pattern upload may target a bank referenced by visible world OAM.
 
 ## Gate B — original CGB smoke test
 
@@ -102,11 +108,11 @@ Watch for:
 
 The dynamic hard cap is 96 patterns. Forced maximum-packet tests also populate all 32 masked patterns. Any overflow or unsafe publication on hardware is a release blocker even if host tests pass.
 
-The current combat diagnostic peaks at 14 visible OAM entries and seven objects on one scanline; the two-enemy scene uses 17 total and six per scanline. World admission allows at most four world objects per scanline. Check masking and all-dead exit unlock with multiple actors.
+The current combat diagnostic peaks at 15 visible OAM entries and seven objects on one scanline; the two-enemy scene uses 17 total and six per scanline. World admission allows at most four world objects per scanline. Check masking and all-dead exit unlock with multiple actors.
 
 ## Gate D — timing-sensitive observations
 
-The absolute worst-case commit is 120 blocks, approximately 960 microseconds by the documented rough transfer figure, versus roughly 1,087 microseconds of VBlank.
+The maximum full packet is 176 blocks across two VBlanks, with at most 96 blocks first and 80 last. Cached packets transfer at most 32 blocks in one VBlank. Transfer time alone is insufficient: include HUD writes, OAM DMA/wait and publication bookkeeping, and require completion before line 153.
 
 - [ ] No corruption at maximum visual complexity.
 - [ ] No one-frame corruption when changing direction quickly.

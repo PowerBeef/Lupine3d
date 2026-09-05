@@ -30,13 +30,13 @@ def main():
             if "pose" in action: pose(*action["pose"])
             if "b" in action.get("buttons", []):
                 c.call_subroutine("open_door"); c.wramx[2][:256] = c.wramx[1][:256]
-            c.run(until_swaps=c.page_swaps + 1); validate_frame(c)
+            c.run(until_presentations=c.presentations + 1); validate_frame(c)
             if "capture" in action:
                 image = c.render_screen(); images.append((action["capture"], image))
                 checks[action["capture"]] = hashlib.sha256(image.tobytes()).hexdigest()
     elif args.variant == "two-actors":
         assert len(br.ACTIVE_LEVEL.entities) == 2
-        pose(2176, 2432, 224); c.run(until_swaps=1); validate_frame(c)
+        pose(2176, 2432, 224); c.run(until_presentations=1); validate_frame(c)
         checks = oam_budget(c); checks["world_objects"] = c.read8(br.SENTINEL_OAM_USED)
         checks["actor_objects"] = sum((c.oam[(br.ENTITY_OAM_FIRST+i)*4+3] & 7) == 1
                                       for i in range(checks["world_objects"]))

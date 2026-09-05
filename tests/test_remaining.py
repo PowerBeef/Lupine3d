@@ -231,7 +231,7 @@ class RemainingTests(unittest.TestCase):
         c.pc = self.asm.labels["upload_hidden_page"]
         c.run(until_pc=self.asm.labels["upload_packet_ready"])
         self.assertEqual(bytes(c.oam), old_oam)
-        c.run(until_swaps=1)
+        c.run(until_presentations=1)
         self.assertEqual(c.commit_events[-1]["blocks"], 176)
         self.assertTrue(c.commit_events[-1]["staged"])
         self.assertTrue(c.commit_events[-1]["vblank_safe"])

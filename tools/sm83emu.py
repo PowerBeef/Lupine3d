@@ -89,6 +89,7 @@ class CGB:
         self.ly = 0
         self.frame_count = 0
         self.page_swaps = 0
+        self.explicit_presentations = "presentation_serial" in self.symbols
         self.main_iterations = 0
         self.buttons = 0  # active-high standard bit layout
         self.button_provider: Callable[[int, int], int] | None = None
@@ -189,6 +190,8 @@ class CGB:
             return
         if addr < 0xD000:
             self.wram0[addr - 0xC000] = value
+            if (addr == self.symbols.get("presentation_serial") and self.io[LCDC & 0x7F] & 0x80):
+                self._record_presentation()
             return
         if addr < 0xE000:
             bank = self.io[SVBK & 0x7F] & 7
@@ -242,24 +245,9 @@ class CGB:
                 # visual-frame commits. Begin tracking only after LCD enable.
                 self._pending_commit_event_indexes.clear()
             elif (old ^ value) & 0x08:
-                events = [self.gdma_events[i] for i in self._pending_commit_event_indexes]
-                blocks = sum(int(event["blocks"]) for event in events)
-                same_frame = bool(events) and all(int(event["frame"]) == int(events[0]["frame"]) for event in events)
-                vblank_safe = bool(events) and all(bool(event["vblank_safe_complete"]) for event in events)
-                vblank_safe = vblank_safe and self.frame_count == int(events[-1]["frame"]) and self.ly >= 144
-                self.commit_events.append({
-                    "swap": self.page_swaps + 1,
-                    "displayed_map": 1 if value & 0x08 else 0,
-                    "frame": self.frame_count,
-                    "ly": self.ly,
-                    "blocks": blocks,
-                    "event_count": len(events),
-                    "vblank_safe": vblank_safe,
-                    "staged": not same_frame,
-                    "events": tuple(events),
-                })
-                self._pending_commit_event_indexes.clear()
                 self.page_swaps += 1
+                if not self.explicit_presentations:
+                    self._record_presentation()
             self.last_lcdc = value
             return
         if addr == BGPD:
@@ -283,6 +271,26 @@ class CGB:
             self.hram[addr - 0xFF80] = value
             return
         self.ie = value
+
+    @property
+    def presentations(self) -> int:
+        """Completed packets, distinct from physical LCDC background flips."""
+        return len(self.commit_events)
+
+    def _record_presentation(self):
+        events = [self.gdma_events[i] for i in self._pending_commit_event_indexes]
+        same_frame = not events or all(event["frame"] == events[0]["frame"] for event in events)
+        safe = all(event["vblank_safe_complete"] for event in events) and 144 <= self.ly < 153
+        safe = safe and (not events or self.frame_count == events[-1]["frame"])
+        self.commit_events.append(dict(
+            swap=self.page_swaps, presentation=self.presentations + 1,
+            displayed_map=bool(self.io[LCDC & 0x7F] & 8), frame=self.frame_count,
+            ly=self.ly, cycles=self.cycles, blocks=sum(event["blocks"] for event in events),
+            event_count=len(events), vblank_safe=safe, staged=not same_frame, events=tuple(events),
+            reused=bool(self.read8(0xC8B5)) if self.explicit_presentations else False,
+            object_page=self.read8(0xC8B3) if self.explicit_presentations else None,
+        ))
+        self._pending_commit_event_indexes.clear()
 
     def read16(self, addr: int) -> int:
         return self.read8(addr) | (self.read8((addr + 1) & 0xFFFF) << 8)
@@ -677,9 +685,11 @@ class CGB:
         return self.snapshot()
 
     def run(self, *, max_steps: int = 5_000_000, until_swaps: int | None = None,
-            until_pc: int | None = None) -> Snapshot:
+            until_pc: int | None = None, until_presentations: int | None = None) -> Snapshot:
         for _ in range(max_steps):
             if until_swaps is not None and self.page_swaps >= until_swaps:
+                break
+            if until_presentations is not None and self.presentations >= until_presentations:
                 break
             if until_pc is not None and self.pc == until_pc:
                 break

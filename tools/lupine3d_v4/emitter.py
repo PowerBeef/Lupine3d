@@ -116,15 +116,16 @@ def emit_hud_system(a: Assembler) -> None:
         a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + 8 + i)
     a.ret()
     a.label("update_hud_tiles")
+    a.ld_rr_nn("hl", HUD_PACKET)
     a.xor_r("a"); a.ldh_n_a(VBK)
     for item, column in enumerate((HUD_HEALTH_TENS_X, HUD_STATUS_TENS_X)):
         for row in (0,1):
             for digit in (0,1):
-                a.ld_a_abs(HUD_PACKET + item*4 + row*2 + digit)
+                a.ldi_a_hl()
                 for base in (0x9800, 0x9C00):
                     a.ld_abs_a(base + (HUD_ROW+row)*32 + column + digit)
     for i in range(3):
-        a.ld_a_abs(HUD_PACKET+8+i)
+        a.ldi_a_hl()
         for base in (0x9800, 0x9C00): a.ld_abs_a(base+17*32+16+i)
     a.ret()
 def emit_vram_init(a: Assembler) -> None:
@@ -147,6 +148,7 @@ def emit_vram_init(a: Assembler) -> None:
     a.ret()
 
     a.label("init_vram")
+    a.call("invalidate_wall_cache")
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     # The map upload covers all 32 bytes of each of the twelve viewport rows.
     # Initialize the hidden padding once instead of relying on WRAM power-on
@@ -214,10 +216,12 @@ def emit_dma(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes"); a.call("upload_surface_attributes")
     a.call("upload_masked_tiles"); a.call("publish_oam_packet")
+    a.ld_a_abs(OBJ_PAGE); a.xor_n(1); a.ld_abs_a(OBJ_PAGE)
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.ldh_n_a(VBK); a.ret()
 
     a.label("upload_hidden_page")
+    a.xor_r("a"); a.ld_abs_a(FRAME_REUSED)
     a.call("prepare_hud_tiles")
     a.call("build_surface_attributes")
     a.call("wait_vblank")
@@ -249,7 +253,8 @@ def emit_dma(a: Assembler) -> None:
     a.label("display_page_zero")
     a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC)
     a.label("display_page_done")
-    a.xor_r("a"); a.ldh_n_a(VBK); a.ret()
+    a.ld_r_n("a", 1); a.ld_abs_a(WALL_CACHE_VALID)
+    a.jp("finish_presentation")
 
 
 def emit_input_system(a: Assembler) -> None:

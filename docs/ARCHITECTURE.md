@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.3 architecture
+# Lupine 3D 0.7.0-beta.4 architecture
 
 Lupine is a CGB-only 4 MiB MBC5 engine with no cartridge RAM. Python generates SM83 code, tables and original graphics. Runtime uses double-speed execution, native tiles, two VRAM banks, two BG maps and hardware 8×16 objects.
 
@@ -8,7 +8,7 @@ VBlank interrupts sample controls into a timestamped ring queue; they never simu
 
 At frame start, live map/player/world/actor records are copied through a 457-byte fixed-WRAM staging buffer into bank 1. All rendering, depth tests, animation selection and publication use that immutable snapshot. Bank 2 continues moving actors and doors while the snapshot renders.
 
-A completed frame proceeds through 80 adaptive descriptors, 160 physical columns, six folded tile rows, palette attributes, masked entity patterns and shadow OAM. Publication occurs only when the complete hidden packet is ready.
+A full frame proceeds through 80 adaptive descriptors, 160 physical columns, six folded tile rows, palette attributes, masked entity patterns and shadow OAM. Before casting, a 290-byte exact comparison checks camera, map, door records, configuration and reload generation. A hit retains the matching wall view/depth and renders only entities, fixtures and HUD. Publication occurs only when its complete packet is ready. See [wall reuse](WALL_REUSE.md).
 
 ## Cartridge banks
 
@@ -19,11 +19,11 @@ A completed frame proceeds through 80 adaptive descriptors, 160 physical columns
 | 146–153 | Complete 8×8 product LUT: 131,072 bytes |
 | 154 | Alternate atlas/dictionary |
 | 155 | Physical segments: 1,024 bytes; oriented-face profiles: 1,024 bytes |
-| 156 | Cold boot assets: 9,258 bytes |
+| 156 | Cold boot assets and startup map: 9,514 bytes |
 | 157–172 | Q14 camera directions: 262,144 bytes |
 | 173–255 | Unallocated cartridge capacity |
 
-Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $73CD (29,309 emitted bytes), leaving 3,123 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. The unaligned startup map follows the hot tables to preserve their alignment without wasting an extra 1 KiB page.
+Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $73CD (29,309 emitted bytes), leaving 3,123 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. Unaligned fixture records follow the hot tables; the startup map lives in cold bank 156. The loader restores bank 1 after copying it.
 
 ## Geometry and projection
 
@@ -86,11 +86,11 @@ Hardware 8×16 mode uses aligned even/odd pattern pairs. Four fixed 16-byte slot
 
 Three pre-scaled sizes—16×32, 16×16, 8×16—share the wall camera focal length and project feet from forward depth. Hysteresis prevents threshold chatter. Candidate actors are depth-sorted nearest first. Hitscan selects the nearest aimed candidate and then performs a fresh wall query, never trusting stale render visibility.
 
-Every eight-pixel strip computes a visibility bitmask against the 80-sample conservative depth buffer. Both bitplanes of its ROM-source cel are ANDed with that mask into staging. Mask patterns are double-buffered with the hidden page; fully occluded strips allocate nothing.
+Every eight-pixel strip computes a visibility bitmask against the 80-sample conservative depth buffer. Both bitplanes of its ROM-source cel are ANDed with that mask into staging. Mask patterns alternate banks using an independent OBJ owner; fully occluded strips allocate nothing. BG and OBJ owners may differ after a cached presentation.
 
 OAM entries 0–9 reserve weapon, crosshair and muzzle flash. World entries 10–25 admit at most 16 objects, and at most four world objects per scanline. The Y-selected scanline budget includes X-offscreen hardware objects. Unused entries are hidden. The bounded world limit leaves room for UI without exceeding 40 total / ten per scanline.
 
-Sixteen authored wall fixtures share that pool after actors and the exit. At most four fixture objects are submitted. Their masks require physical segment and along-face cell agreement. Pre-scaled cels sit at the upper wall quarter; door access marks translate with the sliding panel. The future attribute buffer temporarily holds a face visibility table, then is completely rebuilt before upload.
+Sixteen authored wall fixtures share that pool after actors and the exit. At most four fixture objects are submitted. Their masks require physical segment and along-face cell agreement. Pre-scaled cels sit at the upper wall quarter; door access marks translate with the sliding panel. The completed world-copy staging buffer temporarily holds fixture visibility, preserving wall attributes across cached updates.
 
 ## Fixed and banked WRAM
 
@@ -100,10 +100,12 @@ Sixteen authored wall fixtures share that pool after actors and the exit. At mos
 | $C600–$C77F | Hidden tile map |
 | $C800–$C89F | Shadow OAM |
 | $C8A0–$C8B2 | Fixed render/AI scratch, published entity X and bulk-copy remainder |
+| $C8B3–$C8B9 | OBJ owner, cache flags, presentation serial and reload generation |
 | $C8D0–$C8DD | 16-bit clocks, queue cursors, budget and diagnostics |
-| $C900–$CAC8 | World-copy staging, 457 bytes |
+| $C900–$CAC8 | World-copy staging, 457 bytes; first 256 reused for fixture visibility after copy |
 | $CB00–$CB6E | HRAM save area |
 | $CC00–$CCFF | 64×4 input ring; 63 usable records |
+| $CD00–$CDFF | Exact cached map key |
 | $CE00–$CFFF | Reserved stack, top $CFFF |
 | $D000–$D7FF | Banked map/player/descriptors/world/scratch |
 | $D8A0–$D8FF | Wide ray/door/mask/profile scratch |
@@ -115,6 +117,7 @@ Sixteen authored wall fixtures share that pool after actors and the exit. At mos
 | $DA00–$DBFF | 32 masked patterns |
 | $DC00–$DD7F | Hidden attribute packet |
 | $DE00–$DF1F | Ray and physical surface buffers, including alignment gap |
+| $DF20–$DF41 | Exact camera/configuration/door/generation key |
 
 HRAM uses $FF80–$FFEE (111 bytes). The ten-byte OAM DMA stub uses $FFF4–$FFFD. ISR-owned input bytes are excluded from render-save restoration.
 
@@ -128,7 +131,7 @@ When dynamic-plus-mask patterns exceed 24, hidden dynamic patterns upload in one
 
 With optional reprojection enabled, more than 24 masked patterns trigger an additional wait after their upload. That stress case can use three VBlanks to preserve headroom for the published-X copy; the default build uses at most two.
 
-Tile numbers upload with VBK=0; attributes with VBK=1; pattern bank follows the hidden page. LCDC map selection changes only after the matching complete packet. SameBoy checks actual GDMA starts and page-flip timing.
+Tile numbers upload with VBK=0; attributes with VBK=1; BG pattern bank follows the hidden BG page. Mask patterns target the hidden OBJ bank independently. LCDC map selection changes only after the matching complete full packet. A cached update uploads only 0–32 mask patterns plus HUD/OAM in one VBlank and leaves the viewport maps and BG owner untouched. `PRESENT_SERIAL` advances after either path; physical BG flips are counted separately. SameBoy checks GDMA/OAM starts, final publication and writes against the published mask bank.
 
 ## Optional reprojection
 

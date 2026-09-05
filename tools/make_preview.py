@@ -46,7 +46,7 @@ def main() -> None:
     cgb.button_provider = preview_input
     frames: list[Image.Image] = []
     for target in range(1, 31):
-        cgb.run(until_swaps=target, max_steps=6_000_000)
+        cgb.run(until_presentations=target, max_steps=6_000_000)
         raw = cgb.render_screen()
         frames.append(nearest(raw))
 
@@ -59,7 +59,7 @@ def main() -> None:
     for address, value in ((v2.PLAYER_XL, 128), (v2.PLAYER_XH, 8),
                            (v2.PLAYER_YL, 128), (v2.PLAYER_YH, 8), (v2.ANGLE, 240)):
         set_test_world_byte(hero, address, value)
-    hero.run(until_swaps=1, max_steps=3_000_000)
+    hero.run(until_presentations=1, max_steps=3_000_000)
     hero_image = nearest(hero.render_screen())
 
     still_path = v2.BUILD / "lupine3d_preview_4x.png"

@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
     if (!mCoreLoadFile(core, argv[1])) return 2;
     core->reset(core);
     unsigned initial_y = 0, initial_angle = 0, swaps = 0, previous_page = 0;
+    unsigned presentations = 0, previous_serial = 0;
     for (unsigned frame = 0; frame < 480; ++frame) {
         unsigned keys = 0;
         if ((frame >= 60 && frame < 120) || (frame >= 190 && frame < 250)) keys = 1 << GB_KEY_UP;
@@ -43,6 +44,9 @@ int main(int argc, char **argv) {
         unsigned page = core->busRead8(core, 0xff40) & 8;
         if (page != previous_page) ++swaps;
         previous_page = page;
+        unsigned serial = core->busRead8(core, 0xc8b6);
+        presentations += (serial - previous_serial) & 255;
+        previous_serial = serial;
         if (frame == 59) {
             initial_angle = core->rawRead8(core, 0xd144, 1);
             initial_y = core->rawRead16(core, 0xd142, 1);
@@ -55,9 +59,9 @@ int main(int argc, char **argv) {
     bool turned = core->rawRead8(core, 0xd144, 1) != initial_angle;
     bool opened = core->rawRead8(core, 0xd764, 1) == 2;
     unsigned overflow = core->busRead8(core, 0xc8d4);
-    bool passed = moved && turned && opened && swaps >= 30 && !overflow;
-    printf("{\"passed\":%s,\"lcd_frames\":480,\"page_swaps\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"input_queue_overflow\":%u,\"bootstrap\":\"mGBA built-in skip-BIOS\",\"dma_write_instrumentation\":false}\n",
-           passed ? "true" : "false", swaps, moved ? "true" : "false", turned ? "true" : "false", opened ? "true" : "false", overflow);
+    bool passed = moved && turned && opened && swaps >= 10 && presentations >= 30 && !overflow;
+    printf("{\"passed\":%s,\"lcd_frames\":480,\"page_swaps\":%u,\"presentations\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"input_queue_overflow\":%u,\"bootstrap\":\"mGBA built-in skip-BIOS\",\"dma_write_instrumentation\":false}\n",
+           passed ? "true" : "false", swaps, presentations, moved ? "true" : "false", turned ? "true" : "false", opened ? "true" : "false", overflow);
     core->deinit(core);
     return passed ? 0 : 1;
 }

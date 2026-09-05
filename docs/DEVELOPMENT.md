@@ -9,6 +9,7 @@ python3 tools/dev_setup.py
 make test
 make playtest playtest-world playtest-art
 make playthrough variants
+make wall-reuse
 make research-tail
 python3 tools/release_check.py
 ```
@@ -60,7 +61,7 @@ Profiles: `structure`, `machinery`, `door`. Door colour is reserved for actual d
 
 ## Pose diagnostics versus controller completion
 
-`tools/playtest.py` drives the actual generated ROM. Each update ends at a published page. Every update validates pair/physical descriptors, depth/segments/profiles, exact tile bytes, all 384 tile-map and attribute bytes, cast/event counts, capacity, input overflow, OAM and GDMA safety.
+`tools/playtest.py` drives the actual generated ROM. Each update ends at a completed presentation, which may retain its BG page. Every update validates pair/physical descriptors, depth/segments/profiles, exact tile bytes, all 384 tile-map and attribute bytes, cast/event counts, capacity, input overflow, actual published VRAM/OAM bank ownership and GDMA safety. Reports distinguish executed casts and BG flips from cached descriptor counts and sprite/HUD presentations.
 
 ```json
 {
@@ -76,7 +77,7 @@ Profiles: `structure`, `machinery`, `door`. Door colour is reserved for actual d
 
 Buttons: directions, A, B, Select, Start. Optional `pose` sets Q8 coordinates/angle; `aim_at_sentinel` adjusts only camera aim; `pose_at_drop` relocates only the camera to the defeated actor's actual drop. These are explicit diagnostic injections. Expectations apply at an action's final update because queued input affects the next snapshot, not the frame already rendering.
 
-The coherence tour freezes nine reviewed raw-RGB hashes in `v070_beta_capture_pixels.json`. The combat diagnostic has state assertions but no frozen gameplay RGB oracle. Older fixtures remain historical.
+The coherence tour freezes nine reviewed raw-RGB hashes in `v070_sable_capture_pixels.json`. The combat diagnostic has state assertions but no frozen gameplay RGB oracle. Older fixtures remain historical.
 
 `make playthrough` is separate: no teleporting or game-RAM writes. Its bot reads live state and generates controller input until combat, pickup and exit complete. It is functional verification, not a blind human readability test.
 
@@ -86,9 +87,12 @@ The coherence tour freezes nine reviewed raw-RGB hashes in `v070_beta_capture_pi
 
 - two-Sentinel render/admission scene;
 - folded versus unfolded rendering with frozen simulation, nine RGB matches;
+- wall reuse enabled versus disabled, nine RGB matches;
 - reprojection clamp, immutable published world X, fixed UI and map/attribute guards.
 
-Default configuration is folding on, Q14 order on, fixed simulation on, full atlas and reprojection off. Research flags include `LUPINE3D_FOLDED=0`, `LUPINE3D_COMPACT_ATLAS=1` and `LUPINE3D_REPROJECTION=1`. Always use matching flags for the ROM and host validator. Experimental configurations are not all release-certified.
+Default configuration is folding on, Q14 order on, fixed simulation on, wall reuse on, full atlas and reprojection off. Research flags include `LUPINE3D_FOLDED=0`, `LUPINE3D_WALL_REUSE=0`, `LUPINE3D_COMPACT_ATLAS=1` and `LUPINE3D_REPROJECTION=1`. Always use matching flags for the ROM and host validator. Experimental configurations are not all release-certified.
+
+`make wall-reuse` runs 53 frozen cached/full comparisons and LCD-timed idle, combat and turning trials. It needs no old ROM; optional archived-ROM arguments add a historical lane. See [wall reuse](WALL_REUSE.md) for key addresses, publication counts, latency definitions and the 1.31% fresh-render overhead.
 
 `python3 tools/profile_rendering.py --output build/profile-beta.json` measures generated-code stages. Cooperative simulation yields receive a separate category; interrupt costs remain charged to the active category. Use the complete playtest reports for frame-rate claims.
 

@@ -1,3 +1,17 @@
+# Lupine 3D 0.7.0-beta.4 — Wall reuse and combat presentation
+
+- Exact 290-byte camera/map/door/configuration comparison retains unchanged wall geometry, depth, tiles and attributes. Reload generations invalidate in-flight views safely.
+- Entities, fixtures, firing feedback and HUD update independently against retained depth. Separate OBJ ownership keeps masked patterns hidden until OAM publication, without flipping the BG page.
+- Completed presentations are counted separately from genuine geometry renders. Existing full-packet timing bounds remain unchanged; cached packets transfer at most 32 OBJ blocks in one VBlank.
+- Stationary combat measures 40.37 presentations/s, with three brief fire taps reaching the next muzzle scanline at about 56 ms. Safe-start idle measures 59.71 presentations/s. These are emulator trials, not original-LCD measurements.
+- The mixed combat route averages 692,666 cycles, with 25 cached updates out of 47. Full first-frame work costs 1.31% more on the 53-scene corpus; changing cameras/doors still require wall rendering.
+- 80 tests, 53 exact cached/full scenes, nine unchanged reviewed captures, reuse on/off and folding variants, 233-update controller-only completion, and SameBoy CGB-0/CGB-E plus mGBA checks pass.
+- Adds 297 WRAM bytes; no new HRAM or VRAM. Cold-map relocation preserves 3,123 free resident bytes and the full stack reservation.
+
+All four planned steps are complete. Original CGB/flash-cartridge validation remains pending. See [implementation and evidence](docs/WALL_REUSE.md).
+
+---
+
 # Lupine 3D 0.7.0-beta.3 — Gameplay performance
 
 - Precision rays continue from the last certified crossing instead of retracing the same cells. Axial rays and origin-door casts retain full initialization.

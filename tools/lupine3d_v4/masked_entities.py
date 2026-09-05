@@ -48,7 +48,7 @@ def emit_masked_entities(a: Assembler) -> None:
     load_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     for address in (MASK_OAM_Y, MASK_OAM_X, MASK_TILE_COUNT):
         a.ld_a_abs(address); a.ldi_hl_a()
-    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1)
+    a.ld_a_abs(OBJ_PAGE); a.xor_n(1)
     for _ in range(3): a.add_a_r("a")
     a.ld_r_r("b", "a"); a.ld_a_abs(MASK_ATTRIBUTES); a.and_n(7); a.or_r("b"); a.ldi_hl_a()
     store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
@@ -57,7 +57,7 @@ def emit_masked_entities(a: Assembler) -> None:
 
     a.label("upload_masked_tiles")
     a.ld_a_abs(MASK_TILE_COUNT); a.or_r("a"); a.ret("z"); a.ld_r_r("b", "a")
-    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
+    a.ld_a_abs(OBJ_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
     a.ld_r_n("a", MASK_TILES >> 8); a.ldh_n_a(HDMA1)
     a.xor_r("a"); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA3); a.ldh_n_a(HDMA4)
     a.ld_r_r("a", "b"); a.dec_r("a"); a.ldh_n_a(HDMA5); a.ret()

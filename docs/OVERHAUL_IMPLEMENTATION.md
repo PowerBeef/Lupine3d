@@ -1,6 +1,6 @@
-# v0.7.0-beta.3 — Engine overhaul status
+# v0.7.0-beta.4 — Engine overhaul status
 
-The software foundation is implemented, followed by the Sable Outpost graphics/UI pass and the [gameplay performance milestone](RUNTIME_PERFORMANCE.md). It is a playable beta, not an original-hardware-certified release. Prior artifacts and historical geometry/RGB evidence remain intact.
+The software foundation, Sable Outpost graphics/UI, [arithmetic performance milestone](RUNTIME_PERFORMANCE.md) and all four [wall-reuse steps](WALL_REUSE.md) are implemented. It is a playable beta, not an original-hardware-certified release. Prior artifacts and historical geometry/RGB evidence remain intact.
 
 ## Delivered contracts
 
@@ -15,6 +15,9 @@ The software foundation is implemented, followed by the Sable Outpost graphics/U
 | LOD and multiple actors | 16×32, 16×16 and 8×16 cels with hysteresis; four fixed Sentinel slots | Two-actor scene, nearest-first submission/hitscan and aggregate exit lock |
 | Surface content | 1,024 independent oriented-face profile bytes; neutral structure, muted-green machinery, cyan/white doors | Compiler rejects door-colour misuse; ROM/host attribute packets agree |
 | Coherent publication | Dynamic BG patterns, masked OBJ patterns, attributes, tile map, HUD and OAM form one publication | Forced staged transfers and independent SameBoy write checks |
+| Exact wall reuse | Compare 290 camera/map/door/configuration bytes; cache key captured before yields; explicit reload generation | Every key byte, in-flight invalidation and serial/generation wrap tested |
+| Independent actor/HUD presentation | Retain wall depth and BG page; rerender sprites/fixtures/HUD into the hidden OBJ bank | 53 frozen cached/full scenes, actual VRAM/OAM bank checks, maximum fast packets |
+| Measured combat feedback | 40.37 stationary presentations/s; three brief shots reach the muzzle scanline at about 56 ms | LCD-timed A/B, zero queue overflow, separate full-render counts; emulator estimates |
 | Reprojection experiment | Published world OAM X shifts with SCX; foreground UI stays fixed | Clamp, immutable base packet, guard attributes and reset tests; default off |
 | Independent execution | Reproducible pinned SameBoy and mGBA adapters plus CI configuration | Exact candidate boots, moves, turns and opens a door in all three model/core lanes |
 
@@ -44,7 +47,7 @@ Per-face profiles are independent of physical segment IDs. CGB palettes are tile
 
 ## Exactness and visual review
 
-The new precision, sliding geometry and palette semantics intentionally change rendered images. Old RGB fixtures are historical, not secretly updated. The nine new captures were visually inspected before accepting `playtests/v070_beta_capture_pixels.json`.
+The foundation precision/sliding-geometry changes and Sable art pass intentionally changed rendered images, retaining their old fixtures as historical evidence. The active nine reviewed captures are `playtests/v070_sable_capture_pixels.json`. The current wall-reuse pass changes none of them.
 
 A separate frozen-world folded/unfolded A/B yields identical RGB in all nine views. Fixed simulation is suspended for this representation-only comparison so differences in execution time cannot change the snapshot being compared.
 
@@ -62,7 +65,7 @@ make mgba MGBA_DIR=/absolute/path/to/mgba
 python3 tools/release_check.py
 ```
 
-Default: Q14 on, fixed simulation on, folding on, 121-pattern atlas, reprojection off. Experimental flags must match between a ROM and its validating host process. Variant tools build in memory and do not overwrite the default ROM.
+Default: Q14 on, fixed simulation on, folding on, exact wall reuse on, 121-pattern atlas, reprojection off. `make wall-reuse` measures the cached/full contract and timed input. Experimental flags must match between a ROM and its validating host process. Variant tools build in memory and do not overwrite the default ROM.
 
 ## Explicitly still outside acceptance
 

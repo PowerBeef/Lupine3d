@@ -38,7 +38,7 @@ def run(output: Path):
             raise AssertionError("controller route exceeded 1200-update watchdog")
         cgb.button_provider = (lambda *_: keys()) if callable(keys) else (lambda *_: keys)
         cycles = cgb.cycles
-        cgb.run(until_swaps=cgb.page_swaps + 1, max_steps=3_000_000)
+        cgb.run(until_presentations=cgb.presentations + 1, max_steps=3_000_000)
         data = validate_frame(cgb)
         data.update(oam_budget(cgb), keys="VBlank controller" if callable(keys) else keys, cycles=cgb.cycles - cycles,
                     health=live8(br.PLAYER_HEALTH))

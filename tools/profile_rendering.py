@@ -18,8 +18,9 @@ def profile(scenario_file):
     cgb.run(until_pc=asm.labels["main_loop"])
     scenario = json.loads(scenario_file.read_text())
     set_test_world_byte(cgb, br.WORLD_MODE, int(scenario.get("world_mode") != "empty"))
-    names = ("begin_frame_snapshot", "cast_all", "render_view", "render_entities",
-             "populate_reprojection_guards", "upload_hidden_page")
+    names = ("begin_frame_snapshot", "check_wall_reuse", "cast_all", "render_view", "render_entities",
+             "populate_reprojection_guards", "upload_hidden_page", "upload_entities_hud")
+    names = tuple(name for name in names if name in asm.labels)
     starts = {asm.labels[n]: n for n in names}
     totals, updates, captures = Counter(), [], {}
     stage = "publication_tail"
@@ -44,7 +45,7 @@ def profile(scenario_file):
         cgb.button_provider = lambda *_, value=mask: value
         for _ in range(action.get("updates", 1)):
             before = cgb.cycles
-            cgb.run(until_swaps=cgb.page_swaps + 1)
+            cgb.run(until_presentations=cgb.presentations + 1)
             validate_frame(cgb)
             updates.append(cgb.cycles - before)
         if "capture" in action:

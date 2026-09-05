@@ -281,7 +281,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(self.read_bg_patterns(cgb, 0, br.ATLAS_TILE_BASE, br.TILE_ATLAS_COUNT), br.TILE_ATLAS_TILES)
         self.assertEqual(self.read_bg_patterns(cgb, 1, br.ATLAS_TILE_BASE, br.TILE_ATLAS_COUNT), br.TILE_ATLAS_TILES)
         mask_count = cgb.read8(br.MASK_TILE_COUNT)
-        self.assertEqual(bytes(cgb.vram[1][:mask_count*16]), self.read_block(cgb, br.MASK_TILES, mask_count*16))
+        self.assertEqual(bytes(cgb.vram[cgb.read8(br.OBJ_PAGE)][:mask_count*16]), self.read_block(cgb, br.MASK_TILES, mask_count*16))
         visible_ids = [view_map[y * 32 + x] for y in range(12) for x in range(20)]
         atlas_limit = br.ATLAS_TILE_BASE + br.TILE_ATLAS_COUNT
         self.assertTrue(all(tile < count or br.CEILING_TILE <= tile < atlas_limit for tile in visible_ids))
@@ -638,7 +638,7 @@ class Lupine3DTests(unittest.TestCase):
             return 0
 
         cgb.button_provider = script
-        cgb.run(until_swaps=6, max_steps=5_000_000)
+        cgb.run(until_presentations=6, max_steps=5_000_000)
         self.assertEqual(len(cgb.commit_events), 6)
         self.assertEqual(cgb.gdma_vblank_violations, 0)
         for index, commit in enumerate(cgb.commit_events, start=1):
@@ -668,7 +668,7 @@ class Lupine3DTests(unittest.TestCase):
             return 0
 
         cgb.button_provider = script
-        cgb.run(until_swaps=7, max_steps=6_000_000)
+        cgb.run(until_presentations=7, max_steps=6_000_000)
         self.assertEqual(cgb.read16(br.PLAYER_XL), start_x)
         self.assertLess(cgb.read16(br.PLAYER_YL), start_y)
         self.assertEqual((start_y - cgb.read16(br.PLAYER_YL)) % 4, 0)
@@ -687,7 +687,7 @@ class Lupine3DTests(unittest.TestCase):
 
         # The pulse occurs after input consumption and disappears before the
         # visual update finishes. It must survive in the edge latch.
-        cgb.run(until_swaps=1, max_steps=3_000_000)
+        cgb.run(until_presentations=1, max_steps=3_000_000)
         self.assertEqual(cgb.read8(br.FLASH), 0)
         self.assertGreater(cgb.read16(br.SIM_STEPS), 0)
         self.assertGreater(cgb.wramx[2][br.FLASH - 0xD000], 0)
@@ -696,7 +696,7 @@ class Lupine3DTests(unittest.TestCase):
 
         # The next stable simulation step consumes the preserved edge even
         # though the button is no longer held.
-        cgb.run(until_swaps=2, max_steps=3_000_000)
+        cgb.run(until_presentations=2, max_steps=3_000_000)
         self.assertGreater(cgb.read8(br.FLASH), 0)
         self.assertEqual(cgb.read8(0xFF14), 0xC7)
 
@@ -704,7 +704,7 @@ class Lupine3DTests(unittest.TestCase):
         cgb = self.boot_to_main()
         self.set_pose(cgb, 0x0180, 0x0D80, 128)
         cgb.button_provider = lambda iteration, _swaps: 0x04 if iteration <= 10 else 0
-        cgb.run(until_swaps=10, max_steps=8_000_000)
+        cgb.run(until_presentations=10, max_steps=8_000_000)
         x = cgb.read16(br.PLAYER_XL)
         self.assertGreaterEqual(x, 0x0100 + br.PLAYER_RADIUS_Q8)
         self.assertEqual(x >> 8, 1)
@@ -883,7 +883,7 @@ class Lupine3DTests(unittest.TestCase):
     def test_fire_has_audio_and_visible_muzzle_feedback(self) -> None:
         cgb = self.boot_to_main()
         cgb.button_provider = lambda iteration, _swaps: 0x10 if iteration == 1 else 0
-        cgb.run(until_swaps=2, max_steps=3_000_000)
+        cgb.run(until_presentations=2, max_steps=3_000_000)
         self.assertEqual(cgb.read8(0xFF14), 0xC7)
         self.assertGreater(cgb.read8(br.FLASH), 0)
         self.assertEqual(cgb.oam[9 * 4], 72)
@@ -900,7 +900,7 @@ rom, assembler, manifest = br.make_rom()
 cgb = CGB(rom, assembler.labels)
 cgb.run(until_pc=assembler.labels["main_loop"], max_steps=2_000_000)
 cgb.button_provider = lambda _iteration, _swaps: 0x01
-cgb.run(until_swaps=2, max_steps=5_000_000)
+cgb.run(until_presentations=2, max_steps=5_000_000)
 signed = [event["value"] - 256 if event["value"] & 0x80 else event["value"] for event in cgb.scx_events]
 guards = all(
     cgb.read8(br.VIEW_MAP + row * 32 + 31) == cgb.read8(br.VIEW_MAP + row * 32)

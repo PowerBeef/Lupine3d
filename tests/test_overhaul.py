@@ -133,7 +133,7 @@ class OverhaulTests(unittest.TestCase):
         cgb.run(until_pc=self.asm.labels["upload_packet_ready"], max_steps=500_000)
         self.assertEqual(bytes(cgb.oam), before)
         self.assertEqual(cgb.page_swaps, 0)
-        cgb.run(until_swaps=1, max_steps=500_000)
+        cgb.run(until_presentations=1, max_steps=500_000)
         self.assertEqual(bytes(cgb.oam[72:76]), marker)
         self.assertTrue(cgb.commit_events[-1]["staged"])
         self.assertTrue(cgb.commit_events[-1]["vblank_safe"])
