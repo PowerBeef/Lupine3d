@@ -15,7 +15,10 @@ def emit_mul_u8(a: Assembler) -> None:
     """
     a.label("mul_u8")
     a.ld_r_r("a", "c")
-    for _ in range(5): a.cb("srl", "a")
+    # C >> 5: rotating the top three bits down and masking costs 20 cycles,
+    # versus 40 for five CB-prefixed shifts. The exact table is unchanged.
+    for _ in range(3): a.rlca()
+    a.and_n(7)
     a.add_a_n(PRODUCT_LUT_BASE_BANK); a.ld_abs_a(0x2000)
     # Address = $4000 + (C&31)*512 + B*2.
     a.ld_r_r("a", "c"); a.and_n(0x1F); a.add_a_r("a"); a.ld_r_r("d", "a")
@@ -407,7 +410,7 @@ def emit_dda(a: Assembler) -> None:
     a.call("dda_read_cell"); a.cp_n(3); a.jp("q14_restart", "z")
     a.label("dda_loop")
     if Q14_ORDER_ENABLED:
-        a.call("q14_crossing_uncertain"); a.jp("q14_restart", "nz")
+        a.call("q14_crossing_uncertain"); a.jp("q14_resume", "nz")
     # Choose X on negative or zero signed error; Y on positive error.
     a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("dda_step_y", "z")
     a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("dda_step_x", "z")

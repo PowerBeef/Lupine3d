@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.2 architecture
+# Lupine 3D 0.7.0-beta.3 architecture
 
 Lupine is a CGB-only 4 MiB MBC5 engine with no cartridge RAM. Python generates SM83 code, tables and original graphics. Runtime uses double-speed execution, native tiles, two VRAM banks, two BG maps and hardware 8×16 objects.
 
@@ -23,13 +23,13 @@ A completed frame proceeds through 80 adaptive descriptors, 160 physical columns
 | 157–172 | Q14 camera directions: 262,144 bytes |
 | 173–255 | Unallocated cartridge capacity |
 
-Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $72CD (29,053 emitted bytes), leaving 3,379 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms.
+Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $73CD (29,309 emitted bytes), leaving 3,123 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. The unaligned startup map follows the hot tables to preserve their alignment without wasting an extra 1 KiB page.
 
 ## Geometry and projection
 
 Positions are Q8.8 on a 16×16 map; angles are 256 units/turn. Static walls use material 1/2, doors 3 and empty cells 0.
 
-The coarse signed-error DDA maintains next-boundary distances and the sign of `nextX*absY - nextY*absX`. For supported camera records, an error certificate determines whether coarse and Q14 traversal must choose the same crossing. If uncertain, restart from the player with Q14 directions and a 32-bit error. Degenerate coarse components also restart.
+The coarse signed-error DDA maintains next-boundary distances and the sign of `nextX*absY - nextY*absX`. For supported camera records, an error certificate determines whether coarse and Q14 traversal must choose the same crossing. At the first uncertain crossing, compute the fine 32-bit error at the current cell and continue in Q14. Earlier certified cells need no retraversal. Degenerate coarse components and casts beginning inside a door still initialize from the player. See the [continuation proof and performance contract](RUNTIME_PERFORMANCE.md).
 
 A 1,024-byte direction page per camera angle contains 80 pair-centre vectors, 160 physical-centre vectors and one centre hitscan vector. The 64 retained severe tail rays choose their floating-oracle cell/axis in generated code. This does not eliminate every continuous-camera error.
 
@@ -39,7 +39,7 @@ Projection still uses the paired integer Q5 LUT. Cast depth is corrected perpend
 
 A door is a finite segment at the centre of its cell, with an authored normal axis. Fraction F exposes the along-panel interval [0,F); the remaining [F,256) is solid and translates into the positive-axis jamb. Fully open state removes the cell.
 
-Wall rays, current-pose hitscan and exact player-to-enemy LOS share this plane intersection. Axis-separated player/actor collision expands the same panel by radius 56/256 tile. Door intersection alone uses bounded integer division; ordinary grid crossing does not.
+Wall rays, current-pose hitscan and exact player-to-enemy LOS share this plane intersection. Axis-separated player/actor collision expands the same panel by radius 56/256 tile. Door intersection alone uses bounded integer division; ordinary grid crossing does not. The sixteen quotient bits are processed in four groups. BC holds the quotient, HL the remainder, DE the divisor, and a two-byte stack entry holds the group count. Overflow leaves the original numerator for the existing rejection path.
 
 Each opening takes 32 simulation ticks (eight fraction units/tick). Rays may pass before a radius-sized player fits. There are four independent door records and an all-enemies-dead exit lock. Closing/reversing/crushing doors are not implemented.
 

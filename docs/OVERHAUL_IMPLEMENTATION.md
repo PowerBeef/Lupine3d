@@ -1,12 +1,12 @@
-# v0.7.0-beta.1 — Living Renderer
+# v0.7.0-beta.3 — Engine overhaul status
 
-This implements the software items deferred by the Renderer Foundation alpha. It is a playable beta, not an original-hardware-certified release. The prior alpha artifacts and historical geometry/RGB evidence remain intact.
+The software foundation is implemented, followed by the Sable Outpost graphics/UI pass and the [gameplay performance milestone](RUNTIME_PERFORMANCE.md). It is a playable beta, not an original-hardware-certified release. Prior artifacts and historical geometry/RGB evidence remain intact.
 
 ## Delivered contracts
 
 | Item | Implementation | Acceptance |
 |---|---|---|
-| Selective high-precision traversal | Cheap coarse crossing-order certificate; uncertain rays restart with Q14 camera-plane directions and 32-bit error | Exhaustive component-error bound, 64 severe historical rays executed in ROM, full 24,384-view host tail scan |
+| Selective high-precision traversal | Cheap coarse crossing-order certificate; continue uncertain rays in Q14 from the last certified cell | Exhaustive component-error bound, restart/continuation differential probes, 64 severe historical rays in ROM, full 24,384-view host tail scan |
 | Physical doors | Finite sliding segment at cell centre; aperture shared by wall rays, exact LOS, hitscan and radius collision | 1,600 ROM/host door probes plus collision/LOS aperture tests |
 | Fixed simulation | ~59.73 Hz VBlank timestamp; movement and doors advance on queued ticks, AI every fourth tick | Same movement under different service batching; timestamp wrap and backlog tests |
 | Resumable rendering | Cooperative yields at ray and tile-column boundaries; bank 2 live world and bank 1 immutable snapshot | Snapshot bytes unchanged while live state advances |
@@ -24,7 +24,7 @@ The full retained renderer-benchmark corpus contains 24,384 views and 3,901,440 
 
 This is not perfect continuous geometry: the new scan still has 67 wrong-segment columns and three wrong-material columns. Q14 governs crossing order. Projection intentionally retains the integer Q5 LUT and coarse component/correction domain; interpolated depths remain conservative. Near clipping, quantization and reconstruction still contribute error.
 
-The certificate relies on a generated-direction bound below one coarse component unit (measured maximum 0.851318359375). A coarse order is accepted only when its signed-error magnitude exceeds the sum of the next X/Y boundary distances. Axis-degenerate and ambiguous cases restart. Generic AI LOS uses the actual player-to-enemy vector in the same wide traversal.
+The certificate relies on a generated-direction bound below one coarse component unit (measured maximum 0.851318359375). A coarse order is accepted only when its signed-error magnitude exceeds the sum of the next X/Y boundary distances. Ambiguous cases continue in Q14; axis-degenerate and origin-door cases retain full initialization. Generic AI LOS uses the actual player-to-enemy vector in the same wide traversal.
 
 ## Simulation and capacity semantics
 
@@ -70,6 +70,6 @@ Default: Q14 on, fixed simulation on, folding on, 121-pattern atlas, reprojectio
 - Nintendo boot-ROM validation; SameBoy uses a synthetic bootstrap and mGBA uses built-in skip-BIOS.
 - Enabling asynchronous reprojection by default: current guards extend edge tiles, not newly rendered geometry; the HUD uses a STAT split, not the Window layer.
 - Arbitrary-scale sprites, a general ECS, additional enemy types, streamed multi-level content, sector heights, textured floors/ceilings and saving.
-- A blanket performance gain. Combat diagnostic worst-case visual rate is 4.26 Hz despite fixed-rate input/simulation. Profiling real gameplay is the next performance target.
+- A guaranteed frame-rate floor in arbitrary future content. The measured performance pass preserves current scenes; denser actors, longer sightlines and additional effects require their own budgets.
 
 See [test report](TEST_REPORT.md) for candidate-bound evidence.

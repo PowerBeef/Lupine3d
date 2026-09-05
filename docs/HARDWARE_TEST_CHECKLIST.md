@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.2 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.7.0-beta.3 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.7.0-beta.2 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.2_SHA256SUMS.txt` |
+| ROM version | 0.7.0-beta.3 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.3_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |

@@ -17,13 +17,13 @@
 
 ## Current implementation
 
-**0.7.0-beta.2 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+**0.7.0-beta.3 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
 
 Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
 [View the native-resolution art tour](docs/images/sable_outpost.png).
 
-The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, while native tiles, palettes and objects carry the final image.
+The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, precision rays continue from certified crossings, and door division keeps its working values in CPU registers. Native tiles, palettes and objects carry the final image.
 
 | Rendering | World and platform |
 |---|---|
@@ -57,9 +57,9 @@ Project-harness CPU cycles include publication waits.
 
 | Result | Coherence tour | Combat diagnostic |
 |---|---:|---:|
-| Mean cycles/update | 919,079 | 1,243,063 |
-| Maximum cycles/update | 1,265,284 | 1,967,352 |
-| Minimum visual updates/s | 6.63 | 4.26 |
+| Mean cycles/update | 980,902 | 1,218,677 |
+| Maximum cycles/update | 1,265,016 | 1,685,836 |
+| Minimum visual updates/s | 6.63 | 4.98 |
 | Peak dynamic tiles | 18 / 96 | 24 / 96 |
 | Peak objects per scanline | 4 / 10 | 7 / 10 |
 | Unsafe GDMA starts | 0 | 0 |
@@ -100,9 +100,9 @@ See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling 
 
 ## Verification and limits
 
-**72 automated tests**, nine reviewed RGB fixtures, a six-view art tour, a 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 226 verified updates without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
+**75 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene output comparisons, a six-view art tour, a 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 236 verified updates without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
 
-The combat diagnostic averages 1.287 million CPU cycles per update, with its slowest view at approximately 3.98 visual updates/s. The added artwork has a measured cost; controls and simulation continue at VBlank cadence.
+The combat diagnostic averages 1.219 million CPU cycles per update, with its slowest view at approximately 4.98 visual updates/s. Controls and simulation continue at VBlank cadence. The [performance implementation](docs/RUNTIME_PERFORMANCE.md) records exact-output checks, cycle measurements and the ROM budget.
 
 The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/controller lanes. CI is configured to repeat them; local results are not a claim that a new GitHub CI run has executed.
 
@@ -112,6 +112,7 @@ The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/cont
 |---|---|
 | [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
 | [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
+| [Gameplay performance](docs/RUNTIME_PERFORMANCE.md) | Implementation steps, exactness proof and measured results |
 | [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
 | [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |
 | [Hardware checklist](docs/HARDWARE_TEST_CHECKLIST.md) | Physical acceptance procedure |

@@ -93,7 +93,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
     a.label("door_data"); a.bytes(ACTIVE_LEVEL.door_bytes(), "fixed-capacity authored door records")
     a.label("actor_records"); a.bytes(actor_records(), "four bounded Sentinel slots")
-    a.label("map_data"); a.bytes(make_map(), "compiled 16x16 world map")
     a.label("wall_fixture_records"); a.bytes(fixture_records(), "wall-mounted landmarks")
     a.label("hud_status_records"); a.bytes(bytes(i for ids in hud_assets()[3].values() for i in ids), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
@@ -161,6 +160,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     for style in range(2):
         a.label(f"pair_microstrips_style_{style}")
         a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+    # The startup map has no alignment requirement. Put it after the hot
+    # aligned tables so modest code growth does not waste another 1 KiB page.
+    a.label("map_data"); a.bytes(make_map(), "compiled 16x16 world map")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
     # avoids wasting a complete 1 KiB alignment page as the resident art/UI
     # vocabulary grows.
@@ -187,6 +189,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "bank0_hud_patterns_used": len(hud_assets()[0]) // 16,
         },
         "renderer": "certified Q14 crossing order, Q5 projection, folded signed-BG compositor and masked 8x16 entities",
+        "q14_continuation": "resume from the last certified cell; restart axial and origin-door casts",
+        "door_division": "register-resident 16-bit quotient, four bits per group, unsigned overflow rejection",
         "publication": "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,

@@ -1,3 +1,16 @@
+# Lupine 3D 0.7.0-beta.3 — Gameplay performance
+
+- Precision rays continue from the last certified crossing instead of retracing the same cells. Axial rays and origin-door casts retain full initialization.
+- Sliding-door division keeps quotient/remainder in registers and processes four bits per loop. Product-table bank selection uses a shorter exact rotate/mask sequence.
+- The startup map follows the aligned hot tables. Resident code/data retain 3,123 free bytes; HRAM, VRAM, cartridge capacity and gameplay rules are unchanged.
+- All 53 frozen scenes retain exact descriptors, depths, surfaces, tiles, maps, objects, HUD and RGB. Their mean update cost falls 8.73%, and wall-casting cost falls 10.56%.
+- The live combat diagnostic averages 1,218,677 cycles; its slowest update costs 1,685,836 cycles (4.98 visual updates/s). Fixed-tick simulation means live actor poses vary with rendering speed.
+- 75 automated tests, nine unchanged reviewed captures, controller-only completion in 236 updates, and independent SameBoy CGB-0/CGB-E and mGBA checks pass.
+
+The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptance is still pending. See the [step-by-step implementation and evidence](docs/RUNTIME_PERFORMANCE.md).
+
+---
+
 # Lupine 3D 0.7.0-beta.2 — Sable Outpost
 
 - Original gunmetal/green environment, illuminated teal doors, amber utility lighting and coherent functional colours.

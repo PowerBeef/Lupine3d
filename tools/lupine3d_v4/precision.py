@@ -1,4 +1,4 @@
-"""Certified coarse traversal with a Q14 restart at uncertain crossings.
+"""Certified coarse traversal with Q14 continuation at uncertain crossings.
 
 This module deliberately does not change the Q5 projection lookup. The
 certificate concerns surface selection, not continuous projection accuracy.
@@ -52,6 +52,18 @@ def emit_precision(a: Assembler) -> None:
     a.label("q14_uncertain"); a.ld_r_n("a", 1); a.or_r("a"); a.ret()
     a.label("q14_certain"); a.xor_r("a"); a.ret()
 
+    a.label("q14_resume")
+    # Every earlier crossing was certified, so cell/next-distance/crossing
+    # count already equal a full fine traversal. Nonzero coarse components
+    # also have the fine vector's signs by the strict <1 component bound.
+    # Axial coarse rays have sentinel distances and must initialize afresh.
+    a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("q14_restart", "z")
+    a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("q14_restart", "z")
+    a.ld_a_abs(Q14_FALLBACKS); a.inc_r("a"); a.ld_abs_a(Q14_FALLBACKS)
+    a.call("q14_load_door_components")
+    a.ld_r_n("a", 1); a.ld_abs_a(Q14_ACTIVE)
+    a.jp("q14_error_setup")
+
     a.label("q14_restart")
     a.ld_a_abs(Q14_FALLBACKS); a.inc_r("a"); a.ld_abs_a(Q14_FALLBACKS)
     a.ld_a_abs(ANGLE); a.cb("swap", "a"); a.and_n(15); a.add_a_n(Q14_ROM_BANK); a.ld_abs_a(0x2000)
@@ -80,6 +92,7 @@ def emit_precision(a: Assembler) -> None:
     a.ld_a_abs(PLAYER_XH); a.ld_abs_a(DDA_MAP_X)
     a.ld_a_abs(PLAYER_YH); a.ld_abs_a(DDA_MAP_Y)
     a.xor_r("a"); a.ld_abs_a(DDA_CROSSINGS)
+    a.label("q14_error_setup")
     for name, distance, component in (("x", DDA_NEXT_X_L, Q14_Y), ("y", DDA_NEXT_Y_L, Q14_X)):
         load_hl_abs(a, distance, distance + 1)
         a.ld_a_abs(component); a.ld_r_r("e", "a"); a.ld_a_abs(component + 1); a.ld_r_r("d", "a")
@@ -92,6 +105,9 @@ def emit_precision(a: Assembler) -> None:
                 a.ld_a_abs(Q14_ERROR + byte)
                 (a.sub_r if byte == 0 else a.sbc_a_r)("b")
             a.ld_abs_a(Q14_ERROR + byte)
+    # A continuation already tested its current cell with the fine door
+    # components. Only a new cast must test the cell containing its origin.
+    a.ld_a_abs(DDA_CROSSINGS); a.or_r("a"); a.jr("q14_loop", "nz")
     # A player already inside an open aperture can still look at the panel
     # remaining in the same cell. Test that local segment before stepping.
     a.call("dda_read_cell"); a.cp_n(3); a.jr("q14_loop", "nz")
@@ -204,18 +220,29 @@ def emit_precision(a: Assembler) -> None:
 
     a.label("divide_u32_u16_bounded")
     # Door coordinates need at most a 16-bit quotient. Preload the high-word
-    # remainder and perform only sixteen restoring steps; reject overflow.
+    # remainder and reject overflow, leaving the original product unchanged.
+    # BC keeps the quotient, HL the remainder and DE the divisor. Four bits
+    # per loop amortize the stack-resident counter without sixteen copies of
+    # the body. No intermediate quotient/remainder bytes travel through WRAM.
     load_hl_abs(a, Q14_PRODUCT + 2, Q14_PRODUCT + 3)
     a.ld_r_r("a", "l"); a.sub_r("e"); a.ld_r_r("a", "h"); a.sbc_a_r("d"); a.ret("nc")
     a.xor_r("a"); a.ld_abs_a(Q14_PRODUCT + 2); a.ld_abs_a(Q14_PRODUCT + 3)
-    a.ld_r_n("c", 16)
-    a.label("divide16_loop")
-    a.ld_a_abs(Q14_PRODUCT); a.add_a_r("a"); a.ld_abs_a(Q14_PRODUCT)
-    a.ld_a_abs(Q14_PRODUCT + 1); a.rla(); a.ld_abs_a(Q14_PRODUCT + 1)
-    a.ld_r_r("a", "l"); a.rla(); a.ld_r_r("l", "a"); a.ld_r_r("a", "h"); a.rla(); a.ld_r_r("h", "a"); a.jr("divide16_subtract", "c")
-    a.ld_r_r("a", "h"); a.cp_r("d"); a.jr("divide16_next", "c"); a.jr("divide16_subtract", "nz")
-    a.ld_r_r("a", "l"); a.cp_r("e"); a.jr("divide16_next", "c")
-    a.label("divide16_subtract")
-    a.ld_r_r("a", "l"); a.sub_r("e"); a.ld_r_r("l", "a"); a.ld_r_r("a", "h"); a.sbc_a_r("d"); a.ld_r_r("h", "a")
-    a.ld_a_abs(Q14_PRODUCT); a.or_n(1); a.ld_abs_a(Q14_PRODUCT)
-    a.label("divide16_next"); a.dec_r("c"); a.jp("divide16_loop", "nz"); a.ret()
+    a.ld_a_abs(Q14_PRODUCT); a.ld_r_r("c", "a")
+    a.ld_a_abs(Q14_PRODUCT + 1); a.ld_r_r("b", "a")
+    a.ld_r_n("a", 4)
+    a.label("divide16_group"); a.push("af")
+    for bit in range(4):
+        subtract, done = f"divide16_subtract_{bit}", f"divide16_next_{bit}"
+        a.cb("sla", "c"); a.cb("rl", "b")
+        a.ld_r_r("a", "l"); a.rla(); a.ld_r_r("l", "a")
+        a.ld_r_r("a", "h"); a.rla(); a.ld_r_r("h", "a"); a.jr(subtract, "c")
+        a.ld_r_r("a", "h"); a.cp_r("d"); a.jr(done, "c"); a.jr(subtract, "nz")
+        a.ld_r_r("a", "l"); a.cp_r("e"); a.jr(done, "c")
+        a.label(subtract)
+        a.ld_r_r("a", "l"); a.sub_r("e"); a.ld_r_r("l", "a")
+        a.ld_r_r("a", "h"); a.sbc_a_r("d"); a.ld_r_r("h", "a")
+        a.inc_r("c")  # bit zero is clear after the shift; cannot carry
+        a.label(done)
+    a.pop("af"); a.dec_r("a"); a.jp("divide16_group", "nz")
+    a.ld_r_r("a", "c"); a.ld_abs_a(Q14_PRODUCT)
+    a.ld_r_r("a", "b"); a.ld_abs_a(Q14_PRODUCT + 1); a.ret()

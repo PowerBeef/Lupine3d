@@ -1,19 +1,21 @@
-# Lupine 3D 0.7.0-beta.2 test report
+# Lupine 3D 0.7.0-beta.3 test report
 
 Candidate ROM SHA-256:
-`0ce5bc301d5b8cd67dc42de710e1c9a3db6cc63314cf323fb59b55659c0d08e1`
+`0890469007ab8d470d15c07d95a319c9565b27df8d40ca0511572aefe41754a3`
 
 4 MiB MBC5 · CGB-only · no cartridge RAM · **physical hardware not tested**
 
 ## Automated contracts
 
-**72 tests pass locally.** This includes frozen v0.1 hash, deterministic builds, cartridge layout, projection and product arithmetic, generated-code/host descriptors, tile/map bytes, all door-state face IDs, combat, input, publication, colour metadata and memory bounds.
+**75 tests pass locally.** This includes frozen v0.1 hash, deterministic builds, cartridge layout, projection and product arithmetic, generated-code/host descriptors, tile/map bytes, all door-state face IDs, combat, input, publication, colour metadata and memory bounds.
+
+Three runtime tests cover bounded quotient/remainder/overflow behavior, every product-bank selector with both address-half boundaries, and Q14 continuation versus full restart over 512 open-room ray probes. The latter explicitly requires late ambiguous crossings. The unchanged resident-memory reserve gate still requires at least 3,000 bytes.
 
 Eight art/UI acceptance tests cover the 78-pattern HUD dictionary, actual line-96 interrupt/vector timing, prepared HUD snapshot bytes and status text, fixture authoring legality, segment-plus-cell masks, upper-wall placement and projection preservation, publication-budget boundaries before line 153, and actor-priority scanline capacity.
 
 New coverage exercises:
 
-- all 61,440 supported camera records' Q14 component-error certificates;
+- all 61,696 supported camera records' Q14 component-error certificates, including centre hitscan;
 - 64 retained severe rays in actual ROM code;
 - 1,600 ROM/host sliding-door probes across four doors and five apertures;
 - shared aperture LOS versus radius collision;
@@ -31,9 +33,9 @@ New coverage exercises:
 | Measurement | Coherence tour | Combat diagnostic |
 |---|---:|---:|
 | Updates / captures | 11 / 9 | 47 / 14 |
-| Mean CPU cycles/update | 1,006,437.091 | 1,287,407.319 |
-| Maximum CPU cycles/update | 1,265,024 | 2,105,892 |
-| Minimum visual updates/s | 6.6312 | 3.9834 |
+| Mean CPU cycles/update | 980,901.818 | 1,218,677.191 |
+| Maximum CPU cycles/update | 1,265,016 | 1,685,836 |
+| Minimum visual updates/s | 6.6312 | 4.9759 |
 | Peak dynamic patterns | 18 / 96 | 24 / 96 |
 | Peak total casts | 56 | 59 |
 | Peak visible OAM | 11 / 40 | 15 / 40 |
@@ -41,17 +43,17 @@ New coverage exercises:
 | Unsafe GDMA starts | 0 | 0 |
 | Frozen RGB captures | 9 / 9 exact | None |
 
-Cycles include publication waits and concurrent simulation work. These are project-harness CPU-cycle measurements, not measurements from an original CGB. The beta is not a blanket throughput improvement: true panel intersection, fixed simulation, attributes and masked sprites add work.
+Cycles include publication waits and concurrent simulation work. These are project-harness CPU-cycle measurements, not measurements from an original CGB. Live actor poses can differ as render duration changes; the separate frozen-world comparison isolates the optimization's exact output and timing.
 
-The nine Sable RGB fixtures were accepted after visual inspection in `playtests/v070_sable_capture_pixels.json`. New palettes, art, fixtures and HUD intentionally change the RGB image; the existing wall descriptor/compositor contracts remain exact. A separate frozen-simulation folded/unfolded comparison matches all nine RGB images exactly. The six-view art tour separately covers close and oblique vents, lighting, a sector sign, the airlock and the Sentinel.
+The nine Sable RGB fixtures were accepted after the art pass's visual inspection in `playtests/v070_sable_capture_pixels.json`. This performance pass changes none of them. A separate frozen-simulation folded/unfolded comparison matches all nine RGB images exactly. The six-view art tour separately covers close and oblique vents, lighting, a sector sign, the airlock and the Sentinel.
 
 The gameplay diagnostic teleports its camera for state coverage. It explicitly aims at the live enemy and relocates to the actual drop; it does not inject health/death/completion. All states are reached by generated gameplay code.
 
-The visual pass increases mean work by approximately 9.5% on the coherence route and 3.6% on the combat diagnostic. Safety staging can also add a refresh interval at a threshold. Current content budgets are explicitly 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles; correctness and hardware-timing gates remain strict. Fixtures reuse transient attribute memory for a visibility lookup and reject invisible records before copying/projecting them.
+Across 53 identical frozen scenes, mean update cycles fall 8.73% and wall-casting cycles fall 10.56% against the preserved beta.2 ROM. All compared pair/physical descriptors, surfaces, generated tiles, full maps/attributes, masked objects, HUD packets and RGB remain exact. Current content budgets stay at 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles; memory, correctness and hardware-timing gates were not relaxed. See [runtime evidence](RUNTIME_PERFORMANCE.md).
 
 ## Controller-only level completion
 
-**226 completed updates**, 84 health remaining, Sentinel dead, medkit collected and exit reached. No pose or gameplay RAM injections. Every completed update validates descriptors, depths, segments, masks' surrounding wall packets, surface attributes, OAM limits, queue overflow and publication safety.
+**236 completed updates**, 84 health remaining, Sentinel dead, medkit collected and exit reached. No pose or gameplay RAM injections. Every completed update validates descriptors, depths, segments, masks' surrounding wall packets, surface attributes, OAM limits, queue overflow and publication safety. More completed renders do not imply a longer elapsed playthrough: the controller samples the live world after each render.
 
 The bot reads live state to steer. This proves functional controller completion, not blind human navigability or player preference.
 
@@ -78,9 +80,9 @@ Artifacts: `build/q14_tail.json`, `.csv`, `.png`.
 | SameBoy CGB-E | same pin | Pass |
 | mGBA CGB | `507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6` | Pass |
 
-Each lane runs 480 LCD frames, observes 61 page swaps, moves/turns and opens the starting door using input. Startup RGB, including the new split-screen HUD and door emblem, matches the project host under matching linear RGB15 conversion.
+Each lane runs 480 LCD frames, observes 62 page swaps, moves/turns and opens the starting door using input. Startup RGB, including the split-screen HUD and door emblem, matches the project host under matching linear RGB15 conversion.
 
-SameBoy observes 178 GDMA starts per model, zero unsafe starts and zero unsafe page flips. mGBA verifies boot/control/RGB and zero input overflow but **does not instrument DMA writes**. SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Neither tests the Nintendo boot ROM.
+SameBoy observes 183 GDMA starts per model, zero unsafe starts and zero unsafe page flips. mGBA verifies boot/control/RGB and zero input overflow but **does not instrument DMA writes**. SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Neither tests the Nintendo boot ROM.
 
 CI configuration includes both pinned cores, gameplay completion and variant checks. These are local executed results; no new remote CI execution is claimed.
 
@@ -90,7 +92,7 @@ CI configuration includes both pinned cores, gameplay completion and variant che
 - Masked 8×16 allocation: ≤16 world entries, ≤32 mask patterns, ≤4 world objects per scanline.
 - Forced large packet tests keep prior OAM until final BG/attribute/HUD/OAM publication.
 - Optional reprojection: exact clamp, static UI, published-world X shifts, future-shadow isolation and matching guard attributes pass in the project harness. Default remains off; independent/hardware perception testing is not claimed.
-- Resident image: 29,053 bytes, end $72CD, 3,379 bytes free below $8000.
+- Resident image: 29,309 bytes, end $73CD, 3,123 bytes free below $8000. Grouped division temporarily adds two stack bytes; no new HRAM or VRAM allocation.
 - Cold assets: 9,258 bytes in bank 156; Q14 tables: 262,144 bytes; products: 131,072 bytes.
 - Stack: fixed $CFFF with 512 bytes reserved. HRAM: 111 state bytes plus separate ten-byte DMA stub.
 - Packet maximum: 176 blocks, staged into ≤96 and ≤80 blocks when needed. Single-window dynamic-plus-mask cap is 24; optional reprojection may use an extra window for large masked packets.

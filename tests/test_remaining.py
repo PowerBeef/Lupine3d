@@ -34,9 +34,12 @@ class RemainingTests(unittest.TestCase):
         tables = br.make_tables()
         maximum = 0
         for angle in range(256):
-            for record in range(240):
-                i, key = (record, "ray_offsets") if record < 80 else (record - 80, "physical_offsets")
-                offset = int.from_bytes(tables[key][i * 2:i * 2 + 2], "little", signed=True)
+            for record in range(241):
+                if record == 240:
+                    offset = 0  # the current-pose centre hitscan is certified too
+                else:
+                    i, key = (record, "ray_offsets") if record < 80 else (record - 80, "physical_offsets")
+                    offset = int.from_bytes(tables[key][i * 2:i * 2 + 2], "little", signed=True)
                 index = (angle * 4 + offset) % 1024
                 for fine, component in zip(q14_direction(angle, record), ("ray_dx", "ray_dy")):
                     coarse = tables[component][index]
