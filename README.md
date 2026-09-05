@@ -21,6 +21,8 @@
 
 The release enables compact folded strips, camera setup computed once per snapshot, smaller save/restore contexts at documented yield boundaries, and exact attribute-padding initialization. Mean full-frame time improves **3.7–7.5%** across the six primary sustained scenarios. Resident free space increases from **3,123 to 5,939 bytes**, preserving the 3,000-byte reserve.
 
+Release packaging preserves the qualified atlas assets. `make atlas-check` verifies both stored profiles against their recorded hashes and exact compositor output before measuring complete diagnostic frames.
+
 Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
 [View the native-resolution art tour](docs/images/sable_outpost.png).

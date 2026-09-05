@@ -33,8 +33,8 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$(cat VERSION)"
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
 
-      - name: Regenerate both exact VRAM-profile atlases
-        run: make research-atlas-all
+      - name: Validate the qualified atlas assets without retraining
+        run: make atlas-check
 
       - name: Build, verify, and clean-room package
         run: python tools/package_release.py --output-dir dist --regenerate-previews

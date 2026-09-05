@@ -30,6 +30,10 @@ research-atlas-entity:
 
 research-atlas-all: research-atlas research-atlas-entity
 
+.PHONY: atlas-check
+atlas-check:
+	$(PYTHON) research/build_tile_atlas_v4.py --verify-assets
+
 research-atlas-pareto:
 	$(PYTHON) research/build_tile_atlas_v4.py --pareto
 

@@ -203,6 +203,64 @@ def write_payloads(payloads: dict[str, bytes], output_dir: Path) -> None:
         (output_dir / name).write_bytes(payloads[name])
 
 
+def verify_payloads(payloads: dict[str, bytes], recorded: dict[str, object]) -> dict[str, object]:
+    """Verify committed inputs without retraining their historical corpus."""
+    assets = {
+        name: {"bytes": len(payloads[name]), "sha256": hashlib.sha256(payloads[name]).hexdigest()}
+        for name in ASSET_NAMES
+    }
+    if assets != recorded["assets"]:
+        raise ValueError("atlas assets differ from their recorded training result")
+    tiles, starts, counts, entries = (payloads[name] for name in ASSET_NAMES)
+    if len(tiles) % 16 or len(entries) % 11 or len(starts) != 256 or len(counts) != 256:
+        raise ValueError("malformed atlas tables")
+    pattern_count, entry_count = len(tiles) // 16, len(entries) // 11
+    if not 0 < pattern_count <= MAX_PATTERNS or not 0 < entry_count <= MAX_SIGNATURES:
+        raise ValueError("atlas exceeds pattern/signature capacity")
+    if (pattern_count, entry_count) != (recorded["atlas_patterns"], recorded["signature_entries"]):
+        raise ValueError("atlas counts differ from their training result")
+    cursor = 0
+    seen: set[bytes] = set()
+    for bucket, (start, count) in enumerate(zip(starts, counts)):
+        if start != cursor or start + count > entry_count:
+            raise ValueError("atlas bucket directory is not a complete partition")
+        for index in range(start, start + count):
+            signature = entries[index * 11:index * 11 + 10]
+            tile_id = entries[index * 11 + 10]
+            if signature in seen or signature_hash(signature) != bucket:
+                raise ValueError("duplicate signature or wrong atlas hash bucket")
+            seen.add(signature)
+            if not ATLAS_TILE_BASE <= tile_id < ATLAS_TILE_BASE + pattern_count:
+                raise ValueError("atlas entry references an unallocated pattern")
+            y0, dark_mask, *tops = signature
+            styles = [(dark_mask >> (7 - pixel)) & 1 for pixel in range(8)]
+            key, expected = br.reference_tile_signature_and_bytes(tops, styles, y0)
+            offset = (tile_id - ATLAS_TILE_BASE) * 16
+            if key != signature or tiles[offset:offset + 16] != expected:
+                raise ValueError("atlas pattern differs from the exact compositor")
+        cursor += count
+    if cursor != entry_count:
+        raise ValueError("atlas directory omits entries")
+    return {"atlas_patterns": pattern_count, "signature_entries": entry_count, "assets": assets}
+
+
+def verify_assets(*, measure_cycles: bool = True) -> dict[str, object]:
+    report: dict[str, object] = {"schema": "lupine3d.atlas-assets.v1", "profiles": {}}
+    for profile, directory, training in (
+        ("renderer-heavy", ASSETS, RESULT),
+        ("entity-heavy", ASSETS / "entity_atlas_80", ROOT / "research/results/tile_atlas_entity_80_v6.json"),
+    ):
+        payloads = {name: (directory / name).read_bytes() for name in ASSET_NAMES}
+        result = verify_payloads(payloads, json.loads(training.read_text()))
+        if measure_cycles:
+            result["driven_route"] = measure_candidate(payloads, profile)
+        report["profiles"][profile] = result
+    path = ROOT / "build/atlas_verification.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report, indent=2) + "\n")
+    return report
+
+
 def measure_candidate(payloads: dict[str, bytes], profile: str) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="lupine-atlas-") as temporary:
         candidate = Path(temporary)
@@ -214,11 +272,13 @@ def measure_candidate(payloads: dict[str, bytes], profile: str) -> dict[str, obj
             ],
             cwd=ROOT,
             env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
-            check=True,
+            check=False,
             capture_output=True,
             text=True,
             timeout=180,
         )
+        if process.returncode:
+            raise RuntimeError(f"{profile} atlas measurement failed ({process.returncode}):\n{process.stderr}")
         return json.loads(process.stdout)
 
 
@@ -272,6 +332,8 @@ def parse_counts(value: str) -> list[int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--verify-assets", action="store_true",
+                        help="validate both committed profiles and measure them without retraining")
     parser.add_argument("--pareto", action="store_true", help="benchmark cache sizes without changing production assets")
     parser.add_argument("--pattern-counts", type=parse_counts, default=[0, 32, 64, 80, 96, 121])
     parser.add_argument("--apply-patterns", type=int, help="replace production assets with this pattern budget")
@@ -283,7 +345,11 @@ def main() -> None:
                         default="renderer-heavy", help="runtime profile for cycle measurement")
     parser.add_argument("--no-cycle-measure", action="store_true", help="skip emitted-ROM route measurements")
     args = parser.parse_args()
-    if args.pareto:
+    if args.verify_assets:
+        if args.pareto or args.apply_patterns is not None:
+            parser.error("--verify-assets cannot be combined with atlas training")
+        result = verify_assets(measure_cycles=not args.no_cycle_measure)
+    elif args.pareto:
         result = pareto(args.pattern_counts, measure_cycles=not args.no_cycle_measure)
     else:
         count = MAX_PATTERNS if args.apply_patterns is None else args.apply_patterns

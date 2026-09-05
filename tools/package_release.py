@@ -43,6 +43,7 @@ TOP_LEVEL_FILES = (
 )
 TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
 BUILD_FILES = (
+    "atlas_verification.json",
     "build_manifest.json",
     "harness_action.png",
     "harness_action_v060.png",
@@ -156,6 +157,18 @@ def validate_verification_report(root: Path) -> dict[str, object]:
         raise RuntimeError("release report must preserve the explicit pending hardware-test status")
     if report.get("version") != VERSION:
         raise RuntimeError("verification report version does not match VERSION")
+    atlas = json.loads((root / "build/atlas_verification.json").read_text())
+    if atlas["schema"] != "lupine3d.atlas-assets.v1":
+        raise RuntimeError("unsupported atlas verification schema")
+    for profile, directory in (("renderer-heavy", "assets"), ("entity-heavy", "assets/entity_atlas_80")):
+        result = atlas["profiles"][profile]
+        for name, recorded in result["assets"].items():
+            asset = root / directory / name
+            if asset.stat().st_size != recorded["bytes"] or sha256_file(asset) != recorded["sha256"]:
+                raise RuntimeError("atlas verification belongs to different assets: " + str(asset))
+        route = result["driven_route"]
+        if not route["full_geometry_only"] or route["updates"] != 11 or route["gdma_vblank_violations"]:
+            raise RuntimeError("atlas full-composition route failed")
     rendering_path = root / "build" / "rendering_qualification" / "report.json"
     if rendering_path.is_file():
         rendering = json.loads(rendering_path.read_text())
@@ -169,6 +182,7 @@ def validate_verification_report(root: Path) -> dict[str, object]:
 
 def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     python = sys.executable
+    run([python, "research/build_tile_atlas_v4.py", "--verify-assets"], ROOT)
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], ROOT, timeout=600)
     run([python, "research/geometry_v2_lab.py"], ROOT)

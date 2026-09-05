@@ -5,6 +5,7 @@
 - Save 3,840 microstrip table bytes and 2,816 net linked bytes. Resident free space is 5,939 bytes; fixed-ROM execution limits, the 3,000-byte reserve and publication budgets remain enforced.
 - Implement complete-key tile caching, certified four-anchor packets, physical-depth refinement, Q8.8 actor transforms, atomic admission, physical door identity, paged projection storage, near-field arithmetic and foreground events as gated experiments. Candidates that fail measured gates remain disabled.
 - Add reconciled host timing, LCD-indexed controller replays, 51 geometric witnesses, independent-core scene adapters, current-ROM quality budgets and immutable comparison archives.
+- Validate both committed atlas profiles at release time, including all signature/pattern bytes and full-composition diagnostic routes. Retraining remains an explicit research operation so packaging preserves the qualified ROM. Repair diagnostic snapshot updates and select the actual compact entity atlas during its measurements.
 - Pass 137 tests, controller-only completion/restart, SameBoy CGB-0/CGB-E and mGBA checks, and deterministic clean-room source rebuilds. Preserve the original v1 ROM hash and historical fixtures.
 - Document development directly on `main`. Physical CGB and flash-cartridge access are unavailable; this is an emulator-qualified prerelease.
 
