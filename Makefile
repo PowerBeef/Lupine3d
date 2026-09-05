@@ -50,7 +50,7 @@ playtest-world:
 	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
 
-.PHONY: playthrough sameboy mgba variants wall-reuse
+.PHONY: playthrough sameboy mgba variants wall-reuse motion
 playthrough: build
 	$(PYTHON) tools/playthrough.py
 
@@ -72,9 +72,14 @@ variants:
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","unfolded")); assert len(a)==9 and a==b'
 	LUPINE3D_WALL_REUSE=0 $(PYTHON) tools/verify_variants.py folding --output build/reuse_disabled_pixels.json
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","reuse_disabled")); assert a==b'
+	LUPINE3D_PREPARED_RAYS=0 $(PYTHON) tools/verify_variants.py folding --output build/prepared_disabled_pixels.json
+	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","prepared_disabled")); assert a==b'
 
 wall-reuse:
 	$(PYTHON) tools/benchmark_wall_reuse.py
+
+motion:
+	$(PYTHON) tools/benchmark_motion.py
 
 qa: build test playtest playtest-world research-v3
 

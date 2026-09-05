@@ -151,6 +151,8 @@ def main() -> None:
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
     reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
     wall_reuse = json.loads((v2.BUILD / "wall_reuse.json").read_text())
+    motion = json.loads((v2.BUILD / "motion_benchmark.json").read_text())
+    prepared_disabled = json.loads((v2.BUILD / "prepared_disabled_pixels.json").read_text())
     current_tail = json.loads((v2.BUILD / "q14_tail.json").read_text())
     independent = {}
     for name in ("sameboy_cgb0.json", "sameboy_cgbe.json", "mgba_cgb.json"):
@@ -181,6 +183,10 @@ def main() -> None:
         "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == 290 and v2_manifest["independent_obj_page"],
         "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
         "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],
+        "streaming_columns_and_events_enabled": v2_manifest["streaming_columns"] and v2_manifest["streaming_surface_events"],
+        "prepared_ray_table_budget": v2_manifest["prepared_ray_setup"] and v2_manifest["prepared_ray_table_bytes"] == 1048576 and v2_manifest["prepared_ray_wram_bytes"] == 4 and (v2_manifest["prepared_ray_table_bank"] * 0x4000 + v2_manifest["prepared_ray_table_bytes"]) <= v2.ROM_BYTES,
+        "prepared_ray_disabled_rgb_exact": prepared_disabled["passed"] and prepared_disabled["checks"] == folded["checks"],
+        "live_motion_current_and_safe": motion["passed"] and motion["candidate_sha256"] == current_sha and set(motion["cases"]) == {"walking", "turning", "walking_turning", "opening_door"} and all(case["candidate"]["wall_invalidation_exact"] and case["candidate"]["input_queue_overflow"] == case["candidate"]["unsafe_gdma_starts"] == 0 for case in motion["cases"].values()),
         "full_current_tail_scan": current_tail["configuration"]["q14_order"] and current_tail["corpus"]["views"] == 24384 and current_tail["tail"]["columns_at_or_above_threshold"] == 0 and current_tail["tail"]["maximum_top_error_px"] < 5,
         "available_independent_evidence_current": all(r["passed"] and r["rom_sha256"] == current_sha for r in independent.values()),
         "integer_dda_zero_mismatches": research["integer_dda_identity"]["mismatches"] == 0,

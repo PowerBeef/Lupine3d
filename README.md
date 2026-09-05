@@ -17,13 +17,13 @@
 
 ## Current implementation
 
-**0.7.0-beta.4 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
+**0.7.0-beta.5 — Sable Outpost** is a playable industrial outpost with a protected start, animated sliding doors, a Sentinel encounter, hitscan combat, a dropped medkit and a marked exit. The bounded entity system supports up to four Sentinels; the main level uses one, with a separate two-enemy acceptance scene.
 
 Gunmetal structure, muted green machinery and illuminated teal doors give the environment a consistent colour language. Sixteen authored wall fixtures add vents, caged lights, access markers and sector signs. Red-armoured Sentinels, green medkits, a steel shotgun and a clear reticle sit above a dedicated instrument-panel HUD with large health and hostile counts and a literal exit status.
 
 [View the native-resolution art tour](docs/images/sable_outpost.png).
 
-The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, precision rays continue from certified crossings, and door division keeps its working values in CPU registers. Native tiles, palettes and objects carry the final image.
+The engine emits SM83 machine code directly from Python. Cartridge tables replace expensive arithmetic, precision rays continue from certified crossings, and door division keeps its working values in CPU registers. Sequential column/event scans keep working values in registers; aligned cartridge records provide coarse and Q14 directions plus exact projection pointers. Native tiles, palettes and objects carry the final image.
 
 | Rendering | World and platform |
 |---|---|
@@ -58,15 +58,17 @@ Project-harness CPU cycles include publication waits.
 
 | Result | Coherence tour | Combat diagnostic |
 |---|---:|---:|
-| Mean cycles/presentation | 878,764 | 692,666 |
-| Maximum cycles/presentation | 1,268,724 | 1,685,828 |
-| Minimum presentations/s | 6.61 | 4.98 |
+| Mean cycles/presentation | 776,619 | 611,983 |
+| Maximum cycles/presentation | 1,128,280 | 1,404,644 |
+| Minimum presentations/s | 7.43 | 5.97 |
 | Reused wall views | 2 / 11 | 25 / 47 |
-| Peak dynamic tiles | 18 / 96 | 24 / 96 |
+| Peak dynamic tiles | 18 / 96 | 25 / 96 |
 | Peak objects per scanline | 4 / 10 | 7 / 10 |
 | Unsafe GDMA starts | 0 | 0 |
 
 Stationary trials present **59.71 updates/s at the safe start** and **40.37 updates/s in combat**. Three brief fire taps reach the next muzzle scanline in approximately **56 ms** in the combat trial. These are project-emulator measurements for fixed test scenes.
+
+Continuous-motion trials measure **6.68 full geometry updates/s while walking**, **9.19 while turning**, and **8.77 while walking and turning**. Each trial spans about 2.394 seconds, validates every completed frame and records zero input overflow or unsafe GDMA starts. See [streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md).
 
 Controls are sampled each VBlank. Sprite/HUD presentations and full geometry renders are counted separately: movement, turning and changing doors still require complete wall rendering. See [wall reuse and latency evidence](docs/WALL_REUSE.md).
 
@@ -80,7 +82,7 @@ make build
 make test
 make playtest playtest-world
 make playthrough variants
-make wall-reuse
+make wall-reuse motion
 ```
 
 Open **`build/lupine3d.gb`** in a Game Boy Color emulator with MBC5 support.
@@ -105,7 +107,7 @@ See [Development](docs/DEVELOPMENT.md) for core build commands, content tooling 
 
 ## Verification and limits
 
-**80 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene cache/full-render comparisons, a six-view art tour, a retained 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 233 verified presentations without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
+**84 automated tests**, nine reviewed RGB fixtures, 53 frozen-scene cache/full-render comparisons, a six-view art tour, a retained 24,384-view geometry-tail scan, two-actor admission checks and a controller-only level completion protect the implementation. The latter completes in 252 verified presentations without teleporting or changing game RAM; it reads state to steer, so it is not a blind human-navigation study.
 
 Validation checks the actual published sprite patterns, OAM banks and viewport VRAM, alongside host geometry and staging buffers. All 290 wall-key bytes are tested for invalidation; cached updates preserve the displayed background exactly.
 
@@ -118,6 +120,7 @@ The exact candidate passes independent SameBoy CGB-0/CGB-E and mGBA startup/cont
 | [Implementation status](docs/OVERHAUL_IMPLEMENTATION.md) | Delivered overhaul items and exactness boundaries |
 | [Sable Outpost](docs/SABLE_OUTPOST.md) | Current art direction, wall fixtures and HUD |
 | [Gameplay performance](docs/RUNTIME_PERFORMANCE.md) | Implementation steps, exactness proof and measured results |
+| [Streaming columns and prepared rays](docs/COLUMN_PERFORMANCE.md) | Current rendering kernels, cartridge allocation and live-motion evidence |
 | [Wall reuse and combat latency](docs/WALL_REUSE.md) | Exact caching, independent sprite publication and timing |
 | [Architecture](docs/ARCHITECTURE.md) | Cartridge, memory, simulation and publication |
 | [Test report](docs/TEST_REPORT.md) | Candidate hash, measured evidence and limitations |

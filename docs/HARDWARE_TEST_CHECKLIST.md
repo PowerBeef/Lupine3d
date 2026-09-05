@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.4 — Independent Emulator and Original Hardware Checklist
+# Lupine 3D 0.7.0-beta.5 — Independent Emulator and Original Hardware Checklist
 
 The automated project harness is strong regression evidence, but it is not independent hardware certification. Complete this checklist before claiming the ROM is validated on original Game Boy Color hardware.
 
@@ -6,8 +6,8 @@ The automated project harness is strong regression evidence, but it is not indep
 
 | Field | Value |
 |---|---|
-| ROM version | 0.7.0-beta.4 |
-| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.4_SHA256SUMS.txt` |
+| ROM version | 0.7.0-beta.5 |
+| ROM SHA-256 | Copy from `dist/Lupine3D_v0.7.0-beta.5_SHA256SUMS.txt` |
 | Emulator(s) and version(s) | |
 | Console model / board revision | |
 | Flash cartridge / firmware | |
@@ -24,6 +24,7 @@ Use at least two maintained CGB-capable emulators. Configure one for strict timi
 - [ ] Nintendo logo and title boot without header errors.
 - [ ] ROM is recognized as CGB-only, MBC5, 4 MiB, with no cartridge RAM.
 - [ ] No MBC5 bank-switch warnings; projection/DDA remain stable while turning.
+- [ ] Rotate through all 256 angles and cross camera-page boundaries while opening doors; prepared records occupy banks 173–236 and must restore bank 1.
 - [ ] First view appears without a white screen or hang.
 - [ ] No invalid-opcode or unmapped-memory warnings.
 - [ ] No prohibited VRAM/OAM access warnings.

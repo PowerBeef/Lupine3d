@@ -1,3 +1,16 @@
+# Lupine 3D 0.7.0-beta.5 — Streaming columns and prepared rays
+
+- Sequential 80-to-160 column expansion and register-resident surface/door scans preserve rounding, edge recasts, event counts and stencil precedence.
+- Aligned cartridge records provide coarse directions, correction, projection addresses and Q14 components. Raw probes and generic LOS retain their original paths; a flag-off build preserves the arithmetic implementation.
+- All 53 frozen scenes remain exact. Mean complete-update cost falls 9.66%; column expansion is 65.67% cheaper and surface scans 51.69% cheaper.
+- Short live trials measure 6.68 full geometry updates/s walking, 9.19 turning and 8.77 walking while turning. A one-LCD-frame B tap opens the door, with multiple apertures validated. Counts distinguish full geometry from cached presentations.
+- 84 tests, nine unchanged reviewed RGB captures, arithmetic/prepared variants, 252-presentation controller-only completion and independent SameBoy CGB-0/CGB-E plus mGBA checks pass.
+- Uses 1 MiB of formerly unused cartridge capacity and four banked WRAM bytes; leaves 304 KiB of cartridge capacity and 3,123 resident bytes free. No additional HRAM or VRAM; publication budgets unchanged.
+
+All four planned steps are complete. These are emulator measurements; original CGB and flash-cartridge acceptance remains pending. See [implementation and evidence](docs/COLUMN_PERFORMANCE.md).
+
+---
+
 # Lupine 3D 0.7.0-beta.4 — Wall reuse and combat presentation
 
 - Exact 290-byte camera/map/door/configuration comparison retains unchanged wall geometry, depth, tiles and attributes. Reload generations invalidate in-flight views safely.

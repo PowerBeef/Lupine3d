@@ -121,6 +121,8 @@ PIXEL_SURFACE = 0xDE80
 SURFACE_RESULT = 0xD8F0
 SURFACE_COLUMN = 0xD8F1
 SURFACE_PROFILE = 0xD8F2
+RAY_PROJECTION_X = 0xD8F3    # prepared MBC5 bank and address high byte
+RAY_PROJECTION_Y = 0xD8F5
 
 # MBC5 turns otherwise-idle cartridge space into an exact arithmetic unit.
 # Banks 0/1 retain the complete 32 KiB engine image; banks 2..145 contain a
@@ -154,6 +156,10 @@ Q14_ORDER_ENABLED = os.environ.get("LUPINE3D_Q14", "1") != "0"
 # One 1-KiB page per camera angle: 80 pair rays, 160 physical rays,
 # centre ray, then padding. Sixteen pages fit in each of sixteen banks.
 Q14_ROM_BYTES = 256 * 1024
+PREPARED_RAYS = os.environ.get("LUPINE3D_PREPARED_RAYS", "1") != "0"
+RAY_SETUP_ROM_BANK = Q14_ROM_BANK + Q14_ROM_BYTES // 0x4000
+RAY_SETUP_RECORD_BYTES = 16
+RAY_SETUP_ROM_BYTES = 256 * 256 * RAY_SETUP_RECORD_BYTES
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

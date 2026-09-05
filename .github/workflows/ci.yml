@@ -46,6 +46,9 @@ jobs:
       - name: Verify exact wall reuse and timed combat feedback
         run: make wall-reuse
 
+      - name: Verify LCD-timed walking, turning and door animation
+        run: make motion
+
       - name: Check out pinned independent emulator
         uses: actions/checkout@v4
         with:
@@ -97,3 +100,5 @@ jobs:
             build/*folded_pixels.json
             build/reuse_disabled_pixels.json
             build/wall_reuse.json
+            build/motion_benchmark.json
+            build/prepared_disabled_pixels.json

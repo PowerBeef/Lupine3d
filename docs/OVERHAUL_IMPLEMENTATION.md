@@ -1,6 +1,6 @@
-# v0.7.0-beta.4 — Engine overhaul status
+# v0.7.0-beta.5 — Engine overhaul status
 
-The software foundation, Sable Outpost graphics/UI, [arithmetic performance milestone](RUNTIME_PERFORMANCE.md) and all four [wall-reuse steps](WALL_REUSE.md) are implemented. It is a playable beta, not an original-hardware-certified release. Prior artifacts and historical geometry/RGB evidence remain intact.
+The software foundation, Sable Outpost graphics/UI, [arithmetic performance milestone](RUNTIME_PERFORMANCE.md), [wall-reuse steps](WALL_REUSE.md), and all four [streaming-column/prepared-ray steps](COLUMN_PERFORMANCE.md) are implemented. It is a playable beta, not an original-hardware-certified release. Prior artifacts and historical geometry/RGB evidence remain intact.
 
 ## Delivered contracts
 
@@ -18,6 +18,9 @@ The software foundation, Sable Outpost graphics/UI, [arithmetic performance mile
 | Exact wall reuse | Compare 290 camera/map/door/configuration bytes; cache key captured before yields; explicit reload generation | Every key byte, in-flight invalidation and serial/generation wrap tested |
 | Independent actor/HUD presentation | Retain wall depth and BG page; rerender sprites/fixtures/HUD into the hidden OBJ bank | 53 frozen cached/full scenes, actual VRAM/OAM bank checks, maximum fast packets |
 | Measured combat feedback | 40.37 stationary presentations/s; three brief shots reach the muzzle scanline at about 56 ms | LCD-timed A/B, zero queue overflow, separate full-render counts; emulator estimates |
+| Streaming geometry presentation | Sequential 80-to-160 expansion and physical/material/door scans | Synthetic byte/endpoint cases, 200 event cases, 53 exact frozen scenes |
+| Prepared ray metadata | Aligned coarse/Q14 direction records and exact projection addresses in banks 173–236 | 61,696 exact records, all camera-bank boundaries, nine flag-off RGB matches |
+| Live-motion performance | Walking, turning, combined movement and door animation at LCD-timed input cadence | Every presentation validates exact invalidation, packets and budgets; no post-start RAM writes |
 | Reprojection experiment | Published world OAM X shifts with SCX; foreground UI stays fixed | Clamp, immutable base packet, guard attributes and reset tests; default off |
 | Independent execution | Reproducible pinned SameBoy and mGBA adapters plus CI configuration | Exact candidate boots, moves, turns and opens a door in all three model/core lanes |
 
@@ -47,11 +50,11 @@ Per-face profiles are independent of physical segment IDs. CGB palettes are tile
 
 ## Exactness and visual review
 
-The foundation precision/sliding-geometry changes and Sable art pass intentionally changed rendered images, retaining their old fixtures as historical evidence. The active nine reviewed captures are `playtests/v070_sable_capture_pixels.json`. The current wall-reuse pass changes none of them.
+The foundation precision/sliding-geometry changes and Sable art pass intentionally changed rendered images, retaining their old fixtures as historical evidence. The active nine reviewed captures are `playtests/v070_sable_capture_pixels.json`. The current streaming-column/prepared-ray pass changes none of them.
 
 A separate frozen-world folded/unfolded A/B yields identical RGB in all nine views. Fixed simulation is suspended for this representation-only comparison so differences in execution time cannot change the snapshot being compared.
 
-The combat scenario explicitly injects diagnostic camera poses, including aiming at the live Sentinel and relocating to its actual drop. It does not inject health, death or completion. The separate 233-update controller route injects no game RAM at all.
+The combat scenario explicitly injects diagnostic camera poses, including aiming at the live Sentinel and relocating to its actual drop. It does not inject health, death or completion. The separate 252-update controller route injects no game RAM at all.
 
 ## Reproduce
 
@@ -59,13 +62,14 @@ The combat scenario explicitly injects diagnostic camera poses, including aiming
 make test
 make playtest playtest-world
 make playthrough variants
+make wall-reuse motion
 make research-tail
 make sameboy SAMEBOY_DIR=/absolute/path/to/SameBoy
 make mgba MGBA_DIR=/absolute/path/to/mgba
 python3 tools/release_check.py
 ```
 
-Default: Q14 on, fixed simulation on, folding on, exact wall reuse on, 121-pattern atlas, reprojection off. `make wall-reuse` measures the cached/full contract and timed input. Experimental flags must match between a ROM and its validating host process. Variant tools build in memory and do not overwrite the default ROM.
+Default: Q14 on, fixed simulation on, folding on, exact wall reuse on, prepared rays on, 121-pattern atlas, reprojection off. `make wall-reuse` measures the cached/full contract and timed input. Experimental flags must match between a ROM and its validating host process. Variant tools build in memory and do not overwrite the default ROM.
 
 ## Explicitly still outside acceptance
 

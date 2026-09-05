@@ -1,4 +1,4 @@
-# Lupine 3D 0.7.0-beta.4 architecture
+# Lupine 3D 0.7.0-beta.5 architecture
 
 Lupine is a CGB-only 4 MiB MBC5 engine with no cartridge RAM. Python generates SM83 code, tables and original graphics. Runtime uses double-speed execution, native tiles, two VRAM banks, two BG maps and hardware 8×16 objects.
 
@@ -21,7 +21,8 @@ A full frame proceeds through 80 adaptive descriptors, 160 physical columns, six
 | 155 | Physical segments: 1,024 bytes; oriented-face profiles: 1,024 bytes |
 | 156 | Cold boot assets and startup map: 9,514 bytes |
 | 157–172 | Q14 camera directions: 262,144 bytes |
-| 173–255 | Unallocated cartridge capacity |
+| 173–236 | Prepared coarse/Q14 ray metadata and projection pointers: 1,048,576 bytes |
+| 237–255 | Unallocated cartridge capacity: 311,296 bytes |
 
 Banked lookups restore ROM bank 1. Executing hot lookup routines stay below $4000; the builder asserts the boundary. Resident image ends at $73CD (29,309 emitted bytes), leaving 3,123 bytes below $8000. Full 16×16 multiplication uses four table partial products, skipping zero terms. Product-bank selection uses three rotates and a mask. Unaligned fixture records follow the hot tables; the startup map lives in cold bank 156. The loader restores bank 1 after copying it.
 
@@ -32,6 +33,8 @@ Positions are Q8.8 on a 16×16 map; angles are 256 units/turn. Static walls use 
 The coarse signed-error DDA maintains next-boundary distances and the sign of `nextX*absY - nextY*absX`. For supported camera records, an error certificate determines whether coarse and Q14 traversal must choose the same crossing. At the first uncertain crossing, compute the fine 32-bit error at the current cell and continue in Q14. Earlier certified cells need no retraversal. Degenerate coarse components and casts beginning inside a door still initialize from the player. See the [continuation proof and performance contract](RUNTIME_PERFORMANCE.md).
 
 A 1,024-byte direction page per camera angle contains 80 pair-centre vectors, 160 physical-centre vectors and one centre hitscan vector. The 64 retained severe tail rays choose their floating-oracle cell/axis in generated code. This does not eliminate every continuous-camera error.
+
+Aligned sixteen-byte records precompute each camera/ray pair’s coarse components, steps, angle, correction, projection pointers and absolute Q14 components. Loading a record marks fine components ready for doors and precision continuation. Raw probes, generic LOS and full Q14 restart retain their original paths. Four banked WRAM bytes at $D8F3–$D8F6 hold the X/Y projection pointers. `LUPINE3D_PREPARED_RAYS=0` retains the arithmetic build. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md).
 
 Projection still uses the paired integer Q5 LUT. Cast depth is corrected perpendicular Q5 distance, saturated to 255. Adaptive interpolation uses conservative height-class depth bounds. Wall geometry is not a floating-point continuous oracle.
 
@@ -46,6 +49,8 @@ Each opening takes 32 simulation ticks (eight fraction units/tick). Rays may pas
 ### Reconstruction and physical identity
 
 41 mandatory anchor rays are cast. Odd samples interpolate only when plane/material, physical segment, surface profile, adjacency and a two-pixel slope bound agree. Other samples recast. The physical-column pass selectively recasts discontinuities.
+
+The physical-column expansion streams neighbouring tops through registers and sequentially duplicates the other five descriptor arrays. Surface scans retain the previous segment/key/cell in registers, then scan door runs separately to preserve stencil precedence. Door scanning temporarily saves four stack bytes; no new descriptor buffer is allocated.
 
 Static materials can share one physical segment on a continuous exposed plane. Doors split segments; latent jamb faces receive IDs before opening. Surface colour metadata never defines physical continuity.
 
@@ -141,6 +146,6 @@ Guard columns extend the nearest edge tile/attribute; they are not extra rendere
 
 ## Content and modules
 
-`levels.py` compiles JSON legality/readability, physical segments, oriented-face profiles and fixtures. `precision.py` owns Q14 tables/traversal; `door_geometry.py` shared panel queries; `simulation.py` queues/bank snapshots; `actors.py` bounded actor reuse; `masked_entities.py` LOD/masks/admission; `surfaces.py` palette packets; `artwork.py` native graphics; `world_decor.py` mounted fixtures. The legacy-named `lupine3d_v4` package remains a stable import path, not a version claim.
+`levels.py` compiles JSON legality/readability, physical segments, oriented-face profiles and fixtures. `columns.py` emits streamed expansion/events; `ray_setup.py` generates and loads prepared ray records; `precision.py` owns Q14 tables/traversal; `door_geometry.py` shared panel queries; `simulation.py` queues/bank snapshots; `actors.py` bounded actor reuse; `masked_entities.py` LOD/masks/admission; `surfaces.py` palette packets; `artwork.py` native graphics; `world_decor.py` mounted fixtures. The legacy-named `lupine3d_v4` package remains a stable import path, not a version claim.
 
 The active map is compiled into the cartridge and loaded into live WRAM. Multiple spawns and per-face profiles are supported; streamed multi-level asset loading is not yet a runtime feature.

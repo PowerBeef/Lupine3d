@@ -71,6 +71,8 @@ BUILD_FILES = (
     "reprojection.json",
     "reuse_disabled_pixels.json",
     "wall_reuse.json",
+    "motion_benchmark.json",
+    "prepared_disabled_pixels.json",
 )
 IGNORED_PARTS = {".git", "__pycache__", ".pytest_cache", "dist"}
 IGNORED_SUFFIXES = {".pyc", ".pyo", ".DS_Store"}
@@ -177,6 +179,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
          "--output-dir", "build/playtest/sable_art_tour"], ROOT)
     run(["make", "variants"], ROOT)
     run(["make", "wall-reuse"], ROOT)
+    run(["make", "motion"], ROOT)
     run(["make", "research-tail"], ROOT, timeout=600)
     run([python, "tools/release_check.py"], ROOT)
     if regenerate_previews:

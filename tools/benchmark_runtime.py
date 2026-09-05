@@ -44,8 +44,15 @@ def measure(rom, labels, scene):
     start = c.cycles
     c.run(until_pc=labels["cast_all"])
     cast_start = c.cycles
+    c.run(until_pc=labels["build_pixel_descriptors"])
+    expansion_start = c.cycles
+    c.run(until_pc=labels["edge_recast_loop"])
+    expansion_cycles = c.cycles - expansion_start
+    c.run(until_pc=labels["decorate_pixel_styles"])
+    events_start = c.cycles
     c.run(until_pc=labels["render_view"])
     cast_cycles = c.cycles - cast_start
+    event_cycles = c.cycles - events_start
     c.run(until_presentations=1)
     validate_frame(c)
     groups = {
@@ -71,7 +78,10 @@ def measure(rom, labels, scene):
         hashes[name] = hashlib.sha256(data).hexdigest()
     hashes["rgb"] = hashlib.sha256(c.render_screen().tobytes()).hexdigest()
     return dict(hashes=hashes, cycles=c.cycles - start, cast_cycles=cast_cycles,
-                dynamic_tiles=c.read8(br.DYN_COUNT), casts=c.read8(br.CAST_COUNT))
+                column_expansion_cycles=expansion_cycles, surface_event_cycles=event_cycles,
+                dynamic_tiles=c.read8(br.DYN_COUNT),
+                casts=c.read8(br.ADAPTIVE_CASTS)+c.read8(br.EDGE_RECASTS),
+                material_events=c.read8(br.EVENT_COUNT))
 
 
 def main():
@@ -86,7 +96,7 @@ def main():
     rows = []
     for scene in scenes():
         before, after = measure(baseline, labels, scene), measure(candidate, asm.labels, scene)
-        if before["hashes"] != after["hashes"] or before["casts"] != after["casts"]:
+        if any(before[key] != after[key] for key in ("hashes", "casts", "material_events")):
             raise AssertionError((scene, before, after))
         rows.append(dict(scene=scene, baseline=before, candidate=after))
     report = dict(passed=True, simulation_frozen=True, diagnostic_ram_injections=True,
@@ -94,7 +104,7 @@ def main():
                   candidate_sha256=hashlib.sha256(candidate).hexdigest(), scene_count=len(rows),
                   normalization="Only OBJ bank bit 3 in disabled Y=0 OAM slots",
                   exact_groups=list(rows[0]["candidate"]["hashes"]), scenes=rows)
-    for key in ("cycles", "cast_cycles"):
+    for key in ("cycles", "cast_cycles", "column_expansion_cycles", "surface_event_cycles"):
         old, new = (statistics.fmean(row[version][key] for row in rows) for version in ("baseline", "candidate"))
         report[key] = dict(baseline_mean=old, candidate_mean=new, reduction_percent=(1-new/old)*100)
     args.output.parent.mkdir(parents=True, exist_ok=True)

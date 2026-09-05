@@ -1,5 +1,6 @@
 # v0.7.0-beta.4 — Wall reuse and combat presentation
 
+This document preserves the beta.4 milestone measurements. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md) and the [current test report](TEST_REPORT.md) for the active candidate.
 All four implementation steps are delivered. An unchanged wall view now remains in VRAM while actors, pickups, fixtures, weapon feedback and HUD are rendered from the next immutable world snapshot. Changing the camera or any wall input returns to the full renderer.
 
 Candidate ROM SHA-256: `8813ab38201f937c18c9b15e26d58c94fe2e873bbaf900a358fcf933fef34e0b`.

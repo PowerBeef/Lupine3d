@@ -1,13 +1,15 @@
-# Lupine 3D 0.7.0-beta.4 test report
+# Lupine 3D 0.7.0-beta.5 test report
 
 Candidate ROM SHA-256:
-`8813ab38201f937c18c9b15e26d58c94fe2e873bbaf900a358fcf933fef34e0b`
+`8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3`
 
 4 MiB MBC5 · CGB-only · no cartridge RAM · **physical hardware not tested**
 
 ## Automated contracts
 
-**80 tests pass locally.** This includes frozen v0.1 hash, deterministic builds, cartridge layout, projection and product arithmetic, generated-code/host descriptors, tile/map bytes, all door-state face IDs, combat, input, publication, colour metadata and memory bounds.
+**84 tests and 86 release gates pass locally.** This includes frozen v0.1 hash, deterministic builds, cartridge layout, projection and product arithmetic, generated-code/host descriptors, tile/map bytes, all door-state face IDs, combat, input, publication, colour metadata and memory bounds.
+
+Four streaming/prepared-ray tests cover 32 synthetic expansion arrays (including unsigned-byte wrap and endpoint clamps), 200 door/surface-event cases, all 61,696 valid camera records and actual SM83 loads across every camera-bank boundary. They check exact projection addresses, Q14 components, door precedence, page crossings, restored ROM bank and memory guards.
 
 Five wall-reuse tests exercise every one of the 290 key bytes, actor-only changes, camera/door misses, in-flight reload generation and wrap, cached/full packet equivalence, independent OBJ/BG ownership, zero-to-32 masked pattern publication, serial wrap and reserved memory. Actual published VRAM and admitted OAM bank bits are checked in driven routes.
 
@@ -36,10 +38,10 @@ New coverage exercises:
 |---|---:|---:|
 | Updates / captures | 11 / 9 | 47 / 14 |
 | Full / cached presentations | 9 / 2 | 22 / 25 |
-| Mean CPU cycles/presentation | 878,764.364 | 692,666.043 |
-| Maximum CPU cycles/presentation | 1,268,724 | 1,685,828 |
-| Minimum presentations/s | 6.6118 | 4.9760 |
-| Peak dynamic patterns | 18 / 96 | 24 / 96 |
+| Mean CPU cycles/presentation | 776,618.545 | 611,982.979 |
+| Maximum CPU cycles/presentation | 1,128,280 | 1,404,644 |
+| Minimum presentations/s | 7.4349 | 5.9721 |
+| Peak dynamic patterns | 18 / 96 | 25 / 96 |
 | Peak total casts | 56 | 59 |
 | Peak visible OAM | 11 / 40 | 15 / 40 |
 | Peak Y-selected scanline OAM | 4 / 10 | 7 / 10 |
@@ -52,13 +54,21 @@ The nine Sable RGB fixtures were accepted after the art pass's visual inspection
 
 The gameplay diagnostic teleports its camera for state coverage. It explicitly aims at the live enemy and relocates to the actual drop; it does not inject health/death/completion. All states are reached by generated gameplay code.
 
-Across 53 identical frozen scenes, a cached update averages 135,879 cycles versus 1,229,561 for a forced full update of the same candidate: 88.95% less work including waits. RGB and complete packets match, allowing only the intended BG bank selection in attributes. A separate fresh-frame comparison against beta.3 shows 1.31% mean overhead for recording the cache key. It normalizes only the irrelevant bank bit in disabled OAM slots; visible OAM remains exact. Current content budgets stay at 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles; memory, correctness and timing gates were not relaxed.
+Across 53 identical frozen scenes, a cached update averages 135,878 cycles versus 1,110,314 for a forced full update of the same candidate: 87.76% less work including waits. RGB and complete packets match, allowing only the intended BG bank selection in attributes. The separate fresh-frame comparison against beta.4 normalizes only the irrelevant bank bit in disabled OAM slots; visible OAM remains exact. Current content budgets stay at 1.05 million coherence-mean cycles and 2.2 million combat-maximum cycles; memory, correctness and timing gates were not relaxed.
 
-LCD-timed stationary combat presents 40.37 updates/s. All three brief A taps publish muzzle feedback in 49.48–49.52 ms; the estimated next muzzle scanline occurs at 56.32 ms. Idle presents 59.71 updates/s. The turning trial still completes eight full renders, with eight additional cached updates during stable poses. These are short deterministic trials, not a guaranteed gameplay frame rate or hardware latency measurement. See [wall reuse evidence](WALL_REUSE.md).
+LCD-timed stationary combat presents 40.37 updates/s. All three brief A taps publish muzzle feedback in 49.48–49.52 ms; the estimated next muzzle scanline occurs at 56.32 ms. Idle presents 59.71 updates/s. The turning trial still completes nine full renders, with nine additional cached updates during stable poses. These are short deterministic trials, not a guaranteed gameplay frame rate or hardware latency measurement. See [wall reuse evidence](WALL_REUSE.md).
+
+## Streaming and motion measurements
+
+Against the immutable beta.4 baseline, 53 frozen scenes preserve all six output groups, executed cast counts and material-event counts. Complete-presentation mean falls from 1,234,852 to 1,115,603 cycles (9.66%). Expansion alone falls 65.67%; surface scans 51.69%. The casting total includes those kernels, so the percentages are not additive.
+
+Four 144-LCD-frame-counter trials make no game-RAM writes after diagnostic setup. Walking completes 16 full updates (6.68/s), turning 22 (9.19/s), and combined movement 21 (8.77/s). A single-frame B tap opens the door, with five full frames and multiple changing apertures observed. Every presentation verifies exact cache invalidation and published packets; queue overflow and unsafe DMA starts stay zero. These short live trials sample different poses as rendering speeds change; exact cross-version image identity is established separately with frozen snapshots.
+
+Prepared-ray-disabled, reuse-disabled and unfolded variants each match the default's nine frozen RGB captures. Source measurements and baseline hashes are retained in [streaming evidence](COLUMN_PERFORMANCE.md).
 
 ## Controller-only level completion
 
-**233 completed presentations**, 84 health remaining, Sentinel dead, medkit collected and exit reached. No pose or gameplay RAM injections. Every completed update validates descriptors, depths, segments, actual published wall/mask packets, surface attributes, OAM banks/limits, queue overflow and publication safety. Presentation counts do not determine elapsed playthrough time: the controller samples the live world after each completed update.
+**252 completed presentations**, 84 health remaining, Sentinel dead, medkit collected and exit reached. No pose or gameplay RAM injections. Every completed update validates descriptors, depths, segments, actual published wall/mask packets, surface attributes, OAM banks/limits, queue overflow and publication safety. Presentation counts do not determine elapsed playthrough time: the controller samples the live world after each completed update.
 
 The bot reads live state to steer. This proves functional controller completion, not blind human navigability or player preference.
 
@@ -85,11 +95,11 @@ Artifacts: `build/q14_tail.json`, `.csv`, `.png`.
 | SameBoy CGB-E | same pin | Pass |
 | mGBA CGB | `507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6` | Pass |
 
-Each lane runs 480 LCD frames, observes 27 BG page swaps, moves/turns and opens the starting door using input. SameBoy records 270 presentations (243 cached); mGBA records 272. Different bootstrap timing affects the presentation count. Startup RGB, including the split-screen HUD and door emblem, matches the project host under matching linear RGB15 conversion.
+Each lane runs 480 LCD frames, observes 30 BG page swaps, moves/turns and opens the starting door using input. SameBoy records 278 presentations (248 cached); mGBA records 281. Different bootstrap timing affects the presentation count. Startup RGB, including the split-screen HUD and door emblem, matches the project host under matching linear RGB15 conversion.
 
-SameBoy observes 185 GDMA starts per model, zero unsafe GDMA/OAM starts, zero unsafe page flips/presentations and zero writes into the visible masked-object bank. mGBA verifies boot/control/RGB and zero input overflow but **does not instrument DMA writes**. SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Neither tests the Nintendo boot ROM.
+SameBoy observes 198 GDMA starts per model, zero unsafe GDMA/OAM starts, zero unsafe page flips/presentations and zero writes into the visible masked-object bank. mGBA verifies boot/control/RGB and zero input overflow but **does not instrument DMA writes**. SameBoy uses an original synthetic bootstrap; mGBA uses built-in skip-BIOS. Neither tests the Nintendo boot ROM.
 
-CI configuration includes both pinned cores, gameplay completion, variant checks and the exact cached/full plus timed-input laboratory. This report records local executed evidence; remote run status is available separately in GitHub Actions.
+CI configuration includes both pinned cores, gameplay completion, variant checks, the exact cached/full laboratory and all four continuous-motion trials. This report records local executed evidence; remote run status is available separately in GitHub Actions.
 
 ## Variant and resource acceptance
 
@@ -100,6 +110,7 @@ CI configuration includes both pinned cores, gameplay completion, variant checks
 - Optional reprojection: exact clamp, static UI, published-world X shifts, future-shadow isolation and matching guard attributes pass in the project harness. Default remains off; independent/hardware perception testing is not claimed.
 - Resident image: 29,309 bytes, end $73CD, 3,123 bytes free below $8000. Grouped division temporarily adds two stack bytes; no new HRAM or VRAM allocation.
 - Cold assets: 9,514 bytes in bank 156, including the relocated startup map; Q14 tables: 262,144 bytes; products: 131,072 bytes.
+- Prepared rays: 1,048,576 bytes in banks 173–236; 311,296 cartridge bytes remain. Four banked WRAM bytes at $D8F3–$D8F6 hold projection pointers; no extra HRAM/VRAM. Door-event scanning temporarily adds four stack bytes.
 - Wall reuse: 297 additional WRAM bytes; no additional HRAM, VRAM or cartridge bank.
 - Stack: fixed $CFFF with 512 bytes reserved. HRAM: 111 state bytes plus separate ten-byte DMA stub.
 - Packet maximum: 176 blocks, staged into ≤96 and ≤80 blocks when needed. Single-window dynamic-plus-mask cap is 24; optional reprojection may use an extra window for large masked packets.

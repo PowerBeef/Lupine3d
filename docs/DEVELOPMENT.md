@@ -9,7 +9,7 @@ python3 tools/dev_setup.py
 make test
 make playtest playtest-world playtest-art
 make playthrough variants
-make wall-reuse
+make wall-reuse motion
 make research-tail
 python3 tools/release_check.py
 ```
@@ -88,11 +88,14 @@ The coherence tour freezes nine reviewed raw-RGB hashes in `v070_sable_capture_p
 - two-Sentinel render/admission scene;
 - folded versus unfolded rendering with frozen simulation, nine RGB matches;
 - wall reuse enabled versus disabled, nine RGB matches;
+- prepared ray records versus arithmetic setup, nine RGB matches;
 - reprojection clamp, immutable published world X, fixed UI and map/attribute guards.
 
-Default configuration is folding on, Q14 order on, fixed simulation on, wall reuse on, full atlas and reprojection off. Research flags include `LUPINE3D_FOLDED=0`, `LUPINE3D_WALL_REUSE=0`, `LUPINE3D_COMPACT_ATLAS=1` and `LUPINE3D_REPROJECTION=1`. Always use matching flags for the ROM and host validator. Experimental configurations are not all release-certified.
+Default configuration is folding on, Q14 order on, fixed simulation on, wall reuse on, prepared rays on, full atlas and reprojection off. Research flags include `LUPINE3D_PREPARED_RAYS=0`, `LUPINE3D_FOLDED=0`, `LUPINE3D_WALL_REUSE=0`, `LUPINE3D_COMPACT_ATLAS=1` and `LUPINE3D_REPROJECTION=1`. Always use matching flags for the ROM and host validator. Experimental configurations are not all release-certified.
 
 `make wall-reuse` runs 53 frozen cached/full comparisons and LCD-timed idle, combat and turning trials. It needs no old ROM; optional archived-ROM arguments add a historical lane. See [wall reuse](WALL_REUSE.md) for key addresses, publication counts, latency definitions and the 1.31% fresh-render overhead.
+
+`make motion` drives walking, turning, combined movement and a one-frame door tap for 144 LCD-frame-counter increments each. After diagnostic warmup it makes no game-RAM writes. Every presentation validates exact wall invalidation, descriptors, published packets and hardware budgets. Optional baseline ROM/symbol arguments enable A/B measurements; see [streaming performance](COLUMN_PERFORMANCE.md).
 
 `python3 tools/profile_rendering.py --output build/profile-beta.json` measures generated-code stages. Cooperative simulation yields receive a separate category; interrupt costs remain charged to the active category. Use the complete playtest reports for frame-rate claims.
 

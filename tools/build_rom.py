@@ -27,6 +27,7 @@ from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
 from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.world_decor import emit_world_decor, fixture_records
 from lupine3d_v4.wall_cache import emit_wall_cache
+from lupine3d_v4.ray_setup import make_ray_setup_table, emit_ray_setup
 
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
@@ -87,6 +88,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Legacy quarter-step helpers are retained only for the two-step door interaction.
     v1.emit_ray_helpers(a)
     emit_mul_u8(a); emit_div_u16_u8_sat(a); emit_div_u16_u8_sat9(a); emit_signed_math(a)
+    if PREPARED_RAYS: emit_ray_setup(a)
     emit_dda(a); emit_projection_and_casting(a); emit_renderer(a)
     emit_precision(a)
     emit_door_geometry(a)
@@ -198,6 +200,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "renderer": "certified Q14 crossing order, Q5 projection, folded signed-BG compositor and masked 8x16 entities",
         "q14_continuation": "resume from the last certified cell; restart axial and origin-door casts",
         "door_division": "register-resident 16-bit quotient, four bits per group, unsigned overflow rejection",
+        "streaming_columns": True,
+        "streaming_surface_events": True,
+        "prepared_ray_setup": PREPARED_RAYS,
+        "prepared_ray_table_bank": RAY_SETUP_ROM_BANK,
+        "prepared_ray_table_bytes": RAY_SETUP_ROM_BYTES if PREPARED_RAYS else 0,
+        "prepared_ray_wram_bytes": 4 if PREPARED_RAYS else 0,
         "publication": "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,
@@ -359,6 +367,11 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom[boot_start:boot_start + len(boot_payload)] = boot_payload
     q14_start = Q14_ROM_BANK * 0x4000
     rom[q14_start:q14_start + Q14_ROM_BYTES] = make_q14_directions()
+    if PREPARED_RAYS:
+        setup_start = RAY_SETUP_ROM_BANK * 0x4000
+        assert setup_start >= q14_start + Q14_ROM_BYTES
+        assert setup_start + RAY_SETUP_ROM_BYTES <= ROM_BYTES
+        rom[setup_start:setup_start + RAY_SETUP_ROM_BYTES] = make_ray_setup_table()
     assert assembler.labels["level_header"] < 0x4000, "bank-switching code must remain in fixed ROM"
     chk = 0
     for value in rom[0x0134:0x014D]: chk = (chk - value - 1) & 0xFF
