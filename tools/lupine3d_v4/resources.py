@@ -210,6 +210,93 @@ def make_weapon_tiles() -> bytes:
                     for pair in range(2) for col in range(4) for row in (pair * 2, pair * 2 + 1))
 
 
+def _slug_frame(px, *, recoil=0, bolt=0, flare=False) -> None:
+    """One cel of the slug rifle, drawn rather than generated.
+
+    Builds may never call image generation, and the shotgun's five cels are a
+    checked-in indexed PNG. The second weapon is Python, the way the legacy
+    sidearm and the Sentinel cels are: same 32x32 geometry, same four-colour
+    OBJ palette, and the same restraint with the palette's lightest colour, so
+    it sits beside the shotgun rather than glowing next to it.
+    """
+    def put(x, y, colour):
+        y -= recoil
+        if 0 <= x < 32 and 0 <= y < 32:
+            px[y][x] = colour
+
+    # A long vented brake over a single heavy bore: this reads as a slug gun
+    # against the shotgun's twin muzzle even at 32 pixels.
+    for y in range(1, 7):
+        for x in range(12, 20):
+            put(x, y, 1 if x in (12, 19) or y in (1, 6) else 2)
+    for y in (3, 5):
+        put(13, y, 3); put(18, y, 3)
+    for x in range(14, 18):
+        put(x, 3, 1); put(x, 4, 1)
+    if flare:
+        for x, y in ((15, 0), (16, 0), (14, 1), (17, 1), (15, 1), (16, 1)):
+            put(x, y, 3)
+
+    # Barrel shroud, widening into the receiver.
+    for y in range(7, 14):
+        spread = (y - 7) // 3
+        left, right = 12 - spread, 20 + spread
+        for x in range(left, right):
+            put(x, y, 1 if x in (left, right - 1) else 2)
+    for x in range(11, 21):
+        put(x, 10, 1)
+    for x in range(10, 22):
+        put(x, 13, 3)
+
+    # Receiver, ejection port, and the bolt handle that carries the animation.
+    for y in range(14, 23):
+        for x in range(6, 26):
+            put(x, y, 1 if x in (6, 25) or y in (14, 22) else 2)
+    for x in range(17, 23):
+        put(x, 16, 1); put(x, 17, 3 if bolt else 1)
+    for y in range(15, 18):
+        for x in range(25 - bolt, 28 - bolt):
+            put(x, y, 3)
+    for x, y in ((9, 18), (11, 20), (20, 20), (23, 18)):
+        put(x, y, 3)
+
+    # Stock behind the hands, then forearms in the body's own greys. The
+    # lightest colour stays on edges and knuckles, as it does on the shotgun.
+    for y in range(23, 32):
+        inset = (y - 23) // 4
+        for x in range(12 + inset, 20 - inset):
+            put(x, y, 1 if x in (12 + inset, 19 - inset) else 2)
+    for y in range(22, 32):
+        reach = y - 22
+        left_edge, left_inner = max(0, 5 - reach), 12
+        right_inner, right_edge = 20, min(32, 27 + reach)
+        for x in range(left_edge, left_inner):
+            put(x, y, 1 if x in (left_edge, left_inner - 1) else 2)
+        for x in range(right_inner, right_edge):
+            put(x, y, 1 if x in (right_inner, right_edge - 1) else 2)
+    for x, y in ((7, 25), (9, 28), (10, 30), (22, 25), (24, 28), (25, 30)):
+        put(x, y, 3)
+
+
+# Idle, the kick, the bolt back, the bolt returning, and settling. The same
+# five phases the shotgun sheet carries, in the same order.
+SLUG_CELS = (dict(), dict(recoil=3, flare=True), dict(recoil=2, bolt=5),
+             dict(recoil=1, bolt=2), dict())
+
+
+def make_slug_tiles() -> bytes:
+    """The second weapon, in the 8x16 pair order the weapon window expects."""
+    out = bytearray()
+    for cel in SLUG_CELS[:5 if SABLE_ART else 1]:
+        px = [[0] * 32 for _ in range(32)]
+        _slug_frame(px, **cel)
+        tiles = _split_pixels(px, 32, 32)
+        out.extend(b"".join(tiles[(row * 4 + col) * 16:(row * 4 + col + 1) * 16]
+                            for pair in range(2) for col in range(4)
+                            for row in (pair * 2, pair * 2 + 1)))
+    return bytes(out)
+
+
 def _sentinel_near_frame(frame: int) -> bytes:
     """Generate one original skull-faced industrial Sentinel animation cel."""
     px = [[0] * 16 for _ in range(32)]

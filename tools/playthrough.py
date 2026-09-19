@@ -185,6 +185,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
     def living():
         return [actor for actor in actors() if actor["state"] != br.SENTINEL_DEAD]
 
+    SWAP_SECTOR = 2        # the sector cleared with the second weapon
     ENGAGEMENT_Q8 = 1280   # five cells: shoot from range rather than walk into contact
 
     def nearest_living(*, walkable=False):
@@ -244,6 +245,25 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         # the aim window. Fire while making the final small correction.
         return ((1 if delta > 0 else 2) if delta else 0) | \
                (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
+
+    def swap_weapon():
+        """Press SELECT and let the ROM stream the other weapon's patterns in.
+
+        Every frame of it goes through step(), so the pattern transfer is
+        checked for a start outside VBlank like any other publication.
+        """
+        before = live8(br.WEAPON_INDEX)
+        for _ in range(6):
+            step(0x40)
+            if live8(br.WEAPON_INDEX) != before:
+                break
+        else:
+            raise AssertionError("SELECT did not swap the weapon")
+        for _ in range(6):
+            step(0)
+            if not live8(br.WEAPON_RELOAD):
+                return
+        raise AssertionError("the weapon patterns were never streamed")
 
     def collect_drops():
         """Walk onto every drop the route can reach and has not taken."""
@@ -309,7 +329,14 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         assert bytes(live8(br.MAP + cell) for cell in range(256)) == level.grid
         opened = len(records)
         capture(f"sector{index + 1}_start")
+        # One sector is cleared with the other weapon, so the pattern stream
+        # that swaps it runs under the same frame-by-frame checks as
+        # everything else - including the one for a transfer outside VBlank.
+        if "swap_weapon" in cgb.symbols and index == SWAP_SECTOR:
+            swap_weapon(); capture(f"sector{index + 1}_second_weapon")
         clear_sector(f"sector{index + 1}")
+        if "swap_weapon" in cgb.symbols and index == SWAP_SECTOR:
+            swap_weapon()
         capture(f"sector{index + 1}_cleared")
         navigate((level.exit.x, level.exit.y))
         step(0)

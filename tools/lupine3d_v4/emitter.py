@@ -161,6 +161,52 @@ def emit_vram_init(a: Assembler) -> None:
         if length > first:
             a.ld_rr_nn("de", 0x8800); a.ld_rr_nn("bc", length - first); a.call("copy_bc")
 
+    a.label("weapon_record")     # HL -> the weapon in hand's stat record
+    a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1)
+    for _ in range(WEAPON_STAT_BYTES.bit_length() - 1): a.add_a_r("a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "weapon_stats"); a.add_hl_rr("de"); a.ret()
+
+    a.label("weapon_damage")     # A = what one hit takes off
+    a.call("weapon_record"); a.ld_a_hl(); a.ret()
+
+    a.label("weapon_source")     # HL -> this weapon's cels in the boot bank
+    a.ld_a_abs(WEAPON_INDEX); a.or_r("a")
+    a.ld_rr_label("hl", "weapon_tiles"); a.ret("z")
+    a.ld_rr_label("hl", "slug_tiles"); a.ret()
+
+    a.label("swap_weapon")       # the patterns follow at the next free VBlank
+    a.ld_a_abs(WEAPON_INDEX); a.inc_r("a"); a.and_n(WEAPON_COUNT - 1)
+    a.ld_abs_a(WEAPON_INDEX)
+    a.ld_r_n("a", 1); a.ld_abs_a(WEAPON_RELOAD)
+    a.xor_r("a"); a.ld_abs_a(WEAPON_COOLDOWN)
+    a.jp("sound_swap")
+
+    a.label("service_weapon_swap")
+    # Two weapons cannot both be resident: the window is eighty OBJ patterns
+    # and that is one weapon's five cels exactly. So the pattern IDs never
+    # change and only their contents do, which means no OAM rewrite and no
+    # animation change - one GDMA of eighty blocks into $8200 in VRAM bank 1.
+    # It runs from the main loop between frames, never from an interrupt, and
+    # with the LCD off, the way init_vram uploads this same window at
+    # enter_world. A transfer with the LCD on is part of a frame's
+    # publication as far as the console and the harness are concerned, and
+    # this is not one: it is a VRAM re-upload, like loading a level. The cost
+    # is the frame it blanks, once per swap.
+    a.ld_a_abs(WEAPON_RELOAD); a.or_r("a"); a.ret("z")
+    a.xor_r("a"); a.ld_abs_a(WEAPON_RELOAD)
+    a.call("weapon_source"); a.push("hl")
+    a.call("lcd_off"); a.pop("hl")
+    a.ld_r_n("a", 1); a.ldh_n_a(VBK)
+    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
+    a.ld_r_r("a", "h"); a.ldh_n_a(HDMA1); a.ld_r_r("a", "l"); a.ldh_n_a(HDMA2)
+    a.ld_r_n("a", ((0x8000 + WEAPON_TILE_BASE * 16) >> 8) & 0x1F); a.ldh_n_a(HDMA3)
+    a.ld_r_n("a", (WEAPON_TILE_BASE * 16) & 0xF0); a.ldh_n_a(HDMA4)
+    a.ld_r_n("a", WEAPON_PATTERNS - 1); a.ldh_n_a(HDMA5)
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC); a.ret()
+
     a.label("upload_profile_tiles")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("upload_active_profile_tiles", "z")
     a.ld_r_n("a", BANKED_ATLAS_ROM_BANK); a.ld_abs_a(0x2000)
@@ -195,7 +241,7 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     a.call("upload_profile_tiles")
-    a.ld_rr_label("hl", "weapon_tiles"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", 1280 if SABLE_ART else 256); a.call("copy_bc")
+    a.call("weapon_source"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
     a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
@@ -390,7 +436,17 @@ def emit_input_system(a: Assembler) -> None:
     a.label("no_move_backward")
     a.ld_a_abs(PRESSED); a.and_n(0x20); a.jr("no_open_door", "z"); a.call("open_door")
     a.label("no_open_door")
+    a.ld_a_abs(PRESSED); a.and_n(0x40); a.jr("no_weapon_swap", "z")
+    a.call("swap_weapon")
+    a.label("no_weapon_swap")
+    # The weapon's own recovery gates the trigger, so a slower weapon can pay
+    # for its damage. The shotgun's recovery is zero, so nothing about it
+    # changed.
+    a.ld_a_abs(WEAPON_COOLDOWN); a.or_r("a"); a.jr("weapon_recovered", "z")
+    a.dec_r("a"); a.ld_abs_a(WEAPON_COOLDOWN); a.jr("no_shoot")
+    a.label("weapon_recovered")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
+    a.call("weapon_record"); a.inc_rr("hl"); a.ld_a_hl(); a.ld_abs_a(WEAPON_COOLDOWN)
     if SABLE_ART: a.call("stamp_shot")
     a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH)
     if FOREGROUND_PUBLICATION: a.call("enqueue_foreground_fire")

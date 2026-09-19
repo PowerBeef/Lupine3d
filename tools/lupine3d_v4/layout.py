@@ -288,7 +288,16 @@ DIFFICULTY = MUSIC_STATE_END            # 0 easy, 1 normal, 2 hard
 DIFFICULTY_LEVELS = 3
 ACTOR_STEP = MUSIC_STATE_END + 1        # chase/patrol step for the loaded actor
 ACTOR_PALETTE = MUSIC_STATE_END + 2     # OBJ palette for the loaded actor
-WORLD_STATE_END = MUSIC_STATE_END + 3
+# Which weapon is in hand, whether its patterns still have to be streamed in,
+# and how long until it can fire again. The window the screens vacated.
+WEAPON_INDEX = MUSIC_STATE_END + 3
+WEAPON_RELOAD = WEAPON_INDEX + 1
+WEAPON_COOLDOWN = WEAPON_RELOAD + 1
+WORLD_STATE_END = WEAPON_COOLDOWN + 1
+WEAPON_COUNT = 2
+WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
+WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
+WEAPON_PATTERNS = WEAPON_TILE_BYTES // 16
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.
 #

@@ -18,7 +18,7 @@ from lupine3d_v4.living_world import *  # noqa: F401,F403
 # living_world re-exports the compatibility layout namespace. Reassert the
 # current art generators after that import so the frozen v0.1 helpers cannot
 # shadow the active industrial-gothic UI and weapon assets.
-from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles  # noqa: E402
+from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles, make_slug_tiles  # noqa: E402
 from lupine3d_v4.bank_safety import check_bank_safety
 from lupine3d_v4.precision import make_q14_directions, emit_precision
 from lupine3d_v4.actor_precision import emit_actor_precision
@@ -50,7 +50,7 @@ from lupine3d_v4.physical_depth import emit_physical_depth
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
     return [
-        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("weapon_tiles", make_weapon_tiles()), ("obj_ui_tiles", make_obj_ui_tiles()),
+        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("weapon_tiles", make_weapon_tiles()), ("slug_tiles", make_slug_tiles()), ("obj_ui_tiles", make_obj_ui_tiles()),
         ("static_view_tiles", make_static_view_tiles()),
         ("active_atlas_tiles", ACTIVE_ATLAS_TILES),
         ("entity_tiles", make_entity_tiles()), ("oam_initial", make_oam_shadow()),
@@ -191,6 +191,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.jp("present_mode")
     a.label("frame_continue")
     a.xor_r("a"); a.ld_abs_a(MODE_DELAY)
+    # The frame is published, so the next VBlank belongs to nobody: a weapon
+    # swap takes it. Doing this anywhere inside publication would need a
+    # second GDMA in a VBlank that has about forty T-cycles to spare.
+    a.call("service_weapon_swap")
     a.jp("main_loop")
 
     a.label("present_mode")
@@ -298,6 +302,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                            # Sentinel, so a corrupt kind byte still reads a
                            # playable actor
     )), "enemy kind stats")
+    # Two bytes per weapon: damage a hit takes off, and the simulation ticks
+    # before it can fire again. The shotgun keeps the engine's original
+    # behaviour exactly - one damage, no wait - so the trade is the slug
+    # rifle's alone: twice the damage for a long enough pause to feel it.
+    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15)), "damage and cooldown per weapon")
     a.label("password_codes"); a.bytes(bytes(
         digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),
         "four-digit continue code per sector and skill")

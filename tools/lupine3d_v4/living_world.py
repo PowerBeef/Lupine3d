@@ -173,6 +173,15 @@ def emit_door_system(a: Assembler) -> None:
         a.label(next_label)
     a.label("door_update_all_done"); a.ret()
 
+    a.label("sound_swap")
+    # A short mechanical clack: something heavy seating, not a reader beeping.
+    a.xor_r("a"); a.ldh_n_a(NR10)
+    a.ld_r_n("a", 0x40); a.ldh_n_a(NR11)
+    a.ld_r_n("a", 0x91); a.ldh_n_a(NR12)
+    a.ld_r_n("a", 0x60); a.ldh_n_a(NR13)
+    a.ld_r_n("a", 0xC4); a.ldh_n_a(NR14)
+    a.ret()
+
     a.label("sound_keycard")
     # Two short high blips: a reader refusing, not a bolt holding.
     a.xor_r("a"); a.ldh_n_a(NR10)
@@ -643,7 +652,11 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_DEPTH); a.cp_r("b"); a.ret("nc")
     if SABLE_ART:
         a.ld_r_n("a",2); a.call("stamp_actor_reaction")
-    a.ld_a_abs(SENTINEL_HEALTH); a.dec_r("a"); a.ld_abs_a(SENTINEL_HEALTH); a.jr("sentinel_survived_hit", "nz")
+    # What a hit takes off is the weapon's, not the engine's.
+    a.call("weapon_damage"); a.ld_r_r("c", "a")
+    a.ld_a_abs(SENTINEL_HEALTH); a.sub_r("c"); a.jr("hit_health_floor", "nc"); a.xor_r("a")
+    a.label("hit_health_floor")
+    a.ld_abs_a(SENTINEL_HEALTH); a.jr("sentinel_survived_hit", "nz")
     if SABLE_ART:
         a.ld_r_n("a",3); a.call("stamp_actor_reaction")
     a.ld_r_n("a", SENTINEL_DEAD); a.ld_abs_a(SENTINEL_STATE)
