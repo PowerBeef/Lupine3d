@@ -238,13 +238,15 @@ class RemainingTests(unittest.TestCase):
         self.assertEqual(c.gdma_vblank_violations, 0)
         self.assertEqual(c.oam[40], 64)
 
-    def test_start_restarts_dead_and_completed_worlds(self):
+    def test_dead_and_completed_worlds_freeze_instead_of_reloading(self):
+        # Restart belongs to the mode machine now: the simulation only stops.
+        # See test_screens for the whole death/results/restart cycle.
         for address, value in ((br.PLAYER_HEALTH, 0), (br.LEVEL_COMPLETE, 1)):
             c = self.boot(); c.wramx[2][address - 0xD000] = value
             c.buttons = 128; c.call_subroutine("sample_joypad_latched"); c.call_subroutine("queue_vblank_input")
             c.call_subroutine("render_yield"); c.call_subroutine("begin_frame_snapshot")
-            self.assertEqual(c.read8(br.PLAYER_HEALTH), 99)
-            self.assertEqual(c.read8(br.LEVEL_COMPLETE), 0)
+            self.assertEqual(c.read8(address), value, "the simulation reloaded the level itself")
+            # A frozen world still publishes, so the final HUD stays readable.
             self.assertEqual(c.read8(br.SENTINEL_HEALTH), 3)
 
 

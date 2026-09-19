@@ -131,11 +131,43 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("cast_all")
     if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
     a.label("compose_full_snapshot")
-    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("main_loop")
+    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("frame_done")
     a.label("reuse_wall_view")
     if PHYSICAL_DEPTH:
         a.call("refine_reused_snapshot"); a.or_r("a"); a.jp("compose_full_snapshot","nz")
-    a.call("render_entities"); a.call("upload_entities_hud"); a.jp("main_loop")
+    a.call("render_entities"); a.call("upload_entities_hud")
+
+    # The frame is published. Decide whether the world keeps the next one.
+    a.label("frame_done")
+    a.ld_a_abs(PLAYER_HEALTH); a.or_r("a"); a.jr("frame_test_complete", "nz")
+    a.ld_r_n("a", MODE_GAMEOVER); a.jr("frame_settle")
+    a.label("frame_test_complete")
+    a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("frame_continue", "z")
+    a.ld_r_n("a", MODE_ENDING)
+    a.label("frame_settle")
+    # Stage the outcome without leaving MODE_PLAYING yet: the handler still has
+    # to queue input, and the player should read the final HUD first.
+    a.ld_abs_a(PENDING_MODE)
+    a.ld_a_abs(MODE_DELAY); a.inc_r("a"); a.ld_abs_a(MODE_DELAY)
+    a.cp_n(MODE_DELAY_FRAMES); a.jp("main_loop", "c")
+    a.jp("present_mode")
+    a.label("frame_continue")
+    a.xor_r("a"); a.ld_abs_a(MODE_DELAY)
+    a.jp("main_loop")
+
+    a.label("present_mode")
+    a.ld_a_abs(PENDING_MODE); a.ld_abs_a(GAME_MODE)
+    a.cp_n(MODE_GAMEOVER); a.ld_r_n("a", SCREEN_GAMEOVER); a.jr("present_mode_show", "z")
+    a.ld_r_n("a", SCREEN_ENDING)
+    a.label("present_mode_show")
+    a.call("show_screen")
+    # Edges latched while the world was frozen are not an answer to this screen.
+    a.di(); a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
+    a.call("screen_wait_start")
+    a.xor_r("a"); a.ld_abs_a(MODE_DELAY)
+    a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
+    a.call("load_level")
+    a.jp("enter_world")
 
     # Runtime routines.
     emit_copy_bulk(a); v1.emit_wait_vblank(a); emit_palette_init(a); emit_hud_system(a)

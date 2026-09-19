@@ -252,6 +252,12 @@ SCREEN_MAP_L, SCREEN_MAP_H = 0xC8F4, 0xC8F5
 SCREEN_SLOT_L, SCREEN_SLOT_H = 0xC8F6, 0xC8F7
 SCREEN_ROW_COUNT = 0xC8F8
 SCREEN_PALETTE = 1            # the reserved steel HUD palette
+# The world holds its last frame briefly after death or completion so the HUD
+# can be read before a screen replaces it. Frozen frames are cached
+# presentations at about sixty a second.
+PENDING_MODE = 0xC8F9
+MODE_DELAY = 0xC8FA
+MODE_DELAY_FRAMES = 120
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

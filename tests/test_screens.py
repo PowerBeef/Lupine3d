@@ -76,5 +76,45 @@ class TitleGateTests(unittest.TestCase):
         self.assertEqual(cgb.read8(self.asm.labels["input_last_raw"]), 0)
 
 
+class ModeMachineTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+
+    def _advance(self, cgb, predicate, limit=60_000_000):
+        for _ in range(limit):
+            if predicate():
+                return True
+            cgb.step()
+        return False
+
+    def _cycle(self, address, value, expected_mode):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.button_provider = lambda *_: 0
+        cgb.wramx[2][address - 0xD000] = value
+        # The world holds its last frame, then hands over to a results screen.
+        self.assertTrue(self._advance(cgb, lambda: cgb.read8(br.GAME_MODE) != br.MODE_PLAYING),
+                        "the world never left MODE_PLAYING")
+        self.assertEqual(cgb.read8(br.GAME_MODE), expected_mode)
+        self.assertTrue(self._advance(cgb, lambda: cgb.io[0x40] == 0x81), "no screen appeared")
+        self.assertEqual(cgb.read8(0xFFFF), 1)
+        # START reloads the level and returns to the world.
+        cgb.button_provider = lambda *_: 0x80
+        world = self.asm.labels["main_loop"]
+        self.assertTrue(self._advance(
+            cgb, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == world),
+            "START did not restore the world")
+        self.assertEqual(cgb.io[0x40], br.BG_LCDC)
+        self.assertEqual(cgb.wramx[2][br.PLAYER_HEALTH - 0xD000], 99)
+        self.assertEqual(cgb.wramx[2][br.LEVEL_COMPLETE - 0xD000], 0)
+        self.assertEqual(cgb.wramx[2][br.PICKUP_COLLECTED - 0xD000], 0)
+
+    def test_death_reaches_the_results_screen_and_restarts(self):
+        self._cycle(br.PLAYER_HEALTH, 0, br.MODE_GAMEOVER)
+
+    def test_completion_reaches_the_ending_and_restarts(self):
+        self._cycle(br.LEVEL_COMPLETE, 1, br.MODE_ENDING)
+
+
 if __name__ == "__main__":
     unittest.main()

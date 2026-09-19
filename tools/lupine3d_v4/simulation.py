@@ -151,12 +151,13 @@ def emit_simulation(a: Assembler) -> None:
         a.ld_a_abs(SIM_BUDGET); a.dec_r("a"); a.ld_abs_a(SIM_BUDGET); a.jr("narrow_service_input_loop", "nz"); a.ret()
 
     a.label("simulation_tick")
-    a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("simulation_restart", "nz")
+    # Death and completion freeze the world. The main loop owns what happens
+    # next: it holds the final frame, then hands over to a results screen.
+    a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("simulation_frozen", "nz")
     a.ld_a_abs(PLAYER_HEALTH); a.or_r("a"); a.jr("simulation_alive", "nz")
-    a.label("simulation_restart")
+    a.label("simulation_frozen")
     if SABLE_ART or COMPACT_DISPLAY: a.call("stop_art_clocks")
-    a.ld_a_abs(PRESSED); a.and_n(128); a.ret("z")
-    a.call("load_level"); a.ret()
+    a.ret()
     a.label("simulation_alive")
     a.call("apply_input_actions")
     if SABLE_ART or COMPACT_DISPLAY: a.call("advance_art_clocks")

@@ -154,12 +154,26 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
     completed_at=len(records)
     if restart:
         generation=cgb.read16(br.WALL_EPOCH)
-        step(128);step(0)
-        for _ in range(8):
-            if not live8(br.LEVEL_COMPLETE) and cgb.read16(br.WALL_EPOCH)!=generation:break
-            step(0)
+        # Completion freezes the world, holds the final frame, then presents
+        # the results screen. Screens do not publish, so drive the CPU
+        # directly rather than by presentation until the world comes back.
+        def advance(predicate, limit=60_000_000, why=""):
+            for _ in range(limit):
+                if predicate(): return
+                cgb.step()
+            raise AssertionError(f"controller restart stalled: {why}")
+        cgb.button_provider=lambda *_:0
+        advance(lambda: cgb.read8(br.GAME_MODE)!=br.MODE_PLAYING, why="no results screen")
+        assert cgb.read8(br.GAME_MODE)==br.MODE_ENDING
+        advance(lambda: cgb.io[0x40]==0x81, why="results screen never displayed")
+        cgb.button_provider=lambda *_:0x80
+        advance(lambda: cgb.read8(br.GAME_MODE)==br.MODE_PLAYING
+                and cgb.pc==cgb.symbols["main_loop"], why="START did not restore the world")
+        cgb.button_provider=None; cgb.buttons=0
+        for name in ("input_last_raw","input_edge_latch"): cgb.write8(cgb.symbols[name],0)
         assert not live8(br.LEVEL_COMPLETE) and cgb.read16(br.WALL_EPOCH)!=generation
         assert live8(br.PLAYER_HEALTH)==99 and live8(br.PICKUP_COLLECTED)==0
+        step(0)
         capture("restarted")
     tape=bytes(replay.get(i,0) for i in range(cgb.frame_count-first_lcd+1))
     (output/'controller_replay.bin').write_bytes(tape)
