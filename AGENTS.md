@@ -133,6 +133,20 @@ regression contract.
   geometry oracles must follow the ROM: select the reference level from the
   running machine's `LEVEL_INDEX`, never from the build-time first level.
 
+## Continue codes
+
+- There is no cartridge RAM, so progress is a written-down code. `continue_codes`
+  generates one four-digit code per (sector, skill) pair at build time: distinct,
+  deterministic and never starting with a zero. The console compares bytes; it
+  never decodes a checksum. Regenerating the table changes every code, so treat
+  it as content, not an implementation detail.
+- A screen may reserve up to `SCREEN_SLOT_CAPACITY` map cells it rewrites at
+  runtime. Patterns 0-9 are the digits and pattern 10 is blank, so a number or a
+  cleared cell is one map write - done with the LCD off, or at the top of VBlank
+  from the screen loop. Keep the code's four cells adjacent.
+- SELECT opens code entry from the title only. An unrecognised code is refused
+  without changing anything, and SELECT cancels back to the title.
+
 ## Enemies and skill
 
 - An actor's kind is byte 15 of its slot (`ACTOR_KIND_OFFSET`), so it rides the

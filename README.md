@@ -38,6 +38,7 @@ Open `Lupine3D_v0.8.gb` in a Game Boy Color emulator with MBC5 support. The mono
 | D-pad Left / Right | Turn |
 | A | Fire the shotgun |
 | B | Use a nearby door |
+| Select | Enter a continue code, from the title |
 | Start | Begin, and continue past a results screen |
 
 The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means clear the outpost; **GOAL / EXIT** means the exit is available. Reach it to finish. Doors still open with B. Green medical pickups restore health.
@@ -45,16 +46,22 @@ The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means 
 ### In development on main
 
 v0.8 is the current tagged release and ships a single level. A build from `main`
-adds a title screen and a **three-sector campaign** — Sable Outpost, Coolant
-Spine and Reactor Gate — with one, two and three Sentinels. Clearing a sector
-shows an intermission naming the next one; dying retries the sector you lost;
-clearing the last one ends the campaign and restarts it. Levels are selected at
-runtime from their own ROM banks, so progress is not a password yet: there is
-still no save system. It also has **music**: a title theme, an in-game loop and
-a victory sting on three sound channels, with the fourth kept free so gunfire
-never cuts a bar. Later sectors mix in a second enemy kind — quicker, lighter
-and cold-cast against the Sentinel's armour — and **left/right on the title
-chooses one of three skill settings** before you press Start.
+is a campaign:
+
+- **Three sectors** — Sable Outpost, Coolant Spine and Reactor Gate — behind a
+  title screen, each level selected at runtime from its own ROM bank. Clearing
+  one shows an intermission; dying retries the sector you lost; clearing the
+  last one ends the campaign.
+- **Music**: a title theme, an in-game loop and a victory sting on three sound
+  channels, with the fourth kept free so gunfire never cuts a bar. Being hit,
+  killing an enemy, taking a pickup and clearing a sector all have their own
+  sounds now.
+- **Two enemy kinds**: the armoured Sentinel, and a quicker, lighter skirmisher
+  in a colder cast. **Left and right on the title** choose one of three skill
+  settings before you press Start.
+- **Continue codes**: clearing a sector shows a four-digit code, and **Select on
+  the title** opens code entry — so you can come back to where you left off on
+  a cartridge with no save hardware at all.
 
 ## Performance and qualification
 

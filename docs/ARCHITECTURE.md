@@ -145,6 +145,25 @@ VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware select
 at most ten objects per scanline, including Y-overlapping objects hidden in X.
 Living actors and gameplay pickups have priority over cosmetic death sprites.
 
+### Continue codes
+
+There is no cartridge RAM — `$0147` is `$19` and `$0149` is `$00` — so progress
+travels as a code the player writes down. A build-time table holds one
+four-digit code per (sector, skill) pair, generated deterministically, never
+repeated and never starting with a zero, so a code read off the intermission
+types back in exactly as it appears. The console only ever compares bytes: no
+modular arithmetic, no checksum decode.
+
+The intermission writes the code for the sector just unlocked into four
+adjacent runtime digit slots. SELECT on the title opens a code-entry screen
+using the same slots: left and right move a blinking cursor, up and down roll
+the digit under it, START looks the code up and, on a match, sets the level and
+the skill. An unknown code is simply not taken, and SELECT returns to the title.
+
+Screens carry up to four rewritable map cells. Patterns 0–9 are the decimal
+digits and pattern 10 is blank, so showing a number or clearing a cell is a
+single map write with the LCD off, or at the top of VBlank.
+
 ## Enemies
 
 An actor slot's byte 15 holds its kind, so the kind rides the per-slot save and

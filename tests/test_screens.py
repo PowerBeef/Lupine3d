@@ -1,4 +1,4 @@
-"""Full-screen presentation modes: composition budget and the title gate."""
+"""Full-screen presentation modes: composition, the title gate and continues."""
 import sys
 import unittest
 from pathlib import Path
@@ -31,10 +31,34 @@ class ScreenCompositionTests(unittest.TestCase):
         self.assertEqual(screens.screen_directory(), screens.screen_directory())
         self.assertLessEqual(len(screens.screen_directory()), 0x4000)
 
-    def test_the_intermission_reserves_a_runtime_digit_slot(self):
+    def test_screens_reserve_the_runtime_slots_they_need(self):
         slots = {name: offsets for name, _, _, offsets in screens.screen_assets()}
-        self.assertEqual(len(slots["intermission"]), 1)
-        self.assertLess(slots["intermission"][0], screens.SCREEN_MAP_BYTES)
+        self.assertEqual(len(slots["title"]), 1)             # the skill digit
+        self.assertEqual(len(slots["intermission"]), br.PASSWORD_DIGITS)
+        self.assertEqual(len(slots["password"]), br.PASSWORD_DIGITS)
+        for name, offsets in slots.items():
+            self.assertLessEqual(len(offsets), br.SCREEN_SLOT_CAPACITY, name)
+            self.assertEqual(len(set(offsets)), len(offsets), name)
+            for offset in offsets:
+                self.assertLess(offset, screens.SCREEN_MAP_BYTES, name)
+        # The code's four cells are adjacent, so it reads as one number.
+        for name in ("intermission", "password"):
+            self.assertEqual(list(slots[name]), list(range(slots[name][0], slots[name][0] + 4)), name)
+
+    def test_a_blank_pattern_follows_the_digits_so_a_cell_can_be_cleared(self):
+        for name, patterns, tilemap, _ in screens.screen_assets():
+            blank = patterns[screens.BLANK_PATTERN * 16:screens.BLANK_PATTERN * 16 + 16]
+            self.assertEqual(blank, bytes(16), name)
+
+    def test_every_continue_code_is_distinct_and_typeable(self):
+        codes = screens.continue_codes(br.LEVEL_COUNT, br.DIFFICULTY_LEVELS)
+        self.assertEqual(len(codes), br.LEVEL_COUNT * br.DIFFICULTY_LEVELS)
+        self.assertEqual(len(set(codes)), len(codes))
+        for code in codes:
+            self.assertEqual(len(code), br.PASSWORD_DIGITS)
+            self.assertTrue(all(0 <= digit <= 9 for digit in code))
+            self.assertNotEqual(code[0], 0)      # reads back exactly as shown
+        self.assertEqual(codes, screens.continue_codes(br.LEVEL_COUNT, br.DIFFICULTY_LEVELS))
 
 
 class TitleGateTests(unittest.TestCase):
@@ -74,6 +98,82 @@ class TitleGateTests(unittest.TestCase):
         self.assertEqual(cgb.read8(0xFFFF), 3 if br.HUD_UNSIGNED else 1)
         # The harness released START, so the next press is still a rising edge.
         self.assertEqual(cgb.read8(self.asm.labels["input_last_raw"]), 0)
+
+
+class ContinueCodeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+        cls.codes = screens.continue_codes(br.LEVEL_COUNT, br.DIFFICULTY_LEVELS)
+
+    @staticmethod
+    def _press(cgb, button, frames=160_000):
+        # Selection follows rising edges, so each press is a release too.
+        for held in (button, 0):
+            cgb.button_provider = lambda *_, value=held: value
+            for _ in range(frames):
+                cgb.step()
+
+    def _title(self):
+        cgb = CGB(self.rom, self.asm.labels)
+        cgb.button_provider = lambda *_: 0
+        for _ in range(900_000):
+            cgb.step()
+        self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_TITLE)
+        return cgb
+
+    def _type(self, cgb, code):
+        self._press(cgb, 0x40)                 # SELECT opens code entry
+        self.assertEqual(cgb.read8(br.SCREEN_INDEX), br.SCREEN_PASSWORD)
+        for index, digit in enumerate(code):
+            for _ in range(digit):
+                self._press(cgb, 0x04)         # up rolls the digit
+            if index < len(code) - 1:
+                self._press(cgb, 0x01)         # right moves the cursor
+        self.assertEqual([cgb.read8(br.SCREEN_DIGITS + i) for i in range(br.PASSWORD_DIGITS)],
+                         list(code))
+
+    def test_a_code_starts_the_campaign_at_the_sector_and_skill_it_names(self):
+        level, skill = br.LEVEL_COUNT - 1, br.DIFFICULTY_LEVELS - 1
+        cgb = self._title()
+        self._type(cgb, self.codes[level * br.DIFFICULTY_LEVELS + skill])
+        self._press(cgb, 0x80)                 # START accepts
+        cgb.button_provider = lambda *_: 0
+        for _ in range(900_000):
+            cgb.step()
+        self.assertEqual(cgb.read8(br.LEVEL_INDEX), level)
+        self.assertEqual(cgb.read8(br.DIFFICULTY), skill)
+        self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_PLAYING)
+        self.assertEqual(cgb.read8(br.LEVEL_BANK), br.LEVEL_ROM_BANK_BASE + level)
+        self.assertEqual(bytes(cgb.wramx[2][br.MAP - 0xD000:br.MAP - 0xD000 + 256]),
+                         br.CAMPAIGN[level].grid)
+
+    def test_an_unknown_code_is_refused_and_select_cancels(self):
+        cgb = self._title()
+        before = cgb.read8(br.DIFFICULTY)
+        self._type(cgb, (9, 9, 9, 9))          # not in the table
+        self._press(cgb, 0x80)
+        self.assertEqual(cgb.read8(br.SCREEN_INDEX), br.SCREEN_PASSWORD, "a bad code was taken")
+        self.assertEqual(cgb.read8(br.LEVEL_INDEX), 0)
+        self._press(cgb, 0x40)                 # SELECT cancels back to the title
+        for _ in range(300_000):
+            cgb.step()
+        self.assertEqual(cgb.read8(br.SCREEN_INDEX), br.SCREEN_TITLE)
+        self.assertEqual(cgb.read8(br.DIFFICULTY), before)
+        self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_TITLE)
+
+    def test_the_intermission_shows_the_code_for_where_the_player_reached(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.button_provider = lambda *_: 0
+        cgb.wramx[2][br.LEVEL_COMPLETE - 0xD000] = 1
+        for _ in range(60_000_000):
+            if cgb.read8(br.GAME_MODE) == br.MODE_INTERMISSION and cgb.io[0x40] == 0x81:
+                break
+            cgb.step()
+        self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_INTERMISSION)
+        level, skill = cgb.read8(br.LEVEL_INDEX), cgb.read8(br.DIFFICULTY)
+        self.assertEqual([cgb.read8(br.SCREEN_DIGITS + i) for i in range(br.PASSWORD_DIGITS)],
+                         list(self.codes[level * br.DIFFICULTY_LEVELS + skill]))
 
 
 class ModeMachineTests(unittest.TestCase):

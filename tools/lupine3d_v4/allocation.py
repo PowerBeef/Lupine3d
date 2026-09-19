@@ -42,6 +42,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
         A("WRAM0", l.MUSIC_STATE, l.MUSIC_STATE_END, "music sequencer state"),
         A("WRAM0", l.MUSIC_STATE_END, l.WORLD_STATE_END, "skill and per-actor stat scratch"),
+        A("WRAM0", l.WORLD_STATE_END, l.SCREEN_STATE_END, "runtime screen digits and code entry"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", 0xC8CF, 0xC8D0, "presentation mode"),
@@ -113,8 +114,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert l.WORLD_COPY_BUFFER + 457 <= l.RENDER_HRAM_SAVE
     # The sequencer state sits above the BG map in every display profile and
     # never overlaps the diagnostic strip scratch.
-    assert 0xC600 + l.VIEW_MAP_BYTES <= l.MUSIC_STATE and l.WORLD_STATE_END <= 0xC800
-    assert l.WORLD_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= l.MUSIC_STATE
+    assert 0xC600 + l.VIEW_MAP_BYTES <= l.MUSIC_STATE and l.SCREEN_STATE_END <= 0xC800
+    assert l.SCREEN_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= l.MUSIC_STATE
     return dict(schema="lupine3d.allocations.v1", ranges=[asdict(r) for r in rows],
                 free_wram_banks=[6, 7], fixed_code_free_bytes=0x4000-code_end,
                 resident_free_bytes=0x8000-resident_end,

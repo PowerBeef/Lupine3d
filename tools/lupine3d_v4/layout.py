@@ -257,7 +257,8 @@ RAW_RAY_ROM_ADDRESS = 0x4000
 # window while the world renders, so these screens borrow it when it is idle.
 SCREEN_ROM_BANK = 239
 SCREEN_ROM_ADDRESS = 0x4000
-SCREEN_RECORD_BYTES = 7
+SCREEN_SLOT_CAPACITY = 4       # digits one screen can rewrite at runtime
+SCREEN_RECORD_BYTES = 6 + 2 * SCREEN_SLOT_CAPACITY
 # Songs. The VBlank sequencer must never switch the ROM bank: it could land
 # between a banked lookup's switch and its read. The selected song is copied
 # into a WRAM bank instead, and the tick saves and restores SVBK.
@@ -288,6 +289,17 @@ DIFFICULTY_LEVELS = 3
 ACTOR_STEP = MUSIC_STATE_END + 1        # chase/patrol step for the loaded actor
 ACTOR_PALETTE = MUSIC_STATE_END + 2     # OBJ palette for the loaded actor
 WORLD_STATE_END = MUSIC_STATE_END + 3
+# Runtime screen digits and the map cells they land in, plus the code-entry
+# cursor. A screen with no slots leaves all of this untouched.
+SCREEN_DIGITS = WORLD_STATE_END                       # SCREEN_SLOT_CAPACITY values
+SCREEN_SLOTS = SCREEN_DIGITS + SCREEN_SLOT_CAPACITY   # two bytes per slot
+SCREEN_SLOT_COUNT = SCREEN_SLOTS + 2 * SCREEN_SLOT_CAPACITY
+PASSWORD_CURSOR = SCREEN_SLOT_COUNT + 1
+PASSWORD_BLINK = PASSWORD_CURSOR + 1
+PASSWORD_SCAN = PASSWORD_BLINK + 1
+PASSWORD_DIGITS = 4
+SCREEN_DIGIT = SCREEN_DIGITS            # the first runtime digit, by itself
+SCREEN_STATE_END = PASSWORD_SCAN + 1
 
 GAME_MODE = 0xC8CF            # fixed WRAM: the ISR reads it under any SVBK
 MODE_TITLE, MODE_PLAYING, MODE_GAMEOVER, MODE_ENDING, MODE_INTERMISSION = range(5)
@@ -297,7 +309,6 @@ SCREEN_INDEX = 0xC8F0
 SCREEN_PATTERN_COUNT = 0xC8F1
 SCREEN_SOURCE_L, SCREEN_SOURCE_H = 0xC8F2, 0xC8F3
 SCREEN_MAP_L, SCREEN_MAP_H = 0xC8F4, 0xC8F5
-SCREEN_SLOT_L, SCREEN_SLOT_H = 0xC8F6, 0xC8F7
 SCREEN_ROW_COUNT = 0xC8F8
 SCREEN_PALETTE = 1            # the reserved steel HUD palette
 # The world holds its last frame briefly after death or completion so the HUD
@@ -314,7 +325,6 @@ LEVEL_INDEX = 0xC8FB
 LEVEL_BANK = 0xC8FC
 LEVEL_FIXTURE_COUNT = 0xC8FD
 LEVEL_PICKUP_VALUE = 0xC8FE
-SCREEN_DIGIT = 0xC8FF          # written into a screen's reserved slot, LCD off
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

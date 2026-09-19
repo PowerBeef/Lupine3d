@@ -30,7 +30,8 @@ from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk
 from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_renderer_v7
 from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
-                                 SCREEN_INTERMISSION, emit_screens, screen_directory)
+                                 SCREEN_INTERMISSION, SCREEN_PASSWORD,
+                                 continue_codes, emit_screens, screen_directory)
 from lupine3d_v4.music import (SONG_TITLE, SONG_WORLD, SONG_VICTORY,
                                emit_music, music_payload)
 from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
@@ -122,9 +123,16 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_r_n("a", MODE_TITLE); a.ld_abs_a(GAME_MODE)
     a.ld_r_n("a", SONG_TITLE); a.call("music_start")
     # Skill starts at the middle setting and the title shows it as a digit.
-    a.ld_r_n("a", 1); a.ld_abs_a(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
-    a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen"); a.call("screen_wait_start")
+    a.ld_r_n("a", 1); a.ld_abs_a(DIFFICULTY)
+    a.label("title_screen")
+    a.ld_a_abs(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
+    a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen")
+    a.call("screen_wait_start"); a.and_n(0x40); a.jr("title_start", "z")
+    # SELECT opens code entry; a rejected or cancelled code returns here.
+    a.call("password_entry"); a.or_r("a"); a.jr("title_screen", "z")
+    a.label("title_start")
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
+    a.call("load_level")
 
     # Build the world from scratch: patterns, maps, attributes, the first
     # snapshot and its publication. Entered from boot and from any screen.
@@ -186,7 +194,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     a.label("present_mode")
     a.ld_a_abs(PENDING_MODE); a.ld_abs_a(GAME_MODE)
-    a.xor_r("a"); a.ld_abs_a(SCREEN_DIGIT)
     # Death retries the sector that was lost, so only the two completion modes
     # move LEVEL_INDEX. The screen is chosen from the mode that got us here.
     a.ld_a_abs(GAME_MODE); a.cp_n(MODE_GAMEOVER)
@@ -198,7 +205,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     if LEVEL_COUNT > 1:
         a.label("present_next_sector")
         a.ld_a_abs(LEVEL_INDEX); a.inc_r("a"); a.ld_abs_a(LEVEL_INDEX)
-        a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)   # sectors are numbered from one
+        a.call("password_for_progress")          # the code to continue from here
         a.ld_r_n("a", SCREEN_INTERMISSION)
     a.label("present_mode_show")
     # A results screen carries its own music: silence for a loss, the victory
@@ -263,6 +270,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         8, 8, 8, 1,        # the two spare records repeat the Sentinel, so a
         8, 8, 8, 1,        # corrupt kind byte still reads a playable actor
     )), "enemy kind stats")
+    a.label("password_codes"); a.bytes(bytes(
+        digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),
+        "four-digit continue code per sector and skill")
     a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
     for name, payload in make_boot_assets():
