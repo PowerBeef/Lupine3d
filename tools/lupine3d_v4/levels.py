@@ -29,7 +29,7 @@ DOOR_FLAG_LOCK_SENTINEL = 0x02
 # only a bank number and no per-level directory. lookup_segment_id reads the
 # segment and its surface through one pointer, so the surface table must stay
 # exactly 1024 bytes above the segment table.
-LEVEL_ROM_BANK_BASE = 240
+LEVEL_ROM_BANK_BASE = 241
 LEVEL_SEGMENT_OFFSET = 0x4000   # 1024 bytes, indexed (cell * 4 + side)
 LEVEL_SURFACE_OFFSET = 0x4400   # 1024 bytes, same index
 LEVEL_GRID_OFFSET = 0x4800      # the 16x16 world map

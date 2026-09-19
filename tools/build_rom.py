@@ -31,6 +31,8 @@ from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_render
 from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
                                  SCREEN_INTERMISSION, emit_screens, screen_directory)
+from lupine3d_v4.music import (SONG_TITLE, SONG_WORLD, SONG_VICTORY,
+                               emit_music, music_payload)
 from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
 from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.world_decor import emit_world_decor, fixture_records
@@ -111,13 +113,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     a.ld_abs_a(SIM_READY)
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
-    a.call("init_palettes"); a.call("init_audio")
+    a.call("init_palettes"); a.call("init_audio"); a.call("init_music")
     # The title runs before any world VRAM exists. Only VBlank is enabled: a
     # full-screen mode has no HUD boundary and therefore no STAT split.
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
     a.ld_r_n("a", 1); a.ld_abs_a(0xFFFF)
     a.ei(); a.nop()
     a.ld_r_n("a", MODE_TITLE); a.ld_abs_a(GAME_MODE)
+    a.ld_r_n("a", SONG_TITLE); a.call("music_start")
     a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen"); a.call("screen_wait_start")
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
 
@@ -125,6 +128,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # snapshot and its publication. Entered from boot and from any screen.
     a.label("enter_world")
     a.call("lcd_off")
+    a.ld_r_n("a", SONG_WORLD); a.call("music_start")
     a.call("init_vram"); a.call("prepare_hud_tiles"); a.call("update_hud_tiles"); a.call("init_oam")
     if FOREGROUND_PUBLICATION:
         for i in range(2): a.ld_a_abs(WALL_EPOCH+i); a.ld_abs_a(FG_FRAME_GENERATION+i)
@@ -195,6 +199,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)   # sectors are numbered from one
         a.ld_r_n("a", SCREEN_INTERMISSION)
     a.label("present_mode_show")
+    # A results screen carries its own music: silence for a loss, the victory
+    # loop for a cleared sector or a finished campaign.
+    a.push("af")
+    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_GAMEOVER)
+    a.call("music_stop", "z"); a.jr("present_mode_music_ready", "z")
+    a.ld_r_n("a", SONG_VICTORY); a.call("music_start")
+    a.label("present_mode_music_ready")
+    a.pop("af")
     a.call("show_screen")
     # Edges latched while the world was frozen are not an answer to this screen.
     a.di(); a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
@@ -227,6 +239,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     emit_wall_cache(a)
     emit_tile_cache(a)
     emit_screens(a)
+    emit_music(a)
     emit_actors(a)
     emit_surfaces(a)
     emit_world_decor(a)
@@ -613,6 +626,9 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     screen_payload = screen_directory()
     screen_start = SCREEN_ROM_BANK * 0x4000
     rom[screen_start:screen_start + len(screen_payload)] = screen_payload
+    song_payload = music_payload()
+    song_start = MUSIC_ROM_BANK * 0x4000
+    rom[song_start:song_start + len(song_payload)] = song_payload
     q14_start = Q14_ROM_BANK * 0x4000
     rom[q14_start:q14_start + Q14_ROM_BYTES] = make_q14_directions()
     if PREPARED_RAYS:

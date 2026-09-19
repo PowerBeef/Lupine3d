@@ -214,6 +214,9 @@ def emit_screens(a: Assembler) -> None:
 
     a.label("screen_wait_start")
     a.call("wait_vblank")
+    # A full-screen mode enables VBlank only, so the sequencer has no STAT
+    # boundary to ride; this loop is its once-per-frame tick.
+    a.call("music_tick")
     a.di(); a.ld_a_abs(INPUT_EDGE_LATCH); a.ld_r_r("b", "a")
     a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
     a.ld_r_r("a", "b"); a.and_n(0x80); a.jr("screen_wait_start", "z")

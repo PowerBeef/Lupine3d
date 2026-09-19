@@ -74,13 +74,14 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 237 | Unfolded diagnostic strip allocation: 8,064 bytes |
 | 238 | Cold raw ray vectors and camera-plane offset/correction tables |
 | 239 | Authored full-screen presentation (title, results, intermission) |
-| 240+ | Campaign levels, one per bank |
+| 240 | Songs and the sequencer's note periods |
+| 241+ | Campaign levels, one per bank |
 | … –255 | Unallocated cartridge capacity |
 
 ### Campaign levels
 
 Level selection is a runtime value, not an assembled immediate. Each compiled
-level occupies one bank from `LEVEL_ROM_BANK_BASE` (240) at fixed offsets, so
+level occupies one bank from `LEVEL_ROM_BANK_BASE` (241) at fixed offsets, so
 the loader needs only a bank number and no directory:
 
 | Offset | Contents |
@@ -122,6 +123,7 @@ allocations. Important owners are:
 | Resource | Ownership |
 | --- | --- |
 | Fixed WRAM `$C600–$C7DF` | 480-byte world map staging |
+| Fixed WRAM `$C7E0–$C7EB` | Music sequencer state, above the map in every profile |
 | Fixed WRAM `$C8E0–$C8EF` | Unfolded strip scratch, outside the enlarged map |
 | Fixed WRAM `$CE00–$CFFF` | 512-byte reserved stack |
 | WRAM bank 1 | Immutable render snapshot, descriptors, masks and staging |
@@ -130,7 +132,8 @@ allocations. Important owners are:
 | WRAM bank 2 | Authoritative live simulation state |
 | WRAM bank 3 | Reserved 128×32-byte dynamic-cache experiment |
 | WRAM bank 4 | Reserved foreground buffers/event queue experiment |
-| WRAM banks 5–7 | Available |
+| WRAM bank 5 | Note periods and the selected song's rows |
+| WRAM banks 6–7 | Available |
 | HRAM | 111 state bytes and a separate 10-byte DMA stub |
 | BG patterns | Static/atlas tiles plus at most 96 dynamic patterns |
 | Bank-0 HUD patterns | 94 of 96, `$8200–$87DF` |
@@ -141,6 +144,35 @@ The 242-pattern enemy/fixture **ROM source dictionary** is distinct from residen
 VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware selects
 at most ten objects per scanline, including Y-overlapping objects hidden in X.
 Living actors and gameplay pickups have priority over cosmetic death sprites.
+
+## Sound
+
+CH1 is reserved for effects — the shot, a locked door, a door opening, the
+player being hit, a Sentinel dying, a pickup and a cleared sector — so nothing
+the player does can cut a bar of music. The sequencer owns CH2 (pulse lead),
+CH3 (wave bass) and CH4 (noise percussion).
+
+Songs are rows of three bytes, one per sequencer channel: hold, release, or a
+note index into a 64-entry equal-tempered period table. A song header carries
+its speed in frames per row, its length and its loop row.
+
+Two placement constraints shape the driver:
+
+* **It never runs in VBlank.** A staged publication finishes its GDMA about one
+  scanline before line 153 — measured at line 152, dot 432 of 456 — so anything
+  else in VBlank costs frames outright. While the world renders, the sequencer
+  ticks from the viewport-boundary STAT interrupt instead, forty-odd lines
+  earlier. A full-screen mode enables VBlank only and has no such boundary, so
+  its wait loop ticks the sequencer directly.
+* **It never switches the ROM bank.** An interrupt can land between a banked
+  lookup's bank switch and its read. The selected song is copied into WRAM bank
+  5 at `music_start`, and the tick saves and restores SVBK around the rows it
+  reads. A test scans the emitted bytes of every routine the tick reaches and
+  rejects any write to the MBC5 bank register.
+
+Measured cost: 84 T-cycles on a frame that only counts down, 1,048 on a row
+boundary, **149 T-cycles mean** — 0.106% of a 140,448-cycle LCD interval, and
+the same share of a full geometry update.
 
 ## Publication and timing
 

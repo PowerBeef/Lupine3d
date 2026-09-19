@@ -48,6 +48,12 @@ HUD_HEIGHT = 144 - VIEW_HEIGHT
 P1 = v1.P1
 NR10, NR11, NR12, NR13, NR14 = v1.NR10, v1.NR11, v1.NR12, v1.NR13, v1.NR14
 NR50, NR51, NR52 = v1.NR50, v1.NR51, v1.NR52
+# CH1 stays reserved for sound effects. The sequencer owns CH2, CH3 and CH4,
+# so a gunshot can never cut the music.
+NR21, NR22, NR23, NR24 = 0x16, 0x17, 0x18, 0x19
+NR30, NR31, NR32, NR33, NR34 = 0x1A, 0x1B, 0x1C, 0x1D, 0x1E
+NR41, NR42, NR43, NR44 = 0x20, 0x21, 0x22, 0x23
+WAVE_RAM = 0x30
 LCDC, STAT, SCY, SCX, LY, LYC = v1.LCDC, v1.STAT, v1.SCY, v1.SCX, v1.LY, 0x45
 OAM_DMA = 0x46
 KEY1, VBK = v1.KEY1, v1.VBK
@@ -252,6 +258,31 @@ RAW_RAY_ROM_ADDRESS = 0x4000
 SCREEN_ROM_BANK = 239
 SCREEN_ROM_ADDRESS = 0x4000
 SCREEN_RECORD_BYTES = 7
+# Songs. The VBlank sequencer must never switch the ROM bank: it could land
+# between a banked lookup's switch and its read. The selected song is copied
+# into a WRAM bank instead, and the tick saves and restores SVBK.
+MUSIC_ROM_BANK = 240
+MUSIC_ROM_ADDRESS = 0x4000
+MUSIC_RECORD_BYTES = 8
+MUSIC_WRAM_BANK = 5
+MUSIC_NOTE_TABLE = 0xD000      # 64 periods, two bytes each
+MUSIC_ROWS = 0xD080            # three bytes per row: pulse, wave, noise
+MUSIC_ROW_CAPACITY = (0xE000 - MUSIC_ROWS) // 3
+MUSIC_ROW_BYTES = 3
+# Sequencer state in fixed WRAM, above the BG map and below the OAM shadow:
+# the ISR reads it under any SVBK, and every display profile leaves this
+# window free (slim's map ends here, and the strip scratch sits elsewhere).
+MUSIC_STATE = 0xC7E0
+MUSIC_ENABLED = MUSIC_STATE
+MUSIC_SONG = MUSIC_STATE + 1
+MUSIC_SPEED = MUSIC_STATE + 2
+MUSIC_TICK = MUSIC_STATE + 3
+MUSIC_ROW = MUSIC_STATE + 4          # u16 index of the next row
+MUSIC_ROW_COUNT = MUSIC_STATE + 6    # u16
+MUSIC_LOOP_ROW = MUSIC_STATE + 8     # u16
+MUSIC_POINTER = MUSIC_STATE + 10     # u16 into the copied rows
+MUSIC_STATE_END = MUSIC_STATE + 12
+
 GAME_MODE = 0xC8CF            # fixed WRAM: the ISR reads it under any SVBK
 MODE_TITLE, MODE_PLAYING, MODE_GAMEOVER, MODE_ENDING, MODE_INTERMISSION = range(5)
 # Screen-mode scratch, fixed WRAM above the strip scratch. Only the non-world

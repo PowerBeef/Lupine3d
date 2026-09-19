@@ -456,6 +456,7 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
     if SABLE_ART:
         a.ld_r_n("a",1); a.call("stamp_actor_reaction"); a.call("stamp_player_hurt")
+    a.call("sound_hurt")
     a.ld_r_n("a", 8); a.ld_abs_a(SENTINEL_COOLDOWN)
     a.ld_a_abs(PLAYER_HEALTH); a.sub_n(8); a.jr("ai_health_store", "nc"); a.xor_r("a")
     a.label("ai_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("ai_animate")
@@ -505,6 +506,7 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_XH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.xor_r("a"); a.ld_abs_a(PICKUP_ACTIVE); a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_COLLECTED)
+    a.call("sound_pickup")
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
     a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH)
@@ -512,7 +514,7 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_X); a.cp_r("b"); a.ret("nz")
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_Y); a.cp_r("b"); a.ret("nz")
-    a.ld_r_n("a", 1); a.ld_abs_a(LEVEL_COMPLETE); a.ret()
+    a.ld_r_n("a", 1); a.ld_abs_a(LEVEL_COMPLETE); a.jp("sound_complete")
 
     a.label("player_fire_single")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
@@ -538,7 +540,8 @@ def emit_world_update(a: Assembler) -> None:
     if SABLE_ART:
         a.ld_r_n("a",3); a.call("stamp_actor_reaction")
     a.ld_r_n("a", SENTINEL_DEAD); a.ld_abs_a(SENTINEL_STATE)
-    a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE); a.ret()
+    a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE)
+    a.jp("sound_kill")
     a.label("sentinel_survived_hit"); a.ld_r_n("a", SENTINEL_HURT); a.ld_abs_a(SENTINEL_STATE); a.ld_r_n("a", 3); a.ld_abs_a(SENTINEL_ANIM); a.ret()
 
 
@@ -642,4 +645,9 @@ def emit_reprojection(a: Assembler) -> None:
     a.push("af")
     if HUD_UNSIGNED:
         a.ldh_a_n(LCDC); a.or_n(0x10); a.ldh_n_a(LCDC)
-    a.xor_r("a"); a.ldh_n_a(SCX); a.pop("af"); a.reti()
+    a.xor_r("a"); a.ldh_n_a(SCX)
+    # The raster switch is done. The music sequencer ticks here rather than in
+    # VBlank: a staged publication has about one scanline of margin before
+    # line 153, and this boundary is forty lines away from it.
+    a.push("bc"); a.push("hl"); a.call("music_tick"); a.pop("hl"); a.pop("bc")
+    a.pop("af"); a.reti()

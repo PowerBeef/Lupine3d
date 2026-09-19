@@ -33,12 +33,14 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("ROM", l.RAY_SETUP_ROM_BANK * 0x4000, l.RAY_SETUP_ROM_BANK * 0x4000 + l.RAY_SETUP_ROM_BYTES, "prepared rays and packet padding"),
         A("ROM", 237 * 0x4000, 237 * 0x4000 + l.MICRO_STATE_COUNT*384, "unfolded diagnostic strips (reserved)"),
         A("ROM", l.RAW_RAY_ROM_BANK * 0x4000, l.RAW_RAY_ROM_BANK * 0x4000 + raw_ray_bytes, "cold raw vectors and camera-plane tables"),
+        A("ROM", l.MUSIC_ROM_BANK * 0x4000, (l.MUSIC_ROM_BANK + 1) * 0x4000, "songs and note periods"),
         A("ROM", l.LEVEL_ROM_BANK_BASE * 0x4000,
           (l.LEVEL_ROM_BANK_BASE + l.LEVEL_COUNT - 1) * 0x4000 + l.LEVEL_PAYLOAD_END - 0x4000,
           "campaign levels, one bank each"),
         A("WRAM0", 0xC000, 0xC600, "dynamic BG patterns", "composition through publication"),
         A("WRAM0", 0xC600, 0xC600 + l.VIEW_MAP_BYTES, "BG map", "composition through publication"),
         A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
+        A("WRAM0", l.MUSIC_STATE, l.MUSIC_STATE_END, "music sequencer state"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", 0xC8CF, 0xC8D0, "presentation mode"),
@@ -82,6 +84,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM4", 0xD000, 0xD0A0, "foreground composite DMA buffer"),
         A("WRAM4", 0xD100, 0xD1A0, "authoritative published world OAM"),
         A("WRAM4", 0xD200, 0xD2A0, "sixteen ten-byte foreground event slots"),
+        A("WRAM5", l.MUSIC_NOTE_TABLE, l.MUSIC_NOTE_TABLE + 128, "sequencer note periods"),
+        A("WRAM5", l.MUSIC_ROWS, 0xE000, "copied song rows", "one song"),
         A("HRAM", 0xFF80, 0xFF80 + l.HRAM_BYTES_USED, "hot render / ISR state"),
         A("HRAM", 0xFFF4, 0xFFFE, "OAM DMA code"),
         A("OAM", 0, 40, "ten UI, sixteen world, fourteen unused objects"),
@@ -106,8 +110,12 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*4 + 64 <= 256
     assert sum(count for _, count in l.WORLD_COPY_RANGES) == 457
     assert l.WORLD_COPY_BUFFER + 457 <= l.RENDER_HRAM_SAVE
+    # The sequencer state sits above the BG map in every display profile and
+    # never overlaps the diagnostic strip scratch.
+    assert 0xC600 + l.VIEW_MAP_BYTES <= l.MUSIC_STATE and l.MUSIC_STATE_END <= 0xC800
+    assert l.MUSIC_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= l.MUSIC_STATE
     return dict(schema="lupine3d.allocations.v1", ranges=[asdict(r) for r in rows],
-                free_wram_banks=[5, 6, 7], fixed_code_free_bytes=0x4000-code_end,
+                free_wram_banks=[6, 7], fixed_code_free_bytes=0x4000-code_end,
                 resident_free_bytes=0x8000-resident_end,
                 snapshot_copy_ranges=list(l.WORLD_COPY_RANGES),
                 packet_records_per_yaw=[241, 251], prepared_record_bytes=16)

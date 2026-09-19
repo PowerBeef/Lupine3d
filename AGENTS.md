@@ -76,6 +76,7 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Doors, combat, actor slots and masking | `living_world.py`, `door_geometry.py`, `actors.py`, `masked_entities.py` |
 | Level compilation, surfaces and fixtures | `levels.py`, `surfaces.py`, `world_decor.py` |
 | Game modes and full-screen presentation | `screens.py` |
+| Songs, the sequencer and sound effects | `music.py` |
 | Native art, animation, steel HUD | `artwork.py`, `sprite_assets.py`, `animation.py`, `steel_hud.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
@@ -131,6 +132,21 @@ regression contract.
   intermission, and the last sector's ending restarts the campaign. Host
   geometry oracles must follow the ROM: select the reference level from the
   running machine's `LEVEL_INDEX`, never from the build-time first level.
+
+## Sound contracts
+
+- CH1 belongs to sound effects alone; the sequencer owns CH2, CH3 and CH4, so
+  firing can never cut the music. Effects are one-shot register presets with no
+  per-frame service.
+- The sequencer **never ticks in VBlank**. A staged publication finishes its
+  GDMA roughly one scanline before 153 (measured line 152, dot 432 of 456), so
+  VBlank has no room for anything else: adding a single conditional call there
+  pushes the legacy profile past the deadline. The world ticks it from the
+  viewport STAT boundary; a full-screen mode ticks it from its wait loop.
+- The tick **never switches the ROM bank**: an interrupt can land between a
+  banked lookup's switch and its read. Songs are copied into WRAM bank 5 and
+  the tick saves/restores SVBK. Keep the test that scans for a bank-register
+  write in every routine the tick reaches.
 
 ## Runtime and memory contracts
 
