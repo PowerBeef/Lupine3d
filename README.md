@@ -105,6 +105,7 @@ For example, `LUPINE3D_DISPLAY=legacy make build` reproduces the beta.6 visual c
 | [Documentation index](docs/README.md) | Current guides and historical evidence |
 | [Development](docs/DEVELOPMENT.md) | Setup, emulator cores, diagnostics and releases |
 | [Architecture](docs/ARCHITECTURE.md) | Rendering, memory, simulation and publication |
+| [Campaign](docs/CAMPAIGN.md) | From demo to game: decisions, measured cost and evidence |
 | [Sable Outpost art](docs/SABLE_OUTPOST.md) | Visual language, animation sources and budgets |
 | [Steel HUD](docs/STEEL_HUD.md) | Layout, objective text and native tile contracts |
 | [Verification](docs/TEST_REPORT.md) | Current ROM hash, executed checks and performance |

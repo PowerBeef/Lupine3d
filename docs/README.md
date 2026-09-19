@@ -6,6 +6,7 @@ These guides describe **v0.8**, the 160×120 Sable build with a 24-pixel HUD.
 |---|---|
 | [Development](DEVELOPMENT.md) | Build, test, pinned cores, content and releases |
 | [Architecture](ARCHITECTURE.md) | Current memory, renderer and publication contracts |
+| [Campaign](CAMPAIGN.md) | What turned the demo into a game, what it cost, and what is missing |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Current health, helmet, skull and objective implementation |
 | [Test report](TEST_REPORT.md) | ROM-bound v0.8 qualification and performance |
