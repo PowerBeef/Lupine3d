@@ -63,10 +63,10 @@
   ],
   "entities": [
     {
-      "kind": "sentinel",
+      "kind": "warden",
       "x_q8": 3200,
       "y_q8": 2176,
-      "health": 3,
+      "health": 5,
       "activation_radius_q4": 96
     },
     {

@@ -364,7 +364,13 @@ def make_oam_shadow() -> bytes:
                 VIEW_HEIGHT - 32 + row * 16 + 16, 64 + col * 8 + 8,
                 WEAPON_TILE_BASE + (row * 4 + col) * 2, 0x0D if row == 1 and col in (0,3) else 0x08,
             ))
-    data[8 * 4:8 * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0E))
+    # The reticle moves from OBJ palette 6 to palette 4 so palette 6 can
+    # carry a third enemy kind. Its art uses colour index 3 alone, and the
+    # two palettes differ there by (13,28,26) against (16,29,27): three
+    # parts in thirty-one on red, one on green and blue. That is a
+    # deliberate change to shipped pixels, and it is why v0.9 carries its
+    # own capture oracle rather than the v0.8 one.
+    data[8 * 4:8 * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0C))
     data[9 * 4:9 * 4 + 4] = bytes((0, 76 + 8, MUZZLE_TILE, 0x0B))
     return bytes(data)
 

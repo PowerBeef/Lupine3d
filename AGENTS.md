@@ -256,8 +256,10 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Geometry/composition/cache/timing | `make variants wall-reuse motion`; `make research-tail` for traversal/projection |
 | CPU/banks/interrupts/DMA/publication | Both pinned `make sameboy` and `make mgba`; `tools/independent_witnesses.py` |
 
-Current nine-image oracle: `playtests/sable_objective_spaced_capture_pixels.json`.
-Preserve prior objective, helmet, steel, slim, initial Sable and beta.6 fixtures.
+Current nine-image oracle: `playtests/sable_v09_capture_pixels.json`. It differs
+from the v0.8 oracle in eight pixels a frame: the reticle moved to OBJ palette 4
+so palette 6 could carry a third enemy kind. Preserve the prior objective,
+helmet, steel, slim, initial Sable and beta.6 fixtures.
 Intentional image changes need explained before/after ROM captures and a new
 versioned oracle. Never weaken checks or change hashes just to pass.
 

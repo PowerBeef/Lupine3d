@@ -58,7 +58,7 @@ mGBA's adapter consumes `flags.make` to match the library ABI, hence the explici
 
 Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
 
-`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. The active nine-image oracle is `sable_objective_spaced_capture_pixels.json`; retain earlier oracles as historical evidence.
+`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. The active nine-image oracle is `sable_v09_capture_pixels.json`; retain earlier oracles, including `sable_objective_spaced_capture_pixels.json`, as historical evidence.
 
 ```sh
 make playthrough variants wall-reuse motion

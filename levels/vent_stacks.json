@@ -84,10 +84,10 @@
       "activation_radius_q4": 96
     },
     {
-      "kind": "sentinel",
+      "kind": "warden",
       "x_q8": 896,
       "y_q8": 2688,
-      "health": 3,
+      "health": 5,
       "activation_radius_q4": 96
     }
   ],

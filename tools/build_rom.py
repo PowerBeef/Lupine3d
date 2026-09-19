@@ -289,9 +289,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         4, 8, 15, 7, DROP_KIND_IDS["keycard"], 0, 0, 0,   # skirmisher: quick,
                            # fragile, half as punishing in contact - and the
                            # one that carries a card
-        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the two spares repeat
-        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the Sentinel, so a
-                           # corrupt kind byte still reads a playable actor
+        14, 12, 5, 6, DROP_KIND_IDS["medkit"], 0, 0, 0,   # warden: slow and
+                           # heavy, and the only thing in the outpost that
+                           # takes a third of your health on contact
+        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the spare repeats the
+                           # Sentinel, so a corrupt kind byte still reads a
+                           # playable actor
     )), "enemy kind stats")
     a.label("password_codes"); a.bytes(bytes(
         digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),
@@ -329,10 +332,16 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         for index,name in ((0,'shotgun'),(1,'sentinel_near')):
             colours=sprite_manifest()['assets'][name]['palette']
             obj_palette_values[index*4:index*4+4]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in colours]
-    # OBJ palette 7 is the only free slot: 0 weapon, 1 Sentinel, 2 pickup,
-    # 3 muzzle/decor, 4 decor, 5 the weapon's lit corners, 6 the reticle. It
-    # gives the second enemy kind a cold cast against the Sentinel's armour.
+    # OBJ palettes after the re-plan: 0 weapon, 1 Sentinel, 2 drops, 3
+    # muzzle/decor, 4 decor and the reticle, 5 the weapon's lit corners,
+    # 6 warden, 7 skirmisher. Palette 7 was the only free slot until the
+    # reticle - a single-colour crosshair - moved onto palette 4, whose
+    # index 3 it very nearly already was. That freed palette 6 for a third
+    # visible kind without touching the weapon's own two palettes.
     obj_palette_values[28:32] = [0, rgb15(2, 4, 7), rgb15(6, 17, 25), rgb15(22, 29, 31)]
+    # Heavy brass against the Sentinel's red armour and the skirmisher's cold
+    # blue: a third silhouette has to read at a glance, not on inspection.
+    obj_palette_values[24:28] = [0, rgb15(4, 3, 1), rgb15(17, 12, 3), rgb15(29, 23, 9)]
     if COMPACT_DISPLAY:
         bg_palette_values[4:8]=[rgb15(2,3,4),rgb15(5,7,8),rgb15(29,28,24),rgb15(10,16,16)]
         if SLIM_DISPLAY:

@@ -36,15 +36,43 @@ class EnemyKindTests(unittest.TestCase):
     def test_kinds_are_told_apart_by_palette_and_by_what_they_do(self):
         sentinel = self.stats[ENTITY_KIND_IDS["sentinel"]]
         skirmisher = self.stats[ENTITY_KIND_IDS["skirmisher"]]
-        self.assertNotEqual(sentinel[PALETTE], skirmisher[PALETTE])
+        warden = self.stats[ENTITY_KIND_IDS["warden"]]
         self.assertGreater(skirmisher[STEP], sentinel[STEP])      # quicker
         self.assertLess(skirmisher[DAMAGE], sentinel[DAMAGE])     # and lighter
-        # Sharing one OBJ palette would make two kinds indistinguishable, and
-        # only palette 7 was free: 0 weapon, 1 Sentinel, 2 pickup, 3 muzzle
-        # and decor, 4 decor, 5 the weapon's lit corners, 6 the reticle.
+        self.assertLess(warden[STEP], sentinel[STEP])             # slow
+        self.assertGreater(warden[DAMAGE], sentinel[DAMAGE])      # and heavy
+        # Sharing an OBJ palette would make two kinds indistinguishable, and
+        # every kind must have its own: 0 weapon, 1 Sentinel, 2 drops, 3
+        # muzzle and decor, 4 decor and the reticle, 5 the weapon's lit
+        # corners, 6 warden, 7 skirmisher.
         used = {record[PALETTE] for record in self.stats[:len(ENTITY_KIND_IDS)]}
         self.assertEqual(len(used), len(ENTITY_KIND_IDS))
-        self.assertIn(7, used)
+        self.assertFalse(used & {0, 2, 3, 5}, "a kind took a palette the UI owns")
+
+    def test_the_reticle_moved_off_the_palette_the_third_kind_needs(self):
+        # The crosshair is OAM entry 8 and its art is a single colour, so it
+        # can share palette 4 with the decor it already nearly matched. That
+        # is what freed palette 6, and it is a deliberate change to shipped
+        # pixels: eight of them per frame, recorded in the v0.9 oracle.
+        shadow = br.make_oam_shadow()
+        self.assertEqual(shadow[8 * 4 + 3] & 0x07, 4)
+        kinds = {record[PALETTE] for record in self.stats[:len(ENTITY_KIND_IDS)]}
+        self.assertIn(6, kinds)
+        self.assertNotIn(shadow[8 * 4 + 3] & 0x07, kinds)
+        # The weapon's two palettes are untouched by the re-plan.
+        self.assertEqual(shadow[4 * 4 + 3] & 0x07, 5)
+        self.assertEqual(shadow[7 * 4 + 3] & 0x07, 5)
+
+    def test_every_visible_kind_has_a_palette_of_its_own_in_the_rom(self):
+        start = self.asm.labels["obj_palettes"]
+        def palette(index):
+            base = start + index * 8
+            return tuple(self.rom[base + i] | self.rom[base + i + 1] << 8 for i in range(0, 8, 2))
+        seen = {}
+        for kind, index in ENTITY_KIND_IDS.items():
+            colours = palette(self.stats[index][PALETTE])
+            self.assertNotIn(colours, seen, f"{kind} looks exactly like {seen.get(colours)}")
+            seen[colours] = kind
 
     def test_authored_kinds_reach_the_actor_slots_of_every_level(self):
         for index, level in enumerate(br.CAMPAIGN):

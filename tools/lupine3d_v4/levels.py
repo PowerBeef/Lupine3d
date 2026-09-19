@@ -15,7 +15,7 @@ PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # need a third OBJ palette and there is exactly one free slot, so adding one
 # means re-planning the weapon/reticle palettes, not editing this table.
 # The order is the runtime stat-table index; keep it stable.
-ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1}
+ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2}
 PALETTE_IDS = {"outpost": 0}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 4
@@ -34,7 +34,7 @@ DOOR_FLAG_KEYCARD = 0x04
 # What a dead actor leaves behind, selected by its kind rather than by a byte
 # in its slot: the slot is exactly full, and the kind is already there.
 DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
-KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard"}
+KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit"}
 
 # One ROM bank per campaign level, at fixed offsets, so the SM83 loader needs
 # only a bank number and no per-level directory. lookup_segment_id reads the

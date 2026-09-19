@@ -51,8 +51,16 @@ between a banked lookup's bank switch and its read.
 Sentinel's cels, so stats cost ROM bytes. A distinct *look* costs an OBJ
 palette, and the first attempt at three kinds repainted palettes 5 and 6 —
 which are the weapon's lit corners and the reticle — and broke nine of nine
-oracle captures. Exactly one palette was free, so the campaign has two visible
-kinds.
+oracle captures.
+
+The third kind came from asking what palette 6 was actually *for*. It held the
+reticle alone, and the reticle's art uses one colour: index 3, `(13,28,26)`.
+Palette 4's index 3 was already `(16,29,27)` — three parts in thirty-one apart
+on red, one on green and blue. Moving the crosshair onto palette 4 is one
+attribute byte, it frees palette 6 entirely, and it changes eight pixels a
+frame and nothing else, which before-and-after ROM captures show exactly. That
+is a deliberate change to shipped pixels, so v0.9 carries its own nine-image
+oracle rather than editing the v0.8 one.
 
 **Progress is a written-down code, not a battery.** The cartridge has no RAM
 (`$0147` is `$19`, `$0149` is `$00`) and every release check depends on that. A
