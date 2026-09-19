@@ -257,7 +257,7 @@ RAW_RAY_ROM_ADDRESS = 0x4000
 # window while the world renders, so these screens borrow it when it is idle.
 SCREEN_ROM_BANK = 239
 SCREEN_ROM_ADDRESS = 0x4000
-SCREEN_SLOT_CAPACITY = 4       # digits one screen can rewrite at runtime
+SCREEN_SLOT_CAPACITY = 10      # digits one screen can rewrite at runtime
 SCREEN_RECORD_BYTES = 6 + 2 * SCREEN_SLOT_CAPACITY
 # Songs. The VBlank sequencer must never switch the ROM bank: it could land
 # between a banked lookup's switch and its read. The selected song is copied
@@ -309,7 +309,13 @@ PASSWORD_BLINK = PASSWORD_CURSOR + 1
 PASSWORD_SCAN = PASSWORD_BLINK + 1
 PASSWORD_DIGITS = 4
 SCREEN_DIGIT = SCREEN_DIGITS            # the first runtime digit, by itself
-SCREEN_STATE_END = PASSWORD_SCAN + 1
+# Decimal conversion scratch. A results screen is the only place a number is
+# turned into digits, and it has the LCD off while it does it.
+SCREEN_VALUE = PASSWORD_SCAN + 1        # u16 being written out
+SCREEN_POWER_PTR = SCREEN_VALUE + 2     # u16 into screen_number_powers
+SCREEN_DIGITS_LEFT = SCREEN_POWER_PTR + 2
+SCREEN_SLOT_INDEX = SCREEN_DIGITS_LEFT + 1
+SCREEN_STATE_END = SCREEN_SLOT_INDEX + 1
 # `screen_slot_address` and `screen_write_slot` index both arrays with an
 # eight-bit add, so neither may cross a page, and all of it has to fit inside
 # the buffer it borrows.
@@ -925,7 +931,15 @@ GAME_STATE = ART_STATE_END
 ACTOR_PATROL = GAME_STATE            # 0..3: +x, -x, +y, -y
 ACTIVATION_RADIUS = ACTOR_PATROL + MAX_ACTORS   # cells, from the level header
 PLAYER_KEYS = ACTIVATION_RADIUS + 1   # cards in hand; cleared by every level load
-GAME_STATE_END = PLAYER_KEYS + 1
+# What a results screen reports. Kills fit a byte at four actors a sector;
+# time is counted in VBlanks and divided once, on the screen, with the LCD off.
+SECTOR_KILLS = PLAYER_KEYS + 1
+CAMPAIGN_KILLS = SECTOR_KILLS + 1
+SECTOR_START = CAMPAIGN_KILLS + 1     # u16 SIM_CLOCK when the sector loaded
+SECTOR_TIME = SECTOR_START + 2        # u16 VBlanks, stamped when it is cleared
+CAMPAIGN_TIME = SECTOR_TIME + 2       # u16 VBlanks across the run
+GAME_STATE_END = CAMPAIGN_TIME + 2
+VBLANKS_PER_SECOND = 60
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.

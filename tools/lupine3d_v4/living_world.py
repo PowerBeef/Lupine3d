@@ -45,6 +45,18 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
+    a.ld_abs_a(SECTOR_KILLS)
+    # Time is counted in VBlanks off the monotonic simulation clock, which is
+    # in fixed WRAM and so readable under any bank.
+    a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
+    a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
+    # The first sector is the start of a run: a death retries a sector and
+    # keeps the totals, a continue code starts them from where it drops you.
+    a.ld_a_abs(LEVEL_INDEX); a.or_r("a"); a.jr("load_level_totals_kept", "nz")
+    a.xor_r("a")
+    for address in (CAMPAIGN_KILLS, CAMPAIGN_TIME, CAMPAIGN_TIME + 1):
+        a.ld_abs_a(address)
+    a.label("load_level_totals_kept")
     a.ld_r_n("a", SENTINEL_DORMANT); a.ld_abs_a(SENTINEL_STATE)
     a.ld_r_n("a", 99); a.ld_abs_a(PLAYER_HEALTH)
     a.xor_r("a")
@@ -589,7 +601,27 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_X); a.cp_r("b"); a.ret("nz")
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_Y); a.cp_r("b"); a.ret("nz")
-    a.ld_r_n("a", 1); a.ld_abs_a(LEVEL_COMPLETE); a.jp("sound_complete")
+    # The player stands on the exit cell for several ticks before the mode
+    # changes, so only the first one counts: otherwise the sector is folded
+    # into the run once per tick, and the sting retriggers with it.
+    a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.ret("nz")
+    a.ld_r_n("a", 1); a.ld_abs_a(LEVEL_COMPLETE)
+    a.call("stamp_sector_result"); a.jp("sound_complete")
+
+    a.label("stamp_sector_result")
+    # SECTOR_TIME = SIM_CLOCK - SECTOR_START, then fold the sector into the run.
+    a.ld_a_abs(SIM_CLOCK); a.ld_r_r("b", "a")
+    a.ld_a_abs(SECTOR_START); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_abs_a(SECTOR_TIME)
+    a.ld_a_abs(SIM_CLOCK + 1); a.ld_r_r("b", "a")
+    a.ld_a_abs(SECTOR_START + 1); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "b"); a.sbc_a_r("c"); a.ld_abs_a(SECTOR_TIME + 1)
+    a.ld_a_abs(CAMPAIGN_TIME); a.ld_r_r("b", "a")
+    a.ld_a_abs(SECTOR_TIME); a.add_a_r("b"); a.ld_abs_a(CAMPAIGN_TIME)
+    a.ld_a_abs(CAMPAIGN_TIME + 1); a.ld_r_r("b", "a")
+    a.ld_a_abs(SECTOR_TIME + 1); a.adc_a_r("b"); a.ld_abs_a(CAMPAIGN_TIME + 1)
+    a.ld_a_abs(CAMPAIGN_KILLS); a.ld_r_r("b", "a")
+    a.ld_a_abs(SECTOR_KILLS); a.add_a_r("b"); a.ld_abs_a(CAMPAIGN_KILLS); a.ret()
 
     a.label("player_fire_single")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
@@ -615,6 +647,7 @@ def emit_world_update(a: Assembler) -> None:
     if SABLE_ART:
         a.ld_r_n("a",3); a.call("stamp_actor_reaction")
     a.ld_r_n("a", SENTINEL_DEAD); a.ld_abs_a(SENTINEL_STATE)
+    a.ld_a_abs(SECTOR_KILLS); a.inc_r("a"); a.ld_abs_a(SECTOR_KILLS)
     a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE)
     a.jp("sound_kill")
     a.label("sentinel_survived_hit"); a.ld_r_n("a", SENTINEL_HURT); a.ld_abs_a(SENTINEL_STATE); a.ld_r_n("a", 3); a.ld_abs_a(SENTINEL_ANIM); a.ret()

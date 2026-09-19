@@ -34,16 +34,27 @@ class ScreenCompositionTests(unittest.TestCase):
     def test_screens_reserve_the_runtime_slots_they_need(self):
         slots = {name: offsets for name, _, _, offsets in screens.screen_assets()}
         self.assertEqual(len(slots["title"]), 1)             # the skill digit
-        self.assertEqual(len(slots["intermission"]), br.PASSWORD_DIGITS)
         self.assertEqual(len(slots["password"]), br.PASSWORD_DIGITS)
+        # The intermission carries the code and then what the sector cost:
+        # two digits of kills and three of seconds.
+        self.assertEqual(len(slots["intermission"]), br.PASSWORD_DIGITS + 2 + 3)
+        # The ending has no code to show, only the run: three digits of kills
+        # and four of seconds.
+        self.assertEqual(len(slots["ending"]), 3 + 4)
         for name, offsets in slots.items():
             self.assertLessEqual(len(offsets), br.SCREEN_SLOT_CAPACITY, name)
             self.assertEqual(len(set(offsets)), len(offsets), name)
             for offset in offsets:
                 self.assertLess(offset, screens.SCREEN_MAP_BYTES, name)
-        # The code's four cells are adjacent, so it reads as one number.
-        for name in ("intermission", "password"):
-            self.assertEqual(list(slots[name]), list(range(slots[name][0], slots[name][0] + 4)), name)
+        # The code's four cells are adjacent, so it reads as one number, and so
+        # is every run of digits a screen writes.
+        for name, runs in (("intermission", (4, 2, 3)), ("password", (4,)), ("ending", (3, 4))):
+            offsets, start = list(slots[name]), 0
+            for length in runs:
+                run = offsets[start:start + length]
+                self.assertEqual(run, list(range(run[0], run[0] + length)), (name, start))
+                start += length
+            self.assertEqual(start, len(offsets), name)
 
     def test_a_blank_pattern_follows_the_digits_so_a_cell_can_be_cleared(self):
         for name, patterns, tilemap, _ in screens.screen_assets():
@@ -247,3 +258,128 @@ class ModeMachineTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SlotAddressTests(unittest.TestCase):
+    """Where a reserved digit actually lands on the background map.
+
+    Checking the digit in WRAM is not enough: every slot on row eight or
+    beyond used to be written eight rows too high, because the row offset
+    passed 255 and the carry was dropped. The continue code sat on row nine,
+    so it was written where nobody could read it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+
+    def test_every_reserved_slot_addresses_the_cell_it_reserved(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        for index, (name, _, _, offsets) in enumerate(screens.screen_assets()):
+            for slot, offset in enumerate(offsets):
+                cgb.write8(br.SCREEN_SLOTS + slot * 2, offset & 0xFF)
+                cgb.write8(br.SCREEN_SLOTS + slot * 2 + 1, offset >> 8)
+            for slot, offset in enumerate(offsets):
+                row, column = divmod(offset, screens.SCREEN_COLUMNS)
+                cgb.c = slot
+                cgb.call_subroutine("screen_slot_address", max_steps=10_000)
+                self.assertEqual(cgb.hl, 0x9800 + row * 32 + column,
+                                 f"{name} slot {slot} at row {row}, column {column}")
+
+    def test_an_unused_slot_is_left_alone(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.write8(br.SCREEN_SLOTS, 0xFF); cgb.write8(br.SCREEN_SLOTS + 1, 0xFF)
+        cgb.c = 0
+        cgb.call_subroutine("screen_slot_address", max_steps=10_000)
+        self.assertFalse(0x9800 <= cgb.hl < 0xA000, "an unused slot must not address a map cell")
+        self.assertEqual(cgb.d, 0xFF, "the caller tells an unused slot by D")
+
+
+class ResultsStatisticsTests(unittest.TestCase):
+    """What a results screen reports, and how a number becomes digits."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+
+    def _world(self):
+        return run_to_world(CGB(self.rom, self.asm.labels))
+
+    def _digits(self, cgb, first, count):
+        return [cgb.read8(br.SCREEN_DIGITS + first + i) for i in range(count)]
+
+    def _write_number(self, cgb, value, digits, slot=0):
+        cgb.write8(br.SCREEN_VALUE, value & 0xFF)
+        cgb.write8(br.SCREEN_VALUE + 1, value >> 8)
+        cgb.b, cgb.c = digits, slot
+        cgb.call_subroutine("screen_write_number", max_steps=2_000_000)
+        return self._digits(cgb, slot, digits)
+
+    def test_a_number_becomes_the_digits_a_screen_writes(self):
+        cgb = self._world()
+        for value, digits in ((0, 2), (7, 2), (99, 2), (0, 3), (5, 3), (137, 3),
+                              (999, 3), (1234, 4), (9999, 4)):
+            self.assertEqual(self._write_number(cgb, value, digits),
+                             [int(d) for d in str(value).rjust(digits, "0")],
+                             (value, digits))
+
+    def test_a_number_too_wide_for_its_field_keeps_its_low_digits(self):
+        # Three digits cannot show 1234; what it must not do is run past its
+        # slots into the next field.
+        cgb = self._world()
+        self.assertEqual(len(self._write_number(cgb, 1234, 3)), 3)
+        self.assertEqual(cgb.read8(br.SCREEN_SLOT_INDEX), 3)
+
+    def test_vblanks_become_whole_seconds(self):
+        cgb = self._world()
+        for vblanks in (0, 59, 60, 61, 599, 3600, 59_940):
+            cgb.write8(br.SCREEN_VALUE, vblanks & 0xFF)
+            cgb.write8(br.SCREEN_VALUE + 1, vblanks >> 8)
+            cgb.call_subroutine("screen_value_seconds", max_steps=4_000_000)
+            seconds = cgb.read8(br.SCREEN_VALUE) | cgb.read8(br.SCREEN_VALUE + 1) << 8
+            self.assertEqual(seconds, vblanks // br.VBLANKS_PER_SECOND, vblanks)
+
+    def test_the_intermission_reports_the_sector_just_cleared(self):
+        cgb = self._world()
+        cgb.io[br.SVBK & 0x7F] = 2
+        cgb.write8(br.SECTOR_KILLS, 3)
+        cgb.write8(br.SECTOR_TIME, 4_500 & 0xFF)      # 75 seconds
+        cgb.write8(br.SECTOR_TIME + 1, 4_500 >> 8)
+        cgb.call_subroutine("screen_sector_stats", max_steps=4_000_000)
+        self.assertEqual(self._digits(cgb, br.PASSWORD_DIGITS, 2), [0, 3])
+        self.assertEqual(self._digits(cgb, br.PASSWORD_DIGITS + 2, 3), [0, 7, 5])
+        # The code's own four digits are written separately and untouched here.
+        self.assertEqual(cgb.read8(br.SCREEN_SLOT_INDEX), br.PASSWORD_DIGITS + 5)
+
+    def test_the_ending_reports_the_whole_run(self):
+        cgb = self._world()
+        cgb.io[br.SVBK & 0x7F] = 2
+        cgb.write8(br.CAMPAIGN_KILLS, 14)
+        cgb.write8(br.CAMPAIGN_TIME, 36_000 & 0xFF)   # ten minutes
+        cgb.write8(br.CAMPAIGN_TIME + 1, 36_000 >> 8)
+        cgb.call_subroutine("screen_campaign_stats", max_steps=8_000_000)
+        self.assertEqual(self._digits(cgb, 0, 3), [0, 1, 4])
+        self.assertEqual(self._digits(cgb, 3, 4), [0, 6, 0, 0])
+
+    def test_a_sector_starts_with_no_kills_and_its_own_clock(self):
+        cgb = self._world()
+        cgb.io[br.SVBK & 0x7F] = 2
+        cgb.write8(br.SECTOR_KILLS, 9)
+        cgb.call_subroutine("load_level", max_steps=4_000_000)
+        self.assertEqual(cgb.read8(br.SECTOR_KILLS), 0)
+        self.assertEqual(cgb.read8(br.SECTOR_START) | cgb.read8(br.SECTOR_START + 1) << 8,
+                         cgb.read8(br.SIM_CLOCK) | cgb.read8(br.SIM_CLOCK + 1) << 8)
+
+    def test_clearing_a_sector_folds_it_into_the_run(self):
+        cgb = self._world()
+        cgb.io[br.SVBK & 0x7F] = 2
+        cgb.write8(br.CAMPAIGN_KILLS, 5)
+        cgb.write8(br.CAMPAIGN_TIME, 1_000 & 0xFF); cgb.write8(br.CAMPAIGN_TIME + 1, 1_000 >> 8)
+        cgb.write8(br.SECTOR_KILLS, 4)
+        clock = cgb.read8(br.SIM_CLOCK) | cgb.read8(br.SIM_CLOCK + 1) << 8
+        start = (clock - 750) & 0xFFFF
+        cgb.write8(br.SECTOR_START, start & 0xFF); cgb.write8(br.SECTOR_START + 1, start >> 8)
+        cgb.call_subroutine("stamp_sector_result", max_steps=100_000)
+        self.assertEqual(cgb.read8(br.SECTOR_TIME) | cgb.read8(br.SECTOR_TIME + 1) << 8, 750)
+        self.assertEqual(cgb.read8(br.CAMPAIGN_TIME) | cgb.read8(br.CAMPAIGN_TIME + 1) << 8, 1_750)
+        self.assertEqual(cgb.read8(br.CAMPAIGN_KILLS), 9)

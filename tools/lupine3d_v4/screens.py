@@ -44,17 +44,65 @@ def _frame(px) -> None:
     rect(px, 4, 139, 152, 1, 3)
 
 
+SCREEN_NUMBER_POWERS = (10000, 1000, 100, 10, 1)
+
+
+def load_hl(a, address: int) -> None:
+    a.ld_a_abs(address); a.ld_r_r("l", "a")
+    a.ld_a_abs(address + 1); a.ld_r_r("h", "a")
+
+
+def store_hl(a, address: int) -> None:
+    a.ld_r_r("a", "l"); a.ld_abs_a(address)
+    a.ld_r_r("a", "h"); a.ld_abs_a(address + 1)
+
+
+GLYPH_WIDTH, GLYPH_ADVANCE, GLYPH_HEIGHT = 3, 4, 5
+
+
+def _field_layout(label, digits, y, scale):
+    """Where a label and the runtime digits after it sit, in pixels and tiles.
+
+    A runtime digit owns a whole map cell, because a map write is the only
+    thing a screen can do to change one. So the digits are placed on tile
+    boundaries and the label is placed to their left, rather than the label
+    being centred and the cells guessed afterwards - which is how the continue
+    code ended up overlapping its own caption.
+    """
+    label_width = len(label) * GLYPH_ADVANCE * scale
+    block = digits * 8
+    start = max(0, (SCREEN_COLUMNS * 8 - (label_width + GLYPH_ADVANCE * scale + block)) // 2)
+    first = -(-(start + label_width + GLYPH_ADVANCE * scale) // 8)
+    row, bottom = y // 8, (y + GLYPH_HEIGHT * scale - 1) // 8
+    if row != bottom:
+        raise ValueError(f"{label!r} at y={y} straddles two tile rows")
+    if start + label_width > first * 8:
+        raise ValueError(f"{label!r} runs into the cells the runtime writes")
+    if first + digits > SCREEN_COLUMNS:
+        raise ValueError(f"{label!r} and {digits} digits do not fit a row")
+    return start, tuple((first + index, row) for index in range(digits))
+
+
 def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
     """Render one screen to (patterns, 20x18 map, runtime slot offsets).
 
-    `lines` are (text, y, colour, scale) with the text centred horizontally.
-    `slots` are (column, row) map cells the runtime overwrites with a digit.
+    `lines` are (text, y, colour, scale) with the text centred horizontally,
+    or (label, y, colour, scale, digits) for a label followed by that many
+    cells the runtime rewrites. Field cells become slots in line order.
+    `slots` are extra (column, row) map cells reserved by hand.
     """
     px = canvas(160, 144, 0)
     _frame(px)
-    for text, y, colour, scale in lines:
-        width = len(text) * 4 * scale
-        text_pixels(px, text, (160 - width) // 2, y, colour, scale)
+    reserved = list(slots)
+    for line in lines:
+        text, y, colour, scale = line[:4]
+        digits = line[4] if len(line) > 4 else 0
+        if digits:
+            x, cells = _field_layout(text, digits, y, scale)
+            reserved.extend(cells)
+        else:
+            x = (160 - len(text) * GLYPH_ADVANCE * scale) // 2
+        text_pixels(px, text, x, y, colour, scale)
     # Digits first, then a blank: a runtime map write alone can show a number
     # or clear a cell, which is how the code entry blinks its cursor.
     patterns = _digit_tiles() + [tiles(canvas(8, 8, 0))]
@@ -73,9 +121,14 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
             tilemap[row * SCREEN_COLUMNS + column] = number
     if len(patterns) > SCREEN_PATTERN_CAPACITY:
         raise ValueError(f"screen needs {len(patterns)} of {SCREEN_PATTERN_CAPACITY} patterns")
-    if len(slots) > SCREEN_SLOT_CAPACITY:
-        raise ValueError(f"screen reserves {len(slots)} of {SCREEN_SLOT_CAPACITY} digit slots")
-    offsets = tuple(row * SCREEN_COLUMNS + column for column, row in slots)
+    if len(reserved) > SCREEN_SLOT_CAPACITY:
+        raise ValueError(f"screen reserves {len(reserved)} of {SCREEN_SLOT_CAPACITY} digit slots")
+    offsets = tuple(row * SCREEN_COLUMNS + column for column, row in reserved)
+    # A reserved cell must be empty in the authored art: the runtime writes the
+    # whole cell, so anything drawn there would be lost.
+    for offset, (column, row) in zip(offsets, reserved):
+        if tilemap[offset] != BLANK_PATTERN:
+            raise ValueError(f"reserved cell at row {row}, column {column} is not empty")
     return b"".join(patterns), bytes(tilemap), offsets
 
 
@@ -84,36 +137,39 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
 SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWORD = range(5)
 
 SCREEN_SOURCES = (
-    # The skill digit sits on the authored zero; left and right change it.
+    # A field line is a label and the map cells the runtime writes after it;
+    # its cells become slots in the order the lines appear.
     ("title", (
         ("LUPINE", 28, 2, 3),
         ("SABLE OUTPOST", 58, 3, 1),
         ("PRESS START", 92, 2, 1),
-        ("SKILL 0", 112, 3, 1),
-     ), ((11, 14),)),
+        ("SKILL", 114, 3, 1, 1),
+     ), ()),
     ("gameover", (
         ("SIGNAL LOST", 48, 3, 2),
         ("THE OUTPOST HOLDS", 84, 1, 1),
         ("PRESS START", 110, 2, 1),
      ), ()),
     ("ending", (
-        ("OUTPOST CLEARED", 40, 2, 2),
-        ("THE SABLE LINE IS OPEN", 76, 3, 1),
-        ("PRESS START", 110, 2, 1),
+        ("OUTPOST CLEARED", 34, 2, 2),
+        ("THE SABLE LINE IS OPEN", 66, 3, 1),
+        ("KILLS", 90, 1, 1, 3),
+        ("TIME", 106, 1, 1, 4),
+        ("PRESS START", 122, 2, 1),
      ), ()),
-    # The continue code sits on its own line; the runtime writes all four
-    # digits, so the authored zeroes are only a placeholder.
     ("intermission", (
-        ("SECTOR CLEAR", 36, 2, 2),
-        ("CODE 0000", 74, 3, 1),
-        ("PRESS START", 108, 2, 1),
-     ), ((10, 9), (11, 9), (12, 9), (13, 9))),
+        ("SECTOR CLEAR", 28, 2, 2),
+        ("CODE", 58, 3, 1, PASSWORD_DIGITS),
+        ("KILLS", 82, 1, 1, 2),
+        ("TIME", 98, 1, 1, 3),
+        ("PRESS START", 118, 2, 1),
+     ), ()),
     ("password", (
         ("CONTINUE", 32, 2, 2),
-        ("CODE 0000", 72, 3, 1),
+        ("CODE", 74, 3, 1, PASSWORD_DIGITS),
         ("START ACCEPTS", 104, 1, 1),
         ("SELECT CANCELS", 118, 1, 1),
-     ), ((10, 9), (11, 9), (12, 9), (13, 9))),
+     ), ()),
 )
 
 
@@ -196,9 +252,8 @@ def emit_screens(a: Assembler) -> None:
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_SOURCE_L); a.ldi_a_hl(); a.ld_abs_a(SCREEN_SOURCE_H)
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_MAP_L); a.ldi_a_hl(); a.ld_abs_a(SCREEN_MAP_H)
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_SLOT_COUNT)
-    for index in range(2 * SCREEN_SLOT_CAPACITY - 1):
-        a.ldi_a_hl(); a.ld_abs_a(SCREEN_SLOTS + index)
-    a.ld_a_hl(); a.ld_abs_a(SCREEN_SLOTS + 2 * SCREEN_SLOT_CAPACITY - 1)
+    a.ld_rr_nn("de", SCREEN_SLOTS)
+    a.ld_rr_nn("bc", 2 * SCREEN_SLOT_CAPACITY); a.call("copy_bc")
     # Patterns occupy the idle composition window at $9000.
     load_hl_abs(a, SCREEN_SOURCE_L, SCREEN_SOURCE_H)
     a.ld_rr_nn("de", DYNAMIC_TILE_VRAM)
@@ -238,14 +293,21 @@ def emit_screens(a: Assembler) -> None:
     a.ld_r_r("l", "a"); a.ld_r_n("h", SCREEN_SLOTS >> 8)
     a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.cp_n(0xFF); a.ret("z")        # an unused slot keeps HL pointing at WRAM
-    # Slot offsets are screen-relative; expand the 20-column row to 32.
-    a.ld_r_r("a", "e"); a.ld_r_n("b", 0)
+    # Slot offsets are screen-relative; expand the 20-column row to 32. Both
+    # halves of the offset take part: a screen reserves cells past 255 now.
+    a.ld_r_n("b", 0)
     a.label("screen_slot_rows")
-    a.cp_n(SCREEN_COLUMNS); a.jr("screen_slot_ready", "c")
-    a.sub_n(SCREEN_COLUMNS); a.inc_r("b"); a.jr("screen_slot_rows")
+    a.ld_r_r("a", "e"); a.sub_n(SCREEN_COLUMNS); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "d"); a.sbc_a_n(0); a.jr("screen_slot_ready", "c")
+    a.ld_r_r("d", "a"); a.ld_r_r("e", "c"); a.inc_r("b"); a.jr("screen_slot_rows")
     a.label("screen_slot_ready")
-    a.ld_r_r("e", "a"); a.ld_r_r("a", "b"); a.cb("swap", "a"); a.add_a_r("a")
-    a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.ld_r_r("a", "e"); a.add_a_r("l"); a.ld_r_r("l", "a")
+    # HL = $9800 + row * 32 + column. Shifting HL rather than A keeps the
+    # carry: row eight onwards passes 256 and used to lose it, which put every
+    # digit the runtime wrote eight rows above where it belonged. The continue
+    # code sat on row nine, so it was never once visible on a real screen.
+    a.ld_r_r("l", "b"); a.ld_r_n("h", 0)
+    for _ in range(5): a.add_hl_rr("hl")
+    a.ld_r_r("a", "e"); a.add_a_r("l"); a.ld_r_r("l", "a")
     a.ld_r_n("a", 0); a.adc_a_r("h"); a.add_a_n(0x98); a.ld_r_r("h", "a")
     a.ret()
 
@@ -265,6 +327,75 @@ def emit_screens(a: Assembler) -> None:
     a.call("screen_write_slot")
     a.ld_r_r("a", "c"); a.inc_r("a"); a.ld_r_r("c", "a")
     a.cp_n(SCREEN_SLOT_CAPACITY); a.jr("screen_write_slots_loop", "c"); a.ret()
+
+    # A results screen is the only place a number becomes digits, and it does
+    # it with the LCD off, so plain repeated subtraction is fast enough and
+    # needs no division routine anywhere near the renderer.
+    a.label("screen_write_number")   # SCREEN_VALUE = u16, B = digits, C = first slot
+    a.ld_r_r("a", "b"); a.ld_abs_a(SCREEN_DIGITS_LEFT)
+    a.ld_r_r("a", "c"); a.ld_abs_a(SCREEN_SLOT_INDEX)
+    a.ld_r_n("a", len(SCREEN_NUMBER_POWERS)); a.sub_r("b"); a.add_a_r("a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "screen_number_powers"); a.add_hl_rr("de")
+    store_hl(a, SCREEN_POWER_PTR)
+    a.label("screen_number_digit")
+    load_hl(a, SCREEN_POWER_PTR)
+    a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ldi_a_hl(); a.ld_r_r("b", "a")   # BC = power
+    store_hl(a, SCREEN_POWER_PTR)
+    a.ld_r_n("d", 0)                                                     # D = digit
+    a.label("screen_number_subtract")
+    load_hl(a, SCREEN_VALUE)
+    a.ld_r_r("a", "l"); a.sub_r("c"); a.ld_r_r("e", "a")
+    a.ld_r_r("a", "h"); a.sbc_a_r("b"); a.jr("screen_number_digit_done", "c")
+    a.ld_r_r("h", "a"); a.ld_r_r("l", "e"); store_hl(a, SCREEN_VALUE)
+    a.inc_r("d"); a.jr("screen_number_subtract")
+    a.label("screen_number_digit_done")
+    a.ld_a_abs(SCREEN_SLOT_INDEX); a.add_a_n(SCREEN_DIGITS & 255)
+    a.ld_r_r("l", "a"); a.ld_r_n("h", SCREEN_DIGITS >> 8)
+    a.ld_r_r("a", "d"); a.ld_hl_a()
+    a.ld_a_abs(SCREEN_SLOT_INDEX); a.inc_r("a"); a.ld_abs_a(SCREEN_SLOT_INDEX)
+    a.ld_a_abs(SCREEN_DIGITS_LEFT); a.dec_r("a"); a.ld_abs_a(SCREEN_DIGITS_LEFT)
+    a.jr("screen_number_digit", "nz")
+    a.ret()
+    a.label("screen_number_powers")
+    a.bytes(b"".join(bytes((value & 0xFF, value >> 8)) for value in SCREEN_NUMBER_POWERS),
+            "decimal place values")
+
+    a.label("screen_value_seconds")   # SCREEN_VALUE: VBlanks -> whole seconds
+    a.ld_r_n("d", 0); a.ld_r_n("e", 0)
+    a.label("screen_seconds_loop")
+    load_hl(a, SCREEN_VALUE)
+    a.ld_r_r("a", "l"); a.sub_n(VBLANKS_PER_SECOND); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "h"); a.sbc_a_n(0); a.jr("screen_seconds_done", "c")
+    a.ld_r_r("h", "a"); a.ld_r_r("l", "c"); store_hl(a, SCREEN_VALUE)
+    a.inc_rr("de"); a.jr("screen_seconds_loop")
+    a.label("screen_seconds_done")
+    a.ld_r_r("h", "d"); a.ld_r_r("l", "e"); store_hl(a, SCREEN_VALUE); a.ret()
+
+    a.label("screen_number_from")   # HL -> a u16 in memory; B digits, C slot
+    a.ldi_a_hl(); a.ld_abs_a(SCREEN_VALUE)
+    a.ld_a_hl(); a.ld_abs_a(SCREEN_VALUE + 1)
+    a.jp("screen_write_number")
+
+    a.label("screen_seconds_from")  # the same, in VBlanks
+    a.ldi_a_hl(); a.ld_abs_a(SCREEN_VALUE)
+    a.ld_a_hl(); a.ld_abs_a(SCREEN_VALUE + 1)
+    a.push("bc"); a.call("screen_value_seconds"); a.pop("bc")
+    a.jp("screen_write_number")
+
+    a.label("screen_sector_stats")  # kills and time for the sector just cleared
+    a.ld_a_abs(SECTOR_KILLS); a.ld_abs_a(SCREEN_VALUE)
+    a.xor_r("a"); a.ld_abs_a(SCREEN_VALUE + 1)
+    a.ld_r_n("b", 2); a.ld_r_n("c", PASSWORD_DIGITS); a.call("screen_write_number")
+    a.ld_rr_nn("hl", SECTOR_TIME)
+    a.ld_r_n("b", 3); a.ld_r_n("c", PASSWORD_DIGITS + 2); a.jp("screen_seconds_from")
+
+    a.label("screen_campaign_stats")   # the whole run, on the ending
+    a.ld_a_abs(CAMPAIGN_KILLS); a.ld_abs_a(SCREEN_VALUE)
+    a.xor_r("a"); a.ld_abs_a(SCREEN_VALUE + 1)
+    a.ld_r_n("b", 3); a.ld_r_n("c", 0); a.call("screen_write_number")
+    a.ld_rr_nn("hl", CAMPAIGN_TIME)
+    a.ld_r_n("b", 4); a.ld_r_n("c", 3); a.jp("screen_seconds_from")
 
     a.label("screen_wait_start")
     a.call("wait_vblank")

@@ -201,12 +201,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_r_n("a", SCREEN_GAMEOVER); a.jr("present_mode_show", "z")
     if LEVEL_COUNT > 1:
         a.ld_a_abs(GAME_MODE); a.cp_n(MODE_INTERMISSION); a.jr("present_next_sector", "z")
+    a.call("screen_campaign_stats")         # the whole run, before it is reset
     a.xor_r("a"); a.ld_abs_a(LEVEL_INDEX)   # the ending restarts the campaign
     a.ld_r_n("a", SCREEN_ENDING); a.jr("present_mode_show")
     if LEVEL_COUNT > 1:
         a.label("present_next_sector")
         a.ld_a_abs(LEVEL_INDEX); a.inc_r("a"); a.ld_abs_a(LEVEL_INDEX)
         a.call("password_for_progress")          # the code to continue from here
+        a.call("screen_sector_stats")            # and what the sector cost
         a.ld_r_n("a", SCREEN_INTERMISSION)
     a.label("present_mode_show")
     # A results screen carries its own music: silence for a loss, the victory
