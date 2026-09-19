@@ -9,6 +9,7 @@ These guides describe **v0.8**, the 160×120 Sable build with a 24-pixel HUD.
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Current health, helmet, skull and objective implementation |
 | [Test report](TEST_REPORT.md) | ROM-bound v0.8 qualification and performance |
+| [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |
 | [Agent guidance](../AGENTS.md) | Implementation map, invariants and checks |
 

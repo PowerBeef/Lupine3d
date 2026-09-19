@@ -405,7 +405,9 @@ def main() -> None:
             "stationary_rate_retained_pct": round(100.0 * current_rate / baseline_rate, 3),
             "engine_bytes": {"v0.1.0": v1_manifest["engine_size"], f"v{CURRENT_VERSION}": v2_manifest["engine_size"]},
             "fixed_framebuffer_bytes": {"v0.1.0": 3840, f"v{CURRENT_VERSION}": 0},
-            "commit_vblanks": {"v0.1.0": 2, f"v{CURRENT_VERSION}": "1 or 2, packet-size dependent"},
+            # Cached presentations commit in one VBlank; a full slim packet uses
+            # two, or three above 48 dynamic+mask patterns.
+            "commit_vblanks": {"v0.1.0": 2, f"v{CURRENT_VERSION}": "1 cached; 2 or 3 full, packet-size dependent"},
         },
         "physical_hardware_tested": False,
         "hardware_acceptance_document": "docs/HARDWARE_TEST_CHECKLIST.md",

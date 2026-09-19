@@ -444,11 +444,15 @@ DYN_PTR_L = _hram("DYN_PTR_L")
 DYN_PTR_H = _hram("DYN_PTR_H")
 MAP_PTR_L = _hram("MAP_PTR_L")
 MAP_PTR_H = _hram("MAP_PTR_H")
+# Folded lower-half destination. It walks backwards by one map row while
+# MAP_PTR walks forwards, so the mirrored row index never has to be rebuilt
+# from TILE_ROW inside the row loop.
+MIRROR_MAP_L = _hram("MIRROR_MAP_L")
+MIRROR_MAP_H = _hram("MIRROR_MAP_H")
 SCAN_TOP_PTR_L = _hram("SCAN_TOP_PTR_L")
 SCAN_TOP_PTR_H = _hram("SCAN_TOP_PTR_H")
 SCAN_STYLE_PTR_L = _hram("SCAN_STYLE_PTR_L")
 SCAN_STYLE_PTR_H = _hram("SCAN_STYLE_PTR_H")
-TILE_ROW = _hram("TILE_ROW")
 TILE_Y0 = _hram("TILE_Y0")
 TILE_COL_COUNT = _hram("TILE_COL_COUNT")
 MIN_TOP = _hram("MIN_TOP")

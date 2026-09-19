@@ -118,7 +118,7 @@ The current combat diagnostic peaks at 15 visible OAM entries and seven objects 
 
 ## Gate D — timing-sensitive observations
 
-The maximum full packet is 176 blocks across two VBlanks, with at most 96 blocks first and 80 last. Cached packets transfer at most 32 blocks in one VBlank. Transfer time alone is insufficient: include HUD writes, OAM DMA/wait and publication bookkeeping, and require completion before line 153.
+The maximum full packet is 176 blocks, with at most 96 blocks in the first stage and 80 in the last. The legacy profile stages them across two VBlanks. Slim uses two or three: patterns, then map/masks/attribute prefix, then the attribute, map, HUD and OAM tail, with the middle stage taking its own VBlank above 48 dynamic+mask patterns. Slim also copies 192 bytes into the hidden maps on the CPU rather than by GDMA. Cached packets transfer at most 32 blocks in one VBlank. Transfer time alone is insufficient: include those CPU copies, HUD writes, OAM DMA/wait and publication bookkeeping, and require completion before line 153.
 
 - [ ] No corruption at maximum visual complexity.
 - [ ] No one-frame corruption when changing direction quickly.

@@ -1040,8 +1040,13 @@ def emit_tile_compositor(a: Assembler) -> None:
     if FIXED_SIMULATION:
         a.call("render_yield_column" if NARROW_YIELDS else "render_yield")
     a.call("scan_column")
-    a.xor_r("a"); a.ld_abs_a(TILE_ROW); a.ld_abs_a(TILE_Y0)
+    a.xor_r("a"); a.ld_abs_a(TILE_Y0)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
+    if FOLDED_COMPOSITOR:
+        # Seed the mirrored destination at the last world row. It walks back one
+        # row per iteration, so the row loop never rebuilds VIEW_ROWS-1-row.
+        a.ld_rr_nn("de", (VIEW_ROWS - 1) * 32); a.add_hl_rr("de")
+        store_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
     a.ld_r_n("a", FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS); a.ld_abs_a(ROW_RENDER_COUNT)
     a.label("render_row_loop")
     a.call("classify_row")
@@ -1067,13 +1072,11 @@ def emit_tile_compositor(a: Assembler) -> None:
     if FOLDED_COMPOSITOR:
         # Mirror map position around the viewport centre. Patterns need neither
         # a second composition nor a second DMA; lower attrs supply Y-flip.
-        a.ld_r_n("a", VIEW_ROWS - 1); a.ld_r_r("b", "a"); a.ld_a_abs(TILE_ROW); a.ld_r_r("c", "a")
-        a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
-        for _ in range(5): a.add_hl_rr("hl")
-        a.ld_a_abs(COLUMN_MAP_L); a.ld_r_r("e", "a"); a.ld_a_abs(COLUMN_MAP_H); a.ld_r_r("d", "a"); a.add_hl_rr("de")
+        load_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
         a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a()
+        a.ld_rr_nn("de", (-32) & 0xFFFF); a.add_hl_rr("de")
+        store_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
     load_hl_abs(a, MAP_PTR_L, MAP_PTR_H); a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a(); a.ld_rr_nn("de", 32); a.add_hl_rr("de"); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
-    a.ld_a_abs(TILE_ROW); a.inc_r("a"); a.ld_abs_a(TILE_ROW)
     a.ld_a_abs(TILE_Y0); a.add_a_n(8); a.ld_abs_a(TILE_Y0)
     a.ld_a_abs(ROW_RENDER_COUNT); a.dec_r("a"); a.ld_abs_a(ROW_RENDER_COUNT); a.jp("render_row_loop", "nz")
     # Advance eight physical-pixel descriptors and one BG-map column.

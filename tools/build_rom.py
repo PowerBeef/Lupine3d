@@ -321,7 +321,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "maximum_commit_blocks": DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
         "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
         "maximum_final_stage_blocks": 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
-        "maximum_publication_vblanks": 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION else 2,
+        # Slim adds a pattern-stage VBlank above 48 dynamic+mask patterns, so its
+        # worst case is three even without the experimental lanes.
+        "maximum_publication_vblanks": 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
         "exact_wall_reuse": WALL_REUSE_ENABLED,
         "wall_cache_key_bytes": 290,
