@@ -277,16 +277,21 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Everything a level owns now lives in that level's own ROM bank; only the
     # profile-independent HUD vocabulary is still resident.
     a.label("resident_data")
-    # Four bytes per enemy kind: contact damage, attack recovery in AI ticks,
-    # Q8 move per tick, OBJ palette. Kinds share the Sentinel's cels, so
-    # variety costs ROM bytes rather than VRAM patterns - but a distinct look
-    # costs an OBJ palette, and exactly one was free.
+    # Eight bytes per enemy kind: contact damage, attack recovery in AI ticks,
+    # Q8 move per tick, OBJ palette, what it drops when it dies, and three
+    # spare. Kinds share the Sentinel's cels, so variety costs ROM bytes
+    # rather than VRAM patterns - but a distinct look costs an OBJ palette,
+    # and exactly one was free. The record is a power of two so
+    # actor_kind_record still indexes it by shifting.
     a.label("actor_kind_stats"); a.bytes(bytes((
-        8, 8, 8, 1,        # sentinel: the authored Sable armour
-        4, 8, 15, 7,       # skirmisher: quick and fragile, and half as
-                           # punishing in contact as the Sentinel
-        8, 8, 8, 1,        # the two spare records repeat the Sentinel, so a
-        8, 8, 8, 1,        # corrupt kind byte still reads a playable actor
+        # damage, recovery, step, palette, drop, spare...
+        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # sentinel: Sable armour
+        4, 8, 15, 7, DROP_KIND_IDS["keycard"], 0, 0, 0,   # skirmisher: quick,
+                           # fragile, half as punishing in contact - and the
+                           # one that carries a card
+        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the two spares repeat
+        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the Sentinel, so a
+                           # corrupt kind byte still reads a playable actor
     )), "enemy kind stats")
     a.label("password_codes"); a.bytes(bytes(
         digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),

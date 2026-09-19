@@ -88,9 +88,28 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             step(steering)
         raise AssertionError("turn watchdog")
 
-    def path_to(goal):
+    def shut_keycard_doors():
+        """Door cells the ROM will refuse until a card is in hand.
+
+        Read out of the live door table, like everything else the route
+        steers by: no game-RAM writes and no build-time knowledge of which
+        door is locked.
+        """
+        if live8(br.PLAYER_KEYS):
+            return set()
+        shut = set()
+        for index in range(live8(br.DOOR_COUNT)):
+            base = br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES
+            if not live8(base + br.DOOR_FLAGS_OFFSET) & br.DOOR_FLAG_KEYCARD:
+                continue
+            if live8(base + br.DOOR_STATE_OFFSET) != 2:
+                shut.add((live8(base + br.DOOR_X_OFFSET), live8(base + br.DOOR_Y_OFFSET)))
+        return shut
+
+    def path_to(goal, *, reachable_only=False):
         px, py, _ = pose()
         start = px >> 8, py >> 8
+        closed = shut_keycard_doors()
         queue, previous = deque([start]), {start: None}
         while queue:
             here = queue.popleft()
@@ -103,9 +122,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
                 nxt = here[0] + dx, here[1] + dy
                 if nxt in previous or not (0 <= nxt[0] < 16 and 0 <= nxt[1] < 16):
                     continue
-                if live8(br.MAP + nxt[1] * 16 + nxt[0]) not in (0, 3):
+                if live8(br.MAP + nxt[1] * 16 + nxt[0]) not in (0, 3) or nxt in closed:
                     continue
                 previous[nxt] = here; queue.append(nxt)
+        if reachable_only:
+            return None
         raise AssertionError(f"no route to {goal}")
 
     def navigate(goal, stop=None):
@@ -166,9 +187,14 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
 
     ENGAGEMENT_Q8 = 1280   # five cells: shoot from range rather than walk into contact
 
-    def nearest_living():
+    def nearest_living(*, walkable=False):
         px, py, _ = pose()
         alive = living()
+        if walkable:
+            # A card door shuts part of the sector until its carrier is dead,
+            # so the route takes whoever it can actually walk to first.
+            alive = [a for a in alive
+                     if path_to((a["x"] >> 8, a["y"] >> 8), reachable_only=True) is not None]
         if not alive:
             return None
         return min(alive, key=lambda a: max(abs(a["x"] - px), abs(a["y"] - py)))
@@ -219,14 +245,31 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         return ((1 if delta > 0 else 2) if delta else 0) | \
                (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
 
+    def collect_drops():
+        """Walk onto every drop the route can reach and has not taken."""
+        for actor in actors():
+            if not actor["pickup"]:
+                continue
+            cell = actor["x"] >> 8, actor["y"] >> 8
+            if path_to(cell, reachable_only=True) is None:
+                continue
+            navigate(cell); step(0)
+
     def clear_sector(name):
-        """Close on and kill every living actor, then take every drop."""
+        """Kill every actor the route can walk to, taking drops as it goes."""
         opened = cgb.frame_count
         while living():
-            if cgb.frame_count - opened > 9000:
+            if cgb.frame_count - opened > 12_000:
                 capture(f"{name}_combat_watchdog")
                 raise AssertionError(f"sector {name} was not cleared: {living()}, pose={pose()}")
-            target = nearest_living()
+            target = nearest_living(walkable=True)
+            if target is None:
+                # Everything left is behind a door that wants a card: take the
+                # drops on this side and the way through opens.
+                collect_drops()
+                assert nearest_living(walkable=True) is not None, \
+                    f"sector {name} deadlocked: {living()}, pose={pose()}"
+                continue
             if not engageable():
                 navigate((target["x"] >> 8, target["y"] >> 8), stop=engageable)
                 continue
@@ -235,16 +278,14 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             exchange, opening = cgb.frame_count, len(living())
             while living() and engageable() and cgb.frame_count - exchange < 300:
                 step(aiming)
-            survivor = nearest_living()
+            survivor = nearest_living(walkable=True)
             if len(living()) == opening and survivor is not None:
                 # The exchange settled nothing. Close the distance only while
                 # the shot still cannot reach; walking onto a live chaser is
                 # how the route used to die.
                 navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=engageable)
         step(0)
-        for actor in actors():
-            if actor["pickup"]:
-                navigate((actor["x"] >> 8, actor["y"] >> 8)); step(0)
+        collect_drops()
 
     def cross_screen(expected_mode, name):
         """A results screen owns the whole background and publishes nothing."""

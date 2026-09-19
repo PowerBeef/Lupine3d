@@ -30,6 +30,11 @@ DOOR_STATE = 4
 DOOR_FRACTION = 5
 DOOR_FLAG_EXIT = 0x01
 DOOR_FLAG_LOCK_SENTINEL = 0x02
+DOOR_FLAG_KEYCARD = 0x04
+# What a dead actor leaves behind, selected by its kind rather than by a byte
+# in its slot: the slot is exactly full, and the kind is already there.
+DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
+KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard"}
 
 # One ROM bank per campaign level, at fixed offsets, so the SM83 loader needs
 # only a bank number and no per-level directory. lookup_segment_id reads the
@@ -136,8 +141,13 @@ class CompiledLevel:
             sentinel.health, sentinel.activation_radius_q4,
             self.exit.x, self.exit.y,
             len(self.doors),
-            len(self.entities), len(self.fixtures), self.pickups[0].value,
+            len(self.entities), len(self.fixtures), self.medkit_value,
         )).ljust(LEVEL_HEADER_BYTES, b"\0")
+
+    @property
+    def medkit_value(self) -> int:
+        """The health a medkit drop restores; the only per-level drop number."""
+        return next(p.value for p in self.pickups if p.kind == "medkit")
 
     def door_bytes(self) -> bytes:
         """Fixed-capacity door records copied into active WRAM at level load."""
@@ -376,6 +386,50 @@ def _material_run_metrics(grid: bytes, width: int, height: int) -> tuple[int, in
     return seam_count, singleton_count
 
 
+
+def _validate_keycard_gates(
+    grid: bytes, width: int, height: int, start: tuple[int, int],
+    entities: tuple[EntitySpec, ...], doors: tuple[DoorSpec, ...],
+    pickups: tuple[PickupSpec, ...],
+) -> None:
+    """A keycard door has to be openable, which is a property of the level.
+
+    A dead actor's drop follows from its kind, so a level that locks a door
+    behind a card is solvable only if an actor of a card-dropping kind can be
+    reached and killed without passing through any such door. That also keeps
+    the controller route honest: it clears every actor and takes every drop
+    before it walks to the exit, so a card it could not reach would deadlock
+    it rather than merely make the level unfair.
+    """
+    keyed = [door for door in doors if door.flags & DOOR_FLAG_KEYCARD]
+    declared = {pickup.kind for pickup in pickups}
+    dropped = {KIND_DROPS[entity.kind] for entity in entities}
+    unauthored = declared - dropped
+    if unauthored:
+        raise ValueError(f"declared drops no actor leaves: {sorted(unauthored)}")
+    if not keyed:
+        if "keycard" in declared:
+            raise ValueError("a declared keycard drop opens nothing in this level")
+        return
+    if "keycard" not in declared:
+        raise ValueError("a keycard door needs the level to declare its card drop")
+    passable = _passable_cells(grid, width, height)
+    # Every keycard door is a wall until the card is in hand.
+    without_cards = passable - {(door.x, door.y) for door in keyed}
+    before = _reachable_cells(without_cards, start)
+    carriers = [
+        entity for entity in entities
+        if KIND_DROPS[entity.kind] == "keycard"
+        and (entity.x_q8 >> 8, entity.y_q8 >> 8) in before
+    ]
+    if not carriers:
+        raise ValueError("no card-dropping actor is reachable with the keycard doors shut")
+    everywhere = _reachable_cells(passable, start)
+    for entity in entities:
+        if (entity.x_q8 >> 8, entity.y_q8 >> 8) not in everywhere:
+            raise ValueError("every actor must be reachable once the doors are open")
+
+
 def analyze_level_readability(
     grid: bytes, width: int, height: int, start: tuple[int, int],
     sentinel: tuple[int, int], doors: tuple[DoorSpec, ...],
@@ -520,7 +574,8 @@ def compile_level(path: Path) -> CompiledLevel:
             _bounded_int(item, "y", 0, height - 1),
             ORIENTATION_IDS[str(item["orientation"])],
             (DOOR_FLAG_EXIT if str(item.get("kind", "standard")) == "exit" else 0)
-            | (DOOR_FLAG_LOCK_SENTINEL if str(item.get("unlock", "none")) == "sentinel_dead" else 0),
+            | (DOOR_FLAG_LOCK_SENTINEL if str(item.get("unlock", "none")) == "sentinel_dead" else 0)
+            | (DOOR_FLAG_KEYCARD if str(item.get("unlock", "none")) == "keycard" else 0),
         )
         for index, item in enumerate(source.get("doors", []))
     )
@@ -571,8 +626,18 @@ def compile_level(path: Path) -> CompiledLevel:
     unknown = [entity.kind for entity in entities if entity.kind not in ENTITY_KIND_IDS]
     if unknown:
         raise ValueError(f"unknown enemy kinds: {sorted(set(unknown))}")
-    if len(pickups) != 1 or pickups[0].source != "sentinel_drop":
-        raise ValueError("the resident v0.6 slice requires one Sentinel drop")
+    # Every pickup is a drop from a dead actor; its kind follows from that
+    # actor's kind, so a level declares which drops it fields rather than
+    # placing them. The medkit's value is the only per-level number.
+    if not 1 <= len(pickups) <= len(DROP_KIND_IDS):
+        raise ValueError(f"levels declare one to {len(DROP_KIND_IDS)} drops")
+    if any(pickup.source != "sentinel_drop" for pickup in pickups):
+        raise ValueError("every drop comes from a dead actor")
+    kinds = [pickup.kind for pickup in pickups]
+    if len(set(kinds)) != len(kinds) or set(kinds) - set(DROP_KIND_IDS):
+        raise ValueError(f"drop kinds must be distinct and one of {sorted(DROP_KIND_IDS)}")
+    if "medkit" not in kinds:
+        raise ValueError("a level must field the medkit drop its actors leave")
     exit_spec = ExitSpec(
         _bounded_int(source["exit"], "x", 0, width - 1),
         _bounded_int(source["exit"], "y", 0, height - 1),
@@ -595,6 +660,8 @@ def compile_level(path: Path) -> CompiledLevel:
         exit_doors = [door for door in doors if door.flags & DOOR_FLAG_EXIT]
         if len(exit_doors) != 1 or not (exit_doors[0].flags & DOOR_FLAG_LOCK_SENTINEL):
             raise ValueError("v2 gameplay levels require one Sentinel-locked exit door")
+    _validate_keycard_gates(grid, width, height,
+                            (player_x_q8 >> 8, player_y_q8 >> 8), entities, doors, pickups)
     readability = analyze_level_readability(
         grid, width, height,
         (player_x_q8 >> 8, player_y_q8 >> 8),

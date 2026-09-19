@@ -292,7 +292,20 @@ def make_entity_tiles() -> bytes:
         pickup[y][x] = 2
     pickup[1][3] = pickup[1][4] = 1
     out.extend(tile_from_pixels(pickup))
-    out.extend(bytes(16))
+
+    # The second reserved pickup tile, which used to be blank, is the keycard a
+    # skirmisher leaves. Same OBJ palette as the medkit - a drop is a drop -
+    # but a landscape card with a magnetic stripe and a notched corner reads
+    # as something you carry rather than something you drink.
+    keycard = [[0] * 8 for _ in range(8)]
+    for x in range(1, 7):
+        keycard[2][x] = keycard[6][x] = 1
+    for y in range(3, 6):
+        keycard[y][1] = keycard[y][6] = 1
+        for x in range(2, 6): keycard[y][x] = 3
+    for x in range(2, 6): keycard[4][x] = 2
+    keycard[2][6] = keycard[3][6] = 0          # the notch that orients it
+    out.extend(tile_from_pixels(keycard))
 
     for phase in range(2):
         effect = [[0] * 8 for _ in range(8)]

@@ -481,6 +481,12 @@ DOOR_STATE_OFFSET = level_codec.DOOR_STATE
 DOOR_FRACTION_OFFSET = level_codec.DOOR_FRACTION
 DOOR_FLAG_EXIT = level_codec.DOOR_FLAG_EXIT
 DOOR_FLAG_LOCK_SENTINEL = level_codec.DOOR_FLAG_LOCK_SENTINEL
+DOOR_FLAG_KEYCARD = level_codec.DOOR_FLAG_KEYCARD
+DROP_KIND_IDS = level_codec.DROP_KIND_IDS
+# Eight bytes per kind: damage, recovery, step, palette, drop, three spare.
+ACTOR_KIND_RECORD_BYTES = 8
+ACTOR_KIND_DROP = 4
+KIND_DROPS = level_codec.KIND_DROPS
 EXIT_CELL_X = DOOR_TABLE + MAX_DOORS * DOOR_RECORD_BYTES
 EXIT_CELL_Y = EXIT_CELL_X + 1
 
@@ -918,7 +924,8 @@ GAME_STATE = ART_STATE_END
 # parallel array indexed by ENTITY_SLOT - the same shape as ACTOR_DEPTHS.
 ACTOR_PATROL = GAME_STATE            # 0..3: +x, -x, +y, -y
 ACTIVATION_RADIUS = ACTOR_PATROL + MAX_ACTORS   # cells, from the level header
-GAME_STATE_END = ACTIVATION_RADIUS + 1
+PLAYER_KEYS = ACTIVATION_RADIUS + 1   # cards in hand; cleared by every level load
+GAME_STATE_END = PLAYER_KEYS + 1
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.

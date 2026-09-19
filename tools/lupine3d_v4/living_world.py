@@ -44,6 +44,7 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
+    a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_r_n("a", SENTINEL_DORMANT); a.ld_abs_a(SENTINEL_STATE)
     a.ld_r_n("a", 99); a.ld_abs_a(PLAYER_HEALTH)
     a.xor_r("a")
@@ -159,6 +160,15 @@ def emit_door_system(a: Assembler) -> None:
         a.ld_r_n("h", 0xD0); a.xor_r("a"); a.ld_hl_a()
         a.label(next_label)
     a.label("door_update_all_done"); a.ret()
+
+    a.label("sound_keycard")
+    # Two short high blips: a reader refusing, not a bolt holding.
+    a.xor_r("a"); a.ldh_n_a(NR10)
+    a.ld_r_n("a", 0xC0); a.ldh_n_a(NR11)
+    a.ld_r_n("a", 0x63); a.ldh_n_a(NR12)
+    a.ld_r_n("a", 0xC0); a.ldh_n_a(NR13)
+    a.ld_r_n("a", 0xC6); a.ldh_n_a(NR14)
+    a.ret()
 
     a.label("sound_locked")
     a.xor_r("a"); a.ldh_n_a(NR10)
@@ -479,10 +489,15 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(1)
     a.label("ai_animation_store"); a.ld_abs_a(SENTINEL_ANIM); a.ret()
 
-    a.label("actor_kind_record")   # HL -> the loaded actor's four stat bytes
-    a.ld_a_abs(SENTINEL_KIND); a.and_n(3); a.add_a_r("a"); a.add_a_r("a")
+    a.label("actor_kind_record")   # HL -> the loaded actor's stat record
+    a.ld_a_abs(SENTINEL_KIND); a.and_n(3)
+    for _ in range(ACTOR_KIND_RECORD_BYTES.bit_length() - 1): a.add_a_r("a")
     a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "actor_kind_stats"); a.add_hl_rr("de"); a.ret()
+
+    a.label("actor_kind_drop")    # A = what this kind leaves when it dies
+    a.call("actor_kind_record")
+    a.ld_rr_nn("de", ACTOR_KIND_DROP); a.add_hl_rr("de"); a.ld_a_hl(); a.ret()
 
     a.label("actor_kind_step")    # ACTOR_STEP = this kind's Q8 move per AI tick
     a.call("actor_kind_record"); a.inc_rr("hl"); a.inc_rr("hl")
@@ -563,9 +578,13 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.xor_r("a"); a.ld_abs_a(PICKUP_ACTIVE); a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_COLLECTED)
     a.call("sound_pickup")
+    # A drop does not carry a kind byte of its own: it is whatever the actor
+    # that left it was, which is already in the slot and already snapshotted.
+    a.call("actor_kind_drop"); a.cp_n(DROP_KIND_IDS["keycard"]); a.jr("pickup_keycard", "z")
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
     a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
-    a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH)
+    a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
+    a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_X); a.cp_r("b"); a.ret("nz")
@@ -654,9 +673,16 @@ def emit_movement_v6(a: Assembler) -> None:
     a.ld_a_abs(v1.RAY_YH); a.ld_r_r("c", "a"); a.call("lookup_door_bc")
     a.or_r("a"); a.ret("z")
     a.ld_a_abs(DOOR_ACTIVE_STATE); a.or_r("a"); a.ret("nz")
+    a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_KEYCARD); a.jr("open_door6_sentinel_lock", "z")
+    a.ld_a_abs(PLAYER_KEYS); a.or_r("a"); a.jr("open_door6_refused", "z")
+    a.label("open_door6_sentinel_lock")
     a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_LOCK_SENTINEL); a.jr("open_door6_unlocked", "z")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.jr("open_door6_unlocked", "nz")
-    a.call("sound_locked"); a.ret()
+    # Two refusals, told apart by the flag that marks the way out: the exit
+    # says the outpost is not clear, anything else says it wants a card.
+    a.label("open_door6_refused")
+    a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_EXIT); a.jp("sound_locked", "nz")
+    a.jp("sound_keycard")
     a.label("open_door6_unlocked")
     a.ld_r_n("a", 1); a.ld_abs_a(DOOR_ACTIVE_STATE)
     a.xor_r("a"); a.ld_abs_a(DOOR_ACTIVE_FRACTION)

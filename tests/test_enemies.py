@@ -10,7 +10,7 @@ import build_rom as br  # noqa: E402
 from lupine3d_v4.levels import ENTITY_KIND_IDS  # noqa: E402
 from sm83emu import CGB, run_to_world  # noqa: E402
 
-DAMAGE, COOLDOWN, STEP, PALETTE = range(4)
+DAMAGE, COOLDOWN, STEP, PALETTE, DROP = range(5)
 
 
 class EnemyKindTests(unittest.TestCase):
@@ -18,7 +18,8 @@ class EnemyKindTests(unittest.TestCase):
     def setUpClass(cls):
         cls.rom, cls.asm, _ = br.make_rom()
         start = cls.asm.labels["actor_kind_stats"]
-        cls.stats = [cls.rom[start + index * 4:start + index * 4 + 4] for index in range(4)]
+        size = br.ACTOR_KIND_RECORD_BYTES
+        cls.stats = [cls.rom[start + index * size:start + (index + 1) * size] for index in range(4)]
 
     def test_the_table_covers_every_kind_byte_and_stays_playable(self):
         # The kind byte is masked to two bits, so all four records must be

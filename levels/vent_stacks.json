@@ -50,7 +50,7 @@
       "y": 3,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard"
     },
     {
       "id": "stack_exit",
@@ -96,6 +96,11 @@
       "kind": "medkit",
       "source": "sentinel_drop",
       "value": 25
+    },
+    {
+      "kind": "keycard",
+      "source": "sentinel_drop",
+      "value": 1
     }
   ],
   "triggers": [
