@@ -32,7 +32,7 @@ Flags are read at import time. Use a fresh process and matching flags for the RO
 
 ## Pinned independent cores
 
-Both adapters need a C compiler. SameBoy also needs its `cppp` preprocessor available on PATH for generated public headers. The pinned sources are external, not vendored.
+Both adapters need a C compiler. SameBoy's `cppp` preprocessor is needed only for its generated public headers, which the `lib` target below does not build and the adapter does not use — it includes `Core/gb.h` from the core tree. The pinned sources are external, not vendored.
 
 ```sh
 git clone https://github.com/LIJI32/SameBoy.git /your/path/SameBoy
@@ -52,7 +52,7 @@ make mgba MGBA_DIR=/your/path/mgba
 python tools/independent_witnesses.py
 ```
 
-mGBA's adapter consumes `flags.make` to match the library ABI, hence the explicit Makefiles generator. SameBoy uses an original synthetic bootstrap; mGBA uses skip-BIOS. Only SameBoy instruments GDMA/page-flip writes. Neither proves physical CGB or Nintendo boot-ROM behaviour.
+Both adapters press START before anything else: the campaign holds the world behind a title screen, and an adapter that does not reach `MODE_PLAYING` exits 3 rather than reporting a pass. mGBA's adapter consumes `flags.make` to match the library ABI, hence the explicit Makefiles generator. SameBoy uses an original synthetic bootstrap; mGBA uses skip-BIOS. Only SameBoy instruments GDMA/page-flip writes. Neither proves physical CGB or Nintendo boot-ROM behaviour.
 
 ## Content and diagnostics
 
@@ -63,10 +63,10 @@ Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a differ
 ```sh
 make playthrough variants wall-reuse motion
 python tools/playthrough.py --restart
-python tools/check_sable.py --output-dir build/v08/art-checks
-python tools/check_display.py --output-dir build/v08/display
+python tools/check_sable.py --output-dir build/v09/art-checks
+python tools/check_display.py --output-dir build/v09/display
 make preview
-python tools/preview_sable.py --scene combat --output-dir build/v08/motion-preview
+python tools/preview_sable.py --scene combat --output-dir build/v09/motion-preview
 ```
 
 Controller completion uses no game-RAM writes, but reads live state to steer; it is functional verification, not blind human navigation. Variants cover two actors, folded/unfolded, wall reuse, prepared rays and reprojection diagnostics. Wall-reuse testing includes 53 frozen comparisons. Current capture previews are emulator output; generated masters are design references only.
@@ -75,7 +75,7 @@ Controller completion uses no game-RAM writes, but reads live state to steer; it
 
 ```sh
 make sustained
-python tools/sable_sustained.py --workers 4 --output-dir build/v08/sustained
+python tools/sable_sustained.py --workers 4 --output-dir build/v09/sustained
 make research-v3 research-tail
 make atlas-check
 ```
@@ -86,20 +86,20 @@ Engine, simulation, interrupts, waits and DMA form a mutually exclusive time par
 
 `make atlas-check` verifies the preserved atlas in its original legacy training domain, including source hashes and exact patterns. Current translated keys are separately verified by `check_sable.py`; never retrain an atlas as an incidental release step. Current geometry studies write to `build/` and retain historical `research/results` untouched.
 
-The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8's visual tradeoff was explicitly accepted despite failure of that criterion. Record the failure; do not change thresholds or generalize that exception to unrelated kernels.
+The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8's visual tradeoff was explicitly accepted despite failure of that criterion, and v0.9 inherits it unchanged. Record the failure; do not change thresholds or generalize that exception to unrelated kernels.
 
 ## Releasing
 
-Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.8 for this release). Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
+Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.9 for this release). Evidence directories follow `VERSION` too, so `build/v09` here and `build/v10` next time; the tooling derives them rather than pinning one. Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
 
 ```sh
-python tools/run_tests.py > build/v08/tests.log 2>&1
+python tools/run_tests.py > build/v09/tests.log 2>&1
 python tools/release_check.py
-python tools/qualify_sable_release.py --inputs build/v08 --tests build/v08/tests.log
+python tools/qualify_sable_release.py --inputs build/v09 --tests build/v09/tests.log
 python tools/package_release.py --output-dir dist --reuse-verified-working-tree
 ```
 
-Run the art/display checks into `build/v08/art-checks` and `build/v08/display`, sustained scenarios into `build/v08/sustained`, and the budget into `build/v08/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
+Run the art/display checks into `build/v09/art-checks` and `build/v09/display`, sustained scenarios into `build/v09/sustained`, and the budget into `build/v09/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
 
 Archive the resulting `build/rendering_qualification/` under `milestones/v<VERSION>/qualification/`. Release CI reruns short gates and clean-room tests, and may reuse that sustained/core evidence only after verifying the exact ROM/version and every evidence hash. Compressed motion JSON retains all raw samples; its uncompressed hash binds the budget. A changed ROM requires fresh qualification.
 

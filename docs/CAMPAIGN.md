@@ -2,27 +2,31 @@
 
 Lupine 3D shipped v0.8 as one hand-authored level with one enemy, no framing
 screens and no way to stop playing except turning the console off. This
-document records what turned it into a game, what each decision cost, and what
-is still missing. Contracts live beside their source; this is the summary and
-the evidence.
+document records what turned it into a game and what each decision cost.
+Contracts live beside their source; this is the summary and the evidence.
 
 ## What the game is now
 
 | | v0.8 | main |
 | --- | --- | --- |
+| | v0.8 | v0.9 |
+| --- | --- | --- |
 | Levels | 1, chosen at build time | **5**, chosen at runtime from their own ROM banks |
-| Enemies | 1 Sentinel | 1–4 actors, **two kinds** |
-| Framing | none | title, intermission, results and ending screens |
+| Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity |
+| Weapons | 1 | **2**, streamed through one 80-pattern window |
+| Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one |
+| Framing | none | title, intermission, results and ending screens, with **kills and time** |
 | Difficulty | fixed | **three skill settings**, chosen on the title |
 | Persistence | none | **four-digit continue codes** |
-| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus seven effects on CH1 |
+| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus nine effects on CH1 |
 
 A run starts at the title, where left and right choose a skill and Select opens
 code entry. Each sector is cleared by killing every actor and reaching the exit;
-clearing one shows the code for the next, dying retries the sector that was
-lost, and clearing the last one ends the campaign.
+clearing one shows the code for the next along with what the sector cost, dying
+retries the sector that was lost, and clearing the last one ends the campaign
+with the run's totals.
 
-## The five decisions that shaped it
+## The decisions that shaped it
 
 **Levels became data, not opcodes.** Selection used to be assembled into
 immediate operands — entity counts, fixture counts, the pickup value, the
@@ -72,63 +76,104 @@ only ever compares bytes.
 | | Figure |
 | --- | --- |
 | Full geometry updates | **6.611/s** on the nine-image tour, unchanged from before this work |
+| Weapon stream | one GDMA of 80 blocks with the LCD off, once per swap |
 | Music sequencer | 84 T-cycles counting down, 1,048 on a row boundary, **149 mean** — 0.106% of an LCD interval |
 | Segment lookup | one extra fixed-WRAM load per wall hit |
-| Resident ROM free | **7,166 bytes** below `$8000` (floor 3,000) |
-| Fixed code | ends at `$3050` — **4,016 bytes** below the `$4000` bank-switching ceiling |
+| Resident ROM free | **6,475 bytes** below `$8000` (floor 3,000) |
+| Fixed code | ends at `$3240` — **3,520 bytes** below the `$4000` bank-switching ceiling |
 
 That last row used to read `$3F60`, 160 bytes, and it was the next wall. The
 ceiling was a proxy: the hardware rule is that code writing the bank register
 must live in bank 0, not that all code must. `bank_safety.py` checks the rule
 itself against the emitted image, so sections that never switch a bank, never
 run inside another section's window and are unreachable from an interrupt are
-emitted after the data and land above `$4000` in bank 1. Of 15.8 KB of
+emitted after the data and land above `$4000` in bank 1. Of 16.5 KB of
 instructions, 1.6 KB are genuinely pinned below the boundary.
+
+## What the last five cost
+
+The first pass left five things out, each for a stated reason. Each turned out
+to be blocked by a claim that was true of the code but not of the hardware.
+
+**Patrol routes** were blocked on the actor slot, which is exactly sixteen
+bytes full. Per-actor state does not have to live in the slot: a parallel
+four-byte array in the snapshot slack, indexed like `ACTOR_DEPTHS`, holds a
+heading, and patrol walks it through the same stepping bodies and collision
+test the chase uses. A refused step turns the actor a quarter turn. The
+authored `activation_radius_q4`, parsed and stepped over since it was written,
+now wakes an actor when the player comes inside it.
+
+**Keyed doors** were blocked on nothing, it turned out. `DoorSpec.flags` had
+free bits and the record needed no growth. What was actually missing was the
+drop: a card has to come from somewhere. It does not need a byte of its own
+either - a drop is whatever the actor that left it was, and the kind is
+already in the slot and already snapshotted. The Sentinel leaves a medkit, the
+skirmisher a card, and the compiler refuses a level whose card is behind the
+door it opens.
+
+**A third enemy kind** was blocked on OBJ palettes, all eight claimed. Palette
+6 held the reticle alone, and the reticle's art is one colour - within three
+parts in thirty-one of palette 4's, which is why moving it there changes eight
+pixels a frame and nothing else. That is still a change to shipped pixels, so
+v0.9 carries its own capture oracle beside the retained v0.8 one.
+
+**Sector statistics** were blocked on fixed WRAM: one free byte in the `$C7E0`
+window against three per digit slot. Screen slot state does not belong in
+fixed WRAM at all. A full-screen mode owns the whole background, so
+composition is idle for exactly as long as that state exists, and
+`enter_world` refills the map buffer anyway - the same argument that lets
+screens borrow the `$9000` pattern window. Capturing the result found that no
+runtime digit below row eight had ever been visible: the row offset passes 255
+and the carry was being dropped, which put the continue code and the skill
+indicator where nobody could read them.
+
+**A second weapon** was the one whose stated reason held exactly. The window
+is eighty patterns and that is one weapon's cels, so the patterns stream. The
+pattern IDs never change, only their contents, so no OAM is rewritten. The
+transfer runs with the LCD off, the way `init_vram` uploads that same window:
+with the LCD on the harness counted it as part of a frame's publication and
+refused the frame, which is the correct answer - a weapon swap is a VRAM
+re-upload, not a publication.
 
 ## Evidence
 
-ROM `275adaca71f8308b799e6d5745fb46fcb80a969e45360614ee912bc945d6e106`, default
+ROM `e59f722b698b545e75e5dbb2cdfe3810c5cc6a3ec96e38e868c09d286e2a9b89`, default
 slim/Sable configuration.
 
-- **169 automated tests** (`make test`), including the campaign's bank layout,
-  the sequencer's placement and bank contract, enemy kinds and skill scaling,
-  and a continue-code round trip with a refused code.
-- **Nine-image pixel oracle byte-identical** (`make playtest`) across every
-  change in this work. Nothing here was allowed to move a pixel of the shipped
-  scenes.
+- **229 automated tests** (`make test`), including the campaign's bank layout,
+  the sequencer's placement and bank contract, enemy kinds and skill scaling, a
+  continue-code round trip with a refused code, the MBC5 bank contract against
+  images built to break each of its clauses, patrol collision and waking, the
+  keycard gate and the compiler's refusal of an unsolvable level, the map cell
+  every reserved digit resolves to, and the weapon stream.
+- **Two pixel oracles byte-identical** (`make playtest`, `make playtest-world`).
+  Every commit but the palette re-plan was required to move no pixel at all;
+  that one moved eight per frame and was captured before and after.
 - **89 release checks** (`tools/release_check.py`), including a per-level
   readability certificate for all five sectors rather than only the first.
-- **3,356-update controller route** (`tools/playthrough.py --restart`): every
-  sector cleared, every drop collected, every intermission crossed and the
-  ending restarting the campaign, on controller input alone, with **zero game
-  RAM writes** and **zero unsafe GDMA starts**. Every frame is checked against
-  the host geometry and compositor models.
+- **2,961-update controller route** (`tools/playthrough.py --restart`): every
+  sector cleared, every drop collected, one sector cleared with the second
+  weapon, every intermission crossed and the ending restarting the campaign, on
+  controller input alone, with **zero game RAM writes** and **zero unsafe GDMA
+  starts**. Every frame is checked against the host geometry and compositor
+  models.
 - **Variant pixel equality** (`make variants`): folded/unfolded,
   reuse-disabled, prepared-rays-disabled and the two-actor level.
 - `make wall-reuse`, `make motion`, `tools/check_sable.py`,
   `tools/check_display.py` — all passing.
 
-**Not run here:** the pinned SameBoy and mGBA lanes and
-`tools/independent_witnesses.py`. SameBoy's build needs `cppp`, which is not
-available in this container. Work touching interrupts, banks or publication —
-the sequencer's STAT placement especially — has not been confirmed on those
-cores and must be before a release.
+- **Pinned SameBoy CGB-0/CGB-E and mGBA**, and 87 frozen independent-witness
+  scenes, all matching the harness on this ROM. Both adapters predate the title
+  screen and had to learn to press START; with that fixed, SameBoy immediately
+  reported 192 CPU writes to the *displayed* background map. The weapon swap
+  was restoring a constant `LCDC` after its LCD-off transfer, clearing the bit
+  that says which page is displayed while `CURRENT_PAGE` still said the other
+  one — so the next frame's hidden-page copy wrote the visible map. It restores
+  the `LCDC` it found now, and the swap no longer fires on the first frame of a
+  real power-on, because the weapon state it reads is initialised at boot
+  rather than inherited from whatever was in WRAM.
 
-The `sustained` CI job compares against a baseline pinned at commit
-`466bd09`, which predates the v0.8 display change. The current host oracle
-cannot validate that ROM, and could not at the v0.8 tag either; that job is
-manual-only, so it does not gate anything, but the pin needs refreshing.
-
-## Still missing
-
-- **Sector statistics** on the intermission and ending. Blocked on fixed-WRAM
-  capacity: the four runtime digit slots are spent on the continue code, and
-  raising the capacity needs twelve bytes the `$C7E0` window does not have.
-- **A second weapon.** The 80-pattern shotgun window leaves ten free OBJ
-  patterns, so this means streaming the active weapon's patterns on switch.
-- **Keyed doors and pickup kinds.** `DOOR_FLAG_EXIT` is compiled and never
-  read, and `PickupSpec.kind`/`source` are parsed and ignored.
-- **A third visible enemy kind**, which needs the weapon and reticle palettes
-  re-planned.
-- **Patrol routes.** `sentinel_patrol_step` now carries and collides correctly,
-  but it is still a bob in place.
+Neither fault was reachable in the host harness, which zeroes WRAM and models
+the page flip from the same state the ROM does. That is what those lanes are
+for, and it is the first time in this work they have caught something the
+project's own model could not.

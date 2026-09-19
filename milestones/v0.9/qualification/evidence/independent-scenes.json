@@ -1,0 +1,3850 @@
+{
+  "schema": "lupine3d.independent-witnesses.v1",
+  "rom_sha256": "e59f722b698b545e75e5dbb2cdfe3810c5cc6a3ec96e38e868c09d286e2a9b89",
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "cores": {
+    "SameBoy": {
+      "core": "SameBoy",
+      "core_commit": "213a12ce93d66b105a113debd9396306066a7cfc",
+      "adapter_sha256": "27d56d445c164dc3c2cea1f63778699e168552ec776c4a96607504635c4ebc30"
+    },
+    "mGBA": {
+      "core": "mGBA",
+      "core_commit": "507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6",
+      "adapter_sha256": "19db6ef7875a8c53cd265475d1a16e19eeb7ed96497b7607745fd0f7a40e4fb9"
+    }
+  },
+  "diagnostic_ram_writes": true,
+  "hardware_tested": false,
+  "scenes": [
+    {
+      "scene": "height_class_occlusion",
+      "patch_sha256": "b0f1410b0d02c3adedbdbbe8319afa41ab9c62c1551c795e97a9023a3c41d2e0",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "actor_covered_discontinuity",
+      "patch_sha256": "35163b794166e14f3865d21f6e84c647725a40cb4d3b62ac9c09521165539bfa",
+      "expected_rgb_sha256": "afac2f13277c0732dee3b2b5fb292b7a5472905249a699cf9fdddf7f1dc4a606",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "afac2f13277c0732dee3b2b5fb292b7a5472905249a699cf9fdddf7f1dc4a606",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "afac2f13277c0732dee3b2b5fb292b7a5472905249a699cf9fdddf7f1dc4a606",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "afac2f13277c0732dee3b2b5fb292b7a5472905249a699cf9fdddf7f1dc4a606",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "thin_occluder",
+      "patch_sha256": "f986159704ce05ef177f7d02ab03dec907e0d7cab28483971e290c188f0d3091",
+      "expected_rgb_sha256": "62b3039b4253a65c21db7d0dc275345723687b45ce5306ea174835876d3468b3",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "62b3039b4253a65c21db7d0dc275345723687b45ce5306ea174835876d3468b3",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "62b3039b4253a65c21db7d0dc275345723687b45ce5306ea174835876d3468b3",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "62b3039b4253a65c21db7d0dc275345723687b45ce5306ea174835876d3468b3",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "close_clipped_wall",
+      "patch_sha256": "b4134e6435e362b3de15870de8ced1ec087ae7bf22c2bd8305abf69938762360",
+      "expected_rgb_sha256": "1c9a94973aa582b21d77ca350ab24229bc17f5095999532e1bb78b90f1fbd56d",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1c9a94973aa582b21d77ca350ab24229bc17f5095999532e1bb78b90f1fbd56d",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1c9a94973aa582b21d77ca350ab24229bc17f5095999532e1bb78b90f1fbd56d",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "1c9a94973aa582b21d77ca350ab24229bc17f5095999532e1bb78b90f1fbd56d",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "shallow_angle",
+      "patch_sha256": "d186d209e50123cb355d573df40fad4e34e977fd2362c143295896a396cd594d",
+      "expected_rgb_sha256": "927b6161aeae1d9dbd023d028dfe8206a7c66128644894122343c02ab0c20362",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "927b6161aeae1d9dbd023d028dfe8206a7c66128644894122343c02ab0c20362",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "927b6161aeae1d9dbd023d028dfe8206a7c66128644894122343c02ab0c20362",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "927b6161aeae1d9dbd023d028dfe8206a7c66128644894122343c02ab0c20362",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "finite_door_0",
+      "patch_sha256": "c72ad891c9902f6a6ab7a1dee1d15588e30bf75b75e7d382ee6190209e9f993f",
+      "expected_rgb_sha256": "52e61c7bcf17fd42fbb41b9f07422c3dc34a3b551ce9544de8670fe731f9278b",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "52e61c7bcf17fd42fbb41b9f07422c3dc34a3b551ce9544de8670fe731f9278b",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "52e61c7bcf17fd42fbb41b9f07422c3dc34a3b551ce9544de8670fe731f9278b",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "52e61c7bcf17fd42fbb41b9f07422c3dc34a3b551ce9544de8670fe731f9278b",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "finite_door_64",
+      "patch_sha256": "2fd5edc20902b71715cf456a489a1069b3abbeb23a01946499532dc0ebfe7bdd",
+      "expected_rgb_sha256": "cd0f6d6c4145e50e8ed03aa297f988379e3289ef012fb1b6ff10ee9ffb7a4baa",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cd0f6d6c4145e50e8ed03aa297f988379e3289ef012fb1b6ff10ee9ffb7a4baa",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cd0f6d6c4145e50e8ed03aa297f988379e3289ef012fb1b6ff10ee9ffb7a4baa",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "cd0f6d6c4145e50e8ed03aa297f988379e3289ef012fb1b6ff10ee9ffb7a4baa",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "finite_door_128",
+      "patch_sha256": "b8f8ca1e20bb25233a0679f815ad153916307e66001f6f833c6edda6654ccccd",
+      "expected_rgb_sha256": "d29f3f02c31ab1c93681de40081764537540a2138f5e0f5e777eeff02acc0660",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "d29f3f02c31ab1c93681de40081764537540a2138f5e0f5e777eeff02acc0660",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "d29f3f02c31ab1c93681de40081764537540a2138f5e0f5e777eeff02acc0660",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "d29f3f02c31ab1c93681de40081764537540a2138f5e0f5e777eeff02acc0660",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "finite_door_192",
+      "patch_sha256": "9709775f1f04273c3b3526c58b6d1fcc4cb019fbc6a945e81de9c285af3185f1",
+      "expected_rgb_sha256": "cb967cdb9b5b42f1b79d0feddd01c29ab40fb04f0c575e9a2dc2f9759559e452",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cb967cdb9b5b42f1b79d0feddd01c29ab40fb04f0c575e9a2dc2f9759559e452",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cb967cdb9b5b42f1b79d0feddd01c29ab40fb04f0c575e9a2dc2f9759559e452",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "cb967cdb9b5b42f1b79d0feddd01c29ab40fb04f0c575e9a2dc2f9759559e452",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "finite_door_224",
+      "patch_sha256": "db03af10d49aac6224c6a0d8a94cd855bcb232ccd5a0a5f439f4470b7723f584",
+      "expected_rgb_sha256": "40f0ceed4dcd80236916c846b2f0e5f7a64c8eb5fb7d8a64b67936c305567a26",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "40f0ceed4dcd80236916c846b2f0e5f7a64c8eb5fb7d8a64b67936c305567a26",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "40f0ceed4dcd80236916c846b2f0e5f7a64c8eb5fb7d8a64b67936c305567a26",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "40f0ceed4dcd80236916c846b2f0e5f7a64c8eb5fb7d8a64b67936c305567a26",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "touching_doors_axis_0",
+      "patch_sha256": "60093f2fd2ce06656c97700da5e948751745caa23fc90f399bbb79caa7ff90bb",
+      "expected_rgb_sha256": "e36ea11ade2c2ed015afbbcfae317a078ef0c0898eea01d1f04a1ba93c97f777",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e36ea11ade2c2ed015afbbcfae317a078ef0c0898eea01d1f04a1ba93c97f777",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e36ea11ade2c2ed015afbbcfae317a078ef0c0898eea01d1f04a1ba93c97f777",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e36ea11ade2c2ed015afbbcfae317a078ef0c0898eea01d1f04a1ba93c97f777",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "touching_doors_axis_1",
+      "patch_sha256": "b95e0994dd4101f31265e243e2f3790ca45897acac319ffa5f5e446250c33526",
+      "expected_rgb_sha256": "9082a7dbd2002cbae0d90a4db226b11ca2211d4058a3375c1d192fa1b00a1b6f",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9082a7dbd2002cbae0d90a4db226b11ca2211d4058a3375c1d192fa1b00a1b6f",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9082a7dbd2002cbae0d90a4db226b11ca2211d4058a3375c1d192fa1b00a1b6f",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "9082a7dbd2002cbae0d90a4db226b11ca2211d4058a3375c1d192fa1b00a1b6f",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_00",
+      "patch_sha256": "b0f1410b0d02c3adedbdbbe8319afa41ab9c62c1551c795e97a9023a3c41d2e0",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_01",
+      "patch_sha256": "52d0cca0cdb853e96a15962c67ef5128c1c8385267d40d566c5774daf26cb71d",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_02",
+      "patch_sha256": "4e2e7bf1b5ba7b78dc9cd779f2a450257aa1f6dfbf9a96689c925518932d3658",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_03",
+      "patch_sha256": "5a37fb0c4ab63745dd1b8f5053db39a38c7514c04454a17035cccd293accbe3f",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_04",
+      "patch_sha256": "53d673f28e37699f9fb377bf885024fca3bb9cdfa7d1c7c43a4677f0b4ab9a19",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_05",
+      "patch_sha256": "8b2fb66c4b423ee6eeb36969ac3f3a057897165f6acde0e3f8593bd66ead4e3b",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_06",
+      "patch_sha256": "838805d24fdf1869ddff51e2d0787c89b061fcb8a004a3dc7bd40d1fa44bc858",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_07",
+      "patch_sha256": "19f908418b494a8e16ee782681ae4ac5e3fca9ff8fde919adf28b89748353f27",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_08",
+      "patch_sha256": "dc80a67dd1a6e8ad82fb1f79528f2c974224e967ac76a7051449ac9e06c84c02",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_09",
+      "patch_sha256": "8898f0d657f25e26a65b87beb15261df11a93b23589c9e2d9ccf0a5d3a2af647",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_10",
+      "patch_sha256": "0b38519782eb4972796384e8e57269d3a2dc00c26cb5fdfb93afd4aa2614fb31",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_11",
+      "patch_sha256": "0ba07ea3b137b56db0424e696440d9f3f335052d3d7be2ba4fb3428f1c10ae86",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_12",
+      "patch_sha256": "4b63d6c2cb0cc34559a620ce28d5cd6025e1fb712aa5f376d1bf8f5321a39ea8",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_13",
+      "patch_sha256": "87283946397a13fb3a7f8d0a3ee3660e4a17adc1d2408b12b43629b8ac6ebb3f",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_14",
+      "patch_sha256": "0db1e5d7eaa9ddf3641f406ef5fcf51e815eeded3c9408ca865bce0c333ce946",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "fractional_actor_15",
+      "patch_sha256": "119733ca95c10a5da3fe1d492acbd0bd4c014042d89af2a823cc946643f0f724",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "yaw_wrap_254",
+      "patch_sha256": "8b827a441eaca1652540cb57a86be2d020acbc0d2de2acd3f9494879c265909c",
+      "expected_rgb_sha256": "a29494fce41d318fa0a17376c31bd60882fa90ad3cad526c5b81ded6f2da4eaa",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "a29494fce41d318fa0a17376c31bd60882fa90ad3cad526c5b81ded6f2da4eaa",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "a29494fce41d318fa0a17376c31bd60882fa90ad3cad526c5b81ded6f2da4eaa",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "a29494fce41d318fa0a17376c31bd60882fa90ad3cad526c5b81ded6f2da4eaa",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "yaw_wrap_255",
+      "patch_sha256": "e2cc97f234aeb5d44db31a240a9805a46b85130cf0b2e47c50f294bea97ddd3a",
+      "expected_rgb_sha256": "0fb62353b481c1ea3390080f1e5d1595e6fc9fb1bd8367d30d00c4e72e327ab0",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "0fb62353b481c1ea3390080f1e5d1595e6fc9fb1bd8367d30d00c4e72e327ab0",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "0fb62353b481c1ea3390080f1e5d1595e6fc9fb1bd8367d30d00c4e72e327ab0",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "0fb62353b481c1ea3390080f1e5d1595e6fc9fb1bd8367d30d00c4e72e327ab0",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "yaw_wrap_000",
+      "patch_sha256": "b0f1410b0d02c3adedbdbbe8319afa41ab9c62c1551c795e97a9023a3c41d2e0",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "yaw_wrap_001",
+      "patch_sha256": "49f2be75ee4f8fda3b9502f4a79494a5dc6eb4c08a028eb259ff6f4920d2fd34",
+      "expected_rgb_sha256": "3bfa8d37b1e4751c0c93740c834c1ab124a93c7125d3a9415080e22f1e0dd74e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "3bfa8d37b1e4751c0c93740c834c1ab124a93c7125d3a9415080e22f1e0dd74e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "3bfa8d37b1e4751c0c93740c834c1ab124a93c7125d3a9415080e22f1e0dd74e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "3bfa8d37b1e4751c0c93740c834c1ab124a93c7125d3a9415080e22f1e0dd74e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "yaw_wrap_002",
+      "patch_sha256": "c03bec44d89ed33c5cf3d56846c1892c35b3b289d4968eb1c7c5477139664a96",
+      "expected_rgb_sha256": "2e77040a42f2a9b4a32ff02fa8b9b4c5a70c7457bf90095e1970b89ad30f4534",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "2e77040a42f2a9b4a32ff02fa8b9b4c5a70c7457bf90095e1970b89ad30f4534",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "2e77040a42f2a9b4a32ff02fa8b9b4c5a70c7457bf90095e1970b89ad30f4534",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "2e77040a42f2a9b4a32ff02fa8b9b4c5a70c7457bf90095e1970b89ad30f4534",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0064",
+      "patch_sha256": "8211c2dd9561b8af7a7c0de7c73af00881ea0757b57e32719ea286c0e3528aa6",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0079",
+      "patch_sha256": "566a846db323b555016aa4a9870b9a2d89167227fa0d0ebad539f3bdfa9826c0",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0080",
+      "patch_sha256": "2465f66ec85312c3902c4b8315f118cd98162a526689cb1d59dc94922bcc7329",
+      "expected_rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0081",
+      "patch_sha256": "bec2d06fb489065e990f6560273df13f24366889dd2213593198fa8fa35079b4",
+      "expected_rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0095",
+      "patch_sha256": "9dd2006a5128a348987e9cee82d52a94da260442d6991192bb5932e25bd7f0cd",
+      "expected_rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0096",
+      "patch_sha256": "49ae86d310563d5af61ea515ed44026e1cddd5e6e066ef9e3c31a6788ca07770",
+      "expected_rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 6,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "21f8f0d30fb2dd77ad562d036dd6f8adaae87ef0cc319508399110c4fe457711",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0447",
+      "patch_sha256": "daf437a77fcc53b562f5f7c5623a93f570173a34016a257d26d177bb517e36e1",
+      "expected_rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0448",
+      "patch_sha256": "dac31c41feaaa345c1451ab00e4f69a2e7613da2213da5ced643f1706f81ee91",
+      "expected_rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0449",
+      "patch_sha256": "f3a925f882dc67af83f1ba46050d353fb07d39bbee2c91a2b7fcaf3f385e2a88",
+      "expected_rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e9a53468e30f51cef974b6d25a82b9176c166a459a70520f343c306f59092358",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0575",
+      "patch_sha256": "d72fbb895e11484417752c8e300056e59facec6e8aeccb4885c499e021b472cb",
+      "expected_rgb_sha256": "fde6a692742e74f5bb0e31aa413ff567c9bf68ff373cfdd1b03c97ec586a7388",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "fde6a692742e74f5bb0e31aa413ff567c9bf68ff373cfdd1b03c97ec586a7388",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "fde6a692742e74f5bb0e31aa413ff567c9bf68ff373cfdd1b03c97ec586a7388",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "fde6a692742e74f5bb0e31aa413ff567c9bf68ff373cfdd1b03c97ec586a7388",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0576",
+      "patch_sha256": "f935127f4de74dbfef3490b0a84ba57c8980c7eaade821824e924ef5feeafb4e",
+      "expected_rgb_sha256": "e0fc04181f735450a9c7b67ad468493a9dfe8f0dea07f0128d99a714f45d748f",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e0fc04181f735450a9c7b67ad468493a9dfe8f0dea07f0128d99a714f45d748f",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e0fc04181f735450a9c7b67ad468493a9dfe8f0dea07f0128d99a714f45d748f",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e0fc04181f735450a9c7b67ad468493a9dfe8f0dea07f0128d99a714f45d748f",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0959",
+      "patch_sha256": "9404952a42be6868a5ab6f3ffa84f6cf32cfbfee21ae6e7ab06c3c171c3ed3e7",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_0960",
+      "patch_sha256": "b0f1410b0d02c3adedbdbbe8319afa41ab9c62c1551c795e97a9023a3c41d2e0",
+      "expected_rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "868aa8ce72b902b8ac3b7ecd4c37acf7d8ff8143e605ee88e10fcb7b7eaba517",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_1087",
+      "patch_sha256": "4f453d91586ed517fcbe953362083299c8f6f15d74506764526018dbdc9815b4",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_1088",
+      "patch_sha256": "287d8fc3d52ec56d956c422028a7b52913c705cfa5fef87186077b10e66264b9",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "near_lod_1089",
+      "patch_sha256": "de2e2fb3c9a5beb13a973d9f505380d38f5842d6a991eacf98fa80a736f8f952",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "two_actor_corner",
+      "patch_sha256": "18bade5014df2d47a9a0489312a68f7b174a6c99530aecedb4ed70b18b737395",
+      "expected_rgb_sha256": "ae2914fce1c5742db6f23985befa106230a287736e32d90c7121212e489a7890",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "ae2914fce1c5742db6f23985befa106230a287736e32d90c7121212e489a7890",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "ae2914fce1c5742db6f23985befa106230a287736e32d90c7121212e489a7890",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "ae2914fce1c5742db6f23985befa106230a287736e32d90c7121212e489a7890",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "four_actor_coverage",
+      "patch_sha256": "bea827510d0020d6421b67a4c4be109ee75cfeca0af133758001240ff56554aa",
+      "expected_rgb_sha256": "622fbd56adc008910b35dfadae7545258db20341e7fddc25444d2ca716c34a40",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 8,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "622fbd56adc008910b35dfadae7545258db20341e7fddc25444d2ca716c34a40",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 8,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "622fbd56adc008910b35dfadae7545258db20341e7fddc25444d2ca716c34a40",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1281,
+          "max_oam_per_scanline": 8,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "622fbd56adc008910b35dfadae7545258db20341e7fddc25444d2ca716c34a40",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_00",
+      "patch_sha256": "f580dd8cb379b0fa43b2de36a0da95301fd5586bc512056defbe292db8fb0e16",
+      "expected_rgb_sha256": "fc1de6664cd1110548b254359068fe7aa4458a4238efbc6e1340bfd30ba14a66",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "fc1de6664cd1110548b254359068fe7aa4458a4238efbc6e1340bfd30ba14a66",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "fc1de6664cd1110548b254359068fe7aa4458a4238efbc6e1340bfd30ba14a66",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "fc1de6664cd1110548b254359068fe7aa4458a4238efbc6e1340bfd30ba14a66",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_01",
+      "patch_sha256": "963b668ec074df4946436c4fe049345a99b0f276dfdc88d669b37e291d5f8331",
+      "expected_rgb_sha256": "1a1c44459c729f9e009ad28adbfccea5b36c287281942d6106bb6c3d4f6f2f12",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1a1c44459c729f9e009ad28adbfccea5b36c287281942d6106bb6c3d4f6f2f12",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1a1c44459c729f9e009ad28adbfccea5b36c287281942d6106bb6c3d4f6f2f12",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "1a1c44459c729f9e009ad28adbfccea5b36c287281942d6106bb6c3d4f6f2f12",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_02",
+      "patch_sha256": "97260afb09fcdfe2a41ab4eef56339697cd0310443be42fad4009464e4770186",
+      "expected_rgb_sha256": "34751795a03a6edd862ceb69c9c9ff5f496d9df7e4eb1fd3dab4d06b2d8d1172",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "34751795a03a6edd862ceb69c9c9ff5f496d9df7e4eb1fd3dab4d06b2d8d1172",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "34751795a03a6edd862ceb69c9c9ff5f496d9df7e4eb1fd3dab4d06b2d8d1172",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "34751795a03a6edd862ceb69c9c9ff5f496d9df7e4eb1fd3dab4d06b2d8d1172",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_03",
+      "patch_sha256": "8c2f0ec4491605918bf072e70f874b9d774574867cf31b2735ef81fba03496a8",
+      "expected_rgb_sha256": "4fd8f09c010354b07fc5227ce6f1c473332a9595082e99251ca6c64a645c540e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "4fd8f09c010354b07fc5227ce6f1c473332a9595082e99251ca6c64a645c540e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "4fd8f09c010354b07fc5227ce6f1c473332a9595082e99251ca6c64a645c540e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "4fd8f09c010354b07fc5227ce6f1c473332a9595082e99251ca6c64a645c540e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_04",
+      "patch_sha256": "031e3e4fb78f548340aa3a17cd7cdca399d0237aed92725933a304fd20f8cef4",
+      "expected_rgb_sha256": "faf323bb019f3faf77f12d28bdce19c16a1618aa454b8d36b8264828d7d1b3e7",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "faf323bb019f3faf77f12d28bdce19c16a1618aa454b8d36b8264828d7d1b3e7",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "faf323bb019f3faf77f12d28bdce19c16a1618aa454b8d36b8264828d7d1b3e7",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "faf323bb019f3faf77f12d28bdce19c16a1618aa454b8d36b8264828d7d1b3e7",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_05",
+      "patch_sha256": "edb2156402b3c7eb213a31ec285ff516663c87ab996b131320bbab02598d0fcd",
+      "expected_rgb_sha256": "10d571636f787f18db26717a4ca9683b7f9d6f2f7db9766691541e3b6a579595",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "10d571636f787f18db26717a4ca9683b7f9d6f2f7db9766691541e3b6a579595",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "10d571636f787f18db26717a4ca9683b7f9d6f2f7db9766691541e3b6a579595",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "10d571636f787f18db26717a4ca9683b7f9d6f2f7db9766691541e3b6a579595",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_06",
+      "patch_sha256": "69f26921ba4fe6961d1b67735b9766a3255a66526dadf49bd379923e156fe863",
+      "expected_rgb_sha256": "1ae87d5779f56aeaf6ee57cc9f33f8d003cf488733c1cfffcaf55535040c702c",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1ae87d5779f56aeaf6ee57cc9f33f8d003cf488733c1cfffcaf55535040c702c",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1ae87d5779f56aeaf6ee57cc9f33f8d003cf488733c1cfffcaf55535040c702c",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "1ae87d5779f56aeaf6ee57cc9f33f8d003cf488733c1cfffcaf55535040c702c",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_07",
+      "patch_sha256": "786223882056f4d32793a838a103fd1d843df5dd41ebc28a4bbaae64612d7624",
+      "expected_rgb_sha256": "f65aee0fb74e8abcd6d2e3c9d9c99ba1f406db02c9749fa0966fcd63a854a43e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "f65aee0fb74e8abcd6d2e3c9d9c99ba1f406db02c9749fa0966fcd63a854a43e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "f65aee0fb74e8abcd6d2e3c9d9c99ba1f406db02c9749fa0966fcd63a854a43e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "f65aee0fb74e8abcd6d2e3c9d9c99ba1f406db02c9749fa0966fcd63a854a43e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_08",
+      "patch_sha256": "8b8f79f4de6ec054bfe1fde6069467e6c616d04bfb5676d1b7defdba6400faa2",
+      "expected_rgb_sha256": "9c273492965a0d169fe28830a62ceb3343ce6cc57d9e508453d1cd5660ab0ef8",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9c273492965a0d169fe28830a62ceb3343ce6cc57d9e508453d1cd5660ab0ef8",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9c273492965a0d169fe28830a62ceb3343ce6cc57d9e508453d1cd5660ab0ef8",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "9c273492965a0d169fe28830a62ceb3343ce6cc57d9e508453d1cd5660ab0ef8",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_09",
+      "patch_sha256": "2dd106f95aee243c9de45169f592363ea91db4e9db8137ceec9b943c0e59ade0",
+      "expected_rgb_sha256": "73f9fc8c3e948e871569dd9603f3c7b15a0fdb2ed85c5673828ff0bb797b50dc",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "73f9fc8c3e948e871569dd9603f3c7b15a0fdb2ed85c5673828ff0bb797b50dc",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "73f9fc8c3e948e871569dd9603f3c7b15a0fdb2ed85c5673828ff0bb797b50dc",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "73f9fc8c3e948e871569dd9603f3c7b15a0fdb2ed85c5673828ff0bb797b50dc",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_10",
+      "patch_sha256": "b5562515bfddeed62b65f387bb88e794de933402751355e4ca3d9c0d0861187b",
+      "expected_rgb_sha256": "cb5e02176e3c05e8202b90385db86adcdbdcc2b83820e210e67bb542278b8e67",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cb5e02176e3c05e8202b90385db86adcdbdcc2b83820e210e67bb542278b8e67",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "cb5e02176e3c05e8202b90385db86adcdbdcc2b83820e210e67bb542278b8e67",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "cb5e02176e3c05e8202b90385db86adcdbdcc2b83820e210e67bb542278b8e67",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_near_11",
+      "patch_sha256": "b0f41ec83afc036677e50aab22b1bddb3b55119bc3278aa5d2a5bec82c7b427e",
+      "expected_rgb_sha256": "bc4b778e756b91f45959b608c4833604733f7685ae040810501f0d6b86b43ffe",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "bc4b778e756b91f45959b608c4833604733f7685ae040810501f0d6b86b43ffe",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "bc4b778e756b91f45959b608c4833604733f7685ae040810501f0d6b86b43ffe",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 5,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "bc4b778e756b91f45959b608c4833604733f7685ae040810501f0d6b86b43ffe",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_00",
+      "patch_sha256": "1aab53e2ed7b674af3be5c7052c1ad6c2486f841e66bf05af0c11d1ad6cfb7c9",
+      "expected_rgb_sha256": "1c6a8d3676dfcaafadcbe31f90ff4440c9cc781c55924943a962c4e6611360c9",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1c6a8d3676dfcaafadcbe31f90ff4440c9cc781c55924943a962c4e6611360c9",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "1c6a8d3676dfcaafadcbe31f90ff4440c9cc781c55924943a962c4e6611360c9",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "1c6a8d3676dfcaafadcbe31f90ff4440c9cc781c55924943a962c4e6611360c9",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_01",
+      "patch_sha256": "3c9527c28d602bd3220bc85ccd6f9b3747919c04d235bbdc62a919be12e86e8b",
+      "expected_rgb_sha256": "9c496f7987b0afa7c577e1fac6e16538e62517c028a7c2f32e7f387431ec8a5e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9c496f7987b0afa7c577e1fac6e16538e62517c028a7c2f32e7f387431ec8a5e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9c496f7987b0afa7c577e1fac6e16538e62517c028a7c2f32e7f387431ec8a5e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "9c496f7987b0afa7c577e1fac6e16538e62517c028a7c2f32e7f387431ec8a5e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_02",
+      "patch_sha256": "570368802c47a44aba86919a8448e6eb5fdb1e50835b3bc2d1c02154a346b75f",
+      "expected_rgb_sha256": "9bf82b39fab4c0cf89d40301083a3f853a45d5bc62f29a78bf9c886787dac63e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9bf82b39fab4c0cf89d40301083a3f853a45d5bc62f29a78bf9c886787dac63e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "9bf82b39fab4c0cf89d40301083a3f853a45d5bc62f29a78bf9c886787dac63e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "9bf82b39fab4c0cf89d40301083a3f853a45d5bc62f29a78bf9c886787dac63e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_03",
+      "patch_sha256": "6626f22f3f70a9aa2e9f593ac615b2cb2fc600027e012b8b15fa2f3e9fa3594a",
+      "expected_rgb_sha256": "3961e784e05cd8b9efe4c7c00061112f0e37f239dc10c0ee85e5e39a47c1505d",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "3961e784e05cd8b9efe4c7c00061112f0e37f239dc10c0ee85e5e39a47c1505d",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "3961e784e05cd8b9efe4c7c00061112f0e37f239dc10c0ee85e5e39a47c1505d",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "3961e784e05cd8b9efe4c7c00061112f0e37f239dc10c0ee85e5e39a47c1505d",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_04",
+      "patch_sha256": "a13bce1d287966407eb4db556d816bcf65b8f229fe2bc16a0169f888e924bb38",
+      "expected_rgb_sha256": "d9ed0a65d123e645cc7c705c280bfaedf34f5739143e88dbe60ba3b55e9aee73",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "d9ed0a65d123e645cc7c705c280bfaedf34f5739143e88dbe60ba3b55e9aee73",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "d9ed0a65d123e645cc7c705c280bfaedf34f5739143e88dbe60ba3b55e9aee73",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "d9ed0a65d123e645cc7c705c280bfaedf34f5739143e88dbe60ba3b55e9aee73",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_05",
+      "patch_sha256": "94fa8a91c479e00134970489f86a7e95eb2a11c047cc4511f3d72b231ae01a68",
+      "expected_rgb_sha256": "a165a701e5aa23e7405d2267c6cdc11bc192b41a8da602b3e0c501576d47c16e",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "a165a701e5aa23e7405d2267c6cdc11bc192b41a8da602b3e0c501576d47c16e",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "a165a701e5aa23e7405d2267c6cdc11bc192b41a8da602b3e0c501576d47c16e",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "a165a701e5aa23e7405d2267c6cdc11bc192b41a8da602b3e0c501576d47c16e",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_06",
+      "patch_sha256": "3498ea06fa77cd33129e329038ae9b79d3ab32ff699fea18c1039be3c939a8a2",
+      "expected_rgb_sha256": "13239ce73917610f80eb3d2ed04769f362b3e42cf9934ecd17f763690f013853",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "13239ce73917610f80eb3d2ed04769f362b3e42cf9934ecd17f763690f013853",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "13239ce73917610f80eb3d2ed04769f362b3e42cf9934ecd17f763690f013853",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "13239ce73917610f80eb3d2ed04769f362b3e42cf9934ecd17f763690f013853",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_07",
+      "patch_sha256": "718f7bee763060e1d801abffdadae2ca5475708d3e4b385ef83e74c521b7375d",
+      "expected_rgb_sha256": "e7022d8a5e973edfd484a3567d82671a9051e2ba2b28c1fb3c2fd0eeebcbd8b8",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e7022d8a5e973edfd484a3567d82671a9051e2ba2b28c1fb3c2fd0eeebcbd8b8",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "e7022d8a5e973edfd484a3567d82671a9051e2ba2b28c1fb3c2fd0eeebcbd8b8",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "e7022d8a5e973edfd484a3567d82671a9051e2ba2b28c1fb3c2fd0eeebcbd8b8",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_08",
+      "patch_sha256": "1746740915458263de7978f2d7728641a8afc311bd054f47ef6f3d2fcba737df",
+      "expected_rgb_sha256": "53d136a47ea74961f669b5f89a867e8b4a4f94d81d15486e8522b69a04405960",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "53d136a47ea74961f669b5f89a867e8b4a4f94d81d15486e8522b69a04405960",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "53d136a47ea74961f669b5f89a867e8b4a4f94d81d15486e8522b69a04405960",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "53d136a47ea74961f669b5f89a867e8b4a4f94d81d15486e8522b69a04405960",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_09",
+      "patch_sha256": "c91d6f4554d2e89aecab9d74fb13811dcd4e06b9f9062394fd4af2aca3c29270",
+      "expected_rgb_sha256": "6c2d292d87ed7c051534f463811fd4589aa09731faee471bd9bcee76d34489da",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "6c2d292d87ed7c051534f463811fd4589aa09731faee471bd9bcee76d34489da",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "6c2d292d87ed7c051534f463811fd4589aa09731faee471bd9bcee76d34489da",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "6c2d292d87ed7c051534f463811fd4589aa09731faee471bd9bcee76d34489da",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_10",
+      "patch_sha256": "e85cbe10d9f770f8311ea851b35672bf44a7688169ffcb586d746fd8bc20fc15",
+      "expected_rgb_sha256": "4bd61c87ebd12c2b13074ba77f87716d9e062448993829ed9e36e4973de3d5c7",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "4bd61c87ebd12c2b13074ba77f87716d9e062448993829ed9e36e4973de3d5c7",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "4bd61c87ebd12c2b13074ba77f87716d9e062448993829ed9e36e4973de3d5c7",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "4bd61c87ebd12c2b13074ba77f87716d9e062448993829ed9e36e4973de3d5c7",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_mid_11",
+      "patch_sha256": "e10cad7a1796b4c963b8d1f3ecb504277c337ec84b7c12fb38569c5d5132a320",
+      "expected_rgb_sha256": "7e75a8e9bded846cc4790f6a656ae453e658f6307ca197756075d544fd32ae75",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "7e75a8e9bded846cc4790f6a656ae453e658f6307ca197756075d544fd32ae75",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "7e75a8e9bded846cc4790f6a656ae453e658f6307ca197756075d544fd32ae75",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "7e75a8e9bded846cc4790f6a656ae453e658f6307ca197756075d544fd32ae75",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_00",
+      "patch_sha256": "4c4a70cd0149d8a0f50a95128f67b2c7300a9afd71282dee3585efa713b6bde8",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_01",
+      "patch_sha256": "c2657befbf1b203615d28f01a1fad3c04ae85c10642dfb4f60a1d94faf51d8ed",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_02",
+      "patch_sha256": "28d440f0c6e06866fedff163edeae60bd6d7c03471055b1a4f37ce21bdf87c1a",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_03",
+      "patch_sha256": "71a212b7b14246960ae884965c061886a44dab0428cc44ec57c120af450cfe65",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_04",
+      "patch_sha256": "0f9a1e584b53200e1f656c2a68fe41d220c30d0f0925da930a1311c7765f2f6f",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_05",
+      "patch_sha256": "0a0e18581836c347fd9151bd7f3cc754f605659907ec6e39406650404a6274ff",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_06",
+      "patch_sha256": "326ad48739aa2aa1ae43c2c6ba6777de622b0b74cf3327d6c85a9284cb788907",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_07",
+      "patch_sha256": "099e96d708baa85dbbe1f6f2b138c72e8bf416329770b700e7908906bcf3b751",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_08",
+      "patch_sha256": "17fdbebc9b81a135339928cd3fe437818b205ac4794210994a264703023a63e1",
+      "expected_rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "04958c9fea02ecbf22f238ae160f4b9bd5f712ae6fd052b1d4c6e43fa5d46779",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_09",
+      "patch_sha256": "178f7cad3dda481a4d03936b15958f648bd14e6c777f2c96eed778007bf0e930",
+      "expected_rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_10",
+      "patch_sha256": "3dafae7294bc018ef1365b477b1de7e21564a678dd53eb45f0d6e911cac1a455",
+      "expected_rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        }
+      }
+    },
+    {
+      "scene": "sable_far_11",
+      "patch_sha256": "da3eab282ea00ec0fc3fe1600ca7ca8c1c7e809fab1cb9713ee2ea6d7c02c0c6",
+      "expected_rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+      "cores": {
+        "sameboy-cgb0": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "sameboy-cgbe": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "unsafe_gdma_starts": 0,
+          "unsafe_oam_starts": 0,
+          "visible_mask_writes": 0,
+          "mixed_world_oam": 0,
+          "unsafe_cpu_map_writes": 0,
+          "visible_world_map_writes": 0,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        },
+        "mgba": {
+          "passed": true,
+          "diagnostic_ram_writes": true,
+          "patch_count": 1293,
+          "max_oam_per_scanline": 4,
+          "dma_write_instrumentation": false,
+          "rgb_sha256": "c34d2c4c7b46c7eadf5e566cabf8a232660ae72f12d954b78f962b96683d1531",
+          "rgb_matches_host": true
+        }
+      }
+    }
+  ],
+  "passed": true
+}

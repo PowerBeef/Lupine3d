@@ -117,11 +117,16 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     return report
 
 
+# Evidence lands under the release it belongs to, read from VERSION rather
+# than pinned, so a release cannot quietly bind the previous one's files.
+EVIDENCE_DIR = 'v' + (br.ROOT / 'VERSION').read_text().strip().replace('.', '')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--inputs', type=Path, default=br.BUILD / 'v08')
+    parser.add_argument('--inputs', type=Path, default=br.BUILD / EVIDENCE_DIR)
     parser.add_argument('--output-dir', type=Path, default=br.BUILD / 'rendering_qualification')
-    parser.add_argument('--tests', type=Path, default=br.BUILD / 'v08/tests.log')
+    parser.add_argument('--tests', type=Path, default=br.BUILD / EVIDENCE_DIR / 'tests.log')
     args = parser.parse_args()
     assemble(args.inputs, args.output_dir, args.tests)
 

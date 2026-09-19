@@ -59,4 +59,4 @@ Fixtures project at the upper quarter of a wall, use discrete size levels, and r
 
 The current oracle is `playtests/sable_v09_capture_pixels.json`; `sable_objective_spaced_capture_pixels.json` is retained as the v0.8 fixture. Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
 
-See [v0.8 qualification](TEST_REPORT.md), [architecture](ARCHITECTURE.md), and the preserved [beta.6 art contract](SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.
+See [the current qualification](TEST_REPORT.md), [architecture](ARCHITECTURE.md), and the preserved [beta.6 art contract](SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.

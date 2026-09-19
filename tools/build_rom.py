@@ -125,6 +125,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_r_n("a", SONG_TITLE); a.call("music_start")
     # Skill starts at the middle setting and the title shows it as a digit.
     a.ld_r_n("a", 1); a.ld_abs_a(DIFFICULTY)
+    # A cartridge powers on with whatever was in WRAM. Fixed-WRAM state the
+    # world reads before anything writes it has to be set here: an unreloaded
+    # weapon with a non-zero reload flag streams patterns on the first frame.
+    a.xor_r("a")
+    for address in (WEAPON_INDEX, WEAPON_RELOAD, WEAPON_COOLDOWN):
+        a.ld_abs_a(address)
     a.label("title_screen")
     a.ld_a_abs(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
     a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen")

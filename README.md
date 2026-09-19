@@ -7,7 +7,7 @@
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 
-[**Download v0.8**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.8) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
+[**Download v0.9**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.9) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Sable Outpost running in the emulator: industrial walls, a Sentinel, shotgun and compact steel HUD">
 
@@ -15,62 +15,42 @@
 
 </div>
 
-Explore an industrial outpost, open its sliding doors, defeat the Sentinels and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
+Fight through five sectors of an industrial outpost: clear each one, take what the dead leave, and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
 
-**v0.8 brings the Sable visual overhaul:** an animated shotgun, red-armoured enemies, a compact steel instrument panel and a larger view of the world. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
+**v0.9 turns the tech demo into a campaign:** five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
 
-## What's new in v0.8
+## What's new in v0.9
 
-- **More world, less HUD.** The 24-pixel panel is half the height of beta.6's HUD. The 160×120 viewport shows 25% more world area at the same projection scale and horizontal field of view.
-- **Animated equipment and enemies.** Five weapon cels, two flashes, twelve Sentinel cels at each of three sizes, and four helmet portrait states. Animation follows accepted simulation ticks and coherent frame publication.
-- **A readable steel HUD.** Large health digits, an armoured portrait, a skull counting enemies remaining, and a HUNT/EXIT objective. No permanent controls footer or unsupported ammunition indicators.
-- **Preserved engine contracts.** Deterministic builds, immutable render snapshots, exact wall reuse and bounded graphics publication. Legacy artwork and historical image fixtures remain available.
+- **A campaign.** Five sectors — Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks and Signal Deck — each in its own ROM bank and chosen at runtime, rising from one enemy to four. Clearing one shows an intermission with its continue code, kills and time; dying retries the sector you lost; clearing the last one ends the campaign.
+- **Continue codes.** The cartridge has no save hardware, so progress is a four-digit code you write down. Select on the title opens code entry.
+- **Three enemy kinds and two weapons.** The Sentinel, the quick skirmisher that carries a keycard, and the heavy warden. Select swaps the shotgun for a slug rifle — twice the damage for a long recovery — by streaming its cels into the one pattern window they share.
+- **Music.** A title theme, an in-game loop and a victory sting on three channels, with the fourth kept free so gunfire never cuts a bar.
+- **Preserved engine contracts.** Deterministic builds, immutable render snapshots, exact wall reuse and bounded graphics publication. The MBC5 bank rule is now checked against the emitted image rather than approximated. Legacy artwork and historical image fixtures remain available.
 
 <img src="docs/images/sable_objective_spaced_states_4x.png" width="640" alt="HUD states: hunt with one enemy remaining, exit with zero enemies, dead and done">
 
 ## How to play
 
-Open `Lupine3D_v0.8.gb` in a Game Boy Color emulator with MBC5 support. The monochrome Game Boy is not supported. There is no save system.
+Open `Lupine3D_v0.9.gb` in a Game Boy Color emulator with MBC5 support. The monochrome Game Boy is not supported. There is no save system: progress is a continue code you write down.
 
 | Game Boy button | Action |
 |---|---|
 | D-pad Up / Down | Move forward / backward |
 | D-pad Left / Right | Turn |
-| A | Fire the shotgun |
+| A | Fire |
 | B | Use a nearby door |
-| Select | Enter a continue code, from the title |
+| Select | Swap weapons; on the title, enter a continue code |
 | Start | Begin, and continue past a results screen |
 
-The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means clear the outpost; **GOAL / EXIT** means the exit is available. Reach it to finish. Doors still open with B. Green medical pickups restore health.
-
-### In development on main
-
-v0.8 is the current tagged release and ships a single level. A build from `main`
-is a campaign:
-
-- **Five sectors** — Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks
-  and Signal Deck — behind a title screen, each level selected at runtime from
-  its own ROM bank and rising from one enemy to four. Clearing one shows an
-  intermission; dying retries the sector you lost; clearing the last one ends
-  the campaign.
-- **Music**: a title theme, an in-game loop and a victory sting on three sound
-  channels, with the fourth kept free so gunfire never cuts a bar. Being hit,
-  killing an enemy, taking a pickup and clearing a sector all have their own
-  sounds now.
-- **Two enemy kinds**: the armoured Sentinel, and a quicker, lighter skirmisher
-  in a colder cast. **Left and right on the title** choose one of three skill
-  settings before you press Start.
-- **Continue codes**: clearing a sector shows a four-digit code, and **Select on
-  the title** opens code entry — so you can come back to where you left off on
-  a cartridge with no save hardware at all.
+The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means clear the sector; **GOAL / EXIT** means the exit is available. Reach it to finish. Green medical pickups restore health, and a keycard opens the door that wants one — in the sector you found it in. **Left and right on the title** choose one of three skill settings before you press Start.
 
 ## Performance and qualification
 
-Active 60-second scenarios measure **5.50–7.92 full geometry updates/s**. Full geometry updates and cached sprite/HUD presentations run at different rates. Animation follows the engine's coherent cadence. The target of ten sustained full geometry updates per second remains unmet.
+Active 60-second scenarios measure **5.50–7.92 full geometry updates/s**, and the nine-image tour **6.611/s**, unchanged across all of the campaign work. Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second remains unmet.
 
-v0.8 deliberately trades some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted. Memory, graphics capacity and publication safety limits remain enforced. See the ROM-bound measurements in the [v0.8 test report](docs/TEST_REPORT.md).
+v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted, and v0.9 inherits it unchanged. Memory, graphics capacity and publication safety limits remain enforced.
 
-Qualification uses the project harness and pinned **SameBoy CGB-0/CGB-E and mGBA** cores. It is **emulator-qualified**; physical hardware and an original Nintendo boot ROM have not been tested. Reprojection and the experimental foreground feedback lane remain disabled.
+Qualification uses the project harness and pinned **SameBoy CGB-0/CGB-E and mGBA** cores, all passing on the released ROM along with 87 frozen independent-witness scenes. It is **emulator-qualified**; physical hardware and an original Nintendo boot ROM have not been tested. Reprojection and the experimental foreground feedback lane remain disabled.
 
 ## Build from source
 

@@ -54,7 +54,8 @@ The HUD packet remains 16 bytes, with no new per-frame pattern uploads, OAM
 objects or DMA blocks. Fixed-ROM free space is 1,776 bytes and the resident
 reserve 3,123 bytes. Weapon/enemy/fixture source artwork is unchanged.
 
-The new oracle is `playtests/sable_objective_spaced_capture_pixels.json`. Checks exercise
+The oracle for this work was `playtests/sable_objective_spaced_capture_pixels.json`,
+retained; the current one is `playtests/sable_v09_capture_pixels.json`. Checks exercise
 all health digits, four portrait states, both maps, chassis rails, persistent
 highlights, immutable packets, and the maximal 176-block publication. A/B
 subroutine measurement and six frozen-world comparisons are provided by:

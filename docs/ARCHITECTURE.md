@@ -164,13 +164,29 @@ allocations. Important owners are:
 | HRAM | 111 state bytes and a separate 10-byte DMA stub |
 | BG patterns | Static/atlas tiles plus at most 96 dynamic patterns |
 | Bank-0 HUD patterns | 94 of 96, `$8200–$87DF` |
-| Bank-1 OBJ patterns | 86 preloaded weapon/UI plus 32 masked world patterns |
+| Bank-1 OBJ patterns | 86 preloaded weapon/UI plus 32 masked world patterns; 80 of the 86 are the streamed weapon window |
 | OAM | 40 hardware objects; world pool 16, at most four per scanline |
 
 The 242-pattern enemy/fixture **ROM source dictionary** is distinct from resident
 VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware selects
 at most ten objects per scanline, including Y-overlapping objects hidden in X.
 Living actors and gameplay pickups have priority over cosmetic death sprites.
+
+### Screens and their runtime digits
+
+A full-screen mode owns the whole background with LCDC `$81` and VBlank only,
+so composition is idle for as long as one is up. Its slot state — the digits it
+will write and the map cells they go in — therefore borrows the bottom of the
+BG map staging buffer at `$C600` rather than fixed WRAM, which had one byte
+free against three per slot. `enter_world` repeats `init_vram`, whose loop
+refills every byte of that buffer, so a screen never has to put anything back.
+
+A screen declares a label and how many cells follow it; the composer places
+those cells on tile boundaries, the label clear of them, and refuses a line
+whose glyphs straddle a tile row or land on authored art. Placing them by hand
+is how the continue code and the skill indicator came to be written eight rows
+above where they belonged: the map row offset passes 255 at row eight and the
+address arithmetic was dropping the carry, so neither had ever been visible.
 
 ### Continue codes
 
@@ -195,18 +211,53 @@ single map write with the LCD off, or at the top of VBlank.
 
 An actor slot's byte 15 holds its kind, so the kind rides the per-slot save and
 load and the bank-1 snapshot like every other actor field. A four-record table
-gives each kind contact damage, attack recovery in AI ticks, Q8 move per tick
-and an OBJ palette; the kind byte is masked to two bits and the spare records
-repeat the Sentinel, so a corrupt byte still reads a playable actor.
+gives each kind contact damage, attack recovery in AI ticks, Q8 move per tick,
+an OBJ palette and what it drops when it dies; records are a power of two wide
+so the lookup still indexes by shifting. The kind byte is masked to two bits
+and the spare record repeats the Sentinel, so a corrupt byte still reads a
+playable actor.
 
 Kinds share the Sentinel's cels, so variety costs ROM bytes rather than VRAM
-patterns. A distinct *look*, though, costs an OBJ palette, and exactly one of
-the eight was free — 0 is the weapon, 1 the Sentinel, 2 the pickup, 3 the
-muzzle and decor, 4 decor, 5 the weapon's lit corners and 6 the reticle. That
-bounds the campaign at two visible enemy kinds until those are re-planned.
+patterns. A distinct *look*, though, costs an OBJ palette, and all eight are
+now spoken for: 0 the weapon, 1 the Sentinel, 2 drops, 3 the muzzle and decor,
+4 decor and the reticle, 5 the weapon's lit corners, 6 the warden and 7 the
+skirmisher. Palette 6 came free only because the reticle is a single-colour
+crosshair whose colour was already within three parts in thirty-one of
+palette 4's, and moving it still changed eight shipped pixels a frame. A
+fourth visible kind means re-planning those, not editing the table.
+
+A dead actor's drop needs no byte of its own: it is whatever the actor was.
+The Sentinel and the warden leave a medkit, the skirmisher a keycard, and the
+level compiler refuses a level whose card is behind the door it opens, or one
+that declares a drop no actor leaves.
+
+An actor patrols a heading held in a parallel per-actor array in the snapshot
+slack — the sixteen-byte slot is exactly full — walking it through the same
+stepping bodies and collision test the chase uses, and turning a quarter turn
+when a step is refused. It stays dormant until the player comes inside the
+level's authored activation radius, folded to whole cells once at load.
 
 Skill (0–2, chosen with left and right on the title screen) scales contact
 damage only: half, as authored, or one and a half.
+
+## Weapons
+
+The weapon window is eighty OBJ patterns at `$8200` in VRAM bank 1, and that is
+one weapon's five cels exactly — the reticle and muzzle take the next four and
+the masked pool owns the thirty-two below. Two weapons cannot both be resident,
+so SELECT streams the other one's cels in as a single GDMA of eighty blocks.
+
+The pattern IDs never change, only their contents, so no OAM is rewritten and
+the animation code is weapon-agnostic. The transfer runs from the main loop
+once the frame is published, with the LCD off, the way `init_vram` uploads this
+same window at `enter_world`: a transfer with the LCD on is part of a frame's
+publication to the console and to the harness, and this is a VRAM re-upload
+rather than a publication. The cost is the frame each swap blanks.
+
+A two-record table gives each weapon the damage a hit takes off and its
+recovery in simulation ticks. The shotgun's record is the engine's original
+behaviour exactly — one damage, no recovery — so the trade belongs to the slug
+rifle alone.
 
 ## Sound
 

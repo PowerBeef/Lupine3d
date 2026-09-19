@@ -29,6 +29,8 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 PROJECT_SLUG = "Lupine3D"
 ARCHIVE_ROOT = f"{PROJECT_SLUG}_v{VERSION}"
+# Evidence for this release, not the last one: build/v09 for VERSION 0.9.
+EVIDENCE_DIR = "v" + VERSION.replace(".", "")
 
 TOP_LEVEL_FILES = (
     ".gitignore",
@@ -204,7 +206,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
                        "LUPINE3D_ART_ANIMATION": "0"})
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "tools/run_tests.py"], ROOT, timeout=600)
-    run([python, "tools/check_sable.py", "--output-dir", "build/v08/art-checks"], ROOT)
+    run([python, "tools/check_sable.py", "--output-dir", f"build/{EVIDENCE_DIR}/art-checks"], ROOT)
     # Versioned research/results files are retained historical evidence.
     # Current comparisons write separately and use identical oracle geometry.
     benchmark_env = {

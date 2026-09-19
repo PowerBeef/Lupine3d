@@ -82,6 +82,26 @@ static void capture(const char *prefix, const char *label)
     fclose(file);
 }
 
+/* GAME_MODE in fixed WRAM; MODE_PLAYING is 1. The campaign holds the world
+ * behind a title screen, so every lane below has to press START first: the
+ * ROM latches a rising edge, and the boot state has none held. */
+#define GAME_MODE_ADDRESS 0xc8cf
+#define MODE_PLAYING 1
+
+static bool enter_world(GB_gameboy_t *gb)
+{
+    for (unsigned waited = 0; waited < 600; waited++) {
+        GB_set_key_mask(gb, GB_KEY_START_MASK);
+        GB_run_frame(gb);
+        if (GB_read_memory(gb, GAME_MODE_ADDRESS) == MODE_PLAYING) {
+            GB_set_key_mask(gb, 0);
+            GB_run_frame(gb);          /* release, so START is an edge again */
+            return true;
+        }
+    }
+    return false;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 3) { fprintf(stderr, "ROM OUTPUT_PREFIX [CGB_MODEL_HEX]\n"); return 2; }
@@ -110,6 +130,7 @@ int main(int argc, char **argv)
         if (!input) return 2;
         unsigned pc = fgetc(input); pc |= fgetc(input) << 8;
         unsigned count = fgetc(input); count |= fgetc(input) << 8;
+        if (!enter_world(gb)) return 3;
         unsigned steps = 0;
         while (GB_get_registers(gb)->pc != pc && steps++ < 5000000) GB_run(gb);
         if (GB_get_registers(gb)->pc != pc) return 3;
@@ -138,6 +159,9 @@ int main(int argc, char **argv)
                passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes);
         GB_dealloc(gb); return passed?0:1;
     }
+    if (!enter_world(gb)) return 3;
+    /* Frame numbers below are counted from the world, not from reset, so the
+     * route they describe is the one this adapter has always driven. */
     unsigned initial_angle = 0, initial_y = 0;
     for (frame = 0; frame < 480; frame++) {
         unsigned keys = 0;

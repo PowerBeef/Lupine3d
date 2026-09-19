@@ -21,6 +21,26 @@ static void capture(const char *prefix, const char *label) {
     fclose(f);
 }
 
+/* GAME_MODE in fixed WRAM; MODE_PLAYING is 1. The campaign holds the world
+ * behind a title screen, so every lane below has to press START first: the
+ * ROM latches a rising edge, and the reset state has none held. */
+#define GAME_MODE_ADDRESS 0xc8cf
+#define MODE_PLAYING 1
+
+static bool enter_world(struct mCore *core)
+{
+    for (unsigned waited = 0; waited < 600; ++waited) {
+        core->setKeys(core, 1 << GB_KEY_START);
+        core->runFrame(core);
+        if (core->busRead8(core, GAME_MODE_ADDRESS) == MODE_PLAYING) {
+            core->setKeys(core, 0);
+            core->runFrame(core);       /* release, so START is an edge again */
+            return true;
+        }
+    }
+    return false;
+}
+
 int main(int argc, char **argv) {
     if (argc != 3 && argc != 4) return 2;
     struct mCore *core = mCoreFind(argv[1]);
@@ -37,6 +57,7 @@ int main(int argc, char **argv) {
         FILE *input=fopen(argv[3],"rb"); if (!input) return 2;
         unsigned pc=fgetc(input);pc|=fgetc(input)<<8;
         unsigned count=fgetc(input);count|=fgetc(input)<<8;
+        if (!enter_world(core)) return 3;
         int32_t current_pc=0;unsigned steps=0;
         while (steps++<5000000) {
             core->readRegister(core,"pc",&current_pc);if ((unsigned)current_pc==pc) break;
@@ -70,6 +91,9 @@ int main(int argc, char **argv) {
     unsigned presentations = 0, previous_serial = 0;
     unsigned foreground_publications=0,previous_foreground=0,mixed_world_oam=0;
     uint8_t previous_world_oam[120]={0};
+    if (!enter_world(core)) return 3;
+    /* Frame numbers below are counted from the world, not from reset, so the
+     * route they describe is the one this adapter has always driven. */
     for (unsigned frame = 0; frame < 480; ++frame) {
         unsigned keys = 0;
         if ((frame >= 60 && frame < 120) || (frame >= 190 && frame < 250)) keys = 1 << GB_KEY_UP;

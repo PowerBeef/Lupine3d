@@ -58,9 +58,12 @@ experiments that change `build/`. `make clean` removes all of `build/`, includin
 locally compiled emulator dependencies; do not use it casually.
 
 Independent cores need a C compiler, Make, CMake and the commits in
-`docs/DEVELOPMENT.md`. SameBoy requires `cppp`; mGBA must use the **Unix Makefiles**
-generator because its adapter reads `flags.make` to match the library ABI.
-Installed emulator applications do not replace these pinned verification lanes.
+`docs/DEVELOPMENT.md`. SameBoy's `lib` target builds without `cppp`: only its
+generated public headers need it, and the adapter includes `Core/gb.h` from the
+core tree. mGBA must use the **Unix Makefiles** generator because its adapter
+reads `flags.make` to match the library ABI. Both adapters press START before
+they do anything else, because the campaign holds the world behind a title
+screen. Installed emulator applications do not replace these pinned lanes.
 
 ## Code map
 
@@ -120,6 +123,11 @@ regression contract.
   written with the LCD off. `enter_world` repeats the boot upload, so a screen
   never has to put anything back. Runtime digits are patterns 0–9 and go into a
   screen's reserved map slot **before** the LCD comes back on.
+- Screen slot state borrows the bottom of the BG map staging buffer at `$C600`:
+  a full-screen mode owns the whole background, so composition is idle for
+  exactly as long as that state exists, and `enter_world` refills the buffer.
+  Campaign state that must ride the render snapshot goes in the slack at the
+  top of the copied world window; it never grows the 457-byte copy.
 - Level selection is runtime, not an assembled immediate. Each campaign level
   owns one ROM bank from `LEVEL_ROM_BANK_BASE` at the fixed offsets in
   `levels.py`; `LEVEL_INDEX`/`LEVEL_BANK` live in fixed WRAM outside the
@@ -147,26 +155,57 @@ regression contract.
   from the screen loop. Keep the code's four cells adjacent.
 - SELECT opens code entry from the title only. An unrecognised code is refused
   without changing anything, and SELECT cancels back to the title.
+- A screen declares a label and the number of cells the runtime writes after
+  it; `compose_screen` places the cells on tile boundaries, the label clear of
+  them, and refuses a line whose glyphs straddle a tile row or land on
+  authored art. Never place those cells by hand.
 
 ## Enemies and skill
 
 - An actor's kind is byte 15 of its slot (`ACTOR_KIND_OFFSET`), so it rides the
   existing per-slot save/load and the bank-1 snapshot. `actor_kind_stats` gives
-  each kind contact damage, attack recovery, Q8 step and OBJ palette; the table
-  has four records because the kind byte is masked to two bits, and the spares
-  repeat the Sentinel so a corrupt byte still reads a playable actor.
+  each kind contact damage, attack recovery, Q8 step, OBJ palette and what it
+  drops; records are `ACTOR_KIND_RECORD_BYTES` wide so `actor_kind_record` can
+  still index by shifting, and there are four because the kind byte is masked
+  to two bits — the spare repeats the Sentinel so a corrupt byte still reads a
+  playable actor.
 - Kinds share the Sentinel's cels, so variety costs ROM, not VRAM patterns —
-  but a distinct look costs an **OBJ palette**, and only palette 7 was free
-  (0 weapon, 1 Sentinel, 2 pickup, 3 muzzle/decor, 4 decor, 5 the weapon's lit
-  corners, 6 the reticle). A third visible kind means re-planning those, not
-  editing the table. Resolve the palette once per actor in
+  but a distinct look costs an **OBJ palette**, and all eight are spoken for:
+  0 weapon, 1 Sentinel, 2 drops, 3 muzzle/decor, 4 decor and the reticle,
+  5 the weapon's lit corners, 6 warden, 7 skirmisher. A fourth visible kind
+  means re-planning those, not editing the table; palette 6 came free only
+  because the reticle is a single-colour crosshair that could share palette 4,
+  and that still moved shipped pixels. Resolve the palette once per actor in
   `render_sentinel_actor`: every submission needs D for the cel.
+- A drop carries no kind byte: it is whatever the actor that left it was.
+  `KIND_DROPS` in `levels.py` and the table's drop column must agree, a level
+  declares the drops it fields, and the compiler refuses one whose keycard sits
+  behind the door it opens.
 - `DIFFICULTY` (0..2, chosen with left/right on the title) scales contact
   damage only — half, authored, or one and a half. Selection follows rising
   edges, so holding the pad is one step.
-- `sentinel_patrol_step` and `sentinel_chase_step` share one stepping body at
-  the kind's own speed, with the carry and collision test the old patrol
-  lacked. Patrol is still a bob in place, not a route.
+- `sentinel_patrol_step` and `sentinel_chase_step` share four named stepping
+  bodies at the kind's own speed; each returns Z when the step was taken.
+  Patrol walks a heading from `ACTOR_PATROL`, a parallel per-actor array in the
+  snapshot slack, and turns a quarter turn when a step is refused. The actor
+  slot is exactly full: new per-actor state goes beside it, not in it.
+- A dormant actor wakes inside the level's authored `activation_radius_q4`,
+  folded to whole cells once at load. It is not a phase count.
+
+## Weapons
+
+- Two weapons share one eighty-pattern window at `$8200` in VRAM bank 1, so
+  only one is resident. SELECT swaps them and `service_weapon_swap` streams the
+  other's cels in as a single GDMA **with the LCD off**, from the main loop
+  once the frame is published. A transfer with the LCD on is part of a frame's
+  publication to the console and to the harness; this is a VRAM re-upload, and
+  the controller route refuses the frame if it is done the other way.
+- Pattern IDs never change, only their contents, so no OAM is rewritten and the
+  animation code is weapon-agnostic. Both weapons must compile to exactly
+  `WEAPON_TILE_BYTES`.
+- `weapon_stats` gives each weapon damage and recovery in simulation ticks. The
+  shotgun's record is the engine's original behaviour exactly — one damage, no
+  recovery — so a change there is a change to every existing measurement.
 
 ## Sound contracts
 
@@ -238,7 +277,8 @@ ID+1 into the third HUD row on both maps. Preserve all chassis/framing pixels.
 Slim helmet blink uses accepted snapshot ticks 62–63 modulo 64.
 
 Weapon/UI occupies 86 preloaded bank-1 OBJ patterns, separate from the 32 masked
-patterns. The enemy/fixture ROM source dictionary has 242 patterns; source IDs
+patterns; eighty of them are one weapon's cels and are streamed, not resident
+per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 242 patterns; source IDs
 are not resident VRAM IDs. Preserve cold-bank capacity. Animation follows
 accepted snapshot ticks; pending flashes cannot expire unseen. Cosmetic death
 must never delay gameplay death, pickups or exit activation; living actors and

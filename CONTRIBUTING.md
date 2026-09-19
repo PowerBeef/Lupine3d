@@ -22,6 +22,6 @@ Use `make test`, which runs the historical regression profile and fresh-process 
 - Bind performance claims to a ROM hash, configuration and input replay. Separate full geometry updates from cached or foreground presentations.
 - Document changed interfaces, allocations and timing contracts.
 
-The v0.8 visual/performance tradeoff was explicitly accepted. This does not relax safety limits or enable unrelated experimental kernels. Keep failed performance-gate evidence and the original baseline comparisons intact.
+The v0.8 visual/performance tradeoff was explicitly accepted, and v0.9 inherits it unchanged. This does not relax safety limits or enable unrelated experimental kernels. Keep failed performance-gate evidence and the original baseline comparisons intact.
 
 Do not commit `build/`, `dist/`, virtual environments, downloaded cores, ROMs, credentials or release archives. Follow [AGENTS.md](AGENTS.md) for the code map and [Development](docs/DEVELOPMENT.md#releasing) for verified packaging.

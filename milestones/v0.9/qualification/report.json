@@ -1,0 +1,252 @@
+{
+  "acceptance_basis": "Owner explicitly accepted the art and enlarged-viewport performance tradeoff; the mathematical gate is unchanged",
+  "configuration": {
+    "active_atlas_sha256": "ed98bf70e5f323825d3ca036588443d609bcb9d83f2f9a40771881c3ad8f6549",
+    "actor_precision": false,
+    "anchor_packets": false,
+    "art": "sable-v2",
+    "art_animation": true,
+    "attribute_padding": true,
+    "cache_key_mix": false,
+    "camera_setup": true,
+    "compact_strips": true,
+    "display": "slim",
+    "door_identity": false,
+    "dynamic_tile_cache": false,
+    "fixed_simulation": true,
+    "folded": true,
+    "foreground_publication": false,
+    "incremental_certificate": false,
+    "level": "Sable Outpost",
+    "level_map_sha256": "3df9f70cb9357a3284ef77ae48d1ceca292a07b979358ca8f8a1b824415f421d",
+    "narrow_yields": true,
+    "near_field": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "prepared_rays": true,
+    "projection_storage": "direct",
+    "q14": true,
+    "reprojection": false,
+    "scanline_admission": false,
+    "wall_reuse": true
+  },
+  "configuration_id": "16e51113a47ed059c991ea7b4504a749f6464b063f5837ceb2caeffbfb02c3c1",
+  "deterministic_rebuilds": 2,
+  "evidence": {
+    "art-checks": {
+      "path": "evidence/art-checks.json",
+      "sha256": "3d713aa32fccd5c980683867485b63fe67c237d8c1d18507550f60f8f3eacc95",
+      "uncompressed_sha256": "3d713aa32fccd5c980683867485b63fe67c237d8c1d18507550f60f8f3eacc95"
+    },
+    "atlas": {
+      "path": "evidence/atlas.json",
+      "sha256": "c75a6b94d1a362c1a5421d2beed3e5a00ff78490e7e7246a56a268fba7b4c9e2",
+      "uncompressed_sha256": "c75a6b94d1a362c1a5421d2beed3e5a00ff78490e7e7246a56a268fba7b4c9e2"
+    },
+    "controller-replay": {
+      "path": "controller_replay.bin",
+      "sha256": "eb268a1caeee259d6bac248076c873f27e0dde7faf4583d475eb88123e785969"
+    },
+    "controller-restart": {
+      "path": "evidence/controller-restart.json",
+      "sha256": "5d508cc610aa5cb619b0964264fa72c5ba7d1f2083555be9568b3a0be79b1f64",
+      "uncompressed_sha256": "5d508cc610aa5cb619b0964264fa72c5ba7d1f2083555be9568b3a0be79b1f64"
+    },
+    "display": {
+      "path": "evidence/display.json",
+      "sha256": "99082d84d4cf5b0eaa173c767645c839693a7b5f7f2da8dabb15f5efd5269d99",
+      "uncompressed_sha256": "99082d84d4cf5b0eaa173c767645c839693a7b5f7f2da8dabb15f5efd5269d99"
+    },
+    "geometry-tail": {
+      "path": "evidence/geometry-tail.json",
+      "sha256": "df1324639b54deb5bab2f4514345d1a69d387353f69e1c78cb1484195e1356dd",
+      "uncompressed_sha256": "df1324639b54deb5bab2f4514345d1a69d387353f69e1c78cb1484195e1356dd"
+    },
+    "immutable-budget-inputs": {
+      "path": "evidence/immutable-budget-inputs.json",
+      "sha256": "69dc75773f8d49494c9a604398c5e52f042e302ebf6d9316dbe8792e52bc164b",
+      "uncompressed_sha256": "69dc75773f8d49494c9a604398c5e52f042e302ebf6d9316dbe8792e52bc164b"
+    },
+    "independent-scenes": {
+      "path": "evidence/independent-scenes.json",
+      "sha256": "e8bca2b2b5dc1dd263721161e5c4849b6e00bb7cdcae9d66ef7658ac4a5f33fd",
+      "uncompressed_sha256": "e8bca2b2b5dc1dd263721161e5c4849b6e00bb7cdcae9d66ef7658ac4a5f33fd"
+    },
+    "manifest": {
+      "path": "evidence/manifest.json",
+      "sha256": "f982599ba57639cfe6f3e581f4fff800c4a38f7159aca77c50d5b04fdc69d307",
+      "uncompressed_sha256": "f982599ba57639cfe6f3e581f4fff800c4a38f7159aca77c50d5b04fdc69d307"
+    },
+    "mgba_cgb": {
+      "path": "evidence/mgba_cgb.json",
+      "sha256": "a6a43393d43256582ffe9b8e1581a48627a9ac3c2108899041d7ecd1b53e772f",
+      "uncompressed_sha256": "a6a43393d43256582ffe9b8e1581a48627a9ac3c2108899041d7ecd1b53e772f"
+    },
+    "quality-budget": {
+      "path": "evidence/quality-budget.json",
+      "sha256": "a629c6b282c6cce36de519b99411ace0c040be320163cef43112b2bdca0e52cf",
+      "uncompressed_sha256": "a629c6b282c6cce36de519b99411ace0c040be320163cef43112b2bdca0e52cf"
+    },
+    "release-checks": {
+      "path": "evidence/release-checks.json",
+      "sha256": "56564929e896c8385033a155ec6576cd3123ae2f609bcb744ef1a8a4a5869487",
+      "uncompressed_sha256": "56564929e896c8385033a155ec6576cd3123ae2f609bcb744ef1a8a4a5869487"
+    },
+    "sameboy_cgb0": {
+      "path": "evidence/sameboy_cgb0.json",
+      "sha256": "d40f81da027ade6e72a3087c78552fc1574ce428a9d15e032e5c682eeb873b3d",
+      "uncompressed_sha256": "d40f81da027ade6e72a3087c78552fc1574ce428a9d15e032e5c682eeb873b3d"
+    },
+    "sameboy_cgbe": {
+      "path": "evidence/sameboy_cgbe.json",
+      "sha256": "30fe906467b72e9eaa0043af10459d102af3d9cff88035fefb471a8b492b3907",
+      "uncompressed_sha256": "30fe906467b72e9eaa0043af10459d102af3d9cff88035fefb471a8b492b3907"
+    },
+    "static-geometry": {
+      "path": "evidence/static-geometry.json",
+      "sha256": "7b47ed880417a3dbc9b9770d029099240d5d86320f5ad032c6ba09ecb3ac25d9",
+      "uncompressed_sha256": "7b47ed880417a3dbc9b9770d029099240d5d86320f5ad032c6ba09ecb3ac25d9"
+    },
+    "sustained-motion": {
+      "path": "evidence/sustained-motion.json.gz",
+      "sha256": "35b6c9ea97a5f2acee2f5a388231a95b52a87517f332278d2e765e4d9c8010c0",
+      "uncompressed_sha256": "5e90b37a458d28d71cd322b110df91d345c2ad39e0b615c3ac792957c5619a0c"
+    },
+    "tests": {
+      "path": "tests.log",
+      "sha256": "47617d21e8fe7760000762751ee098004f5902685ce0b66a391876e1beef7d21"
+    }
+  },
+  "independent_scene_count": 87,
+  "memory": {
+    "bank0_hud_patterns_used": 94,
+    "bank1_obj_patterns_used": 118,
+    "cold_assets_bank": 156,
+    "cold_assets_bytes": 13834,
+    "fixed_code_end": 12864,
+    "hram_dma_bytes": 10,
+    "hram_state_bytes": 112,
+    "resident_free_bytes": 6475,
+    "stack_reserved_bytes": 512,
+    "stack_top": 53247,
+    "vram_bg_pattern_range": [
+      34816,
+      38912
+    ],
+    "vram_obj_only_range": [
+      32768,
+      34816
+    ]
+  },
+  "original_boot_rom_tested": false,
+  "original_quality_budget_passed": false,
+  "passed": true,
+  "performance": {
+    "closed_door": {
+      "full_frame_cycles": {
+        "count": 429,
+        "mean": 1171077.9766899766,
+        "p50": 1123612,
+        "p95": 1264072,
+        "p99": 1264080,
+        "worst": 1264080
+      },
+      "full_geometry_hz": 7.151279771470181,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc"
+    },
+    "moving_fire": {
+      "full_frame_cycles": {
+        "count": 453,
+        "mean": 1109643.0905077262,
+        "p50": 1123564,
+        "p95": 1264116,
+        "p99": 1404452,
+        "worst": 1404600
+      },
+      "full_geometry_hz": 7.551350946912495,
+      "input_replay_sha256": "266a8d0dd8fe5f5fdf3bf9b9697a4e230234df9589a5ed0a34870b79b44df9d9"
+    },
+    "open_door": {
+      "full_frame_cycles": {
+        "count": 354,
+        "mean": 1417984.011299435,
+        "p50": 1404488,
+        "p95": 1544924,
+        "p99": 1544964,
+        "worst": 1544964
+      },
+      "full_geometry_hz": 5.901055706858771,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc"
+    },
+    "opening_door": {
+      "full_frame_cycles": {
+        "count": 5,
+        "mean": 1377347.2,
+        "p50": 1264036,
+        "p95": 1685384,
+        "p99": 1685384,
+        "worst": 1685384
+      },
+      "full_geometry_hz": 0.08334824709720129,
+      "input_replay_sha256": "fffc348977a8ff5840340a681c797b1adfcd6f703ffdd90ecf193460efa723a1"
+    },
+    "turning": {
+      "full_frame_cycles": {
+        "count": 489,
+        "mean": 1026515.4683026585,
+        "p50": 983152,
+        "p95": 1264036,
+        "p99": 1264072,
+        "worst": 1264084
+      },
+      "full_geometry_hz": 8.15145824213847,
+      "input_replay_sha256": "e40db87604e474c948ef26afb790c785927af1fd12429e84c42f751fed55d7d7"
+    },
+    "two_actor_corner": {
+      "full_frame_cycles": {
+        "count": 332,
+        "mean": 1512792.8915662651,
+        "p50": 1544904,
+        "p95": 1966244,
+        "p99": 2247180,
+        "worst": 2387612
+      },
+      "full_geometry_hz": 5.534323299319117,
+      "input_replay_sha256": "f90e0f8324bc70e82c129e8eacc4afa8ae9566fd40c4e36d045d5b4b4ee8c924"
+    },
+    "walking": {
+      "full_frame_cycles": {
+        "count": 382,
+        "mean": 1315518.0732984294,
+        "p50": 1264060,
+        "p95": 1404516,
+        "p99": 1404524,
+        "worst": 1404532
+      },
+      "full_geometry_hz": 6.367805926378685,
+      "input_replay_sha256": "c3a2bcd3c7baac8f574e9603f52b8338380bcc272d3e18c0c9779f2c8c0435dc"
+    },
+    "walking_turning": {
+      "full_frame_cycles": {
+        "count": 453,
+        "mean": 1109643.06401766,
+        "p50": 1123568,
+        "p95": 1264060,
+        "p99": 1404444,
+        "worst": 1404508
+      },
+      "full_geometry_hz": 7.551350886889011,
+      "input_replay_sha256": "0573d0c872b579050b4f6db7649d24b6dbc38bced15c76f4b6ec111bf1b716e1"
+    }
+  },
+  "physical_hardware_tested": false,
+  "qualification": "emulator-qualified; archive extraction/rebuild is checked separately",
+  "rom_sha256": "e59f722b698b545e75e5dbb2cdfe3810c5cc6a3ec96e38e868c09d286e2a9b89",
+  "schema": "lupine3d.sable-release.v1",
+  "target_full_geometry_hz": 10,
+  "target_met": false,
+  "test_count": 229,
+  "timing_unit": "cpu_t_cycles",
+  "version": "0.9",
+  "visual_tradeoff_accepted": true
+}

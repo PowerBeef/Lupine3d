@@ -1,6 +1,6 @@
 # Rendering implementation ledger
 
-> Retained beta.6 rendering milestone evidence. Its performance baselines remain immutable. The v0.8 art/viewport default and explicitly accepted cost are documented in [the current test report](TEST_REPORT.md).
+> Retained beta.6 rendering milestone evidence. Its performance baselines remain immutable. The v0.8 art/viewport default and explicitly accepted cost are documented in [its test report](TEST_REPORT_V08.md).
 
 The implementation follows the supplied review of commit
 `466bd09786d076c1e4b528f32647aa2885d201ff`. Baseline ROM SHA-256:

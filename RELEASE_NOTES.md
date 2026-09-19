@@ -1,3 +1,79 @@
+# Lupine 3D v0.9 — The campaign
+
+v0.8 was one level, one enemy and no way to stop playing but turning the
+console off. v0.9 is a game.
+
+- **Five sectors**, chosen at runtime from their own ROM banks, behind a title
+  screen. Clearing one shows an intermission, dying retries the sector you
+  lost, and clearing the last one ends the campaign and restarts it.
+- **Four-digit continue codes.** The cartridge has no RAM, so progress is
+  written down: clearing a sector shows its code, and SELECT on the title opens
+  code entry. Generated at build time, one per sector and skill, compared byte
+  by byte on the console.
+- **Three enemy kinds**: the armoured Sentinel, the quick skirmisher that
+  carries a keycard, and the heavy warden. They patrol a heading and turn at
+  walls rather than bobbing in place, and they stay dormant until you come
+  inside the radius their level authors.
+- **Two weapons.** SELECT swaps the shotgun for a slug rifle — two damage for a
+  long recovery. The pattern window fits one weapon's cels, so the other one's
+  stream in on the swap.
+- **Keycard doors.** A drop is whatever the actor that left it was; two sectors
+  lock a door on the way to the exit, and the compiler refuses a level whose
+  card sits behind the door it opens.
+- **Three skill settings**, chosen with left and right on the title, scaling
+  contact damage only.
+- **Music**: a title theme, an in-game loop and a victory sting on CH2/CH3/CH4,
+  with CH1 left to nine sound effects so gunfire never cuts a bar. The
+  sequencer never ticks in VBlank and never switches a ROM bank.
+- **Results that report something**: the intermission carries kills and time
+  beside the code, the ending the whole run.
+
+**Fixed:** no runtime digit below row eight had ever been visible. The map row
+offset passes 255 and the carry was dropped, so every continue code and the
+skill indicator were written where nobody could read them.
+
+**Changed pixels:** the reticle moved to OBJ palette 4 so palette 6 could carry
+a third enemy kind. That is eight pixels a frame, the crosshair's own, and
+v0.9 therefore carries its own nine-image capture oracle beside the retained
+v0.8 one. No hash was edited.
+
+**Contracts:** the `$4000` ceiling was a proxy for the MBC5 rule, and it had
+160 bytes left. `bank_safety.py` checks the rule itself against the emitted
+image in six clauses, with entry points read out of the cartridge's own reset
+and interrupt vectors; bank-neutral sections now live above `$4000` in bank 1.
+Publication budgets, object and mask limits and the 3,000-byte resident reserve
+are unchanged and still enforced.
+
+**Performance:** the nine-image tour measures **6.611 full geometry updates/s**,
+unchanged across all of this work. The ten-updates/s target remains unmet, and
+the original mean/p95 quality gate `Q <= (B + P) / 2` still fails on the
+v0.8 visual tradeoff, which was explicitly accepted and is inherited here.
+
+**Caught by the pinned cores:** the weapon swap turns the LCD off to stream
+patterns, and it was putting back a constant `LCDC` — clearing the bit that
+says which background page is displayed, while the compositor still believed
+the other one. The next frame's hidden-page copy then wrote the visible map.
+It restores the `LCDC` it found now. The swap also fired on the first frame of
+a real power-on, because the weapon state lives in fixed WRAM the console does
+not clear; boot initialises it. Neither fault was reachable in the project's
+own harness. Both independent adapters also predate the title screen and now
+press START before they drive their route.
+
+**Qualification:** 229 tests, 89 release checks, two byte-identical pixel
+oracles, 53 frozen wall-reuse comparisons, variant pixel equality, a
+2,961-update controller-only route that clears all five sectors with zero
+game-RAM writes and zero unsafe GDMA starts, and the pinned **SameBoy CGB-0 and
+CGB-E** and **mGBA** lanes plus 87 frozen independent-witness scenes, all
+matching the harness on this ROM. Physical hardware and an original Nintendo
+boot ROM remain untested and unavailable.
+
+**ROM SHA-256:** `e59f722b698b545e75e5dbb2cdfe3810c5cc6a3ec96e38e868c09d286e2a9b89`.
+
+See [the campaign write-up](docs/CAMPAIGN.md), [architecture](docs/ARCHITECTURE.md)
+and the [development guide](docs/DEVELOPMENT.md).
+
+---
+
 # Lupine 3D v0.8 — Sable Outpost
 
 A visual overhaul with native animated sprites, a larger world view and a cleaner steel HUD.

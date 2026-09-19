@@ -43,6 +43,9 @@ def main() -> None:
     v2.BUILD.mkdir(parents=True, exist_ok=True)
 
     cgb = CGB(v2_rom, v2_assembler.labels)
+    # The campaign holds the world behind a title screen, so the preview has
+    # to start it before it can film anything.
+    run_to_world(cgb)
     cgb.button_provider = preview_input
     frames: list[Image.Image] = []
     for target in range(1, 31):

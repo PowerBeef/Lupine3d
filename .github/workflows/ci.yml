@@ -32,7 +32,11 @@ jobs:
       - name: Check out immutable review source
         uses: actions/checkout@v4
         with:
-          ref: 466bd09786d076c1e4b528f32647aa2885d201ff
+          # v0.8, the last tagged release. The previous pin predated the
+          # v0.8 display change, so the current host oracle could not
+          # validate that ROM - not at this commit and not at the v0.8
+          # tag either.
+          ref: fc0fa4b5ea81f091c662c4d73dbeed97cbb951cd
           path: .render-baselines/source
       - name: Preserve baseline ROM and symbols
         run: |

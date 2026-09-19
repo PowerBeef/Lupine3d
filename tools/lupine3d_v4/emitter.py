@@ -195,8 +195,15 @@ def emit_vram_init(a: Assembler) -> None:
     # is the frame it blanks, once per swap.
     a.ld_a_abs(WEAPON_RELOAD); a.or_r("a"); a.ret("z")
     a.xor_r("a"); a.ld_abs_a(WEAPON_RELOAD)
-    a.call("weapon_source"); a.push("hl")
-    a.call("lcd_off"); a.pop("hl")
+    a.call("weapon_source")
+    # Put back the LCDC that was there, not a constant: its background-map bit
+    # says which page is displayed, and the compositor's own idea of that lives
+    # in CURRENT_PAGE. Restoring a fixed value desynchronises them, and the
+    # next frame's hidden-page copy then writes the visible map.
+    a.ldh_a_n(LCDC); a.ld_r_r("b", "a")
+    a.push("hl"); a.push("bc")
+    a.call("lcd_off")
+    a.pop("bc"); a.pop("hl")
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_r_r("a", "h"); a.ldh_n_a(HDMA1); a.ld_r_r("a", "l"); a.ldh_n_a(HDMA2)
@@ -205,7 +212,7 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_n("a", WEAPON_PATTERNS - 1); a.ldh_n_a(HDMA5)
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.xor_r("a"); a.ldh_n_a(VBK)
-    a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC); a.ret()
+    a.ld_r_r("a", "b"); a.ldh_n_a(LCDC); a.ret()
 
     a.label("upload_profile_tiles")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.jr("upload_active_profile_tiles", "z")
