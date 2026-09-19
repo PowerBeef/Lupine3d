@@ -23,6 +23,10 @@ def emit_actors(a: Assembler) -> None:
     a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_nn("hl", LEVEL_ACTOR_OFFSET); a.ld_rr_nn("de", ENTITY_SLOTS); a.ld_rr_nn("bc", MAX_ACTORS * 16); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    # Patrol headings are not authored: each slot starts on its own compass
+    # point, so a room full of actors does not set off as one column.
+    for index in range(MAX_ACTORS):
+        a.ld_r_n("a", index); a.ld_abs_a(ACTOR_PATROL + index)
     a.xor_r("a"); a.ld_abs_a(ENTITY_SLOT); a.jp("actor_load")
 
     a.label("actor_pointer")

@@ -32,7 +32,9 @@ def emit_level_loader(a: Assembler) -> None:
         SENTINEL_HEALTH,
     ):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.inc_rr("hl")  # activation radius is a future multi-entity field
+    # Authored in Q4 cells; the AI compares whole cells, as the attack test
+    # does, so fold the fraction away once here rather than on every tick.
+    a.ldi_a_hl(); a.cb("swap", "a"); a.and_n(0x0F); a.ld_abs_a(ACTIVATION_RADIUS)
     # Counts and the pickup value used to be assembled as immediate operands
     # from the single build-time level; a campaign has to read them per level.
     for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT,
@@ -448,7 +450,13 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_AI_PHASE); a.inc_r("a"); a.ld_abs_a(SENTINEL_AI_PHASE)
     a.call("sentinel_line_of_sight")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DORMANT); a.jr("ai_not_dormant", "nz")
-    a.ld_a_abs(SENTINEL_AI_PHASE); a.cp_n(2); a.ret("c"); a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE)
+    # A dormant actor wakes when the player comes inside the level's authored
+    # activation radius, rather than two AI ticks after the level loads.
+    # sentinel_line_of_sight has just left the cell deltas in LOS_DX/LOS_DY.
+    a.ld_a_abs(ACTIVATION_RADIUS); a.ld_r_r("b", "a")
+    a.ld_a_abs(LOS_DX); a.cp_r("b"); a.ret("nc")
+    a.ld_a_abs(LOS_DY); a.cp_r("b"); a.ret("nc")
+    a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE)
     a.label("ai_not_dormant")
     a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jr("ai_patrol", "z")
     a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
@@ -486,12 +494,29 @@ def emit_world_update(a: Assembler) -> None:
     a.label("damage_not_easy"); a.cp_n(2); a.ret("c")
     a.ld_r_r("a", "b"); a.cb("srl", "a"); a.add_a_r("b"); a.ld_r_r("b", "a"); a.ret()
 
+    a.label("actor_patrol_pointer")   # HL -> this actor's patrol heading
+    a.ld_a_abs(ENTITY_SLOT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_nn("hl", ACTOR_PATROL); a.add_hl_rr("de"); a.ret()
+
     a.label("sentinel_patrol_step")
-    # A bobbing hold, but a real move: the old one wrote the low byte of Y with
-    # no carry and no collision test, so it could walk a Sentinel into a wall.
+    # A route rather than a bob. Each actor keeps a heading beside its slot -
+    # the 16-byte slot itself is exactly full - and walks it at its kind's own
+    # speed through the same stepping bodies and collision test the chase uses.
+    # A refused step turns the actor a quarter turn, so it follows a wall
+    # instead of grinding against it.
     a.call("actor_kind_step")
-    a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(8); a.jp("sentinel_step_y_negative", "z")
-    a.jp("sentinel_step_y_positive")
+    a.call("actor_patrol_pointer"); a.push("hl")
+    a.ld_a_hl(); a.and_n(3)
+    a.jr("patrol_x_positive", "z")
+    a.dec_r("a"); a.jr("patrol_x_negative", "z")
+    a.dec_r("a"); a.jr("patrol_y_positive", "z")
+    a.call("sentinel_step_y_negative"); a.jr("patrol_stepped")
+    a.label("patrol_x_positive"); a.call("sentinel_step_x_positive"); a.jr("patrol_stepped")
+    a.label("patrol_x_negative"); a.call("sentinel_step_x_negative"); a.jr("patrol_stepped")
+    a.label("patrol_y_positive"); a.call("sentinel_step_y_positive")
+    a.label("patrol_stepped")
+    a.pop("hl"); a.ret("z")             # the step was taken; keep the heading
+    a.ld_a_hl(); a.inc_r("a"); a.and_n(3); a.ld_hl_a(); a.ret()
 
     a.label("sentinel_chase_step")
     # Move along the dominant cell delta at this kind's speed. The Q8 step and
@@ -499,11 +524,15 @@ def emit_world_update(a: Assembler) -> None:
     # physics system.
     a.call("actor_kind_step")
     a.ld_a_abs(LOS_DX); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_DY); a.cp_r("b"); a.jr("sentinel_chase_y", "nc")
-    a.ld_a_abs(LOS_SX); a.cp_n(1); a.jr("sentinel_chase_x_negative", "nz")
+    a.ld_a_abs(LOS_SX); a.cp_n(1); a.jr("sentinel_step_x_negative", "nz")
+    # The four stepping bodies are named because patrol calls them directly.
+    # Each returns Z when the step was taken and NZ when the shared collision
+    # test refused it.
+    a.label("sentinel_step_x_positive")
     a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_XL); a.add_a_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_XH); a.adc_a_n(0); a.ld_abs_a(v1.CAND_H); a.jr("sentinel_chase_x_test")
-    a.label("sentinel_chase_x_negative")
+    a.label("sentinel_step_x_negative")
     a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_XL); a.sub_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_XH); a.sbc_a_n(0); a.ld_abs_a(v1.CAND_H)

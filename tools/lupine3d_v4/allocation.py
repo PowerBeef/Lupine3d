@@ -68,7 +68,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xD3D6, 0xD3D8, "near-field perpendicular Q8 scratch", "one projection"),
         A("WRAM1", 0xD3D8, 0xD400, "compact HUD packet and animation scratch"),
         A("WRAM1", 0xD400, 0xD720, "physical descriptors and ray depth/segments"),
-        A("WRAM1", 0xD720, 0xD7A0, "snapshot world and entity projection"),
+        A("WRAM1", 0xD720, 0xD7A0, "snapshot world, entity projection and campaign state"),
         A("WRAM1", 0xD800, 0xD8A0, "physical segments"),
         A("WRAM1", 0xD8A0, 0xD8C8, "Q14 and door/LOS scratch"),
         A("WRAM1", 0xD8D0, 0xD8DA, "mask submission scratch"),
@@ -112,6 +112,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         for low, high in reserved:
             assert start + count <= low or high <= start
     assert l.EXIT_CELL_Y < l.SHOT_TICK < l.ART_STATE_END <= l.VRAM_PROFILE + 128
+    # Campaign state rides the copy that is already made; it never grows it.
+    assert l.ART_STATE_END == l.GAME_STATE and l.GAME_STATE_END <= l.VRAM_PROFILE + 128
     assert l.HUD_PACKET + l.HUD_PACKET_BYTES <= (0xD400 if l.COMPACT_DISPLAY else l.MASK_TILES)
     assert l.WEAPON_TILE_BASE >= 32
     assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128

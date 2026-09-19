@@ -114,3 +114,118 @@ class SkillTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PatrolTests(unittest.TestCase):
+    """A route, not a bob: heading, collision and waking."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+
+    def _world(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.io[br.SVBK & 0x7F] = 2        # the simulation's live world
+        return cgb
+
+    @staticmethod
+    def _place(cgb, *, actor_x, actor_y, player_x, player_y):
+        for address, value in ((br.SENTINEL_XL, actor_x & 0xFF), (br.SENTINEL_XH, actor_x >> 8),
+                               (br.SENTINEL_YL, actor_y & 0xFF), (br.SENTINEL_YH, actor_y >> 8),
+                               (br.PLAYER_XL, player_x & 0xFF), (br.PLAYER_XH, player_x >> 8),
+                               (br.PLAYER_YL, player_y & 0xFF), (br.PLAYER_YH, player_y >> 8)):
+            cgb.write8(address, value)
+
+    def _cell(self, cgb, x, y):
+        return cgb.read8(br.MAP + (y << 4) + x)
+
+    def _empty_cell(self, cgb, avoid=()):
+        for y in range(1, 15):
+            for x in range(1, 15):
+                if not self._cell(cgb, x, y) and (x, y) not in avoid:
+                    if all(not self._cell(cgb, x + dx, y + dy)
+                           for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                        return x, y
+        self.fail("the level has no open cell with four open neighbours")
+
+    def test_the_level_header_supplies_the_activation_radius_in_whole_cells(self):
+        cgb = self._world()
+        authored = br.ACTIVE_LEVEL.entities[0].activation_radius_q4
+        self.assertEqual(cgb.read8(br.ACTIVATION_RADIUS), authored >> 4)
+        self.assertGreater(authored >> 4, 0, "a radius that rounds to zero never wakes anything")
+
+    def test_a_dormant_actor_waits_until_the_player_is_inside_that_radius(self):
+        cgb = self._world()
+        radius = cgb.read8(br.ACTIVATION_RADIUS)
+        x, y = self._empty_cell(cgb)
+        cgb.write8(br.SENTINEL_STATE, br.SENTINEL_DORMANT)
+        # Far away on one axis only: the radius gates both.
+        self._place(cgb, actor_x=(x << 8) | 0x80, actor_y=(y << 8) | 0x80,
+                    player_x=((x + radius) << 8) | 0x80, player_y=(y << 8) | 0x80)
+        for _ in range(8):
+            cgb.call_subroutine("sentinel_ai_tick", max_steps=400_000)
+        self.assertEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_DORMANT)
+        self._place(cgb, actor_x=(x << 8) | 0x80, actor_y=(y << 8) | 0x80,
+                    player_x=((x + radius - 1) << 8) | 0x80, player_y=(y << 8) | 0x80)
+        cgb.call_subroutine("sentinel_ai_tick", max_steps=400_000)
+        self.assertNotEqual(cgb.read8(br.SENTINEL_STATE), br.SENTINEL_DORMANT)
+
+    def test_every_slot_starts_on_its_own_compass_point(self):
+        cgb = self._world()
+        headings = [cgb.read8(br.ACTOR_PATROL + slot) for slot in range(br.MAX_ACTORS)]
+        self.assertEqual(headings, list(range(br.MAX_ACTORS)))
+
+    def test_patrol_walks_its_heading_and_stays_out_of_walls(self):
+        cgb = self._world()
+        x, y = self._empty_cell(cgb)
+        moved = {}
+        for heading, (dx, dy) in enumerate(((1, 0), (-1, 0), (0, 1), (0, -1))):
+            self._place(cgb, actor_x=(x << 8) | 0x80, actor_y=(y << 8) | 0x80,
+                        player_x=0x0080, player_y=0x0080)
+            cgb.write8(br.SENTINEL_STATE, br.SENTINEL_PATROL)
+            cgb.write8(br.ACTOR_PATROL, heading)
+            cgb.call_subroutine("sentinel_patrol_step", max_steps=100_000)
+            after_x = cgb.read8(br.SENTINEL_XL) | cgb.read8(br.SENTINEL_XH) << 8
+            after_y = cgb.read8(br.SENTINEL_YL) | cgb.read8(br.SENTINEL_YH) << 8
+            step = cgb.read8(br.ACTOR_STEP)
+            self.assertEqual(after_x - ((x << 8) | 0x80), dx * step, heading)
+            self.assertEqual(after_y - ((y << 8) | 0x80), dy * step, heading)
+            self.assertEqual(self._cell(cgb, after_x >> 8, after_y >> 8), 0, heading)
+            self.assertEqual(cgb.read8(br.ACTOR_PATROL), heading, "an accepted step keeps its heading")
+            moved[heading] = (after_x, after_y)
+        self.assertEqual(len(set(moved.values())), 4, "the four headings must go four ways")
+
+    def test_a_refused_step_turns_the_actor_instead_of_moving_it(self):
+        cgb = self._world()
+        # Find an open cell with a wall to its east and aim the actor at it.
+        for y in range(1, 15):
+            for x in range(1, 15):
+                if not self._cell(cgb, x, y) and self._cell(cgb, x + 1, y):
+                    break
+            else:
+                continue
+            break
+        else:
+            self.fail("the level has no open cell with a wall to its east")
+        # Stand hard against the wall, so any step at all crosses into it.
+        self._place(cgb, actor_x=(x << 8) | 0xFF, actor_y=(y << 8) | 0x80,
+                    player_x=0x0080, player_y=0x0080)
+        cgb.write8(br.SENTINEL_STATE, br.SENTINEL_PATROL)
+        cgb.write8(br.ACTOR_PATROL, 0)                     # heading +x, into the wall
+        cgb.call_subroutine("sentinel_patrol_step", max_steps=100_000)
+        self.assertEqual(cgb.read8(br.SENTINEL_XL), 0xFF, "a refused step must not move the actor")
+        self.assertEqual(cgb.read8(br.SENTINEL_XH), x)
+        self.assertEqual(cgb.read8(br.ACTOR_PATROL), 1, "a refused step turns a quarter turn")
+
+    def test_patrol_leaves_the_other_slots_headings_alone(self):
+        cgb = self._world()
+        x, y = self._empty_cell(cgb)
+        for slot in range(br.MAX_ACTORS):
+            cgb.write8(br.ACTOR_PATROL + slot, 2)
+        cgb.write8(br.ENTITY_SLOT, 2)
+        self._place(cgb, actor_x=(x << 8) | 0x80, actor_y=(y << 8) | 0x80,
+                    player_x=0x0080, player_y=0x0080)
+        cgb.write8(br.ACTOR_PATROL + 2, 0)
+        cgb.call_subroutine("sentinel_patrol_step", max_steps=100_000)
+        self.assertEqual([cgb.read8(br.ACTOR_PATROL + slot) for slot in range(br.MAX_ACTORS)],
+                         [2, 2, 0, 2])

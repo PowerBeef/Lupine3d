@@ -909,6 +909,16 @@ ACTOR_REACTION_TICK=0xD783
 ACTOR_REACTION=0xD785
 SENTINEL_KIND=0xD786          # per-actor stat/palette selector, inside the snapshot
 ART_STATE_END=0xD787
+# Campaign state in the slack at the top of the copied world window. It rides
+# the existing 457-byte snapshot copy rather than growing it, so the renderer
+# and the screens read it as coherently as the world itself, and the simulation
+# writes the live copy in WRAM bank 2 like every other world field.
+GAME_STATE = ART_STATE_END
+# A 16-byte actor slot is exactly full, so per-actor auxiliary state goes in a
+# parallel array indexed by ENTITY_SLOT - the same shape as ACTOR_DEPTHS.
+ACTOR_PATROL = GAME_STATE            # 0..3: +x, -x, +y, -y
+ACTIVATION_RADIUS = ACTOR_PATROL + MAX_ACTORS   # cells, from the level header
+GAME_STATE_END = ACTIVATION_RADIUS + 1
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.
