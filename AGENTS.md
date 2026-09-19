@@ -75,6 +75,7 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Queued simulation, snapshots, wall reuse | `simulation.py`, `wall_cache.py` |
 | Doors, combat, actor slots and masking | `living_world.py`, `door_geometry.py`, `actors.py`, `masked_entities.py` |
 | Level compilation, surfaces and fixtures | `levels.py`, `surfaces.py`, `world_decor.py` |
+| Game modes and full-screen presentation | `screens.py` |
 | Native art, animation, steel HUD | `artwork.py`, `sprite_assets.py`, `animation.py`, `steel_hud.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
@@ -106,6 +107,30 @@ regression contract.
   fixed 16-byte scratch at `$C8E0–$C8EF`.
 - Preserve prepared scalar records 0–240 and raw-query sentinel semantics.
   Packet experiments own records 241–250 only.
+
+## Campaign, modes and screens
+
+- `GAME_MODE` in fixed WRAM drives the loop: only `MODE_PLAYING` runs the world
+  renderer. The VBlank ISR queues simulation input in that mode alone. A
+  full-screen mode owns the whole background with LCDC `$81` and VBlank only,
+  so it has no HUD boundary and therefore no STAT split.
+- Screens borrow the idle 96-pattern composition window at `$9000` and are
+  written with the LCD off. `enter_world` repeats the boot upload, so a screen
+  never has to put anything back. Runtime digits are patterns 0–9 and go into a
+  screen's reserved map slot **before** the LCD comes back on.
+- Level selection is runtime, not an assembled immediate. Each campaign level
+  owns one ROM bank from `LEVEL_ROM_BANK_BASE` at the fixed offsets in
+  `levels.py`; `LEVEL_INDEX`/`LEVEL_BANK` live in fixed WRAM outside the
+  snapshot copy and only change with the LCD off. The surface table must stay
+  exactly 1,024 bytes above the segment table: `lookup_segment_id` reads both
+  through one pointer. Every level bank read restores ROM bank 1.
+- All campaign levels share one `vram_profile` and `palette_profile`: the
+  resident atlas is still chosen at build time and `layout.py` rejects a
+  campaign that disagrees. Lifting that needs atlas streaming, not a new flag.
+- Death retries the current sector; completion advances `LEVEL_INDEX` through an
+  intermission, and the last sector's ending restarts the campaign. Host
+  geometry oracles must follow the ROM: select the reference level from the
+  running machine's `LEVEL_INDEX`, never from the build-time first level.
 
 ## Runtime and memory contracts
 
@@ -199,9 +224,11 @@ Documentation-only edits need link/command/diff checks, not a ROM test rerun.
 
 ## Documentation and release hygiene
 
-Author gameplay in `levels/living_world.json`; retain two-sentinel acceptance
-and renderer-benchmark levels. Preserve compiler checks for clearance,
-reachability, door gates, sightlines and room sizes. Document changed contracts
+Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names; retain
+two-sentinel acceptance and renderer-benchmark levels. Preserve compiler checks
+for clearance, reachability, door gates, sightlines and room sizes: every
+campaign level carries the same certificate, and `release_check.py` gates all of
+them, not just the first. Document changed contracts
 alongside source. Historical experiments write new results under `build/` unless
 intentionally adding versioned evidence.
 

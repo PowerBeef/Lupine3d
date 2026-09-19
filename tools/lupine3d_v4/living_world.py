@@ -8,14 +8,20 @@ from .resources import make_entity_tiles, make_oam_shadow  # noqa: F401
 
 
 def emit_level_loader(a: Assembler) -> None:
+    # LEVEL_INDEX selects the campaign level; its bank is the only variable in
+    # the payload, which is laid out at fixed offsets (see levels.py). Derive
+    # LEVEL_BANK once here so the hot segment lookup only has to read a byte.
+    a.label("select_level")
+    a.ld_a_abs(LEVEL_INDEX); a.add_a_n(LEVEL_ROM_BANK_BASE); a.ld_abs_a(LEVEL_BANK); a.ret()
+
     a.label("load_level")
     a.call("invalidate_wall_cache")
-    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_label("hl", "map_data"); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
-    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    a.call("select_level")
+    a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
+    a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
     # The resident slice consumes a fixed header but the authored source owns
     # all coordinates, profiles, spawns, door metadata, and exit placement.
-    a.ld_rr_label("hl", "level_header")
+    a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET)
     a.inc_rr("hl"); a.inc_rr("hl")  # width, height
     for address in (VRAM_PROFILE,):
         a.ldi_a_hl(); a.ld_abs_a(address)
@@ -27,10 +33,14 @@ def emit_level_loader(a: Assembler) -> None:
     ):
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.inc_rr("hl")  # activation radius is a future multi-entity field
-    for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT):
+    # Counts and the pickup value used to be assembled as immediate operands
+    # from the single build-time level; a campaign has to read them per level.
+    for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT,
+                    ACTOR_COUNT, LEVEL_FIXTURE_COUNT, LEVEL_PICKUP_VALUE):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.ld_rr_label("hl", "door_data"); a.ld_rr_nn("de", DOOR_TABLE)
+    a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.ld_r_n("a", SENTINEL_DORMANT); a.ld_abs_a(SENTINEL_STATE)
     a.ld_r_n("a", 99); a.ld_abs_a(PLAYER_HEALTH)
@@ -495,7 +505,8 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_XH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.xor_r("a"); a.ld_abs_a(PICKUP_ACTIVE); a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_COLLECTED)
-    a.ld_a_abs(PLAYER_HEALTH); a.add_a_n(ACTIVE_LEVEL.pickups[0].value); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
+    a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
+    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH)
     a.label("check_level_exit")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")

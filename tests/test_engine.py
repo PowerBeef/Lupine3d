@@ -297,12 +297,41 @@ class Lupine3DTests(unittest.TestCase):
             offset = (tile_id - br.ATLAS_TILE_BASE) * 16
             self.assertEqual(br.TILE_ATLAS_TILES[offset:offset + 16], rebuilt_tile)
 
+    def test_campaign_levels_share_the_resident_profile_and_own_a_bank_each(self) -> None:
+        self.assertGreaterEqual(len(br.CAMPAIGN), 1)
+        self.assertIs(br.CAMPAIGN[0], br.ACTIVE_LEVEL)
+        self.assertLessEqual(br.LEVEL_ROM_BANK_BASE + len(br.CAMPAIGN), 256)
+        self.assertLessEqual(br.LEVEL_PAYLOAD_END, 0x8000)
+        for index, level in enumerate(br.CAMPAIGN):
+            # One resident atlas and palette set serves the whole run.
+            self.assertEqual(level.vram_profile, br.ACTIVE_LEVEL.vram_profile, level.name)
+            self.assertEqual(level.palette_profile, br.ACTIVE_LEVEL.palette_profile, level.name)
+            # Every level carries the same certificate the shipped one does.
+            self.assertEqual(level.readability.unreachable_cells, 0, level.name)
+            self.assertLessEqual(level.readability.maximum_sightline, 6, level.name)
+            self.assertGreaterEqual(level.readability.critical_path_turns, 3, level.name)
+            self.assertGreaterEqual(level.readability.minimum_door_separation, 8, level.name)
+            header = level.header_bytes()
+            self.assertEqual(header[17], len(level.doors), level.name)
+            self.assertEqual(header[18], len(level.entities), level.name)
+            self.assertEqual(header[19], len(level.fixtures), level.name)
+            self.assertEqual(header[20], level.pickups[0].value, level.name)
+            self.assertLessEqual(len(level.entities), br.MAX_ACTORS, level.name)
+            self.assertLessEqual(len(level.fixtures), br.MAX_FIXTURES, level.name)
+            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            self.assertEqual(self.rom[bank + br.LEVEL_GRID_OFFSET - 0x4000:
+                                      bank + br.LEVEL_GRID_OFFSET - 0x4000 + 256], level.grid)
+            self.assertEqual(self.rom[bank + br.LEVEL_HEADER_OFFSET - 0x4000:
+                                      bank + br.LEVEL_HEADER_OFFSET - 0x4000 + len(header)], header)
+        names = [level.name for level in br.CAMPAIGN]
+        self.assertEqual(len(set(names)), len(names))
+
     def test_level_compiler_owns_map_spawns_profiles_and_surface_segments(self) -> None:
         level = br.ACTIVE_LEVEL
         self.assertEqual((level.width, level.height), (16, 16))
         self.assertEqual(level.grid, self.grid)
         self.assertEqual(level.format, "lupine-level-v2")
-        self.assertEqual(len(level.header_bytes()), 18)
+        self.assertEqual(len(level.header_bytes()), br.LEVEL_HEADER_BYTES)
         self.assertEqual(len(level.door_bytes()), br.MAX_DOORS * br.DOOR_RECORD_BYTES)
         self.assertEqual(len(level.doors), 4)
         self.assertEqual(level.safe_radius_cells, 5)
@@ -312,11 +341,16 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(level.entities[0].kind, "sentinel")
         self.assertEqual(level.pickups[0].source, "sentinel_drop")
         self.assertEqual(len(level.segment_table), 16 * 16 * 4)
-        segment_start = br.SEGMENT_TABLE_ROM_BANK * 0x4000
-        self.assertEqual(
-            self.rom[segment_start:segment_start + len(level.segment_table)],
-            level.segment_table,
-        )
+        # Every campaign level carries its own payload at fixed offsets in its
+        # own bank; the loader derives the bank from LEVEL_INDEX alone.
+        for index, entry in enumerate(br.CAMPAIGN):
+            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            self.assertEqual(self.rom[bank:bank + br.LEVEL_PAYLOAD_END - 0x4000],
+                             br.make_level_payload(entry))
+            start = bank + br.LEVEL_SEGMENT_OFFSET - 0x4000
+            self.assertEqual(self.rom[start:start + len(entry.segment_table)], entry.segment_table)
+            start = bank + br.LEVEL_SURFACE_OFFSET - 0x4000
+            self.assertEqual(self.rom[start:start + len(entry.surface_table)], entry.surface_table)
         # Every non-zero certificate names a solid cell face. Static paint
         # changes do not split a physically continuous plane.
         for y in range(level.height):

@@ -23,7 +23,16 @@ BUILD.mkdir(parents=True, exist_ok=True)
 ASSETS = ROOT / "assets"
 TILE_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_TILE_ATLAS_DIR", ASSETS))
 ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / "entity_atlas_80"))
-ACTIVE_LEVEL = level_codec.active_level(ROOT)
+CAMPAIGN = level_codec.campaign(ROOT)
+ACTIVE_LEVEL = CAMPAIGN[0]
+LEVEL_COUNT = len(CAMPAIGN)
+# The resident wall atlas and palette set are chosen once, at build time: the
+# VRAM profile selects which of the two atlases stays resident and which is
+# banked. A campaign level that wanted the other profile would have to stream
+# its atlas through a transition, so require one profile for the whole run.
+for _level in CAMPAIGN[1:]:
+    if (_level.vram_profile, _level.palette_profile) != (ACTIVE_LEVEL.vram_profile, ACTIVE_LEVEL.palette_profile):
+        raise ValueError(f"campaign level {_level.name!r} does not share the resident VRAM/palette profile")
 SLIM_DISPLAY = RENDER_CONFIG["display"] == "slim"
 COMPACT_DISPLAY = RENDER_CONFIG["display"] != "legacy"
 SABLE_ART = RENDER_CONFIG["art"] == "sable-v2"
@@ -217,8 +226,10 @@ PRODUCT_LUT_MULTIPLICANDS = 256
 PRODUCT_LUT_BYTES = PRODUCT_LUT_MULTIPLIERS * PRODUCT_LUT_MULTIPLICANDS * 2
 BANKED_ATLAS_ROM_BANK = PRODUCT_LUT_BASE_BANK + PRODUCT_LUT_BYTES // 0x4000
 BANKED_ATLAS_ROM_ADDRESS = 0x4000
+# This bank carried the single build-time level's segment/surface tables.
+# Campaign levels carry their own in their own banks, so it is now reserved;
+# the numbering is kept so no later bank moves.
 SEGMENT_TABLE_ROM_BANK = BANKED_ATLAS_ROM_BANK + 1
-SEGMENT_TABLE_ROM_ADDRESS = 0x4000
 BOOT_ASSETS_ROM_BANK = SEGMENT_TABLE_ROM_BANK + 1
 Q14_ROM_BANK = BOOT_ASSETS_ROM_BANK + 1
 Q14_ORDER_ENABLED = os.environ.get("LUPINE3D_Q14", "1") != "0"
@@ -258,6 +269,15 @@ SCREEN_PALETTE = 1            # the reserved steel HUD palette
 PENDING_MODE = 0xC8F9
 MODE_DELAY = 0xC8FA
 MODE_DELAY_FRAMES = 120
+# Level selection lives in fixed WRAM: the loader writes it with the LCD off
+# and no bank selected, and the renderer's segment lookup reads it under the
+# bank-1 snapshot. It is deliberately outside the snapshot copy, because it
+# cannot change while a frame is in flight.
+LEVEL_INDEX = 0xC8FB
+LEVEL_BANK = 0xC8FC
+LEVEL_FIXTURE_COUNT = 0xC8FD
+LEVEL_PICKUP_VALUE = 0xC8FE
+SCREEN_DIGIT = 0xC8FF          # written into a screen's reserved slot, LCD off
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4
@@ -378,6 +398,19 @@ DOOR_LOOP_INDEX = 0xD75F
 DOOR_TABLE = 0xD760
 MAX_DOORS = level_codec.MAX_DOORS
 DOOR_RECORD_BYTES = level_codec.DOOR_RECORD_BYTES
+MAX_FIXTURES = level_codec.MAX_FIXTURES
+LEVEL_HEADER_BYTES = level_codec.LEVEL_HEADER_BYTES
+LEVEL_ROM_BANK_BASE = level_codec.LEVEL_ROM_BANK_BASE
+LEVEL_SEGMENT_OFFSET = level_codec.LEVEL_SEGMENT_OFFSET
+LEVEL_SURFACE_OFFSET = level_codec.LEVEL_SURFACE_OFFSET
+LEVEL_GRID_OFFSET = level_codec.LEVEL_GRID_OFFSET
+LEVEL_HEADER_OFFSET = level_codec.LEVEL_HEADER_OFFSET
+LEVEL_DOOR_OFFSET = level_codec.LEVEL_DOOR_OFFSET
+LEVEL_ACTOR_OFFSET = level_codec.LEVEL_ACTOR_OFFSET
+LEVEL_FIXTURE_OFFSET = level_codec.LEVEL_FIXTURE_OFFSET
+LEVEL_PAYLOAD_END = level_codec.LEVEL_PAYLOAD_END
+if LEVEL_ROM_BANK_BASE + LEVEL_COUNT > 256:
+    raise ValueError("campaign level banks exceed the 4 MiB MBC5 image")
 DOOR_X_OFFSET = level_codec.DOOR_X
 DOOR_Y_OFFSET = level_codec.DOOR_Y
 DOOR_ORIENTATION_OFFSET = level_codec.DOOR_ORIENTATION
@@ -703,12 +736,27 @@ load_hl_abs = v1.load_hl_abs
 store_hl_abs = v1.store_hl_abs
 
 
+# The host geometry models are byte-exact oracles, so they must read the same
+# authored tables the running ROM loaded rather than the build-time first
+# level. Diagnostics that drive a campaign re-select this from the ROM's own
+# LEVEL_INDEX on every validated frame, so it can never drift.
+_REFERENCE_LEVEL = [ACTIVE_LEVEL]
+
+
+def reference_level():
+    return _REFERENCE_LEVEL[0]
+
+
+def select_reference_level(index: int) -> None:
+    _REFERENCE_LEVEL[0] = CAMPAIGN[index]
+
+
 def make_map() -> bytes:
-    return ACTIVE_LEVEL.grid
+    return reference_level().grid
 
 
 def make_segment_table() -> bytes:
-    return ACTIVE_LEVEL.segment_table
+    return reference_level().segment_table
 
 
 # Geometry styles 0..4 remain the exact DDA side/material contract.  In v0.3

@@ -45,7 +45,7 @@ WORLD_STATE_FIELDS = {
 def door_snapshot(cgb: CGB, offset: int) -> dict[str, int]:
     return {
         door.name: cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + offset)
-        for index, door in enumerate(br.ACTIVE_LEVEL.doors)
+        for index, door in enumerate(br.reference_level().doors)
     }
 
 
@@ -100,13 +100,14 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
     y_q8 = cgb.read16(br.PLAYER_YL)
     angle = cgb.read8(br.ANGLE)
     grid = read_block(cgb, br.MAP, 256)
-    door_states = {
-        (door.x, door.y): (
-            cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + br.DOOR_STATE_OFFSET),
-            cgb.read8(br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES + br.DOOR_FRACTION_OFFSET),
-        )
-        for index, door in enumerate(br.ACTIVE_LEVEL.doors)
-    }
+    # The oracle follows the ROM: which level is loaded, and the door records
+    # that level loaded, both come from the running machine.
+    br.select_reference_level(cgb.read8(br.LEVEL_INDEX) if "select_level" in cgb.symbols else 0)
+    door_states = {}
+    for index in range(cgb.read8(br.DOOR_COUNT)):
+        base = br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES
+        door_states[cgb.read8(base + br.DOOR_X_OFFSET), cgb.read8(base + br.DOOR_Y_OFFSET)] = (
+            cgb.read8(base + br.DOOR_STATE_OFFSET), cgb.read8(base + br.DOOR_FRACTION_OFFSET))
     if not cgb.read8(br.WORLD_MODE): door_states = {}
     pair = br.reference_adaptive_descriptor_view(x_q8, y_q8, angle, grid, door_states)
     pixel = br.reference_pixel_descriptor_view(x_q8, y_q8, angle, grid, door_states)

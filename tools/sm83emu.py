@@ -791,21 +791,22 @@ class CGB:
 def run_to_world(cgb: "CGB", *, max_steps: int = 8_000_000) -> "CGB":
     """Advance a freshly constructed machine to the world loop.
 
-    Full-screen modes wait for START, so the harness holds it until `main_loop`
-    is reached and releases it there. A held START has no effect on a live
-    world; the simulation only reads it when the player is dead or the level is
-    complete. ROMs without a title screen are unaffected.
+    Full-screen modes wait for START, so the harness holds it until the title
+    hands over and releases it there. The ROM's own edge shadow then clears
+    itself across the VBlanks that build the world, so no game RAM is written
+    and the next press is still a rising edge. ROMs without a title screen are
+    unaffected.
     """
     provider = cgb.button_provider
-    cgb.button_provider = lambda *_: 0x80
+    # Objects are enabled only by the world: LCDC bit 1 is clear before boot
+    # and in every full-screen mode. A machine already running the world skips
+    # straight to its next main-loop boundary, so this stays idempotent.
+    if "enter_world" in cgb.symbols and not cgb.io[0x40] & 0x02:
+        cgb.button_provider = lambda *_: 0x80
+        cgb.run(until_pc=cgb.symbols["enter_world"], max_steps=max_steps)
+        cgb.button_provider = provider
+        cgb.buttons = 0
     cgb.run(until_pc=cgb.symbols["main_loop"], max_steps=max_steps)
-    cgb.button_provider = provider
-    cgb.buttons = 0
-    # Release START in the ROM's own shadow too. Leaving it set would suppress
-    # the next rising edge, because the sampler latches raw & ~last_raw.
-    for name in ("input_last_raw", "input_edge_latch"):
-        if name in cgb.symbols:
-            cgb.write8(cgb.symbols[name], 0)
     return cgb
 
 

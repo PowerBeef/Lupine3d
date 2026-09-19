@@ -76,7 +76,13 @@ Default: Q14 on, fixed simulation on, folding on, exact wall reuse on, prepared 
 - Original CGB, original LCD and MBC5 flash-cartridge validation of this exact SHA.
 - Nintendo boot-ROM validation; SameBoy uses a synthetic bootstrap and mGBA uses built-in skip-BIOS.
 - Enabling asynchronous reprojection by default: current guards extend edge tiles, not newly rendered geometry; the HUD uses a STAT split, not the Window layer.
-- Arbitrary-scale sprites, a general ECS, additional enemy types, streamed multi-level content, sector heights, textured floors/ceilings and saving.
+- Arbitrary-scale sprites, a general ECS, additional enemy types, sector heights, textured floors/ceilings and saving.
+- Streamed multi-level content **was** on this list and has since been lifted.
+  The campaign now carries one level per ROM bank from 240 up, selected at
+  runtime by `LEVEL_INDEX`; see "Campaign levels" in `ARCHITECTURE.md`. What
+  remains outside acceptance is a campaign that mixes VRAM profiles: the
+  resident wall atlas is still chosen once, at build time, and every campaign
+  level must declare the same `vram_profile` and `palette_profile`.
 - A guaranteed frame-rate floor in arbitrary future content. The measured performance pass preserves current scenes; denser actors, longer sightlines and additional effects require their own budgets.
 
 See [test report](TEST_REPORT.md) for candidate-bound evidence.

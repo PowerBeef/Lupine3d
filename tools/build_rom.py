@@ -54,8 +54,25 @@ def make_boot_assets() -> list[tuple[str, bytes]]:
         ("oam_dma_stub", bytes((0x3E, 0xC8, 0xE0, OAM_DMA, 0x3E, 40, 0x3D, 0x20, 0xFD, 0xC9))),
         ("tilemap_data", make_tilemap()), ("attrmap_page0", make_attrmap(0)),
         ("attrmap_page1", make_attrmap(1)),
-        ("map_data", make_map()),
     ]
+
+
+def make_level_payload(level) -> bytes:
+    """One campaign level, at the fixed bank offsets the SM83 loader assumes."""
+    payload = bytearray(LEVEL_PAYLOAD_END - 0x4000)
+    for offset, data in (
+        (LEVEL_SEGMENT_OFFSET, level.segment_table),
+        (LEVEL_SURFACE_OFFSET, level.surface_table),
+        (LEVEL_GRID_OFFSET, level.grid),
+        (LEVEL_HEADER_OFFSET, level.header_bytes()),
+        (LEVEL_DOOR_OFFSET, level.door_bytes()),
+        (LEVEL_ACTOR_OFFSET, actor_records(level)),
+        (LEVEL_FIXTURE_OFFSET, fixture_records(level)),
+    ):
+        start = offset - 0x4000
+        assert start + len(data) <= len(payload), "level payload overruns its bank"
+        payload[start:start + len(data)] = data
+    return bytes(payload)
 
 
 def make_raw_ray_assets(tables) -> list[tuple[str, bytes]]:
@@ -79,7 +96,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("startup_wait_vblank")
     a.ldh_a_n(LY); a.cp_n(144); a.jr("startup_wait_vblank", "c")
     a.xor_r("a"); a.ldh_n_a(LCDC); a.ldh_n_a(SCX); a.ldh_n_a(SCY)
-    for address in (WALL_CACHE_VALID, FRAME_REUSED, PRESENT_SERIAL, WALL_CACHE_DISABLE, WALL_EPOCH, WALL_EPOCH + 1):
+    for address in (WALL_CACHE_VALID, FRAME_REUSED, PRESENT_SERIAL, WALL_CACHE_DISABLE, WALL_EPOCH, WALL_EPOCH + 1,
+                    LEVEL_INDEX, MODE_DELAY, SCREEN_DIGIT):
         a.ld_abs_a(address)
     if PHYSICAL_DEPTH: a.ld_abs_a(COVERAGE_MODE)
     if FOREGROUND_PUBLICATION:
@@ -143,6 +161,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ld_r_n("a", MODE_GAMEOVER); a.jr("frame_settle")
     a.label("frame_test_complete")
     a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.jr("frame_continue", "z")
+    if LEVEL_COUNT > 1:
+        # Another sector to clear goes to the intermission; the last one ends
+        # the campaign. LEVEL_INDEX is fixed WRAM, so this reads the live value.
+        a.ld_a_abs(LEVEL_INDEX); a.inc_r("a"); a.cp_n(LEVEL_COUNT)
+        a.ld_r_n("a", MODE_INTERMISSION); a.jr("frame_settle", "c")
     a.ld_r_n("a", MODE_ENDING)
     a.label("frame_settle")
     # Stage the outcome without leaving MODE_PLAYING yet: the handler still has
@@ -157,8 +180,20 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     a.label("present_mode")
     a.ld_a_abs(PENDING_MODE); a.ld_abs_a(GAME_MODE)
-    a.cp_n(MODE_GAMEOVER); a.ld_r_n("a", SCREEN_GAMEOVER); a.jr("present_mode_show", "z")
-    a.ld_r_n("a", SCREEN_ENDING)
+    a.xor_r("a"); a.ld_abs_a(SCREEN_DIGIT)
+    # Death retries the sector that was lost, so only the two completion modes
+    # move LEVEL_INDEX. The screen is chosen from the mode that got us here.
+    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_GAMEOVER)
+    a.ld_r_n("a", SCREEN_GAMEOVER); a.jr("present_mode_show", "z")
+    if LEVEL_COUNT > 1:
+        a.ld_a_abs(GAME_MODE); a.cp_n(MODE_INTERMISSION); a.jr("present_next_sector", "z")
+    a.xor_r("a"); a.ld_abs_a(LEVEL_INDEX)   # the ending restarts the campaign
+    a.ld_r_n("a", SCREEN_ENDING); a.jr("present_mode_show")
+    if LEVEL_COUNT > 1:
+        a.label("present_next_sector")
+        a.ld_a_abs(LEVEL_INDEX); a.inc_r("a"); a.ld_abs_a(LEVEL_INDEX)
+        a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)   # sectors are numbered from one
+        a.ld_r_n("a", SCREEN_INTERMISSION)
     a.label("present_mode_show")
     a.call("show_screen")
     # Edges latched while the world was frozen are not an answer to this screen.
@@ -199,10 +234,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     # Data section.
     a.align(16, text="data alignment")
-    a.label("level_header"); a.bytes(ACTIVE_LEVEL.header_bytes(), "compiled active-level header")
-    a.label("door_data"); a.bytes(ACTIVE_LEVEL.door_bytes(), "fixed-capacity authored door records")
-    a.label("actor_records"); a.bytes(actor_records(), "four bounded Sentinel slots")
-    a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
+    # Everything a level owns now lives in that level's own ROM bank; only the
+    # profile-independent HUD vocabulary is still resident.
+    a.label("resident_data"); a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
     for name, payload in make_boot_assets():
         a.labels[name] = cold_address
@@ -286,8 +320,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
         else:
             a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block
-    # Fixtures have no alignment requirement; the startup map is cold/banked.
-    a.label("wall_fixture_records"); a.bytes(fixture_records(), "wall-mounted landmarks")
     if NEAR_FIELD:
         a.label("near_correction_q14"); a.bytes(words_le(near_corrections()), "241 Q14 camera-plane cosine corrections")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
@@ -302,7 +334,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "engine_end": a.origin + len(code),
         "engine_size": len(code),
         "memory_budget": {
-            "fixed_code_end": a.labels["level_header"],
+            "fixed_code_end": a.labels["resident_data"],
             "cold_assets_bank": BOOT_ASSETS_ROM_BANK,
             "cold_assets_bytes": cold_address - 0x4000,
             "resident_free_bytes": 0x8000 - (a.origin + len(code)),
@@ -461,6 +493,22 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "active_level": ACTIVE_LEVEL.name,
         "active_level_doors": len(ACTIVE_LEVEL.doors),
         "maximum_level_doors": MAX_DOORS,
+        "campaign_levels": len(CAMPAIGN),
+        "campaign_level_bank_base": LEVEL_ROM_BANK_BASE,
+        "campaign_level_payload_bytes": LEVEL_PAYLOAD_END - 0x4000,
+        "campaign": [
+            {"index": index, "name": level.name, "rom_bank": LEVEL_ROM_BANK_BASE + index,
+             "doors": len(level.doors), "actors": len(level.entities),
+             "fixtures": len(level.fixtures), "pickup_value": level.pickups[0].value,
+             "walkable_cells": level.readability.walkable_cells,
+             "unreachable_cells": level.readability.unreachable_cells,
+             "critical_path_steps": level.readability.critical_path_steps,
+             "critical_path_turns": level.readability.critical_path_turns,
+             "maximum_sightline": level.readability.maximum_sightline,
+             "minimum_door_separation": level.readability.minimum_door_separation,
+             "material_singleton_runs": level.readability.material_singleton_runs}
+            for index, level in enumerate(CAMPAIGN)
+        ],
         "walkable_level_cells": ACTIVE_LEVEL.readability.walkable_cells,
         "unreachable_level_cells": ACTIVE_LEVEL.readability.unreachable_cells,
         "critical_path_steps": ACTIVE_LEVEL.readability.critical_path_steps,
@@ -512,7 +560,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                          active_atlas_sha256=hashlib.sha256(ACTIVE_ATLAS_TILES + ACTIVE_ATLAS_ENTRIES).hexdigest())
     metadata["configuration"] = configuration
     metadata["configuration_id"] = identity(configuration)
-    metadata["allocation_ledger"] = memory_ledger(active_layout, a.labels["level_header"],
+    metadata["allocation_ledger"] = memory_ledger(active_layout, a.labels["resident_data"],
                                                 a.origin + len(code), cold_address - 0x4000,
                                                 raw_address - RAW_RAY_ROM_ADDRESS)
     return code, a, metadata
@@ -551,10 +599,11 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     ))
     banked_atlas_start = BANKED_ATLAS_ROM_BANK * 0x4000
     rom[banked_atlas_start:banked_atlas_start + len(banked_atlas_payload)] = banked_atlas_payload
-    segment_start = SEGMENT_TABLE_ROM_BANK * 0x4000
-    segment_table = make_segment_table()
-    rom[segment_start:segment_start + len(segment_table)] = segment_table
-    rom[segment_start + 1024:segment_start + 2048] = ACTIVE_LEVEL.surface_table
+    # Each campaign level owns a bank; the loader derives it from LEVEL_INDEX.
+    for index, level in enumerate(CAMPAIGN):
+        payload = make_level_payload(level)
+        start = (LEVEL_ROM_BANK_BASE + index) * 0x4000
+        rom[start:start + len(payload)] = payload
     boot_payload = b"".join(payload for _, payload in make_boot_assets())
     boot_start = BOOT_ASSETS_ROM_BANK * 0x4000
     rom[boot_start:boot_start + len(boot_payload)] = boot_payload
@@ -571,7 +620,7 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
         assert setup_start >= q14_start + Q14_ROM_BYTES
         assert setup_start + RAY_SETUP_ROM_BYTES <= ROM_BYTES
         rom[setup_start:setup_start + RAY_SETUP_ROM_BYTES] = make_ray_setup_table()
-    assert assembler.labels["level_header"] < 0x4000, "bank-switching code must remain in fixed ROM"
+    assert assembler.labels["resident_data"] < 0x4000, "bank-switching code must remain in fixed ROM"
     chk = 0
     for value in rom[0x0134:0x014D]: chk = (chk - value - 1) & 0xFF
     rom[0x014D] = chk

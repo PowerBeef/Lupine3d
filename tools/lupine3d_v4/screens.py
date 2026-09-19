@@ -94,12 +94,12 @@ SCREEN_SOURCES = (
         ("THE SABLE LINE IS OPEN", 76, 3, 1),
         ("PRESS START", 110, 2, 1),
      ), ()),
-    # The level digit sits immediately after the caption; the runtime writes it.
+    # The next sector's number sits on its own line; the runtime writes it.
     ("intermission", (
-        ("SECTOR", 52, 2, 2),
-        ("CLEAR", 84, 3, 1),
-        ("PRESS START", 110, 2, 1),
-     ), ((13, 6),)),
+        ("SECTOR CLEAR", 40, 2, 2),
+        ("NEXT SECTOR", 78, 3, 1),
+        ("PRESS START", 112, 2, 1),
+     ), ((10, 11),)),
 )
 
 
@@ -192,11 +192,13 @@ def emit_screens(a: Assembler) -> None:
     a.dec_rr("bc"); a.ld_r_r("a", "b"); a.or_r("c"); a.jr("screen_attribute_loop", "nz")
     a.xor_r("a"); a.ldh_n_a(VBK)
     a.ldh_n_a(SCX); a.ldh_n_a(SCY)
+    # The digit goes in while the LCD is still off, so no VRAM access on this
+    # path ever has to race mode 3.
+    a.call("screen_set_digit")
     a.ld_r_n("a", 0x81); a.ldh_n_a(LCDC)   # LCD and BG only: no objects, no split
     a.ret()
 
-    a.label("screen_set_digit")  # A = value 0..9, written into the screen's slot
-    a.ld_r_r("c", "a")
+    a.label("screen_set_digit")  # SCREEN_DIGIT -> this screen's reserved slot
     a.ld_a_abs(SCREEN_SLOT_H); a.cp_n(0xFF); a.ret("z")
     a.ld_r_r("d", "a"); a.ld_a_abs(SCREEN_SLOT_L); a.ld_r_r("e", "a")
     # Slot offsets are screen-relative; expand the 20-column row to 32.
@@ -208,7 +210,7 @@ def emit_screens(a: Assembler) -> None:
     a.ld_r_r("e", "a"); a.ld_r_r("a", "b"); a.cb("swap", "a"); a.add_a_r("a")
     a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.ld_r_r("a", "e"); a.add_a_r("l"); a.ld_r_r("l", "a")
     a.ld_r_n("a", 0); a.adc_a_r("h"); a.add_a_n(0x98); a.ld_r_r("h", "a")
-    a.ld_r_r("a", "c"); a.ld_hl_a(); a.ret()
+    a.ld_a_abs(SCREEN_DIGIT); a.ld_hl_a(); a.ret()
 
     a.label("screen_wait_start")
     a.call("wait_vblank")

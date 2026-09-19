@@ -14,6 +14,8 @@ PALETTE_IDS = {"outpost": 0}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 4
 DOOR_RECORD_BYTES = 6
+LEVEL_HEADER_BYTES = 24
+MAX_FIXTURES = 16
 DOOR_X = 0
 DOOR_Y = 1
 DOOR_ORIENTATION = 2
@@ -22,6 +24,23 @@ DOOR_STATE = 4
 DOOR_FRACTION = 5
 DOOR_FLAG_EXIT = 0x01
 DOOR_FLAG_LOCK_SENTINEL = 0x02
+
+# One ROM bank per campaign level, at fixed offsets, so the SM83 loader needs
+# only a bank number and no per-level directory. lookup_segment_id reads the
+# segment and its surface through one pointer, so the surface table must stay
+# exactly 1024 bytes above the segment table.
+LEVEL_ROM_BANK_BASE = 240
+LEVEL_SEGMENT_OFFSET = 0x4000   # 1024 bytes, indexed (cell * 4 + side)
+LEVEL_SURFACE_OFFSET = 0x4400   # 1024 bytes, same index
+LEVEL_GRID_OFFSET = 0x4800      # the 16x16 world map
+LEVEL_HEADER_OFFSET = 0x4900
+LEVEL_DOOR_OFFSET = 0x4920
+LEVEL_ACTOR_OFFSET = 0x4940     # MAX_ACTORS * 16 bounded Sentinel slots
+LEVEL_FIXTURE_OFFSET = 0x4980   # MAX_FIXTURES * 16 wall-mounted landmarks
+LEVEL_PAYLOAD_END = 0x4A80
+# The campaign, in order. LUPINE3D_LEVEL still selects a single level for
+# diagnostic and research builds; that build is a one-level campaign.
+CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json")
 
 
 @dataclass(frozen=True)
@@ -93,7 +112,12 @@ class CompiledLevel:
     fixtures: tuple[tuple[int, int, int, int], ...] = ()
 
     def header_bytes(self) -> bytes:
-        """Fixed active-level header consumed by the resident SM83 loader."""
+        """Fixed per-level header consumed by the SM83 loader.
+
+        Bytes 0..17 are the original resident header. The counts that follow
+        used to be assembled as immediate operands from the single build-time
+        level; the loader reads them so one ROM can carry a campaign.
+        """
         sentinel = self.entities[0]
         return bytes((
             self.width, self.height, self.vram_profile, self.palette_profile,
@@ -105,7 +129,8 @@ class CompiledLevel:
             sentinel.health, sentinel.activation_radius_q4,
             self.exit.x, self.exit.y,
             len(self.doors),
-        ))
+            len(self.entities), len(self.fixtures), self.pickups[0].value,
+        )).ljust(LEVEL_HEADER_BYTES, b"\0")
 
     def door_bytes(self) -> bytes:
         """Fixed-capacity door records copied into active WRAM at level load."""
@@ -639,7 +664,13 @@ def compile_level(path: Path) -> CompiledLevel:
     )
 
 
-def active_level(root: Path) -> CompiledLevel:
+def campaign(root: Path) -> tuple[CompiledLevel, ...]:
+    """The ordered campaign, or the single level a diagnostic build selected."""
     configured = os.environ.get("LUPINE3D_LEVEL")
-    path = Path(configured) if configured else root / "levels" / "living_world.json"
-    return compile_level(path.resolve())
+    if configured:
+        return (compile_level(Path(configured).resolve()),)
+    return tuple(compile_level((root / "levels" / name).resolve()) for name in CAMPAIGN_ORDER)
+
+
+def active_level(root: Path) -> CompiledLevel:
+    return campaign(root)[0]

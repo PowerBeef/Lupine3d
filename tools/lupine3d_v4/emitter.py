@@ -627,8 +627,10 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(DDA_MAP_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
     a.add_hl_rr("hl"); a.add_hl_rr("hl")
     a.ld_r_r("e", "c"); a.ld_r_n("d", 0); a.add_hl_rr("de")
-    a.ld_rr_nn("de", SEGMENT_TABLE_ROM_ADDRESS); a.add_hl_rr("de")
-    a.ld_r_n("a", SEGMENT_TABLE_ROM_BANK); a.ld_abs_a(0x2000); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
+    a.ld_rr_nn("de", LEVEL_SEGMENT_OFFSET); a.add_hl_rr("de")
+    # The level's bank is the only per-level variable on this path: one extra
+    # fixed-WRAM load per wall hit buys a campaign in a single ROM.
+    a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
     a.ld_rr_nn("de", 1024); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SURFACE_RESULT)
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ret()
 

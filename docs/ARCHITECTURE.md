@@ -67,16 +67,49 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 2–145 | Direct paired projection top/depth tables: 2,359,296 bytes |
 | 146–153 | 8×8 multiplication tables: 131,072 bytes |
 | 154 | Alternate atlas/dictionary |
-| 155 | Physical segments and oriented-face profiles |
-| 156 | Cold startup/map/art assets: 12,810 bytes |
+| 155 | Reserved; campaign levels now carry their own segment/surface records |
+| 156 | Cold startup/art assets |
 | 157–172 | Q14 camera directions: 262,144 bytes |
 | 173–236 | Prepared ray metadata: 1,048,576 bytes |
 | 237 | Unfolded diagnostic strip allocation: 8,064 bytes |
-| 238–255 | Unallocated cartridge capacity |
+| 238 | Cold raw ray vectors and camera-plane offset/correction tables |
+| 239 | Authored full-screen presentation (title, results, intermission) |
+| 240+ | Campaign levels, one per bank |
+| … –255 | Unallocated cartridge capacity |
 
-For the qualified v0.8 ROM, fixed code ends at `$3910` (1,776 bytes below
-`$4000`); resident data ends at `$73CD`, leaving **3,123 bytes** below `$8000`.
-The required reserve remains 3,000 bytes. Saving resident table data does not
+### Campaign levels
+
+Level selection is a runtime value, not an assembled immediate. Each compiled
+level occupies one bank from `LEVEL_ROM_BANK_BASE` (240) at fixed offsets, so
+the loader needs only a bank number and no directory:
+
+| Offset | Contents |
+| --- | --- |
+| `$4000` | Physical segment ids, 1,024 bytes, indexed `cell * 4 + side` |
+| `$4400` | Oriented-face surface profiles, same index |
+| `$4800` | The 16×16 world map |
+| `$4900` | 24-byte header: dimensions, profiles, spawn, primary actor, exit, and the door/actor/fixture counts and pickup value the loader reads |
+| `$4920` | Four fixed-capacity door records |
+| `$4940` | Four bounded actor slots |
+| `$4980` | Up to sixteen wall-mounted fixture records |
+
+`lookup_segment_id` reads the segment and its surface profile through one
+pointer, so the surface table must stay exactly 1,024 bytes above the segment
+table. `LEVEL_INDEX` and the derived `LEVEL_BANK` live in fixed WRAM: they are
+written with the LCD off during a transition and read by the renderer under the
+bank-1 snapshot, and they are deliberately outside the snapshot copy because
+they cannot change while a frame is in flight. The hot geometry path pays one
+extra fixed-WRAM load per wall hit for this.
+
+The resident wall atlas and palette set are still chosen once, at build time,
+from the first level's `vram_profile`/`palette_profile`; `layout.py` rejects a
+campaign whose levels disagree.
+
+For the qualified v0.8 ROM, fixed code ended at `$3910` (1,776 bytes below
+`$4000`); resident data ended at `$73CD`, leaving **3,123 bytes** below `$8000`.
+Moving the cold ray tables and the level records out of banks 0/1 since then
+takes the current build to **8,451 bytes** free, with fixed code ending at
+`$3AD0`. The required reserve remains 3,000 bytes. Saving resident table data does not
 increase the fixed-code ceiling. Code that changes ROM banks stays below `$4000`
 and restores bank 1 before returning. Prepared scalar records 0–240 and the
 raw-query sentinel are unchanged; disabled packets own only records 241–250.

@@ -2,11 +2,12 @@
 from .layout import *  # noqa: F401,F403
 
 
-def actor_records() -> bytes:
+def actor_records(level=None) -> bytes:
+    level = level or ACTIVE_LEVEL
     records = bytearray(MAX_ACTORS * 16)
     for index in range(MAX_ACTORS):
         records[index * 16 + 4] = SENTINEL_DEAD
-    for index, entity in enumerate(ACTIVE_LEVEL.entities):
+    for index, entity in enumerate(level.entities):
         records[index * 16:index * 16 + 6] = bytes((entity.x_q8 & 255, entity.x_q8 >> 8,
                                                     entity.y_q8 & 255, entity.y_q8 >> 8,
                                                     SENTINEL_DORMANT, entity.health))
@@ -15,8 +16,11 @@ def actor_records() -> bytes:
 
 def emit_actors(a: Assembler) -> None:
     a.label("init_actors")
-    a.ld_rr_label("hl", "actor_records"); a.ld_rr_nn("de", ENTITY_SLOTS); a.ld_rr_nn("bc", MAX_ACTORS * 16); a.call("copy_bc")
-    a.ld_r_n("a", len(ACTIVE_LEVEL.entities)); a.ld_abs_a(ACTOR_COUNT)
+    # Slot contents come from the selected level's bank; ACTOR_COUNT was
+    # already read out of that level's header by load_level.
+    a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
+    a.ld_rr_nn("hl", LEVEL_ACTOR_OFFSET); a.ld_rr_nn("de", ENTITY_SLOTS); a.ld_rr_nn("bc", MAX_ACTORS * 16); a.call("copy_bc")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.xor_r("a"); a.ld_abs_a(ENTITY_SLOT); a.jp("actor_load")
 
     a.label("actor_pointer")

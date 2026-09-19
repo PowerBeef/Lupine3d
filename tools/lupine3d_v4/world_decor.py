@@ -3,17 +3,18 @@ from .layout import *
 
 FIXTURE_TILE_BASE = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * 4
 
-def fixture_records():
+def fixture_records(level=None):
+    level = level or ACTIVE_LEVEL
     data = bytearray()
-    for x,y,side,kind in ACTIVE_LEVEL.fixtures:
+    for x,y,side,kind in level.fixtures:
         px,py = x*256+128,y*256+128
-        door_index = next((i for i,d in enumerate(ACTIVE_LEVEL.doors) if (d.x,d.y)==(x,y)),255)
+        door_index = next((i for i,d in enumerate(level.doors) if (d.x,d.y)==(x,y)),255)
         if door_index == 255:
             if side == 0: px -= 128
             elif side == 1: px += 128
             elif side == 2: py -= 128
             else: py += 128
-        segment = ACTIVE_LEVEL.segment_table[(y*16+x)*4+side]
+        segment = level.segment_table[(y*16+x)*4+side]
         assert segment
         data.extend(bytes((px&255,px>>8,py&255,py>>8,segment,kind,side,
                            y if side < 2 else x,door_index)) + bytes(7))
@@ -21,7 +22,9 @@ def fixture_records():
 
 def emit_world_decor(a: Assembler):
     a.label("render_wall_fixtures")
-    if not ACTIVE_LEVEL.fixtures: a.ret(); return
+    if not any(level.fixtures for level in CAMPAIGN): a.ret(); return
+    # A campaign level may carry no fixtures at all.
+    a.ld_a_abs(LEVEL_FIXTURE_COUNT); a.or_r("a"); a.ret("z")
     # Snapshot copying has finished. Its staging buffer is free until the
     # next snapshot; retain the published attribute packet on cached updates.
     a.ld_rr_nn("hl",FIXTURE_VISIBILITY); a.xor_r("a"); a.ld_r_n("b",0)
@@ -35,15 +38,20 @@ def emit_world_decor(a: Assembler):
     a.ld_r_n("a",1); a.ld_abs_a(DECAL_PROJECTING)
     a.label("fixture_next_record")
     a.ld_a_abs(DECAL_INDEX); a.cb("swap","a"); a.ld_r_r("e","a"); a.ld_r_n("d",0)
-    a.ld_rr_label("hl","wall_fixture_records"); a.add_hl_rr("de")
+    a.ld_rr_nn("hl",LEVEL_FIXTURE_OFFSET); a.add_hl_rr("de")
+    # Records live in the selected level's bank. Keep the window around the
+    # fetch only: everything downstream works from the DECAL_RECORD copy, and
+    # projection reads banked ROM of its own.
+    a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
     for _ in range(4): a.inc_rr("hl")
     a.ld_a_hl(); a.ld_r_r("e","a"); a.ld_r_n("d",FIXTURE_VISIBILITY>>8)
     if PHYSICAL_DEPTH:
         a.ld_a_abs(COVERAGE_MODE); a.or_r("a"); a.jr("fixture_load_record","nz")
-    a.ld_a_mem_rr("de"); a.or_r("a"); a.jp("fixture_advance","z")
+    a.ld_a_mem_rr("de"); a.or_r("a"); a.jp("fixture_skip_record","z")
     if PHYSICAL_DEPTH: a.label("fixture_load_record")
     for _ in range(4): a.dec_rr("hl")
     a.ld_rr_nn("de",DECAL_RECORD); a.ld_rr_nn("bc",9); a.call("copy_bc")
+    a.ld_r_n("a",1); a.ld_abs_a(0x2000)
     a.label("fixture_face_visible")
     for i in range(4): a.ld_a_abs(DECAL_RECORD+i); a.ld_abs_a(ENTITY_WORLD_XL+i)
     # Door emblems ride their panel and disappear into its jamb.
@@ -99,11 +107,15 @@ def emit_world_decor(a: Assembler):
     a.ld_a_abs(DECAL_WIDE); a.or_r("a"); a.jr("fixture_advance","z")
     a.ld_a_abs(DECAL_COLUMN); a.inc_r("a"); a.ld_abs_a(DECAL_COLUMN); a.cp_n(2); a.jp("fixture_draw_column","c")
     a.label("fixture_advance")
-    a.ld_a_abs(DECAL_INDEX); a.inc_r("a"); a.ld_abs_a(DECAL_INDEX); a.cp_n(len(ACTIVE_LEVEL.fixtures)); a.jp("fixture_next_record","c")
+    a.ld_a_abs(LEVEL_FIXTURE_COUNT); a.ld_r_r("b","a")
+    a.ld_a_abs(DECAL_INDEX); a.inc_r("a"); a.ld_abs_a(DECAL_INDEX); a.cp_r("b"); a.jp("fixture_next_record","c")
     a.label("fixture_done")
     a.xor_r("a"); a.ld_abs_a(DECAL_PROJECTING)
     for i in range(4): a.ld_a_abs(DECAL_SAVED+i); a.ld_abs_a(SENTINEL_VISIBLE+i)
     a.ret()
+
+    a.label("fixture_skip_record")  # invisible face: restore bank 1 and move on
+    a.ld_r_n("a",1); a.ld_abs_a(0x2000); a.jp("fixture_advance")
 
     a.label("fixture_mask")  # A = physical left X; segment AND cell stencil
     a.ld_abs_a(ENTITY_TMP_L); a.ld_r_n("a",8); a.ld_abs_a(ENTITY_TMP_H); a.xor_r("a"); a.ld_abs_a(MASK_BITS)

@@ -43,7 +43,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     if not 0 <= ray_index < count:
         raise ValueError(f"ray index out of range: {ray_index}")
     if door_states is None and grid is None:
-        door_states = {(door.x, door.y): (0, 0) for door in ACTIVE_LEVEL.doors}
+        door_states = {(door.x, door.y): (0, 0) for door in reference_level().doors}
     tables = make_tables()
     offsets = tables[offsets_key]
     corrections = tables[corrections_key]
@@ -83,7 +83,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
     for crossings in range(0, 33):
         if crossings == 0:
             if door_states is not None and cells[my * 16 + mx] == 3 and (mx, my) in door_states:
-                spec = next((d for d in ACTIVE_LEVEL.doors if (d.x, d.y) == (mx, my)), None)
+                spec = next((d for d in reference_level().doors if (d.x, d.y) == (mx, my)), None)
                 state, fraction = door_states[mx, my]
                 local = door_intersection(player_x_q8, player_y_q8, order_dx, order_dy, mx, my, spec.orientation, fraction) if spec is not None else None
                 if state != 2 and local is not None:
@@ -103,7 +103,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
         material = cells[my * 16 + mx]
         if material == 3 and door_states is not None and (mx, my) in door_states:
             state, fraction = door_states[mx, my]
-            spec = next((d for d in ACTIVE_LEVEL.doors if (d.x, d.y) == (mx, my)), None)
+            spec = next((d for d in reference_level().doors if (d.x, d.y) == (mx, my)), None)
             if spec is not None:
                 door_distance = door_intersection(player_x_q8, player_y_q8, order_dx, order_dy,
                                                    mx, my, spec.orientation, fraction)
@@ -145,7 +145,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
         material=material, crossings=crossings, top=top, style=style,
         face_key=face_key, along=along & 0xFF,
         depth_q5=depth_q5, segment_id=segment_id,
-        surface_profile=ACTIVE_LEVEL.surface_table[(my * 16 + mx) * 4 + side],
+        surface_profile=reference_level().surface_table[(my * 16 + mx) * 4 + side],
     )
 
 

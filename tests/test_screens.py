@@ -88,8 +88,8 @@ class ModeMachineTests(unittest.TestCase):
             cgb.step()
         return False
 
-    def _cycle(self, address, value, expected_mode):
-        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+    def _cycle(self, address, value, expected_mode, cgb=None, expected_level=0):
+        cgb = cgb or run_to_world(CGB(self.rom, self.asm.labels))
         cgb.button_provider = lambda *_: 0
         cgb.wramx[2][address - 0xD000] = value
         # The world holds its last frame, then hands over to a results screen.
@@ -98,22 +98,31 @@ class ModeMachineTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.GAME_MODE), expected_mode)
         self.assertTrue(self._advance(cgb, lambda: cgb.io[0x40] == 0x81), "no screen appeared")
         self.assertEqual(cgb.read8(0xFFFF), 1)
-        # START reloads the level and returns to the world.
+        # START loads the selected level and returns to the world.
         cgb.button_provider = lambda *_: 0x80
         world = self.asm.labels["main_loop"]
         self.assertTrue(self._advance(
             cgb, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == world),
             "START did not restore the world")
         self.assertEqual(cgb.io[0x40], br.BG_LCDC)
+        self.assertEqual(cgb.read8(br.LEVEL_INDEX), expected_level)
+        self.assertEqual(cgb.read8(br.LEVEL_BANK), br.LEVEL_ROM_BANK_BASE + expected_level)
+        self.assertEqual(bytes(cgb.wramx[2][br.MAP - 0xD000:br.MAP - 0xD000 + 256]),
+                         br.CAMPAIGN[expected_level].grid)
         self.assertEqual(cgb.wramx[2][br.PLAYER_HEALTH - 0xD000], 99)
         self.assertEqual(cgb.wramx[2][br.LEVEL_COMPLETE - 0xD000], 0)
         self.assertEqual(cgb.wramx[2][br.PICKUP_COLLECTED - 0xD000], 0)
+        return cgb
 
-    def test_death_reaches_the_results_screen_and_restarts(self):
+    def test_death_retries_the_same_sector(self):
         self._cycle(br.PLAYER_HEALTH, 0, br.MODE_GAMEOVER)
 
-    def test_completion_reaches_the_ending_and_restarts(self):
-        self._cycle(br.LEVEL_COMPLETE, 1, br.MODE_ENDING)
+    def test_completing_every_sector_ends_the_campaign_and_restarts_it(self):
+        cgb = None
+        for index in range(1, len(br.CAMPAIGN)):
+            cgb = self._cycle(br.LEVEL_COMPLETE, 1, br.MODE_INTERMISSION, cgb, expected_level=index)
+        # The last sector has no successor: the ending restarts from sector one.
+        self._cycle(br.LEVEL_COMPLETE, 1, br.MODE_ENDING, cgb, expected_level=0)
 
 
 if __name__ == "__main__":

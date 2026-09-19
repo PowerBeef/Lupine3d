@@ -49,6 +49,9 @@ def number_stats(values: list[int | float]) -> dict[str, float]:
 def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
                version: str) -> tuple[CGB, dict[str, Any]]:
     cgb = CGB(rom, symbols)
+    # A title screen holds the world until START. Cross it first; the sample's
+    # own input then drives the world, and boot cycles are still counted.
+    run_to_world(cgb)
     if scripted:
         cgb.button_provider = default_input
     snap = cgb.run(until_presentations=10, max_steps=20_000_000)
@@ -246,6 +249,28 @@ def main() -> None:
         "every_level_door_is_meaningful": int(v2_manifest["minimum_door_separation"]) >= 8,
         "level_material_seams_include_latent_jambs": int(v2_manifest["material_surface_seams"]) == 2,
         "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 2,
+        # Every campaign level carries the same certificate the first one does,
+        # and each owns a distinct ROM bank the loader can select at runtime.
+        "campaign_levels_each_certified": all(
+            level["unreachable_cells"] == 0 and level["maximum_sightline"] <= 6
+            and level["critical_path_turns"] >= 3 and level["minimum_door_separation"] >= 8
+            and level["material_singleton_runs"] <= 16
+            and 1 <= level["doors"] <= int(v2_manifest["maximum_level_doors"])
+            and 1 <= level["actors"] <= 4 and level["fixtures"] <= 16
+            for level in v2_manifest["campaign"]
+        ),
+        "campaign_level_banks_distinct": (
+            [level["rom_bank"] for level in v2_manifest["campaign"]]
+            == list(range(int(v2_manifest["campaign_level_bank_base"]),
+                          int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"])))
+            and int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"]) <= 256
+            and int(v2_manifest["campaign_level_payload_bytes"]) <= 0x4000
+        ),
+        "campaign_route_completed_every_sector": (
+            len(completion["sectors"]) == int(v2_manifest["campaign_levels"])
+            and all(sector["name"] == level["name"]
+                    for sector, level in zip(completion["sectors"], v2_manifest["campaign"]))
+        ),
         "signed_bg_allocation": bool(v2_manifest["signed_bg_tile_addressing"]),
         "folded_compositor_enabled": bool(v2_manifest["folded_compositor"]),
         "full_atlas_with_entities": int(v2_manifest["entity_atlas_patterns"]) == 121,
