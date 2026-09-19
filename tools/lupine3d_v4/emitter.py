@@ -714,30 +714,35 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("adaptive_fill_loop")
     if FIXED_SIMULATION:
         a.call("render_yield_ray" if NARROW_YIELDS else "render_yield")
+    # DE indexes the left anchor for the whole decision. The right anchor and the
+    # midpoint are the same walk at +2 and +1, folded into each base address, so
+    # the index is read once per pair instead of once per field. Registers are
+    # dead across the yield above, so DE is established after it.
+    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     # Compare left/right face keys.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
+    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_rr_nn("hl", RAY_KEYS + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
     # Identical packed planes are not enough: disconnected exposed runs can
     # share the same plane/material key. Segment IDs certify continuity.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
+    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_rr_nn("hl", RAY_SEGMENT + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
     # Same plane/material: require identical or adjacent along-plane cells.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_along_positive", "nc"); a.cpl(); a.inc_r("a")
+    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_rr_nn("hl", RAY_SURFACE + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.cp_r("b"); a.jp("adaptive_cast_mid", "nz")
+    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_rr_nn("hl", RAY_ALONG + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_along_positive", "nc"); a.cpl(); a.inc_r("a")
     a.label("adaptive_along_positive"); a.cp_n(2); a.jp("adaptive_cast_mid", "nc")
     # Quantized projection is only approximately affine.  Require the two
     # anchors to differ by no more than two top-edge pixels; this preserves
     # the inexpensive midpoint path while eliminating large near-wall errors.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.sub_r("b"); a.jr("adaptive_top_positive", "nc"); a.cpl(); a.inc_r("a")
+    # B and C retain the two tops so the midpoint needs no second read.
+    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+    a.ld_rr_nn("hl", RAY_TOPS + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("c", "a")
+    a.sub_r("b"); a.jr("adaptive_top_positive", "nc"); a.cpl(); a.inc_r("a")
     a.label("adaptive_top_positive"); a.cp_n(3); a.jp("adaptive_cast_mid", "nc")
     # Affine midpoint of the two integer top edges.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(ADAPTIVE_INDEX); a.inc_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_hl(); a.add_a_r("b"); a.inc_r("a"); a.cb("srl", "a"); a.ld_abs_a(TOP_RESULT)
+    a.ld_r_r("a", "c"); a.add_a_r("b"); a.inc_r("a"); a.cb("srl", "a"); a.ld_abs_a(TOP_RESULT)
     # Copy left style/key/along to midpoint.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.dec_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(STYLE_RESULT)
     a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(FACE_RESULT)
     a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ALONG_RESULT)
@@ -746,17 +751,17 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # Re-certify the interpolated top through the same conservative exact
     # projection class used by cast rays. Averaging depths can otherwise move
     # an occluder farther away than the nearer member of its top class.
-    a.ld_a_abs(TOP_RESULT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
+    # BC indexes the class table so DE keeps addressing the anchor pair.
+    a.ld_a_abs(TOP_RESULT); a.ld_r_r("c", "a"); a.ld_r_n("b", 0)
+    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("bc"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
     # Store the interpolated descriptor without incrementing cast count.
-    a.ld_a_abs(ADAPTIVE_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
+    a.ld_rr_nn("hl", RAY_TOPS + 1); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_STYLES + 1); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_KEYS + 1); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_ALONG + 1); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_DEPTH + 1); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SEGMENT + 1); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
+    a.ld_rr_nn("hl", RAY_SURFACE + 1); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
     a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.label("adaptive_fill_done")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
