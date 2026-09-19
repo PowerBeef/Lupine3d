@@ -46,7 +46,8 @@ LEVEL_FIXTURE_OFFSET = 0x4980   # MAX_FIXTURES * 16 wall-mounted landmarks
 LEVEL_PAYLOAD_END = 0x4A80
 # The campaign, in order. LUPINE3D_LEVEL still selects a single level for
 # diagnostic and research builds; that build is a one-level campaign.
-CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json")
+CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json",
+                  "vent_stacks.json", "signal_deck.json")
 
 
 @dataclass(frozen=True)

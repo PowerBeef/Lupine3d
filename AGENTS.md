@@ -274,7 +274,10 @@ Documentation-only edits need link/command/diff checks, not a ROM test rerun.
 
 ## Documentation and release hygiene
 
-Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names; retain
+Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names. The
+full controller route plays every sector, so it grows with the campaign -
+budget minutes, not seconds, and keep it out of the short lanes if it stops
+fitting. retain
 two-sentinel acceptance and renderer-benchmark levels. Preserve compiler checks
 for clearance, reachability, door gates, sightlines and room sizes: every
 campaign level carries the same certificate, and `release_check.py` gates all of

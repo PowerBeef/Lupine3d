@@ -48,10 +48,11 @@ The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means 
 v0.8 is the current tagged release and ships a single level. A build from `main`
 is a campaign:
 
-- **Three sectors** — Sable Outpost, Coolant Spine and Reactor Gate — behind a
-  title screen, each level selected at runtime from its own ROM bank. Clearing
-  one shows an intermission; dying retries the sector you lost; clearing the
-  last one ends the campaign.
+- **Five sectors** — Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks
+  and Signal Deck — behind a title screen, each level selected at runtime from
+  its own ROM bank and rising from one enemy to four. Clearing one shows an
+  intermission; dying retries the sector you lost; clearing the last one ends
+  the campaign.
 - **Music**: a title theme, an in-game loop and a victory sting on three sound
   channels, with the fourth kept free so gunfire never cuts a bar. Being hit,
   killing an enemy, taking a pickup and clearing a sector all have their own
