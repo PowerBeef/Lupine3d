@@ -371,17 +371,45 @@ Output-exact, and therefore available without an acceptance decision:
 
 | Item | Gain per update | Status |
 |---|---:|---|
-| §5.5 quadrant-specialised DDA loop | ~80,000 est. | not implemented |
-| §6.2–6.5 composition and descriptors | ~40,000 est. | not implemented |
-| §4.1–4.4 ray prologue | ~25,000 est. | not implemented |
-| §8 entity projection dedup | ~15,000 est. | not implemented |
 | §6.1 folded-mirror pointer | **9,026 measured** | **implemented** |
+| §6.5 adaptive-fill single indexing | **11,643–19,810 measured** | **implemented** |
+| §9 cold raw-ray tables | 0 cycles, **+5,328 resident bytes** | **implemented** |
+| §5.5 quadrant-specialised DDA step | ~3,000–18,000 (revised down) | not implemented |
+| §4.1–4.4 ray prologue | ~10,000 (revised down) | not implemented |
+| §6.2–6.4 atlas and row-range | ~15,000 | not implemented |
+| §8 entity projection dedup | ~2,500–10,000 (revised down) | not implemented |
 
-That is roughly 169,000 T-cycles, about 13 % of a walking update — and because of
-§1, most of it is invisible until something removes the publication stall. The
-folded-mirror change demonstrates this directly: on the sustained lane it moved
-walking by +0.07 cycles (nothing) and turning by −21,425 (−2.02 %), from the same
-9,026-cycle engine saving.
+**Measured outcome of the implemented set**, 60-second sustained lane against the
+committed v0.8 evidence:
+
+| Scenario | v0.8 | After | Delta | Hz | Intervals |
+|---|---:|---:|---:|---|---:|
+| walking | 1,348,013 | 1,304,537 | **−43,475 (−3.23 %)** | 6.22 → **6.418** | 9.598 → 9.288 |
+| turning | 1,058,545 | 1,026,714 | **−31,831 (−3.01 %)** | 7.92 → **8.168** | 7.537 → 7.310 |
+
+**Two of this document's earlier estimates were too optimistic and are corrected
+above.** They measured the *cost of the current code* and assumed a fix removes
+all of it. In practice:
+
+* Hoisting the per-step `DDA_DIST` copy out of the loop has to re-commit the
+  distance on the hit path, ahead of `door_ray_hit`'s override. At 3.37 steps per
+  ray the added branch and copy claw back most of the 48 cycles per step — about
+  2,600–4,700 per update, not 8,500.
+* A quadrant-specialised loop only removes the `stepX`/`stepY` load-add-store
+  (44 → 28 cycles). The step's real cost is in its callees — 312 cycles of
+  crossing certificate and 220 of `dda_post_step`/`dda_read_cell` out of ~810.
+  Reaching the original ~80,000 estimate needs those *inlined* and the error and
+  map pointer register-resident, which is a full traversal rewrite against the
+  documented Q14 crossing-order and tie contract — a much larger and riskier job
+  than emitting four copies of the loop.
+
+The remaining exact items are worth roughly 45,000 T-cycles together, not the
+169,000 first estimated — individually all of them sit well below the 140,448
+quantization step, so each converts only where a scenario already sits near a
+boundary. The folded-mirror change showed this at its starkest: on its own it
+moved walking by +0.07 cycles (nothing) and turning by −21,425 (−2.02 %), from
+the same 9,026-cycle engine saving. Accumulating three changes finally moved
+walking, from 9.598 intervals to 9.288.
 
 Not output-exact, and therefore owner decisions:
 
