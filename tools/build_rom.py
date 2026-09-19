@@ -55,6 +55,18 @@ def make_boot_assets() -> list[tuple[str, bytes]]:
         ("map_data", make_map()),
     ]
 
+
+def make_raw_ray_assets(tables) -> list[tuple[str, bytes]]:
+    """Cold raw-vector tables, read only by probes and disabled packet records."""
+    return [
+        ("ray_vectors_packed", tables["ray_packed"]),
+        ("ray_offsets_q10", tables["ray_offsets"]),
+        ("ray_corrections", tables["ray_corrections"]),
+        ("physical_offsets_q10", tables["physical_offsets"]),
+        ("physical_corrections", tables["physical_corrections"]),
+    ]
+
+
 def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     tables = make_tables()
     a = Assembler(origin=0x0150, optimize_high_page=True)
@@ -193,12 +205,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.align(256, text="legacy movement table alignment")
     for name in ("step_dx", "step_dy", "move_dx", "move_dy"):
         a.label(name); a.bytes(tables[name], name)
-    a.align(RAY_DIRECTION_COUNT, text=f"{RAY_DIRECTION_COUNT}-direction ray table alignment")
-    a.label("ray_vectors_packed"); a.bytes(tables["ray_packed"], "abs dx, abs dy, step x, step y")
-    a.label("ray_offsets_q10"); a.bytes(tables["ray_offsets"], "80 signed 10-bit camera-plane offsets")
-    a.label("ray_corrections"); a.bytes(tables["ray_corrections"], "80 cosine correction factors")
-    a.label("physical_offsets_q10"); a.bytes(tables["physical_offsets"], "160 signed physical-pixel offsets")
-    a.label("physical_corrections"); a.bytes(tables["physical_corrections"], "160 physical-pixel cosine corrections")
+    # Raw vectors and camera-plane tables are cold: prepared records serve every
+    # production cast. Bind their labels inside the banked window instead of
+    # spending resident bytes; the readers below select RAW_RAY_ROM_BANK.
+    raw_address = RAW_RAY_ROM_ADDRESS
+    for name, payload in make_raw_ray_assets(tables):
+        a.labels[name] = raw_address
+        raw_address += len(payload)
+    assert raw_address <= 0x8000, "raw ray tables exceed one MBC5 bank"
     a.label("top_depth_lut"); a.bytes(make_top_depth_lut(), "projected-top to conservative corrected Q5 depth")
     a.label("seam_tile_lookup"); a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
     a.label("active_atlas_bucket_start"); a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
@@ -451,7 +465,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     metadata["configuration"] = configuration
     metadata["configuration_id"] = identity(configuration)
     metadata["allocation_ledger"] = memory_ledger(active_layout, a.labels["level_header"],
-                                                a.origin + len(code), cold_address - 0x4000)
+                                                a.origin + len(code), cold_address - 0x4000,
+                                                raw_address - RAW_RAY_ROM_ADDRESS)
     return code, a, metadata
 
 
@@ -495,6 +510,9 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     boot_payload = b"".join(payload for _, payload in make_boot_assets())
     boot_start = BOOT_ASSETS_ROM_BANK * 0x4000
     rom[boot_start:boot_start + len(boot_payload)] = boot_payload
+    raw_ray_payload = b"".join(payload for _, payload in make_raw_ray_assets(make_tables()))
+    raw_ray_start = RAW_RAY_ROM_BANK * 0x4000
+    rom[raw_ray_start:raw_ray_start + len(raw_ray_payload)] = raw_ray_payload
     q14_start = Q14_ROM_BANK * 0x4000
     rom[q14_start:q14_start + Q14_ROM_BYTES] = make_q14_directions()
     if PREPARED_RAYS:

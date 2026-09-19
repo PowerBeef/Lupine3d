@@ -230,6 +230,12 @@ CAMERA_SETUP = RENDER_CONFIG["camera_setup"] and PREPARED_RAYS
 RAY_SETUP_ROM_BANK = Q14_ROM_BANK + Q14_ROM_BYTES // 0x4000
 RAY_SETUP_RECORD_BYTES = 16
 RAY_SETUP_ROM_BYTES = 256 * 256 * RAY_SETUP_RECORD_BYTES
+# Raw direction vectors and the camera-plane offset/correction tables. Prepared
+# ray records replaced them on every production cast, so they are cold: only the
+# raw-probe sentinel and the disabled packet records still read them. Keeping
+# them out of banks 0/1 buys back the resident space they used to occupy.
+RAW_RAY_ROM_BANK = 238
+RAW_RAY_ROM_ADDRESS = 0x4000
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

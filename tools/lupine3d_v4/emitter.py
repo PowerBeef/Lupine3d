@@ -428,6 +428,8 @@ def emit_dda(a: Assembler) -> None:
         a.ld_a_abs(Q14_RECORD); a.cp_n(241); a.jr("dda_raw_vector", "nc")
         a.call("load_ray_setup_prepared" if CAMERA_SETUP else "load_ray_setup"); a.jr("dda_vector_ready")
         a.label("dda_raw_vector")
+    # The raw vectors are cold banked data; restore bank 1 before returning.
+    a.ld_r_n("a", RAW_RAY_ROM_BANK); a.ld_abs_a(0x2000)
     load_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
     a.add_hl_rr("hl"); a.add_hl_rr("hl")
     a.ld_rr_label("de", "ray_vectors_packed"); a.add_hl_rr("de")
@@ -435,6 +437,7 @@ def emit_dda(a: Assembler) -> None:
     a.ldi_a_hl(); a.ld_abs_a(DDA_ABS_Y)
     a.ldi_a_hl(); a.ld_abs_a(DDA_STEP_X)
     a.ld_a_hl(); a.ld_abs_a(DDA_STEP_Y)
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.label("dda_vector_ready")
 
     # Initial distance to next X boundary in Q8.8.
@@ -631,6 +634,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("cast_indexed_prepared")  # CAST_INDEX selects the ray
     a.ld_a_abs(CAST_INDEX); a.ld_abs_a(Q14_RECORD)
     if not PREPARED_RAYS:
+        a.ld_r_n("a", RAW_RAY_ROM_BANK); a.ld_abs_a(0x2000)
         a.ld_a_abs(CAST_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
         a.ld_rr_label("hl", "ray_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
         a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
@@ -638,6 +642,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
         a.add_hl_rr("de")
         a.ld_r_r("a", "h"); a.and_n(RAY_DIRECTION_HIGH_MASK); a.ld_r_r("h", "a"); store_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
         a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "ray_corrections"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DDA_CORRECTION)
+        a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.call("cast_one_v2"); a.ret()
 
     a.label("cast_physical_indexed")  # Public self-contained probe entry.
@@ -645,6 +650,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.label("cast_physical_indexed_prepared")  # PIXEL_INDEX selects one of 160 columns
     a.ld_a_abs(PIXEL_INDEX); a.add_a_n(80); a.ld_abs_a(Q14_RECORD)
     if not PREPARED_RAYS:
+        a.ld_r_n("a", RAW_RAY_ROM_BANK); a.ld_abs_a(0x2000)
         a.ld_a_abs(PIXEL_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("a", 0); a.adc_a_n(0); a.ld_r_r("d", "a")
         a.ld_rr_label("hl", "physical_offsets_q10"); a.add_hl_rr("de"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
         a.ld_a_abs(ANGLE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
@@ -652,6 +658,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
         a.add_hl_rr("de")
         a.ld_r_r("a", "h"); a.and_n(RAY_DIRECTION_HIGH_MASK); a.ld_r_r("h", "a"); store_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
         a.ld_a_abs(PIXEL_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "physical_corrections"); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(DDA_CORRECTION)
+        a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.call("cast_one_v2"); a.ret()
 
     a.label("cast_and_store")  # input A ray index

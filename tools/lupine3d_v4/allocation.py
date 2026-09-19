@@ -19,7 +19,7 @@ def validate_allocations(rows):
             assert a.space != b.space or a.end <= b.start or b.end <= a.start, (a, b)
 
 
-def memory_ledger(layout, code_end, resident_end, boot_bytes):
+def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     l = layout
     A = Allocation
     rows = [
@@ -32,6 +32,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes):
         A("ROM", l.Q14_ROM_BANK * 0x4000, l.Q14_ROM_BANK * 0x4000 + l.Q14_ROM_BYTES, "Q14 directions"),
         A("ROM", l.RAY_SETUP_ROM_BANK * 0x4000, l.RAY_SETUP_ROM_BANK * 0x4000 + l.RAY_SETUP_ROM_BYTES, "prepared rays and packet padding"),
         A("ROM", 237 * 0x4000, 237 * 0x4000 + l.MICRO_STATE_COUNT*384, "unfolded diagnostic strips (reserved)"),
+        A("ROM", l.RAW_RAY_ROM_BANK * 0x4000, l.RAW_RAY_ROM_BANK * 0x4000 + raw_ray_bytes, "cold raw vectors and camera-plane tables"),
         A("WRAM0", 0xC000, 0xC600, "dynamic BG patterns", "composition through publication"),
         A("WRAM0", 0xC600, 0xC600 + l.VIEW_MAP_BYTES, "BG map", "composition through publication"),
         A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
