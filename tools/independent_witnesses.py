@@ -12,7 +12,7 @@ import subprocess
 from PIL import Image
 import build_rom as br
 from quality_witnesses import scene_corpus,setup,capture
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -36,7 +36,7 @@ def main():
     rows=[]
     for scene in scene_corpus():
         if args.scene and scene.name not in args.scene:continue
-        c=CGB(rom,asm.labels);c.run(until_pc=asm.labels['main_loop']);writes=[];original=c.write8
+        c=CGB(rom,asm.labels);run_to_world(c);writes=[];original=c.write8
         def write(address,value):
             if 0xC000<=address<0xE000 or 0xFF80<=address<0xFFFF:
                 bank=(c.io[0x70]&7) or 1 if 0xD000<=address<0xE000 else 0

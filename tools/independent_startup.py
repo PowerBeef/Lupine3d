@@ -6,11 +6,11 @@ freezes simulation at main_loop before its first presentation for exact RGB.
 import subprocess
 from PIL import Image
 import build_rom as b
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 def frozen_startup(executable,rom,prefix,model=None):
-    expected,asm,_=b.make_rom();host=CGB(expected,asm.labels);host.run(until_pc=asm.labels['main_loop'])
+    expected,asm,_=b.make_rom();host=CGB(expected,asm.labels);run_to_world(host)
     host.write8(b.SIM_READY,0);host.run(until_presentations=1)
     payload=asm.labels['main_loop'].to_bytes(2,'little')+bytes((1,0,0,b.SIM_READY&255,b.SIM_READY>>8,0))
     patch=prefix.with_suffix('.bin');patch.write_bytes(payload)

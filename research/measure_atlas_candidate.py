@@ -35,13 +35,13 @@ def main() -> None:
     # deliberately freezes generated assets at module-import time.
     import build_rom as br  # noqa: PLC0415
     from playtest import apply_diagnostic_camera, set_test_world_byte, validate_frame  # noqa: PLC0415
-    from sm83emu import CGB  # noqa: PLC0415
+    from sm83emu import CGB, run_to_world  # noqa: PLC0415
 
     rom, assembler, _manifest = br.make_rom()
     if br.TILE_ATLAS_TILES != (args.atlas_dir / "tile_atlas_tiles.bin").read_bytes():
         raise RuntimeError("measured profile did not select the candidate atlas")
     cgb = CGB(rom, assembler.labels)
-    cgb.run(until_pc=assembler.labels["main_loop"], max_steps=5_000_000)
+    run_to_world(cgb)
     scenario = json.loads((ROOT / "playtests" / "coherence_tour.json").read_text(encoding="utf-8"))
     world_mode = str(scenario.get("world_mode", "empty")).lower()
     set_test_world_byte(cgb, br.WORLD_MODE, br.WORLD_MODE_EMPTY if world_mode == "empty" else br.WORLD_MODE_LIVING)

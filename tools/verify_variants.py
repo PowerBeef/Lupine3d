@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import build_rom as br
 from playtest import make_contact_sheet, oam_budget, set_test_world_byte, validate_frame
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     rom, asm, _ = br.make_rom()
-    c = CGB(rom, asm.labels); c.run(until_pc=asm.labels["main_loop"])
+    c = CGB(rom, asm.labels); run_to_world(c)
     c.ime = False; c.write8(br.SIM_READY, 0)
     images, checks = [], {}
     def pose(x, y, angle):

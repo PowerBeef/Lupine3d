@@ -14,14 +14,14 @@ from pathlib import Path
 
 import build_rom as br
 from playtest import validate_frame, oam_budget, make_contact_sheet
-from sm83emu import CGB, parse_symbols
+from sm83emu import CGB, parse_symbols, run_to_world
 
 
 def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
     output.mkdir(parents=True, exist_ok=True)
     rom = (rom_path or br.BUILD / "lupine3d.gb").read_bytes()
     cgb = CGB(rom, parse_symbols(symbols_path or br.BUILD / "lupine3d.sym"))
-    cgb.run(until_pc=cgb.symbols["main_loop"], max_steps=2_000_000)
+    run_to_world(cgb)
     records, captures = [], []
     first_lcd=cgb.frame_count
     replay={}

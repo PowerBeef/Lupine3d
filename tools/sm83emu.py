@@ -788,6 +788,27 @@ class CGB:
         return image
 
 
+def run_to_world(cgb: "CGB", *, max_steps: int = 8_000_000) -> "CGB":
+    """Advance a freshly constructed machine to the world loop.
+
+    Full-screen modes wait for START, so the harness holds it until `main_loop`
+    is reached and releases it there. A held START has no effect on a live
+    world; the simulation only reads it when the player is dead or the level is
+    complete. ROMs without a title screen are unaffected.
+    """
+    provider = cgb.button_provider
+    cgb.button_provider = lambda *_: 0x80
+    cgb.run(until_pc=cgb.symbols["main_loop"], max_steps=max_steps)
+    cgb.button_provider = provider
+    cgb.buttons = 0
+    # Release START in the ROM's own shadow too. Leaving it set would suppress
+    # the next rising edge, because the sampler latches raw & ~last_raw.
+    for name in ("input_last_raw", "input_edge_latch"):
+        if name in cgb.symbols:
+            cgb.write8(cgb.symbols[name], 0)
+    return cgb
+
+
 def parse_symbols(path: Path) -> dict[str, int]:
     symbols: dict[str, int] = {}
     for line in path.read_text(encoding="utf-8").splitlines():

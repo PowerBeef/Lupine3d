@@ -9,13 +9,13 @@ import statistics
 
 import build_rom as br
 from playtest import button_mask, validate_frame, set_test_world_byte, apply_diagnostic_camera
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 def profile(scenario_file):
     rom, asm, _ = br.make_rom()
     cgb = CGB(rom, asm.labels)
-    cgb.run(until_pc=asm.labels["main_loop"])
+    run_to_world(cgb)
     scenario = json.loads(scenario_file.read_text())
     set_test_world_byte(cgb, br.WORLD_MODE, int(scenario.get("world_mode") != "empty"))
     names = ("begin_frame_snapshot", "check_wall_reuse", "cast_all", "render_view", "render_entities",

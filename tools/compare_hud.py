@@ -7,7 +7,7 @@ from pathlib import Path
 
 import build_rom as b
 from playtest import apply_diagnostic_camera
-from sm83emu import CGB, parse_symbols
+from sm83emu import CGB, parse_symbols, run_to_world
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
 
     def boot(data, labels):
         c = CGB(data, labels)
-        c.run(until_pc=labels['main_loop'])
+        run_to_world(c)
         c.write8(b.SIM_READY, 0)
         return c
 

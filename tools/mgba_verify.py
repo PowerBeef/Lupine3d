@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from PIL import Image
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 PINNED_CORE = "507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6"
 
@@ -45,7 +45,7 @@ def main():
     if not result.stdout.strip():
         raise SystemExit(f"mGBA adapter exited {result.returncode} without a report")
     report = json.loads(result.stdout.strip().splitlines()[-1])
-    host = CGB(rom, asm.labels); host.run(until_pc=asm.labels["main_loop"])
+    host = CGB(rom, asm.labels); run_to_world(host)
     report.update(core="mGBA", core_commit=revision, rom_sha256=hashlib.sha256(rom).hexdigest(),
                   physical_hardware_tested=False, original_boot_rom_tested=False,
                   startup_rgb_matches_host=Image.open(str(prefix) + "_start.ppm").tobytes() == host.render_screen().tobytes())

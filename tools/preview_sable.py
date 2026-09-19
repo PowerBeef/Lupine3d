@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from PIL import Image
 import build_rom as b
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import apply_diagnostic_camera,set_test_world_byte
 from runtime_observer import LCD_CPU_CYCLES
 
@@ -14,7 +14,7 @@ def main():
     import argparse
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output-dir',type=Path,default=b.BUILD/'sable-v2/motion');p.add_argument('--scene',choices=('weapon','combat'),default='weapon');args=p.parse_args()
     out=args.output_dir;out.mkdir(parents=True,exist_ok=True)
-    rom,a,meta=b.make_rom();c=CGB(rom,a.labels);c.run(until_pc=a.labels['main_loop'])
+    rom,a,meta=b.make_rom();c=CGB(rom,a.labels);run_to_world(c)
     # Stage a close confrontation; subsequent firing/turning runs entirely
     # through LCD-indexed controller samples and accepted simulation ticks.
     if args.scene=='weapon':apply_diagnostic_camera(c,{'pose':[2176,2432,192]})

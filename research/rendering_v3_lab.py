@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT / "research"))
 import build_rom as v3  # noqa: E402
 import build_rom_v2 as v2  # noqa: E402
 import geometry_v2_lab as geometry  # noqa: E402
-from sm83emu import CGB  # noqa: E402
+from sm83emu import CGB, run_to_world  # noqa: E402
 
 RESULTS = ROOT / "research" / "results"
 DOUBLE_SPEED_HZ = 8_388_608
@@ -81,7 +81,7 @@ def segments_for(keys: Sequence[int], alongs: Sequence[int], player_angle: int,
 def benchmark_rom_cycles(poses: Sequence[tuple[int, int, int]]) -> dict[str, float]:
     rom, assembler, _ = v3.make_rom()
     cgb = CGB(rom, assembler.labels)
-    cgb.run(until_pc=assembler.labels["main_loop"], max_steps=5_000_000)
+    run_to_world(cgb)
     totals: list[int] = []
     cast_cycles: list[int] = []
     render_cycles: list[int] = []
@@ -246,7 +246,7 @@ def run(*, measure_cycles: bool = True) -> dict[str, object]:
 def render_rom_pose(builder: object, pose: tuple[int, int, int]) -> Image.Image:
     rom, assembler, _ = builder.make_rom()
     cgb = CGB(rom, assembler.labels)
-    cgb.run(until_pc=assembler.labels["main_loop"], max_steps=5_000_000)
+    run_to_world(cgb)
     x_q8, y_q8, angle = pose
     cgb.write16(builder.PLAYER_XL, x_q8)
     cgb.write16(builder.PLAYER_YL, y_q8)

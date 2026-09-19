@@ -236,6 +236,22 @@ RAY_SETUP_ROM_BYTES = 256 * 256 * RAY_SETUP_RECORD_BYTES
 # them out of banks 0/1 buys back the resident space they used to occupy.
 RAW_RAY_ROM_BANK = 238
 RAW_RAY_ROM_ADDRESS = 0x4000
+# Authored full-screen presentation. Composition owns the dynamic pattern
+# window while the world renders, so these screens borrow it when it is idle.
+SCREEN_ROM_BANK = 239
+SCREEN_ROM_ADDRESS = 0x4000
+SCREEN_RECORD_BYTES = 7
+GAME_MODE = 0xC8CF            # fixed WRAM: the ISR reads it under any SVBK
+MODE_TITLE, MODE_PLAYING, MODE_GAMEOVER, MODE_ENDING, MODE_INTERMISSION = range(5)
+# Screen-mode scratch, fixed WRAM above the strip scratch. Only the non-world
+# modes touch it, so it never overlaps a render or simulation lifetime.
+SCREEN_INDEX = 0xC8F0
+SCREEN_PATTERN_COUNT = 0xC8F1
+SCREEN_SOURCE_L, SCREEN_SOURCE_H = 0xC8F2, 0xC8F3
+SCREEN_MAP_L, SCREEN_MAP_H = 0xC8F4, 0xC8F5
+SCREEN_SLOT_L, SCREEN_SLOT_H = 0xC8F6, 0xC8F7
+SCREEN_ROW_COUNT = 0xC8F8
+SCREEN_PALETTE = 1            # the reserved steel HUD palette
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

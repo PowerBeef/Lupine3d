@@ -12,7 +12,7 @@ import build_rom as br
 from lupine3d_v4.allocation import Allocation, validate_allocations
 from lupine3d_v4.configuration import resolve, FLAGS
 from runtime_observer import RuntimeObserver, distribution
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 def variant(**flags):
@@ -93,7 +93,7 @@ class ObservationContracts(unittest.TestCase):
         rom, asm, _ = br.make_rom()
         plain, observed = (CGB(rom, asm.labels) for _ in range(2))
         for c in (plain, observed):
-            c.run(until_pc=asm.labels["main_loop"])
+            run_to_world(c)
             c.button_provider = lambda *_: 1
         observer = RuntimeObserver(observed)
         for c in (plain, observed): c.run(until_presentations=3)

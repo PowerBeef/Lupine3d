@@ -8,7 +8,7 @@ import subprocess
 
 from PIL import Image
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 PINNED_CORE = "213a12ce93d66b105a113debd9396306066a7cfc"
 
@@ -35,7 +35,7 @@ def main():
     if hashlib.sha256(expected_rom).hexdigest() != sha:
         raise SystemExit("ROM differs from active build configuration")
     host = CGB(expected_rom, asm.labels)
-    host.run(until_pc=asm.labels["main_loop"], max_steps=2_000_000)
+    run_to_world(host)
     expected_pixels = host.render_screen().tobytes()
     for name, model in (("cgbe", "205"), ("cgb0", "200")):
         prefix = args.output_dir / f"sameboy_{name}"

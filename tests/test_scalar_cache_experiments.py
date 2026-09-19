@@ -4,7 +4,7 @@ import unittest
 
 from test_render_experiments import variant
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import read_block
 
 
@@ -16,7 +16,7 @@ class ScalarCacheExperiments(unittest.TestCase):
                                                  INCREMENTAL_CERTIFICATE=1,CAMERA_SETUP=1,DYNAMIC_TILE_CACHE=1,CACHE_KEY_MIX=cls.mix)
 
     def boot(self):
-        c = CGB(self.rom,self.labels); c.run(until_pc=self.labels["main_loop"])
+        c = CGB(self.rom,self.labels); run_to_world(c)
         c.ime = False; c.write8(br.SIM_READY,0)
         return c
 

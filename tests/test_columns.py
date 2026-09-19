@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import read_block
 
 
@@ -17,7 +17,7 @@ class ColumnTests(unittest.TestCase):
 
     def boot(self):
         c = CGB(self.rom, self.asm.labels)
-        c.run(until_pc=self.asm.labels["main_loop"])
+        run_to_world(c)
         c.ime = False; c.write8(br.SIM_READY, 0)
         return c
 

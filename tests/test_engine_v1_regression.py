@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from build_rom_v1 import NINTENDO_LOGO, make_rom  # noqa: E402
-from sm83emu import CGB, parse_symbols  # noqa: E402
+from sm83emu import CGB, parse_symbols, run_to_world  # noqa: E402
 
 
 class Lupine3DV1RegressionTests(unittest.TestCase):
@@ -21,7 +21,7 @@ class Lupine3DV1RegressionTests(unittest.TestCase):
 
     def boot_to_main(self) -> CGB:
         cgb = CGB(self.rom, self.symbols)
-        cgb.run(until_pc=self.symbols["main_loop"], max_steps=1_000_000)
+        run_to_world(cgb)
         return cgb
 
     def test_rom_header_and_checksums(self) -> None:

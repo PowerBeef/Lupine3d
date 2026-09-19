@@ -9,13 +9,13 @@ from pathlib import Path
 import build_rom as br
 from benchmark_runtime import scenes
 from playtest import apply_diagnostic_camera, read_block, set_test_world_byte, validate_frame, oam_budget
-from sm83emu import CGB, parse_symbols
+from sm83emu import CGB, parse_symbols, run_to_world
 
 CPU_HZ = 8388608
 
 
 def boot(rom, labels, *, full=False):
-    c = CGB(rom, labels); c.run(until_pc=labels["main_loop"])
+    c = CGB(rom, labels); run_to_world(c)
     c.write8(br.SIM_READY, 0)
     if c.explicit_presentations: c.write8(br.WALL_CACHE_DISABLE, int(full))
     return c

@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import oam_budget
 
 
@@ -21,7 +21,7 @@ class OverhaulTests(unittest.TestCase):
 
     def boot(self):
         cgb = CGB(self.rom, self.asm.labels)
-        cgb.run(until_pc=self.asm.labels["main_loop"], max_steps=2_000_000)
+        run_to_world(cgb)
         return cgb
 
     def test_every_door_combination_has_ids_for_all_visible_faces(self):

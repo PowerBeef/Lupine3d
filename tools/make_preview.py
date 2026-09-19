@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as v2  # noqa: E402
-from sm83emu import CGB  # noqa: E402
+from sm83emu import CGB, run_to_world  # noqa: E402
 from playtest import set_test_world_byte  # noqa: E402
 
 
@@ -53,7 +53,7 @@ def main() -> None:
     # A separate authored pose makes the main project image describe the
     # current engine: wall composition, the 16x32 Sentinel and foreground UI.
     hero = CGB(v2_rom, v2_assembler.labels)
-    hero.run(until_pc=v2_assembler.labels["main_loop"], max_steps=2_000_000)
+    run_to_world(hero)
     # Face the Sentinel across the machinery hall so the repository hero
     # image communicates the complete current slice, not an empty start wall.
     for address, value in ((v2.PLAYER_XL, 128), (v2.PLAYER_XH, 8),

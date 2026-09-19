@@ -4,7 +4,7 @@ import unittest
 from test_render_experiments import variant
 import build_rom as br
 from playtest import read_block
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from lupine3d_v4.surfaces import surface_attributes
 
 
@@ -15,7 +15,7 @@ class SecondaryExperiments(unittest.TestCase):
         cls.reference = variant(COMPACT_STRIPS=1,FOLDED=1,ATTRIBUTE_PADDING=0,NARROW_YIELDS=0)
 
     def boot(self, variant):
-        c = CGB(variant[0],variant[1]); c.run(until_pc=variant[1]["main_loop"])
+        c = CGB(variant[0],variant[1]); run_to_world(c)
         c.ime=False; c.write8(br.SIM_READY,0)
         return c
 

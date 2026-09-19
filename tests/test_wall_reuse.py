@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import build_rom as br
 from lupine3d_v4.wall_cache import WALL_KEY_RANGES
 from playtest import apply_diagnostic_camera, read_block, set_test_world_byte, validate_frame
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 class WallReuseTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class WallReuseTests(unittest.TestCase):
 
     def boot(self, *, full=False):
         c = CGB(self.rom, self.asm.labels)
-        c.run(until_pc=self.asm.labels["main_loop"])
+        run_to_world(c)
         c.write8(br.SIM_READY, 0)
         c.write8(br.WALL_CACHE_DISABLE, int(full))
         return c

@@ -10,7 +10,7 @@ from pathlib import Path
 import build_rom as br
 from lupine3d_v4.wall_cache import WALL_KEY_RANGES
 from playtest import apply_diagnostic_camera, read_block, validate_frame, oam_budget, set_test_world_byte
-from sm83emu import CGB, parse_symbols
+from sm83emu import CGB, parse_symbols, run_to_world
 from runtime_observer import RuntimeObserver, distribution, LCD_CPU_CYCLES
 
 CPU_HZ = 8388608
@@ -35,7 +35,7 @@ def input_replay(name, frames):
 
 def run_case(rom, labels, name, frames=144, *, observe=True):
     physical = "refine_full_snapshot" in labels
-    c = CGB(rom,labels); c.run(until_pc=labels["main_loop"])
+    c = CGB(rom,labels); run_to_world(c)
     c.write8(br.SIM_READY,0)
     if name in ("opening_door", "open_door", "closed_door"):
         apply_diagnostic_camera(c,dict(pose=[1152,3136,192]))

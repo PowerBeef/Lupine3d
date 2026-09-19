@@ -6,7 +6,7 @@ from test_render_experiments import variant
 import build_rom as br
 from playtest import read_block, set_test_world_byte, validate_frame
 from quality_witnesses import scene_corpus,setup,expected_mask
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 class PhysicalDepthTests(unittest.TestCase):
@@ -24,7 +24,7 @@ class PhysicalDepthTests(unittest.TestCase):
             queries.add(cpu.read8(br.PIXEL_INDEX))
         c.breakpoints[variant[1]["clear_physical_depth"]]=clear
         c.breakpoints[variant[1]["cast_physical_indexed_prepared"]]=query
-        c.run(until_pc=variant[1]["main_loop"]); setup(c,scene)
+        run_to_world(c); setup(c,scene)
         c.run(until_presentations=c.presentations+1)
         return c,queries
 
@@ -123,14 +123,14 @@ class PhysicalDepthTests(unittest.TestCase):
 
     def test_coverage_selects_each_actors_current_lod(self):
         scene=replace(self.scenes["height_class_occlusion"],actors=((1344,1152),))
-        c=CGB(self.physical[0],self.physical[1]);c.run(until_pc=c.symbols["main_loop"]);setup(c,scene)
+        c=CGB(self.physical[0],self.physical[1]);run_to_world(c);setup(c,scene)
         c.write8(br.SENTINEL_LOD,2);c.write8(br.LOD_HISTORY,2)
         c.run(until_presentations=c.presentations+1)
         self.assertTrue(set(range(72,88))<=self.validity(c))
         self.assertEqual(c.read8(br.PHYSICAL_DEPTH_MISSING),0)
 
     def test_all_screen_refinement_is_bounded_and_preserves_guard_bytes(self):
-        c=CGB(self.physical[0],self.physical[1]);c.run(until_pc=c.symbols["main_loop"])
+        c=CGB(self.physical[0],self.physical[1]);run_to_world(c)
         setup(c,self.scenes["four_actor_coverage"])
         queried=set()
         def cover_all(cpu):

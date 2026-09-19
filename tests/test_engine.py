@@ -19,7 +19,7 @@ import build_rom as br  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
 import tail_failure_lab as tail_lab  # noqa: E402
 from lupine3d_v4.levels import build_segment_table, compile_level  # noqa: E402
-from sm83emu import CGB  # noqa: E402
+from sm83emu import CGB, run_to_world  # noqa: E402
 from playtest import set_test_world_byte
 
 BASELINE_SHA256 = "0b5794c93b43b38a0dd2a76cf4e289f0317dd9b10314632ff366402ecd37fa00"
@@ -36,7 +36,7 @@ class Lupine3DTests(unittest.TestCase):
 
     def boot_to_main(self) -> CGB:
         cgb = CGB(self.rom, self.symbols)
-        cgb.run(until_pc=self.symbols["main_loop"], max_steps=2_000_000)
+        run_to_world(cgb)
         return cgb
 
     @staticmethod
@@ -895,10 +895,10 @@ from pathlib import Path
 root = Path.cwd()
 sys.path.insert(0, str(root / "tools"))
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 rom, assembler, manifest = br.make_rom()
 cgb = CGB(rom, assembler.labels)
-cgb.run(until_pc=assembler.labels["main_loop"], max_steps=2_000_000)
+run_to_world(cgb)
 cgb.button_provider = lambda _iteration, _swaps: 0x01
 cgb.run(until_presentations=2, max_steps=5_000_000)
 signed = [event["value"] - 256 if event["value"] & 0x80 else event["value"] for event in cgb.scx_events]
@@ -939,7 +939,7 @@ print(json.dumps({
         start_cycles = cgb.cycles
         start_frames = cgb.frame_count
         cgb.step()  # enter the main-loop body once
-        cgb.run(until_pc=self.symbols["main_loop"], max_steps=2_000_000)
+        run_to_world(cgb)
         update_cycles = cgb.cycles - start_cycles
         update_frames = cgb.frame_count - start_frames
         updates_per_second = DOUBLE_SPEED_HZ / update_cycles

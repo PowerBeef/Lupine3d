@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import build_rom as b
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import validate_frame,apply_diagnostic_camera,oam_budget
 from lupine3d_v4.sprite_assets import evidence,compile_sheet,compile_frame,frames
 
@@ -12,7 +12,7 @@ def check(output):
     assert b.COMPACT_DISPLAY and b.SABLE_ART
     rom,a,meta=b.make_rom(); checks={}; captures=[]
     def boot():
-        c=CGB(rom,a.labels);c.run(until_pc=a.labels['main_loop']);return c
+        c=CGB(rom,a.labels);run_to_world(c);return c
     c=boot();assert c.raster_lcdc=={b.VIEW_HEIGHT:(16,16,0)}
     assert b.VIEW_MAP_BYTES==b.VIEW_HEIGHT*4
     assert b.STRIP_SCRATCH==(0xC8E0 if b.SLIM_DISPLAY else 0xC7C0)

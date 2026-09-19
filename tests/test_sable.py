@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import build_rom as br
 from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.levels import compile_level
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 class SableTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class SableTests(unittest.TestCase):
 
     def boot(self):
         c = CGB(self.rom, self.asm.labels)
-        c.run(until_pc=self.asm.labels['main_loop'])
+        run_to_world(c)
         return c
 
     def test_hud_dictionary_is_disjoint_from_world_and_masked_objects(self):
@@ -39,7 +39,7 @@ class SableTests(unittest.TestCase):
         c.run(until_pc=self.asm.labels['stat_isr'])
         self.assertEqual(c.ly, 96)
         self.assertLess(c.ppu_dots, 80)  # mode 2, before tile fetch
-        c.run(until_pc=self.asm.labels['main_loop'])
+        run_to_world(c)
         expected = c.render_screen().tobytes()
         c.io[0x40] |= 16
         self.assertEqual(c.render_screen().tobytes(), expected)

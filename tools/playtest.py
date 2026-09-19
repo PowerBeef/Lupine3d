@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as br  # noqa: E402
-from sm83emu import CGB, parse_symbols  # noqa: E402
+from sm83emu import CGB, parse_symbols, run_to_world  # noqa: E402
 
 BUTTON_BITS = {
     "right": 0x01, "left": 0x02, "up": 0x04, "down": 0x08,
@@ -231,7 +231,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         pixel_oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
     symbols = parse_symbols(symbols_path)
     cgb = CGB(rom_path.read_bytes(), symbols)
-    cgb.run(until_pc=symbols["main_loop"], max_steps=5_000_000)
+    run_to_world(cgb)
     world_mode = str(scenario.get("world_mode", "living")).lower()
     if world_mode not in ("empty", "living"):
         raise ValueError(f"unknown world_mode: {world_mode}")

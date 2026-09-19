@@ -12,11 +12,11 @@ POSES=((1152,3456,192),(1408,3328,192),(896,2432,192),(2176,2176,0),(2432,2688,6
 
 def capture(out):
     import build_rom as b
-    from sm83emu import CGB
+    from sm83emu import CGB, run_to_world
     from playtest import apply_diagnostic_camera,set_test_world_byte,validate_frame
     rom,a,m=b.make_rom();rows=[];out.mkdir(parents=True,exist_ok=True)
     for index,pose in enumerate(POSES):
-        c=CGB(rom,a.labels);c.run(until_pc=a.labels['main_loop']);c.write8(b.SIM_READY,0)
+        c=CGB(rom,a.labels);run_to_world(c);c.write8(b.SIM_READY,0)
         set_test_world_byte(c,b.WORLD_MODE,0);apply_diagnostic_camera(c,{'pose':pose});c.run(until_presentations=1);validate_frame(c)
         c.oam[:]=bytes(160);im=c.render_screen();im.save(out/f'{index}.png')
         rows.append({'tops':[c.read8(b.PIXEL_TOPS+i) for i in range(160)],'pose':pose})

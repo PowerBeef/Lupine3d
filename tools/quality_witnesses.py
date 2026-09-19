@@ -16,7 +16,7 @@ from pathlib import Path
 
 import build_rom as br
 from playtest import apply_diagnostic_camera, set_test_world_byte, make_contact_sheet
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 @dataclass(frozen=True)
@@ -158,7 +158,7 @@ def setup(c, scene):
 
 
 def capture(rom, labels, scene):
-    c = CGB(rom,labels); c.run(until_pc=labels["main_loop"])
+    c = CGB(rom,labels); run_to_world(c)
     setup(c,scene)
     c.run(until_presentations=c.presentations+1)
     assert c.commit_events[-1]["vblank_safe"]

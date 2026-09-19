@@ -4,7 +4,7 @@ from test_render_experiments import variant
 import build_rom as br
 from playtest import read_block,oam_budget
 from runtime_observer import RuntimeObserver
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 
 
 class ForegroundTests(unittest.TestCase):
@@ -12,7 +12,7 @@ class ForegroundTests(unittest.TestCase):
     def setUpClass(cls):cls.build=variant(COMPACT_STRIPS=1,SCANLINE_ADMISSION=1,FOREGROUND_PUBLICATION=1)
 
     def cpu(self):
-        c=CGB(self.build[0],self.build[1]);c.run(until_pc=self.build[1]["main_loop"]);c.ime=False
+        c=CGB(self.build[0],self.build[1]);run_to_world(c);c.ime=False
         return c
 
     def enqueue(self,c,tick=9):

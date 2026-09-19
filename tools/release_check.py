@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as v2  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
-from sm83emu import CGB, default_input  # noqa: E402
+from sm83emu import CGB, default_input, run_to_world  # noqa: E402
 
 CGB_CLOCK_HZ = 4_194_304
 DOTS_PER_LINE = 456
@@ -90,7 +90,7 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
 def measure_routines(rom: bytes, symbols: dict[str, int], routines: tuple[str, str],
                      version: str) -> dict[str, Any]:
     cgb = CGB(rom, symbols)
-    cgb.run(until_pc=symbols["main_loop"], max_steps=2_000_000)
+    run_to_world(cgb)
     result: dict[str, Any] = {"version": version}
     for routine in routines:
         before_cycles, before_steps = cgb.cycles, cgb.steps

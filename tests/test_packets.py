@@ -3,7 +3,7 @@ import unittest
 
 from test_render_experiments import variant
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from playtest import read_block
 from lupine3d_v4.precision import q14_direction
 from lupine3d_v4.packets import PK_FIRST,PK_COUNT,PK_STACK,PK_NX,PK_NY,PK_EMIN,PK_EMAX
@@ -17,7 +17,7 @@ class PacketTests(unittest.TestCase):
         cls.scalar = variant(COMPACT_STRIPS=1,FOLDED=1,ANCHOR_PACKETS=0,PACKET_BOUNDS_REUSE=0)
 
     def boot(self,v):
-        c = CGB(v[0],v[1]); c.run(until_pc=v[1]["main_loop"])
+        c = CGB(v[0],v[1]); run_to_world(c)
         c.ime=False; c.write8(br.SIM_READY,0)
         return c
 

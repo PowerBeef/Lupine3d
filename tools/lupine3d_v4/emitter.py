@@ -328,6 +328,10 @@ def emit_input_system(a: Assembler) -> None:
     The ISR does not simulate. Cooperative render yields consume packets in
     the isolated live-world bank, leaving the render snapshot unchanged.
     """
+    # Published so a host harness can observe and reset the sampler's shadow,
+    # the same way the wall cache publishes its presentation serial.
+    a.labels["input_last_raw"] = INPUT_LAST_RAW
+    a.labels["input_edge_latch"] = INPUT_EDGE_LATCH
     a.label("sample_joypad_latched")
     a.ld_r_n("a", 0x20); a.ldh_n_a(P1)
     a.ldh_a_n(P1); a.ldh_a_n(P1)
@@ -352,7 +356,10 @@ def emit_input_system(a: Assembler) -> None:
     # This is a VBlank clock, not a count of arbitrary joypad polls.
     a.ld_a_abs(INPUT_SAMPLE_COUNT); a.inc_r("a"); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     if FIXED_SIMULATION:
-        a.call("queue_vblank_input")
+        # Only the world consumes timestamped packets. Queueing during a
+        # full-screen mode would overflow the ring and eat the edge latch the
+        # screen loop reads.
+        a.ld_a_abs(GAME_MODE); a.cp_n(MODE_PLAYING); a.call("queue_vblank_input", "z")
     if ENABLE_MICRO_REPROJECTION:
         a.call("update_reprojection_vblank")
     if FOREGROUND_PUBLICATION:

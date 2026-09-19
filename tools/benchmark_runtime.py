@@ -13,7 +13,7 @@ import statistics
 
 import build_rom as br
 from playtest import apply_diagnostic_camera, read_block, set_test_world_byte, validate_frame
-from sm83emu import CGB, parse_symbols
+from sm83emu import CGB, parse_symbols, run_to_world
 
 
 def scenes():
@@ -35,7 +35,7 @@ def scenes():
 
 def measure(rom, labels, scene):
     c = CGB(rom, labels)
-    c.run(until_pc=labels["main_loop"])
+    run_to_world(c)
     c.write8(br.SIM_READY, 0)
     apply_diagnostic_camera(c, scene)
     for i in range(len(br.ACTIVE_LEVEL.doors)):

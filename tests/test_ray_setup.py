@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import build_rom as br
-from sm83emu import CGB
+from sm83emu import CGB, run_to_world
 from lupine3d_v4.precision import q14_direction
 
 
@@ -50,7 +50,7 @@ class RaySetupTests(unittest.TestCase):
         self.assertLessEqual(first+br.RAY_SETUP_ROM_BYTES,len(self.rom))
 
     def test_sm83_record_load_crosses_all_camera_banks_and_restores_bank_one(self):
-        c = CGB(self.rom,self.asm.labels); c.run(until_pc=self.asm.labels["main_loop"])
+        c = CGB(self.rom,self.asm.labels); run_to_world(c)
         c.ime = False; c.write8(br.SIM_READY,0)
         addresses = (br.DDA_ABS_X,br.DDA_ABS_Y,br.DDA_STEP_X,br.DDA_STEP_Y,
                      br.DDA_ANGLE_L,br.DDA_ANGLE_H,br.DDA_CORRECTION,
