@@ -97,7 +97,12 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
                      A(f"VRAM{bank}", 0x8800, 0x9800, "BG patterns"),
                      A(f"VRAM{bank}", 0x9800, 0xA000, "BG maps / attributes")))
     validate_allocations(rows)
-    assert code_end < 0x4000, "bank-switching code exceeded fixed ROM"
+    # The real MBC5 rule is checked against the emitted image in
+    # bank_safety.py. This is the budget behind it: the resident sections -
+    # every routine that writes the bank register, can run inside another
+    # section's bank window, or is reachable from an interrupt vector - are
+    # emitted before the data and so must all fit under the boundary.
+    assert code_end < 0x4000, "the fixed half no longer holds the resident sections"
     assert 0x8000 - resident_end >= 3000, "resident reserve below 3,000 bytes"
     # Copy spans are shared with the emitter; new render-only allocations must
     # never enter the live-world copy in either direction.

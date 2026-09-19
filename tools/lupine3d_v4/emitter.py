@@ -969,9 +969,17 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.label("atlas_miss"); a.xor_r("a")
     a.label("atlas_return")
     # The inactive profile metadata lives in a high MBC5 bank; all
-    # conventional engine data expects bank 1 on return.
-    a.ld_r_r("b", "a"); a.ld_a_abs(VRAM_PROFILE); a.cp_n(ACTIVE_LEVEL.vram_profile); a.ld_r_r("a", "b"); a.ret("z")
-    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.ld_r_r("a", "b"); a.ret()
+    # conventional engine data expects bank 1 on return. The restore is
+    # unconditional: a conditional one is correct but leaves a bank window
+    # that no static reading of the image can prove closes, and this routine
+    # is called from the renderer, so that one unprovable window pinned every
+    # routine downstream of it to the fixed half (see bank_safety). Writing
+    # bank 1 when bank 1 is already mapped costs nothing but the write.
+    # The pad keeps the active-profile path at the 52 T-cycles the conditional
+    # form took, so the change moves no pixel of a captured scene.
+    a.ld_r_r("b", "a")
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    a.ld_r_r("a", "b"); a.nop(); a.ret()
 
     a.label("compose_dynamic_tile")
     load_hl_abs(a, DYN_PTR_L, DYN_PTR_H); store_hl_abs(a, COMPOSE_DST_L, COMPOSE_DST_H)

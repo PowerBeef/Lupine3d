@@ -66,11 +66,16 @@ only ever compares bytes.
 | Full geometry updates | **6.611/s** on the nine-image tour, unchanged from before this work |
 | Music sequencer | 84 T-cycles counting down, 1,048 on a row boundary, **149 mean** — 0.106% of an LCD interval |
 | Segment lookup | one extra fixed-WRAM load per wall hit |
-| Resident ROM free | **7,171 bytes** below `$8000` (floor 3,000) |
-| Fixed code | ends at `$3F60` — **160 bytes** below the `$4000` bank-switching ceiling |
+| Resident ROM free | **7,166 bytes** below `$8000` (floor 3,000) |
+| Fixed code | ends at `$3050` — **4,016 bytes** below the `$4000` bank-switching ceiling |
 
-That last row is the next wall. Bank-switching code must stay below `$4000`;
-anything new that lives there needs something else moved out first.
+That last row used to read `$3F60`, 160 bytes, and it was the next wall. The
+ceiling was a proxy: the hardware rule is that code writing the bank register
+must live in bank 0, not that all code must. `bank_safety.py` checks the rule
+itself against the emitted image, so sections that never switch a bank, never
+run inside another section's window and are unreachable from an interrupt are
+emitted after the data and land above `$4000` in bank 1. Of 15.8 KB of
+instructions, 1.6 KB are genuinely pinned below the boundary.
 
 ## Evidence
 

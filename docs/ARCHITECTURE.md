@@ -109,11 +109,38 @@ campaign whose levels disagree.
 For the qualified v0.8 ROM, fixed code ended at `$3910` (1,776 bytes below
 `$4000`); resident data ended at `$73CD`, leaving **3,123 bytes** below `$8000`.
 Moving the cold ray tables and the level records out of banks 0/1 since then
-takes the current build to **8,451 bytes** free, with fixed code ending at
-`$3AD0`. The required reserve remains 3,000 bytes. Saving resident table data does not
-increase the fixed-code ceiling. Code that changes ROM banks stays below `$4000`
-and restores bank 1 before returning. Prepared scalar records 0–240 and the
-raw-query sentinel are unchanged; disabled packets own only records 241–250.
+takes the current build to **7,166 bytes** free. The required reserve remains
+3,000 bytes, and saving resident table data still does not buy fixed-code room.
+
+### The bank boundary
+
+MBC5 maps bank 0 at `$0000–$3FFF` and a switchable bank at `$4000–$7FFF`, so
+the hardware rule is narrow: code that writes the bank register must sit in the
+fixed half, and code in the switchable half must not run while another bank is
+mapped there. Until v0.9 the build enforced a proxy for that — every byte of
+engine code below `$4000` — which is far stronger than the rule and had run out
+of room at 160 bytes.
+
+`bank_safety.py` now checks the rule itself against the emitted image, in six
+clauses: every bank-register write is in the fixed half; nothing that can run
+with a foreign bank mapped is in the switchable half; the interrupt handlers
+and everything they reach are in the fixed half and never switch a bank; the
+image contains no `jp (hl)` or `rst`, so no edge goes unfollowed; no transfer
+leaves the image into the switchable half; and no placement section falls
+through into the next, which is what makes a section's address a placement
+decision. Clause two is a context-sensitive taint analysis: calls are matched
+to their returns per call site, so a routine that switches a bank and restores
+it does not contaminate its callers, and one that returns with a foreign bank
+still mapped does contaminate the right ones. Entry points are read out of the
+cartridge's own reset and interrupt vectors rather than declared.
+
+Sections that neither switch a bank, nor can run inside another section's bank
+window, nor are reachable from an interrupt vector are emitted after the data
+and land above `$4000` in ROM bank 1, the engine's resting bank. Of 15.8 KB of
+instructions, **1.6 KB** are pinned to the fixed half; fixed code ends at
+`$3050`, **4,016 bytes** below the boundary. Prepared scalar records 0–240 and
+the raw-query sentinel are unchanged; disabled packets own only records
+241–250.
 
 ## RAM and video allocation
 

@@ -30,10 +30,21 @@ class Assembler:
         self.labels: dict[str, int] = {}
         self.fixups: list[Fixup] = []
         self.listing: list[tuple[int, bytes, str]] = []
+        # Tables emitted into the code stream, so a static analysis of the
+        # image can tell an instruction from a lookup table it must not decode.
+        self.data_spans: list[tuple[int, int]] = []
+        # Named placement sections, in emission order. A section that cannot
+        # be fallen into is free to be emitted anywhere in the image, which is
+        # what lets bank-neutral code live above the $4000 bank boundary.
+        self.sections: list[tuple[str, int]] = []
 
     @property
     def pc(self) -> int:
         return self.origin + len(self.code)
+
+    def section(self, name: str) -> None:
+        self.sections.append((name, self.pc))
+        self.listing.append((self.pc, b"", f"; section {name}"))
 
     def label(self, name: str) -> None:
         if name in self.labels:
@@ -41,24 +52,26 @@ class Assembler:
         self.labels[name] = self.pc
         self.listing.append((self.pc, b"", f"{name}:"))
 
-    def _emit(self, data: Iterable[int], text: str = "") -> None:
+    def _emit(self, data: Iterable[int], text: str = "", *, is_data: bool = False) -> None:
         b = bytes((x & 0xFF for x in data))
         at = self.pc
         self.code.extend(b)
         self.listing.append((at, b, text))
+        if is_data and b:
+            self.data_spans.append((at, at + len(b)))
 
     def db(self, *values: int, text: str = "db") -> None:
-        self._emit(values, text)
+        self._emit(values, text, is_data=True)
 
     def bytes(self, data: bytes | bytearray, text: str = "data") -> None:
-        self._emit(data, text)
+        self._emit(data, text, is_data=True)
 
     def dw(self, value: int, text: str = "dw") -> None:
-        self._emit((value & 0xFF, value >> 8), text)
+        self._emit((value & 0xFF, value >> 8), text, is_data=True)
 
     def dw_label(self, label: str, addend: int = 0, text: str | None = None) -> None:
         off = len(self.code)
-        self._emit((0, 0), text or f"dw {label}")
+        self._emit((0, 0), text or f"dw {label}", is_data=True)
         self.fixups.append(Fixup(off, label, "abs16", addend))
 
     def align(self, boundary: int, fill: int = 0x00, text: str = "align") -> None:
@@ -66,13 +79,13 @@ class Assembler:
             raise ValueError("alignment must be a positive power of two")
         padding = (-self.pc) & (boundary - 1)
         if padding:
-            self._emit((fill,) * padding, f"{text} {boundary} ({padding} bytes)")
+            self._emit((fill,) * padding, f"{text} {boundary} ({padding} bytes)", is_data=True)
 
     def db_label_part(self, label: str, part: str, addend: int = 0) -> None:
         if part not in ("hi8", "lo8"):
             raise ValueError(part)
         off = len(self.code)
-        self._emit((0,), f"db {part}({label})")
+        self._emit((0,), f"db {part}({label})", is_data=True)
         self.fixups.append(Fixup(off, label, part, addend))
 
     def nop(self) -> None: self._emit((0x00,), "nop")

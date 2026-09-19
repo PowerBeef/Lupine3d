@@ -19,6 +19,7 @@ from lupine3d_v4.living_world import *  # noqa: F401,F403
 # current art generators after that import so the frozen v0.1 helpers cannot
 # shadow the active industrial-gothic UI and weapon assets.
 from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles  # noqa: E402
+from lupine3d_v4.bank_safety import check_bank_safety
 from lupine3d_v4.precision import make_q14_directions, emit_precision
 from lupine3d_v4.actor_precision import emit_actor_precision
 from lupine3d_v4.admission import emit_admission
@@ -225,34 +226,51 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("load_level")
     a.jp("enter_world")
 
-    # Runtime routines.
-    emit_copy_bulk(a); v1.emit_wait_vblank(a); emit_palette_init(a); emit_hud_system(a)
-    emit_level_loader(a); emit_vram_init(a); emit_oam_system(a); emit_door_system(a); v1.emit_audio(a); emit_dma(a); emit_input_system(a)
-    # Legacy quarter-step helpers are retained only for the two-step door interaction.
-    v1.emit_ray_helpers(a)
-    emit_mul_u8(a); emit_div_u16_u8_sat(a); emit_div_u16_u8_sat9(a); emit_signed_math(a)
-    if PREPARED_RAYS: emit_ray_setup(a)
-    emit_dda(a); emit_projection_and_casting(a); emit_renderer(a)
-    emit_precision(a)
-    emit_packets(a)
-    emit_physical_depth(a)
-    emit_actor_precision(a)
+    # Runtime routines, as named placement sections. No section falls through
+    # into the next one - bank_safety checks that - so where a section lands in
+    # the image is a placement decision rather than a correctness one. The
+    # fixed half below $4000 is reserved for code that writes the bank register
+    # or can run while a foreign bank is mapped, and for the interrupt
+    # handlers; COLD_SECTIONS below holds the rest.
     from lupine3d_v4.animation import emit_animation
-    emit_animation(a)
-    emit_admission(a)
-    emit_projection_storage(a)
-    emit_near_field(a)
-    emit_foreground(a)
-    emit_door_geometry(a)
-    emit_simulation(a)
-    emit_wall_cache(a)
-    emit_tile_cache(a)
-    emit_screens(a)
-    emit_music(a)
-    emit_actors(a)
-    emit_surfaces(a)
-    emit_world_decor(a)
-    emit_line_of_sight(a); emit_world_update(a); emit_entity_projection(a); emit_entity_renderer_v7(a); emit_masked_entities(a); emit_movement_v6(a); emit_reprojection(a)
+    resident_sections = [
+        ("copy_bulk", emit_copy_bulk), ("wait_vblank", v1.emit_wait_vblank),
+        ("level_loader", emit_level_loader), ("vram_init", emit_vram_init),
+        ("oam_system", emit_oam_system), ("door_system", emit_door_system),
+        ("audio", v1.emit_audio), ("input_system", emit_input_system),
+        # Legacy quarter-step helpers are retained only for the two-step door interaction.
+        ("ray_helpers", v1.emit_ray_helpers),
+        ("mul_u8", emit_mul_u8), ("div_u16_u8_sat", emit_div_u16_u8_sat),
+        ("signed_math", emit_signed_math),
+    ]
+    if PREPARED_RAYS: resident_sections.append(("ray_setup", emit_ray_setup))
+    resident_sections += [
+        ("dda", emit_dda), ("projection_and_casting", emit_projection_and_casting),
+        ("renderer", emit_renderer), ("precision", emit_precision),
+        ("packets", emit_packets), ("physical_depth", emit_physical_depth),
+        ("actor_precision", emit_actor_precision), ("animation", emit_animation),
+        ("admission", emit_admission), ("projection_storage", emit_projection_storage),
+        ("near_field", emit_near_field), ("foreground", emit_foreground),
+        ("door_geometry", emit_door_geometry), ("simulation", emit_simulation),
+        ("tile_cache", emit_tile_cache), ("screens", emit_screens),
+        ("music", emit_music), ("actors", emit_actors),
+        ("world_decor", emit_world_decor), ("entity_projection", emit_entity_projection),
+        ("masked_entities", emit_masked_entities), ("reprojection", emit_reprojection),
+    ]
+    for name, emit in resident_sections:
+        a.section(name); emit(a)
+
+    # Sections that neither write the bank register nor can run while a
+    # foreign bank is mapped, and that no interrupt reaches. They are emitted
+    # after the data so they land above $4000 in ROM bank 1, which is the
+    # engine's resting bank; bank_safety proves each claim against the image.
+    cold_sections = [
+        ("palette_init", emit_palette_init), ("hud_system", emit_hud_system),
+        ("dma", emit_dma), ("div_u16_u8_sat9", emit_div_u16_u8_sat9),
+        ("wall_cache", emit_wall_cache), ("surfaces", emit_surfaces),
+        ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
+        ("entity_renderer_v7", emit_entity_renderer_v7), ("movement_v6", emit_movement_v6),
+    ]
 
     # Data section.
     a.align(16, text="data alignment")
@@ -368,6 +386,13 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # vocabulary grows.
     a.label("bg_palettes"); a.bytes(words_le(bg_palette_values), "eight CGB BG palettes")
     a.label("obj_palettes"); a.bytes(words_le(obj_palette_values), "two CGB OBJ palettes")
+
+    # Cold code, above $4000 in ROM bank 1. Nothing here switches a bank, runs
+    # inside another section's bank window, or is reachable from an interrupt
+    # vector, so the bank mapped at $4000 is always 1 while it executes.
+    a.label("switchable_code")
+    for name, emit in cold_sections:
+        a.section(name); emit(a)
 
     code = a.resolve()
     metadata = {
@@ -664,7 +689,9 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
         assert setup_start >= q14_start + Q14_ROM_BYTES
         assert setup_start + RAY_SETUP_ROM_BYTES <= ROM_BYTES
         rom[setup_start:setup_start + RAY_SETUP_ROM_BYTES] = make_ray_setup_table()
-    assert assembler.labels["resident_data"] < 0x4000, "bank-switching code must remain in fixed ROM"
+    # The hardware rule is about bank switching, not about where code sits, so
+    # check the rule: see lupine3d_v4/bank_safety.py for the clauses.
+    metadata["bank_safety"] = check_bank_safety(assembler, rom).summary()
     chk = 0
     for value in rom[0x0134:0x014D]: chk = (chk - value - 1) & 0xFF
     rom[0x014D] = chk

@@ -70,6 +70,7 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | --- | --- |
 | Build/linker and public compatibility facade | `tools/build_rom.py` |
 | Addresses, flags, allocation/lifetime assertions | `layout.py`, `configuration.py`, `allocation.py` |
+| MBC5 bank contract over the emitted image | `bank_safety.py` |
 | Core emission and host models/tables | `emitter.py`, `reference.py`, `resources.py` |
 | Q14 traversal, prepared rays, physical columns | `precision.py`, `ray_setup.py`, `columns.py` |
 | Queued simulation, snapshots, wall reuse | `simulation.py`, `wall_cache.py` |
@@ -193,9 +194,15 @@ regression contract.
 - VBlank samples/queues input. Simulation runs at cooperative yields in WRAM
   bank 2; rendering uses an immutable bank-1 snapshot. Preserve queue debt,
   edges, accepted animation ticks and wraparound. Restore bank 1 on return.
-- Keep bank-switching execution below `$4000`; banked ROM lookups restore ROM
-  bank 1. Preserve **3,000 resident bytes** and the 512-byte stack. Check linker,
-  allocation/lifetime assertions and manifest before changing any memory range.
+- `bank_safety.py` checks the MBC5 rule against the emitted image, so code
+  placement is a build decision: every bank-register write and everything an
+  interrupt reaches stays below `$4000`, nothing runs above it with a foreign
+  bank mapped, and no section falls through into the next. Banked lookups
+  restore ROM bank 1 — unconditionally, where a conditional restore would leave
+  a window no static reading can prove closes. Bank-neutral sections go in
+  `cold_sections` and land above `$4000` in bank 1. Preserve **3,000 resident
+  bytes** and the 512-byte stack. Check linker, allocation/lifetime assertions
+  and manifest before changing any memory range.
 - Full publication owns matching BG patterns/maps/attributes, masks, HUD and
   OAM. Commit coherently. BG/OBJ bank owners may differ after cached updates.
   Preserve exact wall-key validation and reload-generation handling.
