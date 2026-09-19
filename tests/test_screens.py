@@ -99,6 +99,26 @@ class TitleGateTests(unittest.TestCase):
         # The harness released START, so the next press is still a rising edge.
         self.assertEqual(cgb.read8(self.asm.labels["input_last_raw"]), 0)
 
+    def test_screen_state_borrows_the_map_buffer_and_enter_world_takes_it_back(self):
+        # Screen slots live in the bottom of the BG map staging buffer: a
+        # full-screen mode owns the whole background, so composition is idle
+        # for exactly as long as that state exists.
+        self.assertEqual(br.SCREEN_STATE, br.VIEW_MAP)
+        self.assertLessEqual(br.SCREEN_STATE_END, br.VIEW_MAP + br.VIEW_MAP_BYTES)
+        cgb = CGB(self.rom, self.asm.labels)
+        cgb.button_provider = lambda *_: 0
+        for _ in range(900_000):
+            cgb.step()
+        self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_TITLE)
+        # The title reserves one slot, and writing its digit marks the buffer.
+        self.assertEqual(cgb.read8(br.SCREEN_SLOT_COUNT), 1)
+        self.assertEqual(cgb.read8(br.SCREEN_DIGIT), cgb.read8(br.DIFFICULTY) + 1)
+        # enter_world repeats init_vram, whose loop refills every byte of it,
+        # so a screen never has to put anything back.
+        cgb = run_to_world(cgb)
+        for offset in range(br.SCREEN_STATE_END - br.SCREEN_STATE):
+            self.assertEqual(cgb.read8(br.SCREEN_STATE + offset), br.CEILING_TILE, hex(offset))
+
 
 class ContinueCodeTests(unittest.TestCase):
     @classmethod

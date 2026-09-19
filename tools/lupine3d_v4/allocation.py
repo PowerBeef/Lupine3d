@@ -38,11 +38,12 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
           (l.LEVEL_ROM_BANK_BASE + l.LEVEL_COUNT - 1) * 0x4000 + l.LEVEL_PAYLOAD_END - 0x4000,
           "campaign levels, one bank each"),
         A("WRAM0", 0xC000, 0xC600, "dynamic BG patterns", "composition through publication"),
-        A("WRAM0", 0xC600, 0xC600 + l.VIEW_MAP_BYTES, "BG map", "composition through publication"),
+        A("WRAM0", 0xC600, 0xC600 + l.VIEW_MAP_BYTES,
+          "BG map / screen digits and code entry while a full-screen mode is up",
+          "exclusive sequential reuse"),
         A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
         A("WRAM0", l.MUSIC_STATE, l.MUSIC_STATE_END, "music sequencer state"),
         A("WRAM0", l.MUSIC_STATE_END, l.WORLD_STATE_END, "skill and per-actor stat scratch"),
-        A("WRAM0", l.WORLD_STATE_END, l.SCREEN_STATE_END, "runtime screen digits and code entry"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", 0xC8CF, 0xC8D0, "presentation mode"),
@@ -118,9 +119,12 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert sum(count for _, count in l.WORLD_COPY_RANGES) == 457
     assert l.WORLD_COPY_BUFFER + 457 <= l.RENDER_HRAM_SAVE
     # The sequencer state sits above the BG map in every display profile and
-    # never overlaps the diagnostic strip scratch.
-    assert 0xC600 + l.VIEW_MAP_BYTES <= l.MUSIC_STATE and l.SCREEN_STATE_END <= 0xC800
-    assert l.SCREEN_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= l.MUSIC_STATE
+    # never overlaps the diagnostic strip scratch. Screen state borrows the
+    # bottom of the map buffer, which composition refills on every enter_world,
+    # so it has to fit inside the buffer and clear of that scratch.
+    assert 0xC600 + l.VIEW_MAP_BYTES <= l.MUSIC_STATE
+    assert l.SCREEN_STATE == 0xC600 and l.SCREEN_STATE_END <= 0xC600 + l.VIEW_MAP_BYTES
+    assert l.SCREEN_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= 0xC600
     return dict(schema="lupine3d.allocations.v1", ranges=[asdict(r) for r in rows],
                 free_wram_banks=[6, 7], fixed_code_free_bytes=0x4000-code_end,
                 resident_free_bytes=0x8000-resident_end,

@@ -291,7 +291,17 @@ ACTOR_PALETTE = MUSIC_STATE_END + 2     # OBJ palette for the loaded actor
 WORLD_STATE_END = MUSIC_STATE_END + 3
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.
-SCREEN_DIGITS = WORLD_STATE_END                       # SCREEN_SLOT_CAPACITY values
+#
+# It borrows the bottom of the BG map staging buffer. A full-screen mode owns
+# the whole background with LCDC $81 and VBlank only, so composition is idle
+# for exactly as long as this state exists - the same argument that lets a
+# screen borrow the $9000 pattern window - and `enter_world` repeats
+# `init_vram`, whose `init_view_map_loop` refills every byte of the buffer. A
+# screen never has to put anything back. Keeping it here rather than in the
+# $C7E0 window is what lets SCREEN_SLOT_CAPACITY grow at all: that window has
+# one byte free and a slot costs three.
+SCREEN_STATE = VIEW_MAP
+SCREEN_DIGITS = SCREEN_STATE                          # SCREEN_SLOT_CAPACITY values
 SCREEN_SLOTS = SCREEN_DIGITS + SCREEN_SLOT_CAPACITY   # two bytes per slot
 SCREEN_SLOT_COUNT = SCREEN_SLOTS + 2 * SCREEN_SLOT_CAPACITY
 PASSWORD_CURSOR = SCREEN_SLOT_COUNT + 1
@@ -300,6 +310,11 @@ PASSWORD_SCAN = PASSWORD_BLINK + 1
 PASSWORD_DIGITS = 4
 SCREEN_DIGIT = SCREEN_DIGITS            # the first runtime digit, by itself
 SCREEN_STATE_END = PASSWORD_SCAN + 1
+# `screen_slot_address` and `screen_write_slot` index both arrays with an
+# eight-bit add, so neither may cross a page, and all of it has to fit inside
+# the buffer it borrows.
+assert SCREEN_DIGITS >> 8 == (SCREEN_SLOT_COUNT - 1) >> 8
+assert SCREEN_STATE_END <= VIEW_MAP + VIEW_MAP_BYTES
 
 GAME_MODE = 0xC8CF            # fixed WRAM: the ISR reads it under any SVBK
 MODE_TITLE, MODE_PLAYING, MODE_GAMEOVER, MODE_ENDING, MODE_INTERMISSION = range(5)
