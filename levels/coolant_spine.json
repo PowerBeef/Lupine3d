@@ -70,20 +70,31 @@
       "activation_radius_q4": 96
     },
     {
-      "kind": "sentinel",
+      "kind": "skirmisher",
       "x_q8": 3200,
       "y_q8": 3200,
-      "health": 3,
+      "health": 2,
       "activation_radius_q4": 96
     }
   ],
   "pickups": [
-    {"kind": "medkit", "source": "sentinel_drop", "value": 25}
+    {
+      "kind": "medkit",
+      "source": "sentinel_drop",
+      "value": 25
+    }
   ],
   "triggers": [
-    {"kind": "activate_exit", "condition": "sentinel_dead"}
+    {
+      "kind": "activate_exit",
+      "condition": "sentinel_dead"
+    }
   ],
-  "exit": {"x": 2, "y": 13, "marker": "beacon"},
+  "exit": {
+    "x": 2,
+    "y": 13,
+    "marker": "beacon"
+  },
   "readability": {
     "maximum_sightline": 6,
     "minimum_door_separation": 8,
@@ -92,22 +103,102 @@
     "maximum_material_singletons": 16
   },
   "fixtures": [
-    {"x": 3, "y": 4, "side": "north", "kind": "access"},
-    {"x": 5, "y": 8, "side": "west", "kind": "access"},
-    {"x": 9, "y": 10, "side": "north", "kind": "access"},
-    {"x": 8, "y": 13, "side": "west", "kind": "access"},
-    {"x": 8, "y": 3, "side": "west", "kind": "sector"},
-    {"x": 10, "y": 1, "side": "west", "kind": "light"},
-    {"x": 10, "y": 2, "side": "east", "kind": "vent"},
-    {"x": 5, "y": 7, "side": "west", "kind": "light"},
-    {"x": 6, "y": 7, "side": "east", "kind": "vent"},
-    {"x": 3, "y": 8, "side": "north", "kind": "light"},
-    {"x": 9, "y": 8, "side": "east", "kind": "vent"},
-    {"x": 5, "y": 11, "side": "west", "kind": "sector"},
-    {"x": 10, "y": 11, "side": "east", "kind": "light"},
-    {"x": 8, "y": 12, "side": "east", "kind": "vent"},
-    {"x": 3, "y": 12, "side": "west", "kind": "light"},
-    {"x": 5, "y": 13, "side": "west", "kind": "sector"}
+    {
+      "x": 3,
+      "y": 4,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 9,
+      "y": 10,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 8,
+      "y": 13,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 8,
+      "y": 3,
+      "side": "west",
+      "kind": "sector"
+    },
+    {
+      "x": 10,
+      "y": 1,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 10,
+      "y": 2,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 6,
+      "y": 7,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "side": "north",
+      "kind": "light"
+    },
+    {
+      "x": 9,
+      "y": 8,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "side": "west",
+      "kind": "sector"
+    },
+    {
+      "x": 10,
+      "y": 11,
+      "side": "east",
+      "kind": "light"
+    },
+    {
+      "x": 8,
+      "y": 12,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 5,
+      "y": 13,
+      "side": "west",
+      "kind": "sector"
+    }
   ],
   "palette_profile": "outpost",
   "vram_profile": "entity-heavy"

@@ -1,5 +1,6 @@
 """Four bounded Sentinel slots; one proven actor implementation reused safely."""
 from .layout import *  # noqa: F401,F403
+from .levels import ENTITY_KIND_IDS
 
 
 def actor_records(level=None) -> bytes:
@@ -11,6 +12,7 @@ def actor_records(level=None) -> bytes:
         records[index * 16:index * 16 + 6] = bytes((entity.x_q8 & 255, entity.x_q8 >> 8,
                                                     entity.y_q8 & 255, entity.y_q8 >> 8,
                                                     SENTINEL_DORMANT, entity.health))
+        records[index * 16 + ACTOR_KIND_OFFSET] = ENTITY_KIND_IDS[entity.kind]
     return bytes(records)
 
 
@@ -29,12 +31,12 @@ def emit_actors(a: Assembler) -> None:
     a.label("actor_save")
     a.call("actor_pointer"); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
     a.ld_rr_nn("hl", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
-    for address in ((PICKUP_ACTIVE, PICKUP_COLLECTED, ACTOR_REACTION_TICK, ACTOR_REACTION_TICK+1, ACTOR_REACTION, ACTOR_REACTION_RESERVED) if SABLE_ART else (PICKUP_ACTIVE, PICKUP_COLLECTED)):
+    for address in ACTOR_SLOT_TAIL:
         a.ld_a_abs(address); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.ret()
     a.label("actor_load")
     a.call("actor_pointer"); a.ld_rr_nn("de", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
-    for address in ((PICKUP_ACTIVE, PICKUP_COLLECTED, ACTOR_REACTION_TICK, ACTOR_REACTION_TICK+1, ACTOR_REACTION, ACTOR_REACTION_RESERVED) if SABLE_ART else (PICKUP_ACTIVE, PICKUP_COLLECTED)):
+    for address in ACTOR_SLOT_TAIL:
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.ret()
     a.label("save_primary_actor")

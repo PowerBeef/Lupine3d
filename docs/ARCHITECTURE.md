@@ -145,6 +145,23 @@ VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware select
 at most ten objects per scanline, including Y-overlapping objects hidden in X.
 Living actors and gameplay pickups have priority over cosmetic death sprites.
 
+## Enemies
+
+An actor slot's byte 15 holds its kind, so the kind rides the per-slot save and
+load and the bank-1 snapshot like every other actor field. A four-record table
+gives each kind contact damage, attack recovery in AI ticks, Q8 move per tick
+and an OBJ palette; the kind byte is masked to two bits and the spare records
+repeat the Sentinel, so a corrupt byte still reads a playable actor.
+
+Kinds share the Sentinel's cels, so variety costs ROM bytes rather than VRAM
+patterns. A distinct *look*, though, costs an OBJ palette, and exactly one of
+the eight was free — 0 is the weapon, 1 the Sentinel, 2 the pickup, 3 the
+muzzle and decor, 4 decor, 5 the weapon's lit corners and 6 the reticle. That
+bounds the campaign at two visible enemy kinds until those are re-planned.
+
+Skill (0–2, chosen with left and right on the title screen) scales contact
+damage only: half, as authored, or one and a half.
+
 ## Sound
 
 CH1 is reserved for effects — the shot, a locked door, a door opening, the

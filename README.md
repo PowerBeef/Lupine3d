@@ -52,7 +52,9 @@ clearing the last one ends the campaign and restarts it. Levels are selected at
 runtime from their own ROM banks, so progress is not a password yet: there is
 still no save system. It also has **music**: a title theme, an in-game loop and
 a victory sting on three sound channels, with the fourth kept free so gunfire
-never cuts a bar.
+never cuts a bar. Later sectors mix in a second enemy kind — quicker, lighter
+and cold-cast against the Sentinel's armour — and **left/right on the title
+chooses one of three skill settings** before you press Start.
 
 ## Performance and qualification
 

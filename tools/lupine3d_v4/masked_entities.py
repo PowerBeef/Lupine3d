@@ -76,6 +76,11 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.label("render_world_decor"); a.jp("render_wall_fixtures")
 
     a.label("render_sentinel_actor")
+    # Enemy kinds share these cels and differ by palette, so resolve it once
+    # here: every submission below already needs D for the cel.
+    a.call("actor_kind_record")
+    for _ in range(3): a.inc_rr("hl")
+    a.ld_a_hl(); a.ld_abs_a(ACTOR_PALETTE)
     if SABLE_ART: a.call("select_actor_animation")
     a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     if SCANLINE_ADMISSION or SABLE_ART: a.jp("render_actor_atomic")
@@ -91,7 +96,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
             a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(32 - row * 16); a.ld_r_r("b", "a")
             a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(col * 8); a.ld_r_r("c", "a")
             a.ld_a_abs(ENTITY_TILE_BASE_STATE); a.add_a_n(col * 4 + row * 2); a.ld_r_r("d", "a")
-            a.ld_r_n("e", 1); a.call("submit_masked_oam")
+            a.ld_a_abs(ACTOR_PALETTE); a.ld_r_r("e", "a"); a.call("submit_masked_oam")
     a.ret()
     a.label("render_medium_pairs")
     a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 1); a.add_a_r("a"); a.add_a_r("a"); a.add_a_n(SENTINEL_MID_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)
@@ -100,14 +105,14 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
         a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(16); a.ld_r_r("b", "a")
         a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(col * 8); a.ld_r_r("c", "a")
         a.ld_a_abs(ENTITY_TILE_BASE_STATE); a.add_a_n(col * 2); a.ld_r_r("d", "a")
-        a.ld_r_n("e", 1); a.call("submit_masked_oam")
+        a.ld_a_abs(ACTOR_PALETTE); a.ld_r_r("e", "a"); a.call("submit_masked_oam")
     a.ret()
     a.label("render_far_pair")
     a.ld_a_abs(ENTITY_SCREEN_LEFT); a.ld_abs_a(MASK_BITS)
     a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 1); a.add_a_r("a"); a.add_a_n(SENTINEL_FAR_TILE_BASE); a.ld_r_r("d", "a")
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(16); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
-    a.ld_r_n("e", 1); a.jp("submit_masked_oam")
+    a.ld_a_abs(ACTOR_PALETTE); a.ld_r_r("e", "a"); a.jp("submit_masked_oam")
 
     a.label("render_dropped_pickup")
     a.ld_a_abs(PICKUP_ACTIVE); a.or_r("a"); a.ret("z")

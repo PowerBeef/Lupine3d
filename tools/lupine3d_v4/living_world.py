@@ -457,8 +457,11 @@ def emit_world_update(a: Assembler) -> None:
     if SABLE_ART:
         a.ld_r_n("a",1); a.call("stamp_actor_reaction"); a.call("stamp_player_hurt")
     a.call("sound_hurt")
-    a.ld_r_n("a", 8); a.ld_abs_a(SENTINEL_COOLDOWN)
-    a.ld_a_abs(PLAYER_HEALTH); a.sub_n(8); a.jr("ai_health_store", "nc"); a.xor_r("a")
+    a.call("actor_kind_record")
+    a.ldi_a_hl(); a.ld_r_r("b", "a")                     # authored contact damage
+    a.ld_a_hl(); a.ld_abs_a(SENTINEL_COOLDOWN)           # this kind's recovery
+    a.call("scale_contact_damage")
+    a.ld_a_abs(PLAYER_HEALTH); a.sub_r("b"); a.jr("ai_health_store", "nc"); a.xor_r("a")
     a.label("ai_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("ai_animate")
     a.label("ai_chase"); a.ld_r_n("a", SENTINEL_CHASE); a.ld_abs_a(SENTINEL_STATE); a.call("sentinel_chase_step"); a.jr("ai_animate")
     a.label("ai_patrol"); a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE); a.call("sentinel_patrol_step")
@@ -468,20 +471,41 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(1)
     a.label("ai_animation_store"); a.ld_abs_a(SENTINEL_ANIM); a.ret()
 
+    a.label("actor_kind_record")   # HL -> the loaded actor's four stat bytes
+    a.ld_a_abs(SENTINEL_KIND); a.and_n(3); a.add_a_r("a"); a.add_a_r("a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "actor_kind_stats"); a.add_hl_rr("de"); a.ret()
+
+    a.label("actor_kind_step")    # ACTOR_STEP = this kind's Q8 move per AI tick
+    a.call("actor_kind_record"); a.inc_rr("hl"); a.inc_rr("hl")
+    a.ld_a_hl(); a.ld_abs_a(ACTOR_STEP); a.ret()
+
+    a.label("scale_contact_damage")  # B = authored damage -> skill-scaled damage
+    a.ld_a_abs(DIFFICULTY); a.or_r("a"); a.jr("damage_not_easy", "nz")
+    a.ld_r_r("a", "b"); a.cb("srl", "a"); a.ld_r_r("b", "a"); a.ret()
+    a.label("damage_not_easy"); a.cp_n(2); a.ret("c")
+    a.ld_r_r("a", "b"); a.cb("srl", "a"); a.add_a_r("b"); a.ld_r_r("b", "a"); a.ret()
+
     a.label("sentinel_patrol_step")
-    a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(8); a.ld_a_abs(SENTINEL_YL); a.jr("patrol_step_up", "z")
-    a.sub_n(4); a.ld_abs_a(SENTINEL_YL); a.ret()
-    a.label("patrol_step_up"); a.add_a_n(4); a.ld_abs_a(SENTINEL_YL); a.ret()
+    # A bobbing hold, but a real move: the old one wrote the low byte of Y with
+    # no carry and no collision test, so it could walk a Sentinel into a wall.
+    a.call("actor_kind_step")
+    a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(8); a.jp("sentinel_step_y_negative", "z")
+    a.jp("sentinel_step_y_positive")
 
     a.label("sentinel_chase_step")
-    # Move along the dominant cell delta. The small Q8 step and boundary map
-    # test keep the actor inside empty cells without a general physics system.
+    # Move along the dominant cell delta at this kind's speed. The Q8 step and
+    # boundary map test keep the actor inside empty cells without a general
+    # physics system.
+    a.call("actor_kind_step")
     a.ld_a_abs(LOS_DX); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_DY); a.cp_r("b"); a.jr("sentinel_chase_y", "nc")
     a.ld_a_abs(LOS_SX); a.cp_n(1); a.jr("sentinel_chase_x_negative", "nz")
-    a.ld_a_abs(SENTINEL_XL); a.add_a_n(8); a.ld_abs_a(v1.CAND_L)
+    a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
+    a.ld_a_abs(SENTINEL_XL); a.add_a_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_XH); a.adc_a_n(0); a.ld_abs_a(v1.CAND_H); a.jr("sentinel_chase_x_test")
     a.label("sentinel_chase_x_negative")
-    a.ld_a_abs(SENTINEL_XL); a.sub_n(8); a.ld_abs_a(v1.CAND_L)
+    a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
+    a.ld_a_abs(SENTINEL_XL); a.sub_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_XH); a.sbc_a_n(0); a.ld_abs_a(v1.CAND_H)
     a.label("sentinel_chase_x_test")
     for source, dest in ((v1.CAND_L, COLLISION_X), (v1.CAND_H, COLLISION_X + 1), (SENTINEL_YL, COLLISION_Y), (SENTINEL_YH, COLLISION_Y + 1)):
@@ -489,11 +513,14 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(v1.CAND_H); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.ld_r_r("c", "a"); a.call("collision_cell_bc"); a.or_r("a"); a.ret("nz")
     a.ld_a_abs(v1.CAND_L); a.ld_abs_a(SENTINEL_XL); a.ld_a_abs(v1.CAND_H); a.ld_abs_a(SENTINEL_XH); a.ret()
     a.label("sentinel_chase_y")
-    a.ld_a_abs(LOS_SY); a.cp_n(1); a.jr("sentinel_chase_y_negative", "nz")
-    a.ld_a_abs(SENTINEL_YL); a.add_a_n(8); a.ld_abs_a(v1.CAND_L)
+    a.ld_a_abs(LOS_SY); a.cp_n(1); a.jp("sentinel_step_y_negative", "nz")
+    a.label("sentinel_step_y_positive")
+    a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
+    a.ld_a_abs(SENTINEL_YL); a.add_a_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_YH); a.adc_a_n(0); a.ld_abs_a(v1.CAND_H); a.jr("sentinel_chase_y_test")
-    a.label("sentinel_chase_y_negative")
-    a.ld_a_abs(SENTINEL_YL); a.sub_n(8); a.ld_abs_a(v1.CAND_L)
+    a.label("sentinel_step_y_negative")
+    a.ld_a_abs(ACTOR_STEP); a.ld_r_r("b", "a")
+    a.ld_a_abs(SENTINEL_YL); a.sub_r("b"); a.ld_abs_a(v1.CAND_L)
     a.ld_a_abs(SENTINEL_YH); a.sbc_a_n(0); a.ld_abs_a(v1.CAND_H)
     a.label("sentinel_chase_y_test")
     for source, dest in ((SENTINEL_XL, COLLISION_X), (SENTINEL_XH, COLLISION_X + 1), (v1.CAND_L, COLLISION_Y), (v1.CAND_H, COLLISION_Y + 1)):

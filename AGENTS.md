@@ -133,6 +133,26 @@ regression contract.
   geometry oracles must follow the ROM: select the reference level from the
   running machine's `LEVEL_INDEX`, never from the build-time first level.
 
+## Enemies and skill
+
+- An actor's kind is byte 15 of its slot (`ACTOR_KIND_OFFSET`), so it rides the
+  existing per-slot save/load and the bank-1 snapshot. `actor_kind_stats` gives
+  each kind contact damage, attack recovery, Q8 step and OBJ palette; the table
+  has four records because the kind byte is masked to two bits, and the spares
+  repeat the Sentinel so a corrupt byte still reads a playable actor.
+- Kinds share the Sentinel's cels, so variety costs ROM, not VRAM patterns —
+  but a distinct look costs an **OBJ palette**, and only palette 7 was free
+  (0 weapon, 1 Sentinel, 2 pickup, 3 muzzle/decor, 4 decor, 5 the weapon's lit
+  corners, 6 the reticle). A third visible kind means re-planning those, not
+  editing the table. Resolve the palette once per actor in
+  `render_sentinel_actor`: every submission needs D for the cel.
+- `DIFFICULTY` (0..2, chosen with left/right on the title) scales contact
+  damage only — half, authored, or one and a half. Selection follows rising
+  edges, so holding the pad is one step.
+- `sentinel_patrol_step` and `sentinel_chase_step` share one stepping body at
+  the kind's own speed, with the carry and collision test the old patrol
+  lacked. Patrol is still a bob in place, not a route.
+
 ## Sound contracts
 
 - CH1 belongs to sound effects alone; the sequencer owns CH2, CH3 and CH4, so

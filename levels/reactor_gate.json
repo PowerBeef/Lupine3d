@@ -70,17 +70,17 @@
       "activation_radius_q4": 96
     },
     {
-      "kind": "sentinel",
+      "kind": "skirmisher",
       "x_q8": 2688,
       "y_q8": 2432,
-      "health": 3,
+      "health": 2,
       "activation_radius_q4": 96
     },
     {
-      "kind": "sentinel",
+      "kind": "skirmisher",
       "x_q8": 1408,
       "y_q8": 3456,
-      "health": 3,
+      "health": 2,
       "activation_radius_q4": 96
     }
   ],

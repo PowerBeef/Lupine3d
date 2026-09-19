@@ -10,6 +10,12 @@ from typing import Any
 
 
 PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
+# Enemy kinds share the Sentinel's cels and differ by stats and OBJ palette,
+# so variety costs ROM bytes rather than VRAM patterns. A third kind would
+# need a third OBJ palette and there is exactly one free slot, so adding one
+# means re-planning the weapon/reticle palettes, not editing this table.
+# The order is the runtime stat-table index; keep it stable.
+ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1}
 PALETTE_IDS = {"outpost": 0}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 4
@@ -559,8 +565,11 @@ def compile_level(path: Path) -> CompiledLevel:
         PickupSpec(str(item["kind"]), str(item["source"]), _bounded_int(item, "value", 1, 255))
         for item in source.get("pickups", [])
     )
-    if not 1 <= len(entities) <= 4 or any(entity.kind != "sentinel" for entity in entities):
-        raise ValueError("the resident v0.6 slice requires exactly one Sentinel")
+    if not 1 <= len(entities) <= 4:
+        raise ValueError("levels require one to four actors")
+    unknown = [entity.kind for entity in entities if entity.kind not in ENTITY_KIND_IDS]
+    if unknown:
+        raise ValueError(f"unknown enemy kinds: {sorted(set(unknown))}")
     if len(pickups) != 1 or pickups[0].source != "sentinel_drop":
         raise ValueError("the resident v0.6 slice requires one Sentinel drop")
     exit_spec = ExitSpec(

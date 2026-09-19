@@ -121,6 +121,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.ei(); a.nop()
     a.ld_r_n("a", MODE_TITLE); a.ld_abs_a(GAME_MODE)
     a.ld_r_n("a", SONG_TITLE); a.call("music_start")
+    # Skill starts at the middle setting and the title shows it as a digit.
+    a.ld_r_n("a", 1); a.ld_abs_a(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
     a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen"); a.call("screen_wait_start")
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
 
@@ -249,7 +251,19 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.align(16, text="data alignment")
     # Everything a level owns now lives in that level's own ROM bank; only the
     # profile-independent HUD vocabulary is still resident.
-    a.label("resident_data"); a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
+    a.label("resident_data")
+    # Four bytes per enemy kind: contact damage, attack recovery in AI ticks,
+    # Q8 move per tick, OBJ palette. Kinds share the Sentinel's cels, so
+    # variety costs ROM bytes rather than VRAM patterns - but a distinct look
+    # costs an OBJ palette, and exactly one was free.
+    a.label("actor_kind_stats"); a.bytes(bytes((
+        8, 8, 8, 1,        # sentinel: the authored Sable armour
+        4, 8, 15, 7,       # skirmisher: quick and fragile, and half as
+                           # punishing in contact as the Sentinel
+        8, 8, 8, 1,        # the two spare records repeat the Sentinel, so a
+        8, 8, 8, 1,        # corrupt kind byte still reads a playable actor
+    )), "enemy kind stats")
+    a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
     for name, payload in make_boot_assets():
         a.labels[name] = cold_address
@@ -282,6 +296,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         for index,name in ((0,'shotgun'),(1,'sentinel_near')):
             colours=sprite_manifest()['assets'][name]['palette']
             obj_palette_values[index*4:index*4+4]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in colours]
+    # OBJ palette 7 is the only free slot: 0 weapon, 1 Sentinel, 2 pickup,
+    # 3 muzzle/decor, 4 decor, 5 the weapon's lit corners, 6 the reticle. It
+    # gives the second enemy kind a cold cast against the Sentinel's armour.
+    obj_palette_values[28:32] = [0, rgb15(2, 4, 7), rgb15(6, 17, 25), rgb15(22, 29, 31)]
     if COMPACT_DISPLAY:
         bg_palette_values[4:8]=[rgb15(2,3,4),rgb15(5,7,8),rgb15(29,28,24),rgb15(10,16,16)]
         if SLIM_DISPLAY:

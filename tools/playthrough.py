@@ -130,9 +130,18 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
                 # B pulses while approaching the next cell; only the ROM
                 # decides whether a reachable, unlocked door can open.
                 def walking():
-                    px, py, _ = pose()
+                    px, py, angle = pose()
                     distance = abs(tx - px) if target in (0, 128) else abs(ty - py)
-                    return (4 if distance > 8 else 0) | (32 if cgb.read16(br.SIM_CLOCK) & 8 else 0)
+                    keys = (4 if distance > 8 else 0) | (32 if cgb.read16(br.SIM_CLOCK) & 8 else 0)
+                    # Shoot whatever wanders into the crosshair on the way. The
+                    # ROM decides whether the shot has a line; walking into a
+                    # chaser without firing is how the route used to die.
+                    quarry = nearest_living()
+                    if quarry is not None and not cgb.read16(br.SIM_CLOCK) & 2:
+                        heading = round(math.atan2(quarry["y"] - py, quarry["x"] - px) * 256 / math.tau) & 255
+                        if abs((heading - angle + 128) % 256 - 128) <= 8:
+                            keys |= 16
+                    return keys
                 before = pose()[:2]
                 step(walking)
                 stalled = stalled + 1 if pose()[:2] == before else 0
@@ -208,7 +217,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         # at close range the legacy Q4 transform can put that pose outside
         # the aim window. Fire while making the final small correction.
         return ((1 if delta > 0 else 2) if delta else 0) | \
-               (16 if abs(delta) <= 3 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
+               (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
 
     def clear_sector(name):
         """Close on and kill every living actor, then take every drop."""
@@ -226,12 +235,12 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             exchange, opening = cgb.frame_count, len(living())
             while living() and engageable() and cgb.frame_count - exchange < 300:
                 step(aiming)
-            if len(living()) == opening and nearest_living() is not None:
-                # The exchange settled nothing: step onto the survivor rather
-                # than trading damage from a position the shot cannot reach.
-                survivor = nearest_living()
-                navigate((survivor["x"] >> 8, survivor["y"] >> 8),
-                         stop=lambda: nearest_living() is None)
+            survivor = nearest_living()
+            if len(living()) == opening and survivor is not None:
+                # The exchange settled nothing. Close the distance only while
+                # the shot still cannot reach; walking onto a live chaser is
+                # how the route used to die.
+                navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=engageable)
         step(0)
         for actor in actors():
             if actor["pickup"]:

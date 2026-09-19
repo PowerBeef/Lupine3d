@@ -282,6 +282,12 @@ MUSIC_ROW_COUNT = MUSIC_STATE + 6    # u16
 MUSIC_LOOP_ROW = MUSIC_STATE + 8     # u16
 MUSIC_POINTER = MUSIC_STATE + 10     # u16 into the copied rows
 MUSIC_STATE_END = MUSIC_STATE + 12
+# Skill and per-actor stat scratch share the same free fixed-WRAM window.
+DIFFICULTY = MUSIC_STATE_END            # 0 easy, 1 normal, 2 hard
+DIFFICULTY_LEVELS = 3
+ACTOR_STEP = MUSIC_STATE_END + 1        # chase/patrol step for the loaded actor
+ACTOR_PALETTE = MUSIC_STATE_END + 2     # OBJ palette for the loaded actor
+WORLD_STATE_END = MUSIC_STATE_END + 3
 
 GAME_MODE = 0xC8CF            # fixed WRAM: the ISR reads it under any SVBK
 MODE_TITLE, MODE_PLAYING, MODE_GAMEOVER, MODE_ENDING, MODE_INTERMISSION = range(5)
@@ -876,5 +882,14 @@ HINT_TICK=0xD780
 HINT_ACTIVE=0xD782
 ACTOR_REACTION_TICK=0xD783
 ACTOR_REACTION=0xD785
-ACTOR_REACTION_RESERVED=0xD786
+SENTINEL_KIND=0xD786          # per-actor stat/palette selector, inside the snapshot
 ART_STATE_END=0xD787
+
+# One bounded actor slot, in the order actor_save writes it. The first ten
+# bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.
+ACTOR_SLOT_TAIL = ((PICKUP_ACTIVE, PICKUP_COLLECTED, ACTOR_REACTION_TICK,
+                    ACTOR_REACTION_TICK + 1, ACTOR_REACTION, SENTINEL_KIND)
+                   if SABLE_ART else (PICKUP_ACTIVE, PICKUP_COLLECTED, SENTINEL_KIND))
+ACTOR_KIND_OFFSET = 10 + ACTOR_SLOT_TAIL.index(SENTINEL_KIND)
+if 10 + len(ACTOR_SLOT_TAIL) > 16:
+    raise ValueError("actor slot tail exceeds the sixteen-byte slot")

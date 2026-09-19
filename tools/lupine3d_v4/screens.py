@@ -79,11 +79,13 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
 SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION = range(4)
 
 SCREEN_SOURCES = (
+    # The skill digit sits on the authored zero; left and right change it.
     ("title", (
-        ("LUPINE", 30, 2, 3),
-        ("SABLE OUTPOST", 60, 3, 1),
-        ("PRESS START", 96, 2, 1),
-     ), ()),
+        ("LUPINE", 28, 2, 3),
+        ("SABLE OUTPOST", 58, 3, 1),
+        ("PRESS START", 92, 2, 1),
+        ("SKILL 0", 112, 3, 1),
+     ), ((11, 14),)),
     ("gameover", (
         ("SIGNAL LOST", 48, 3, 2),
         ("THE OUTPOST HOLDS", 84, 1, 1),
@@ -214,10 +216,25 @@ def emit_screens(a: Assembler) -> None:
 
     a.label("screen_wait_start")
     a.call("wait_vblank")
+    a.di(); a.ld_a_abs(INPUT_EDGE_LATCH); a.ld_r_r("b", "a")
+    a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
+    a.ld_r_r("a", "b"); a.and_n(0x80); a.ret("nz")
+    # Left and right change the skill. The slot write happens here, at the top
+    # of VBlank, so it never races the fetcher.
+    a.ld_r_r("a", "b"); a.and_n(0x03); a.call("screen_adjust_skill", "nz")
     # A full-screen mode enables VBlank only, so the sequencer has no STAT
     # boundary to ride; this loop is its once-per-frame tick.
     a.call("music_tick")
-    a.di(); a.ld_a_abs(INPUT_EDGE_LATCH); a.ld_r_r("b", "a")
-    a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
-    a.ld_r_r("a", "b"); a.and_n(0x80); a.jr("screen_wait_start", "z")
-    a.ret()
+    a.jr("screen_wait_start")
+
+    a.label("screen_adjust_skill")   # B = edge bits, bit 0 right, bit 1 left
+    a.ld_a_abs(SCREEN_INDEX); a.cp_n(SCREEN_TITLE); a.ret("nz")
+    a.ld_a_abs(DIFFICULTY)
+    a.cb("bit", "b", 0); a.jr("screen_skill_lower", "z")
+    a.inc_r("a"); a.cp_n(DIFFICULTY_LEVELS); a.jr("screen_skill_store", "c")
+    a.ld_r_n("a", DIFFICULTY_LEVELS - 1); a.jr("screen_skill_store")
+    a.label("screen_skill_lower")
+    a.or_r("a"); a.jr("screen_skill_store", "z"); a.dec_r("a")
+    a.label("screen_skill_store")
+    a.ld_abs_a(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
+    a.jp("screen_set_digit")
