@@ -1,0 +1,50 @@
+name: Audit source snapshots
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/audit-sources.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Archive tracked sources and released comparison baseline
+        run: |
+          mkdir -p audit-sources
+          git archive --format=tar HEAD > audit-sources/candidate.tar
+          git archive --format=tar 462405e5ed103479b3cad516da29dde5d3ed8b80 > audit-sources/v09-baseline.tar
+          git rev-parse HEAD > audit-sources/candidate-commit.txt
+          git ls-tree -r HEAD > audit-sources/candidate-tree.txt
+      - uses: actions/checkout@v4
+        with:
+          repository: LIJI32/SameBoy
+          ref: 213a12ce93d66b105a113debd9396306066a7cfc
+          path: build/deps/SameBoy
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: mgba-emu/mgba
+          ref: 507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6
+          path: build/deps/mgba
+          persist-credentials: false
+      - name: Archive independent core source pins
+        run: |
+          git -C build/deps/SameBoy archive --format=tar HEAD > audit-sources/SameBoy.tar
+          git -C build/deps/mgba archive --format=tar HEAD > audit-sources/mgba.tar
+          sha256sum audit-sources/*.tar > audit-sources/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-source-snapshots
+          path: audit-sources/
+          retention-days: 7
+          if-no-files-found: error

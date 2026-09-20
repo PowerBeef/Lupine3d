@@ -179,7 +179,8 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_a_abs(WEAPON_INDEX); a.inc_r("a"); a.and_n(WEAPON_COUNT - 1)
     a.ld_abs_a(WEAPON_INDEX)
     a.ld_r_n("a", 1); a.ld_abs_a(WEAPON_RELOAD)
-    a.xor_r("a"); a.ld_abs_a(WEAPON_COOLDOWN)
+    # Recovery belongs to the firing action, not to the weapon sprite. A swap
+    # must not erase it or the slower weapon can cancel its balancing cost.
     a.jp("sound_swap")
 
     a.label("service_weapon_swap")

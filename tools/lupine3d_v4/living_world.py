@@ -46,10 +46,9 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_abs_a(SECTOR_KILLS)
-    # Time is counted in VBlanks off the monotonic simulation clock, which is
-    # in fixed WRAM and so readable under any bank.
-    a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
-    a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
+    # Sector timing is armed by init_simulation after it establishes the
+    # simulation clock. Capturing it here used to save the previous world's
+    # clock and then subtract from a freshly reset one.
     # The first sector is the start of a run: a death retries a sector and
     # keeps the totals, a continue code starts them from where it drops you.
     a.ld_a_abs(LEVEL_INDEX); a.or_r("a"); a.jr("load_level_totals_kept", "nz")
@@ -603,7 +602,11 @@ def emit_world_update(a: Assembler) -> None:
     # that left it was, which is already in the slot and already snapshotted.
     a.call("actor_kind_drop"); a.cp_n(DROP_KIND_IDS["keycard"]); a.jr("pickup_keycard", "z")
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
+    # Health is a two-digit HUD contract. Keep gameplay state honest with the
+    # display instead of creating an invisible reserve above 99 HP.
+    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_cap", "c")
+    a.cp_n(100); a.jr("pickup_health_store", "c")
+    a.label("pickup_health_cap"); a.ld_r_n("a", 99)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
     a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")
