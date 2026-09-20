@@ -63,10 +63,9 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_abs_a(SECTOR_KILLS)
-    # Time is counted in VBlanks off the monotonic simulation clock, which is
-    # in fixed WRAM and so readable under any bank.
-    a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
-    a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
+    # Sector timing is armed by init_simulation after it establishes the
+    # simulation clock. Capturing it here used to save the previous world's
+    # clock and then subtract from a freshly reset one.
     # The arsenal follows the sector (WEAPON_UNLOCK_SECTORS), so a continue
     # code restores it for free and one that moves backwards takes a weapon
     # away; a weapon in hand that is no longer owned drops to the first.

@@ -70,9 +70,18 @@ def emit_snapshot(a: Assembler) -> None:
     if FIXED_SIMULATION:
         a.call("world_to_buffer"); a.ld_r_n("a", 2); a.ldh_n_a(SVBK)
         a.call("buffer_to_world"); a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
+        # load_level runs before this routine. Establish the sector baseline
+        # only after the simulation clock has been initialized, in live WRAM.
+        a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
+        a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
         a.ld_r_n("a", 1); a.ldh_n_a(SVBK); a.ld_abs_a(SIM_READY)
         # Both banks now hold the same map.
         a.ld_a_abs(LIVE_MAP_GEN); a.ld_abs_a(SNAP_MAP_GEN)
+    else:
+        # Without the fixed-tick snapshot the world is simulated where it is
+        # mapped, so the baseline goes there.
+        a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
+        a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
     a.ret()
 
     a.label("begin_frame_snapshot")
