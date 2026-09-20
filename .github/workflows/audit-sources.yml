@@ -1,0 +1,34 @@
+name: Audit source snapshots
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/audit-sources.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Archive tracked sources and released comparison baseline
+        run: |
+          mkdir -p audit-sources
+          git archive --format=tar HEAD > audit-sources/candidate.tar
+          git archive --format=tar 462405e5ed103479b3cad516da29dde5d3ed8b80 > audit-sources/v09-baseline.tar
+          git rev-parse HEAD > audit-sources/candidate-commit.txt
+          git ls-tree -r HEAD > audit-sources/candidate-tree.txt
+          sha256sum audit-sources/*.tar > audit-sources/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-source-snapshots
+          path: audit-sources/
+          retention-days: 7
+          if-no-files-found: error
