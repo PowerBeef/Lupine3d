@@ -221,7 +221,10 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",
     ], ROOT)
-    run([python, "tools/playthrough.py", "--restart"], ROOT)
+    # The full campaign already takes about eight minutes on a fast CI runner.
+    # Give slower runners a bounded 30 minutes; retain every controller-only
+    # check and keep the short-command timeout unchanged for other gates.
+    run([python, "tools/playthrough.py", "--restart"], ROOT, timeout=1800)
     run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
          "--output-dir", "build/playtest/sable_art_tour"], ROOT)
     run(["make", "variants"], ROOT)
