@@ -548,7 +548,11 @@ def emit_screens(a: Assembler) -> None:
     a.ld_r_r("a", "c"); a.or_r("a"); a.jr("password_move", "z")
     a.dec_r("a")
     a.label("password_move")
-    a.ld_abs_a(PASSWORD_CURSOR); a.ret()
+    # The old cursor cell may currently be blank because of blink. Restore its
+    # digit before handing blink ownership to the new cursor.
+    a.push("af"); a.push("bc"); a.call("screen_write_slot"); a.pop("bc"); a.pop("af")
+    a.ld_abs_a(PASSWORD_CURSOR)
+    a.xor_r("a"); a.ld_abs_a(PASSWORD_BLINK); a.ret()
     a.label("password_edit_value")
     # Up and down roll the selected digit; C already holds the cursor.
     a.ld_r_r("a", "c"); a.add_a_n(SCREEN_DIGITS & 255)
