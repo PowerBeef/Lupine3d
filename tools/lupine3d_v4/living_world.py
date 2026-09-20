@@ -603,7 +603,11 @@ def emit_world_update(a: Assembler) -> None:
     # that left it was, which is already in the slot and already snapshotted.
     a.call("actor_kind_drop"); a.cp_n(DROP_KIND_IDS["keycard"]); a.jr("pickup_keycard", "z")
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
+    # Health is a two-digit HUD contract. Keep gameplay state honest with the
+    # display instead of creating an invisible reserve above 99 HP.
+    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_cap", "c")
+    a.cp_n(100); a.jr("pickup_health_store", "c")
+    a.label("pickup_health_cap"); a.ld_r_n("a", 99)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
     a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")
