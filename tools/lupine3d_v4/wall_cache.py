@@ -11,8 +11,9 @@ WALL_KEY_RANGES = ((PLAYER_XL, WALL_CACHE_META, 5),
                    (VRAM_PROFILE, WALL_CACHE_META + 5, 2),
                    (DOOR_COUNT, WALL_CACHE_META + 7, 1),
                    (DOOR_TABLE, WALL_CACHE_META + 8, MAX_DOORS * DOOR_RECORD_BYTES),
-                   (WALL_EPOCH, WALL_CACHE_META + 32, 2),
+                   (WALL_EPOCH, WALL_CACHE_META + 8 + MAX_DOORS * DOOR_RECORD_BYTES, 2),
                    (MAP, WALL_CACHE_MAP, 256))
+assert sum(count for _, _, count in WALL_KEY_RANGES) == WALL_KEY_BYTES
 
 
 def emit_wall_cache(a: Assembler):

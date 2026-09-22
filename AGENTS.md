@@ -245,6 +245,11 @@ regression contract.
 - `weapon_stats` gives each weapon damage and recovery in simulation ticks. The
   shotgun's record is the engine's original behaviour exactly — one damage, no
   recovery — so a change there is a change to every existing measurement.
+- A shot lands on the nearest actor inside the aim window whose Q5 depth is
+  below the centre ray's wall depth plus `HITSCAN_DEPTH_SLACK` (a quarter
+  cell): a chaser pressed flush against a wall has its centre on that wall's
+  plane and must still be hittable, while an actor behind a wall or a closed
+  panel is at least half a cell further. `tests/test_hitscan.py` pins both.
 
 ## Sound contracts
 

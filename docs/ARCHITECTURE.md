@@ -19,7 +19,7 @@ fixed WRAM into bank 1. Geometry, animation, HUD and OAM all use that immutable
 snapshot while simulation continues in bank 2. Animation uses accepted ticks,
 not host time or the number of rendered frames.
 
-An exact 290-byte wall-key comparison covers camera, map, door state,
+An exact 302-byte wall-key comparison covers camera, map, six door records,
 configuration and reload generation. A miss casts/reconstructs the view,
 composes tiles, prepares masks/entities and builds a complete publication packet.
 A hit retains matching walls/depth and refreshes entities/HUD only. Bank ownership
@@ -43,7 +43,10 @@ Positions use Q8.8. Prepared directions and crossing certificates use Q14 and
 the existing tie convention; terminal distance/projection use Q5. Forty even
 anchors plus anchor 79 feed adaptive pair reconstruction, physical edge recasts
 and conservative interpolation over 160 columns. Surface identity is independent
-of material colour. Collision, wall rays, LOS and hitscan share finite door
+of material colour. A shot lands when the actor's Q5 depth is below the centre
+ray's wall depth plus a quarter-cell slack (`HITSCAN_DEPTH_SLACK`), so an actor
+pressed flush against a wall stays hittable while one behind a wall or a closed
+panel, at least half a cell further, is not. Collision, wall rays, LOS and hitscan share finite door
 geometry. Physical-depth and higher-precision actor experiments remain disabled;
 production height-derived mask depth is not labelled a continuous geometric query.
 
@@ -93,9 +96,9 @@ its offset (`add_level_page`). The first slot's offsets are:
 | `$4400` | Oriented-face surface profiles, same index |
 | `$4800` | The 16×16 world map |
 | `$4900` | 24-byte header: dimensions, profiles, spawn, primary actor, exit, and the door/actor/fixture counts and pickup value the loader reads |
-| `$4920` | Four fixed-capacity door records |
-| `$4940` | Four bounded actor slots |
-| `$4980` | Up to sixteen wall-mounted fixture records |
+| `$4920` | Six fixed-capacity door records |
+| `$4950` | Four bounded actor slots |
+| `$4990` | Up to sixteen wall-mounted fixture records |
 
 `lookup_segment_id` reads the segment and its surface profile through one
 pointer, so the surface table must stay exactly 1,024 bytes above the segment

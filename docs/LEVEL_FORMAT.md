@@ -60,7 +60,7 @@ texture (`docs/TEXTURED_WALLS.md`).
 | `width`, `height` | yes | 16 and 16 |
 | `rows` | yes | sixteen strings of sixteen material digits |
 | `player_spawn` | yes | `x_q8`, `y_q8`, `angle`, optional `safe_radius_cells` (0..15) |
-| `doors` | yes | one to four door records (see below) |
+| `doors` | yes | one to six door records (see below) |
 | `entities` | yes | one to four actors (see below) |
 | `pickups` | yes | the drops the level fields (see below) |
 | `exit` | yes | `x`, `y` of the exit cell (walkable); `marker` is retained but not read |
@@ -91,8 +91,8 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
   card). A v2 level has exactly one `exit` door, and it is `sentinel_dead`.
 - The record compiles to six bytes: x, y, orientation, flags (`0x01` exit,
   `0x02` locked until the actors are dead, `0x04` keycard), state, fraction.
-  Up to four doors share the wall key, so the limit is an engine contract, not
-  a style choice (`docs/ARCHITECTURE.md`).
+  Up to six doors ride the wall key and the snapshot copy, so the limit is an
+  engine contract, not a style choice (`docs/ARCHITECTURE.md`).
 
 ### Entities
 
@@ -166,9 +166,9 @@ below are the first slot's:
 | `$4400` | 1024 | surface profiles, same index (must stay exactly 1024 above the segments: one pointer reads both) |
 | `$4800` | 256 | the 16×16 material grid |
 | `$4900` | 24 | header: size, profiles, spawn, first actor, exit, counts, medkit value |
-| `$4920` | 24 | four six-byte door records |
-| `$4940` | 64 | four sixteen-byte actor slots |
-| `$4980` | 256 | sixteen sixteen-byte fixture records |
+| `$4920` | 36 | six six-byte door records |
+| `$4950` | 64 | four sixteen-byte actor slots |
+| `$4990` | 256 | sixteen sixteen-byte fixture records |
 
 `levels.py` names these offsets; `docs/ARCHITECTURE.md` explains how
 `LEVEL_INDEX`, `LEVEL_BANK` and `LEVEL_PAGE` select a level at runtime.

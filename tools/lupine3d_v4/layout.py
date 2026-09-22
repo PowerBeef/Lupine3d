@@ -77,7 +77,7 @@ PRESENT_SERIAL = 0xC8B6       # increment after every atomic publication, wraps 
 WALL_CACHE_DISABLE = 0xC8B7   # diagnostic reference path; never a gameplay setting
 WALL_EPOCH = 0xC8B8           # content/VRAM reload generation, fixed WRAM u16
 WALL_CACHE_MAP = 0xCD00       # exact 256-byte map key, below the reserved stack
-WALL_CACHE_META = 0xDF20      # 34-byte snapshot key after physical surface profiles
+WALL_CACHE_META = 0xDE50      # the snapshot key's scalars, between the ray and physical surface profiles
 WALL_REUSE_ENABLED = os.environ.get("LUPINE3D_WALL_REUSE", "1") != "0"
 SIM_CLOCK = 0xC8D0             # monotonic VBlank clock (wraps modulo 65536)
 INPUT_QUEUE_HEAD = 0xC8D2
@@ -558,12 +558,22 @@ DOOR_FLAG_EXIT = level_codec.DOOR_FLAG_EXIT
 DOOR_FLAG_LOCK_SENTINEL = level_codec.DOOR_FLAG_LOCK_SENTINEL
 DOOR_FLAG_KEYCARD = level_codec.DOOR_FLAG_KEYCARD
 DROP_KIND_IDS = level_codec.DROP_KIND_IDS
+# A shot lands when the actor's Q5 depth is below the centre ray's wall depth
+# plus this slack: a quarter cell, so an actor flush against the wall it is
+# pressed to (its centre on the wall plane) is hittable, while one behind a
+# wall or a closed panel, at least half a cell further, is not.
+HITSCAN_DEPTH_SLACK = 8
 # Eight bytes per kind: damage, recovery, step, palette, drop, three spare.
 ACTOR_KIND_RECORD_BYTES = 8
 ACTOR_KIND_DROP = 4
 KIND_DROPS = level_codec.KIND_DROPS
 EXIT_CELL_X = DOOR_TABLE + MAX_DOORS * DOOR_RECORD_BYTES
 EXIT_CELL_Y = EXIT_CELL_X + 1
+# The exact wall key: camera (5), profile and world mode (2), the door count
+# and every door record, the reload generation (2), then the whole map.
+WALL_KEY_META_BYTES = 5 + 2 + 1 + MAX_DOORS * DOOR_RECORD_BYTES + 2
+WALL_KEY_BYTES = WALL_KEY_META_BYTES + 256
+assert WALL_CACHE_META + WALL_KEY_META_BYTES <= PIXEL_SURFACE, "wall key scalars overrun the physical surface profiles"
 
 # Compatibility aliases denote the door most recently selected by a lookup.
 # Runtime ownership lives in the fixed-capacity table above.
@@ -1010,24 +1020,28 @@ REPROJECT_LIMIT = 4
 REPROJECT_GDMA_THRESHOLD = 72
 
 # Shared by snapshot emission and the allocation/lifetime validator. The
-# actor slots are copied whole; the count beside them is a fixed-WRAM scalar.
-WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, MAX_ACTORS * 16))
+# world window holds the living-world scalars, the door table, the art clocks
+# and the campaign state; the actor slots are copied whole, and the count
+# beside them is a fixed-WRAM scalar.
+WORLD_WINDOW_BYTES = 136
+WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, WORLD_WINDOW_BYTES), (ENTITY_SLOTS, MAX_ACTORS * 16))
 WORLD_COPY_BYTES = sum(count for _, count in WORLD_COPY_RANGES)
 
 RETICLE_TILE = 112 if SABLE_ART else 80
 MUZZLE_TILE = RETICLE_TILE + 2
 
-# Existing copied world slack: persistent cosmetic clocks, isolated per bank.
-SHOT_TICK=0xD77A
-SHOT_ACTIVE=0xD77C
-HURT_TICK=0xD77D
-HURT_ACTIVE=0xD77F
-HINT_TICK=0xD780
-HINT_ACTIVE=0xD782
-ACTOR_REACTION_TICK=0xD783
-ACTOR_REACTION=0xD785
-SENTINEL_KIND=0xD786          # per-actor stat/palette selector, inside the snapshot
-ART_STATE_END=0xD787
+# Copied world slack right after the exit cell: persistent cosmetic clocks,
+# isolated per bank. They follow the door table, so they move with MAX_DOORS.
+SHOT_TICK = EXIT_CELL_Y + 1
+SHOT_ACTIVE = SHOT_TICK + 2
+HURT_TICK = SHOT_ACTIVE + 1
+HURT_ACTIVE = HURT_TICK + 2
+HINT_TICK = HURT_ACTIVE + 1
+HINT_ACTIVE = HINT_TICK + 2
+ACTOR_REACTION_TICK = HINT_ACTIVE + 1
+ACTOR_REACTION = ACTOR_REACTION_TICK + 2
+SENTINEL_KIND = ACTOR_REACTION + 1   # per-actor stat/palette selector, inside the snapshot
+ART_STATE_END = SENTINEL_KIND + 1
 # Campaign state in the slack at the top of the copied world window. It rides
 # the existing snapshot copy rather than growing it, so the renderer
 # and the screens read it as coherently as the world itself, and the simulation
@@ -1053,10 +1067,13 @@ VBLANKS_PER_SECOND = 60
 # pass reads (SENTINEL_VISIBLE..SENTINEL_LOD, the foot row, the two strip
 # masks and MASK_BITS) per slot, beside the copied world window, and a flag
 # per slot says the record is this frame's. Bank 2 never reads either.
-ACTOR_PROJECTION = 0xD7A0          # MAX_ACTORS records, ACTOR_PROJECTION_BYTES each
+ACTOR_PROJECTION = VRAM_PROFILE + WORLD_WINDOW_BYTES   # MAX_ACTORS records, ACTOR_PROJECTION_BYTES each
 ACTOR_PROJECTION_BYTES = 8
 ACTOR_PROJECTED = ACTOR_PROJECTION + MAX_ACTORS * ACTOR_PROJECTION_BYTES
-assert VRAM_PROFILE + 128 <= ACTOR_PROJECTION and ACTOR_PROJECTED + MAX_ACTORS <= 0xD800
+assert ACTOR_PROJECTED + MAX_ACTORS <= 0xD800
+# actor_projection_pointer adds a slot's offset to the low byte alone.
+assert (ACTOR_PROJECTION & 0xFF) + MAX_ACTORS * ACTOR_PROJECTION_BYTES <= 0x100
+assert (ACTOR_PROJECTED & 0xFF) + MAX_ACTORS <= 0x100
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.

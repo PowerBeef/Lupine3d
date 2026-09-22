@@ -653,7 +653,12 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_r_n("a", RAY_VECTOR_SCALE); a.ld_abs_a(DDA_CORRECTION)
     a.ld_r_n("a", 240); a.ld_abs_a(Q14_RECORD)
     a.call("cast_one_v2")
-    a.ld_a_abs(DEPTH_RESULT); a.ld_r_r("b", "a")
+    # The occluder test has slack: an actor's centre sits on the wall plane it
+    # is pressed against, and Q5 rounding can put it a unit past it, while an
+    # actor that really is behind a wall or a closed panel is at least half a
+    # cell further. Without the slack a chaser hugging a wall could not be hit.
+    a.ld_a_abs(DEPTH_RESULT); a.add_a_n(HITSCAN_DEPTH_SLACK); a.jr("hit_depth_ready", "nc"); a.ld_r_n("a", 255)
+    a.label("hit_depth_ready"); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_DEPTH); a.cp_r("b"); a.ret("nc")
     if SABLE_ART:
         a.ld_r_n("a",2); a.call("stamp_actor_reaction")

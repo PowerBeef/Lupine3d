@@ -197,7 +197,7 @@ def main() -> None:
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
         "masked_8x16_four_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == 4,
         "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
-        "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == 290 and v2_manifest["independent_obj_page"],
+        "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == v2.WALL_KEY_BYTES and v2_manifest["independent_obj_page"],
         "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
         "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],
         "streaming_columns_and_events_enabled": v2_manifest["streaming_columns"] and v2_manifest["streaming_surface_events"],
@@ -254,9 +254,9 @@ def main() -> None:
             v2_manifest["level_format"] == "lupine-level-v2"
             and int(v2_manifest["safe_spawn_radius_cells"]) >= 5
         ),
-        "four_independent_door_records": (
+        "independent_door_records": (
             int(v2_manifest["active_level_doors"]) == 4
-            and int(v2_manifest["maximum_level_doors"]) == 4
+            and int(v2_manifest["maximum_level_doors"]) == v2.MAX_DOORS
         ),
         "level_has_no_unreachable_walkable_cells": int(v2_manifest["unreachable_level_cells"]) == 0,
         "level_sightline_at_most_six_cells": int(v2_manifest["maximum_level_sightline"]) <= 6,

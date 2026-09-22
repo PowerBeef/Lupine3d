@@ -566,7 +566,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "maximum_publication_vblanks": 1 if HDMA_STREAMING else 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
         "exact_wall_reuse": WALL_REUSE_ENABLED,
-        "wall_cache_key_bytes": 290,
+        "wall_cache_key_bytes": WALL_KEY_BYTES,
         "independent_obj_page": True,
         "presentation_serial_address": PRESENT_SERIAL,
         "simulation_tick_hz": 4194304 / 70224,

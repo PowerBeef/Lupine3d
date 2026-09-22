@@ -44,9 +44,10 @@ def render(manifest: dict) -> str:
              "and recorded in the build manifest; `bank_safety.py` proves the MBC5 rule against the emitted image.",
              "A lifetime other than persistent says when the range is meaningful; outside it the bytes are",
              "free for that owner's neighbour in the same sequence.", "",
-             "| Budget | Bytes |", "|---|---:|",
-             f"| Free below `$4000` (fixed ROM half) | {ledger['fixed_code_free_bytes']} |",
-             f"| Resident reserve (must stay >= 3,000) | {ledger['resident_free_bytes']} |",
+             "The free byte counts below `$4000` and in the resident half move with every code",
+             "change and are read from `build/build_manifest.json` (`allocation_ledger`), not from here;",
+             "the linker refuses a build under the 3,000-byte resident reserve.", "",
+             "| Budget | Value |", "|---|---:|",
              f"| Free WRAM banks | {', '.join(str(b) for b in ledger['free_wram_banks'])} |",
              f"| Render snapshot copy | {sum(c for _, c in ledger['snapshot_copy_ranges'])} bytes in "
              f"{len(ledger['snapshot_copy_ranges'])} ranges: "

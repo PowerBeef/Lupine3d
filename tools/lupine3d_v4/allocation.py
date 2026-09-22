@@ -74,7 +74,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xD3D6, 0xD3D8, "near-field perpendicular Q8 scratch", "one projection"),
         A("WRAM1", 0xD3D8, 0xD400, "compact HUD packet and animation scratch"),
         A("WRAM1", 0xD400, 0xD720, "physical descriptors and ray depth/segments"),
-        A("WRAM1", 0xD720, 0xD7A0, "snapshot world, entity projection and campaign state"),
+        A("WRAM1", l.VRAM_PROFILE, l.VRAM_PROFILE + l.WORLD_WINDOW_BYTES, "snapshot world, entity projection and campaign state"),
         A("WRAM1", l.ACTOR_PROJECTION, l.ACTOR_PROJECTED + l.MAX_ACTORS, "per-slot actor projection records", "entity rendering"),
         A("WRAM1", 0xD800, 0xD8A0, "physical segments"),
         A("WRAM1", 0xD8A0, 0xD8C8, "Q14 and door/LOS scratch"),
@@ -86,7 +86,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xDC00, 0xDC00 + l.VIEW_MAP_BYTES, "BG attributes"),
         A("WRAM1", 0xDE00, 0xDE50, "ray surface profiles"),
         A("WRAM1", 0xDE80, 0xDF20, "physical surface profiles"),
-        A("WRAM1", 0xDF20, 0xDF42, "wall cache metadata"),
+        A("WRAM1", l.WALL_CACHE_META, l.WALL_CACHE_META + l.WALL_KEY_META_BYTES, "wall cache metadata"),
         A("WRAM1", 0xDF42, 0xDF56, "physical validity bits (reserved)"),
         A("WRAM1", 0xDF60, 0xE000, "physical depth (reserved)" if not l.TEXTURED_WALLS
           else "physical-pixel texture coordinates (physical depth excluded)"),
@@ -126,9 +126,9 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     for start, count in l.WORLD_COPY_RANGES:
         for low, high in reserved:
             assert start + count <= low or high <= start
-    assert l.EXIT_CELL_Y < l.SHOT_TICK < l.ART_STATE_END <= l.VRAM_PROFILE + 128
+    assert l.EXIT_CELL_Y < l.SHOT_TICK < l.ART_STATE_END <= l.VRAM_PROFILE + l.WORLD_WINDOW_BYTES
     # Campaign state rides the copy that is already made; it never grows it.
-    assert l.ART_STATE_END == l.GAME_STATE and l.GAME_STATE_END <= l.VRAM_PROFILE + 128
+    assert l.ART_STATE_END == l.GAME_STATE and l.GAME_STATE_END <= l.VRAM_PROFILE + l.WORLD_WINDOW_BYTES
     assert l.HUD_PACKET + l.HUD_PACKET_BYTES <= (0xD400 if l.COMPACT_DISPLAY else l.MASK_TILES)
     assert l.WEAPON_TILE_BASE >= 32
     assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128
@@ -136,7 +136,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     # The copy is a contract: the map, the camera, the world window and every
     # actor slot, and nothing else. A change here changes what the renderer
     # can see of the simulation.
-    assert l.WORLD_COPY_BYTES == 256 + 8 + 128 + l.MAX_ACTORS * 16
+    assert l.WORLD_COPY_BYTES == 256 + 8 + l.WORLD_WINDOW_BYTES + l.MAX_ACTORS * 16
     assert l.WORLD_COPY_BUFFER + l.WORLD_COPY_BYTES <= l.COLUMN_ROWS
     # The sequencer state sits above the BG map in every display profile and
     # never overlaps the diagnostic strip scratch. Screen state borrows the
