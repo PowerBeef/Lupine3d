@@ -183,6 +183,13 @@ regression contract.
   weapon, drop, flash, decor and reticle palettes are identical in every set
   because screens never rewrite palettes. Set 0 is byte-identical to the
   original table, so the outpost goldens do not move.
+- Episodes are `EPISODE_SECTORS` (six) sectors. The title opens episode one;
+  when `LEVEL_INDEX` is one of `EPISODE_STARTS` (6, 12) the episode's opening
+  screen shows before its first sector loads (`show_episode_opening`, from
+  the title start, so a continue code opens its episode), and the intermission
+  that advanced onto it shows the finished episode's closing first
+  (`show_episode_closing`, intermission mode only, so a death retry never
+  shows one). `SCREEN_EPISODE_CLOSINGS`/`OPENINGS` index `SCREEN_SOURCES`.
 - Death retries the current sector; completion advances `LEVEL_INDEX` through an
   intermission, and the last sector's ending restarts the campaign. Host
   geometry oracles must follow the ROM: select the reference level from the
@@ -213,8 +220,10 @@ regression contract.
   each kind contact damage, attack recovery, Q8 step, OBJ palette and what it
   drops; records are `ACTOR_KIND_RECORD_BYTES` wide so `actor_kind_record` can
   still index by shifting, and there are four because the kind byte is masked
-  to two bits — the spare repeats the Sentinel so a corrupt byte still reads a
-  playable actor.
+  to two bits. The fourth is the **boss** (kind 3): the Sentinel's cels and
+  OBJ palette, the heaviest contact damage in the game, slow, with the health
+  its level gives it; a corrupt kind byte still reads a playable actor. The
+  last sector of an episode fields one.
 - Kinds share the Sentinel's cels, so variety costs ROM, not VRAM patterns —
   but a distinct look costs an **OBJ palette**, and all eight are spoken for:
   0 weapon, 1 Sentinel, 2 drops, 3 muzzle/decor, 4 decor and the reticle,

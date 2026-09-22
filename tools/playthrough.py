@@ -49,13 +49,24 @@ def enter_sector(cgb, level: int) -> None:
             press(0x01)                           # right moves the cursor
     assert [cgb.read8(br.SCREEN_DIGITS + i) for i in range(br.PASSWORD_DIGITS)] == list(code)
     press(0x80)                                   # START accepts
-    cgb.button_provider = lambda *_: 0
-    for _ in range(2_000_000):
-        if cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == cgb.symbols["main_loop"]:
+    # A code into a later episode shows that episode's opening first; it
+    # waits for its own START like any screen.
+    from lupine3d_v4.screens import SCREEN_EPISODE_OPENINGS
+    for _ in range(1 + len(SCREEN_EPISODE_OPENINGS)):
+        cgb.button_provider = lambda *_: 0
+        for _ in range(2_000_000):
+            if cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == cgb.symbols["main_loop"]:
+                break
+            if cgb.io[0x40] & 0x80 and cgb.read8(br.SCREEN_INDEX) in SCREEN_EPISODE_OPENINGS and cgb.pc == cgb.symbols["screen_wait_start"]:
+                press(0x80)
+                break
+            cgb.step()
+        else:
+            raise AssertionError(f"the code for sector {level + 1} did not start the world")
+        if cgb.read8(br.GAME_MODE) == br.MODE_PLAYING:
             break
-        cgb.step()
     else:
-        raise AssertionError(f"the code for sector {level + 1} did not start the world")
+        raise AssertionError(f"the code for sector {level + 1} never left the episode screens")
     assert cgb.read8(br.LEVEL_INDEX) == level, (cgb.read8(br.LEVEL_INDEX), level)
     cgb.button_provider = None
 
@@ -553,8 +564,23 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         drive(0, lambda: cgb.io[0x40] == 0x81, "results screen never displayed")
         capture(name)
         # START is released before the world returns, so the ROM's own edge
-        # shadow clears itself across the VBlanks that rebuild the world.
-        drive(0x80, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING, "START was not accepted")
+        # shadow clears itself across the VBlanks that rebuild the world. An
+        # intermission that crossed into the next episode shows that
+        # episode's closing and opening on the way, each on its own START.
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
+        episode_screens = SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS
+        shown = cgb.read8(br.SCREEN_INDEX)
+        for _ in range(1 + len(episode_screens)):
+            drive(0x80, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING or cgb.read8(br.SCREEN_INDEX) != shown,
+                  "START was not accepted")
+            if cgb.read8(br.GAME_MODE) == br.MODE_PLAYING:
+                break
+            shown = cgb.read8(br.SCREEN_INDEX)
+            assert shown in episode_screens, shown
+            drive(0, lambda: cgb.io[0x40] == 0x81 and cgb.pc == cgb.symbols["screen_wait_start"], "episode screen never displayed")
+            capture(f"{name}_screen{shown}")
+        else:
+            raise AssertionError("the episode screens never ended")
         drive(0, lambda: cgb.pc == cgb.symbols["main_loop"], "the world never came back")
         cgb.button_provider = None; cgb.buttons = 0
 

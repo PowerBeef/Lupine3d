@@ -15,7 +15,13 @@ PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # need a third OBJ palette and there is exactly one free slot, so adding one
 # means re-planning the weapon/reticle palettes, not editing this table.
 # The order is the runtime stat-table index; keep it stable.
-ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2}
+# The fourth kind is the boss: the kind byte is masked to two bits, so the
+# table has four records whatever the campaign fields, and the boss takes the
+# record that used to repeat the Sentinel. It wears the Sentinel's cels and
+# OBJ palette (all eight palettes are spoken for) and is told apart by what
+# it does: the heaviest contact damage in the game and the health a level
+# gives it. The last sector of an episode fields one.
+ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2, "boss": 3}
 # Palette sets: one per episode. The header byte selects the 128-byte set
 # `init_palettes` uploads at every world entry, so levels of one campaign may
 # differ; the order is the ROM table index and the runtime clamp, keep it.
@@ -42,7 +48,7 @@ DOOR_FLAG_KEYCARD = 0x04
 # What a dead actor leaves behind, selected by its kind rather than by a byte
 # in its slot: the slot is exactly full, and the kind is already there.
 DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
-KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit"}
+KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit", "boss": "medkit"}
 
 # Campaign levels are packed five to a ROM bank from LEVEL_ROM_BANK_BASE, in
 # 256-byte-aligned slots, at fixed offsets inside the slot. A resident

@@ -100,7 +100,9 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 {"kind": "warden", "x_q8": 2688, "y_q8": 2176, "health": 3, "activation_radius_q4": 96}
 ```
 
-- One to six actors, all of a known kind: `sentinel`, `skirmisher`, `warden`.
+- One to six actors, all of a known kind: `sentinel`, `skirmisher`, `warden`,
+  `boss` (the Sentinel's look with the heaviest contact damage; give it the
+  health the fight deserves, and field one in an episode's last sector).
   Kinds share the Sentinel's cels and differ by stats and OBJ palette
   (`AGENTS.md`, "Enemies and skill"). Six are simulated, but the renderer
   admits at most four per frame (sixteen world objects, four per scanline,
@@ -121,8 +123,8 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 ```
 
 Nothing is placed on the map: a pickup is what a dead actor leaves, selected
-by the actor's kind (`KIND_DROPS`: sentinels and wardens leave a medkit,
-skirmishers a keycard). A level declares which drops it fields, one record per
+by the actor's kind (`KIND_DROPS`: sentinels, wardens and bosses leave a
+medkit, skirmishers a keycard). A level declares which drops it fields, one record per
 kind, `source` is always `sentinel_drop`, and the medkit's `value` (1..255,
 health restored) is the only per-level number. The compiler refuses a declared
 drop no actor leaves, a keycard drop that opens nothing, a keycard door with no

@@ -1,5 +1,7 @@
 """Enemy kinds and the skill setting that scales what they do to you."""
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -7,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
 import build_rom as br  # noqa: E402
+from lupine3d_v4 import levels  # noqa: E402
 from lupine3d_v4.levels import ENTITY_KIND_IDS  # noqa: E402
 from sm83emu import CGB, run_to_world  # noqa: E402
 
@@ -30,8 +33,12 @@ class EnemyKindTests(unittest.TestCase):
             self.assertTrue(1 <= record[COOLDOWN] <= 64, index)
             self.assertTrue(1 <= record[STEP] <= 64, index)
             self.assertLess(record[PALETTE], 8, index)
-        for spare in self.stats[len(ENTITY_KIND_IDS):]:
-            self.assertEqual(spare, self.stats[ENTITY_KIND_IDS["sentinel"]])
+        # All four records are authored kinds now; the fourth is the boss, so a
+        # corrupt kind byte reads the most dangerous actor rather than a dud.
+        self.assertEqual(len(self.stats), len(ENTITY_KIND_IDS))
+        boss, warden = self.stats[ENTITY_KIND_IDS["boss"]], self.stats[ENTITY_KIND_IDS["warden"]]
+        self.assertGreater(boss[DAMAGE], warden[DAMAGE])
+        self.assertEqual(boss[PALETTE], self.stats[ENTITY_KIND_IDS["sentinel"]][PALETTE])
 
     def test_kinds_are_told_apart_by_palette_and_by_what_they_do(self):
         sentinel = self.stats[ENTITY_KIND_IDS["sentinel"]]
@@ -42,11 +49,14 @@ class EnemyKindTests(unittest.TestCase):
         self.assertLess(warden[STEP], sentinel[STEP])             # slow
         self.assertGreater(warden[DAMAGE], sentinel[DAMAGE])      # and heavy
         # Sharing an OBJ palette would make two kinds indistinguishable, and
-        # every kind must have its own: 0 weapon, 1 Sentinel, 2 drops, 3
-        # muzzle and decor, 4 decor and the reticle, 5 the weapon's lit
-        # corners, 6 warden, 7 skirmisher.
-        used = {record[PALETTE] for record in self.stats[:len(ENTITY_KIND_IDS)]}
-        self.assertEqual(len(used), len(ENTITY_KIND_IDS))
+        # every common kind must have its own: 0 weapon, 1 Sentinel, 2 drops,
+        # 3 muzzle and decor, 4 decor and the reticle, 5 the weapon's lit
+        # corners, 6 warden, 7 skirmisher. The boss is the one deliberate
+        # exception: all eight palettes are spoken for, so it wears the
+        # Sentinel's and is told apart by what it does.
+        common = [kind for kind in ENTITY_KIND_IDS if kind != "boss"]
+        used = {self.stats[ENTITY_KIND_IDS[kind]][PALETTE] for kind in common}
+        self.assertEqual(len(used), len(common))
         self.assertFalse(used & {0, 2, 3, 5}, "a kind took a palette the UI owns")
 
     def test_the_reticle_moved_off_the_palette_the_third_kind_needs(self):
@@ -72,6 +82,8 @@ class EnemyKindTests(unittest.TestCase):
         seen = {}
         for palette_set in range(br.PALETTE_SET_COUNT):
             for kind, index in ENTITY_KIND_IDS.items():
+                if kind == "boss":
+                    continue        # wears the Sentinel's palette by design
                 colours = palette(palette_set, self.stats[index][PALETTE])
                 self.assertNotIn(colours, seen, f"{kind} in set {palette_set} looks exactly like {seen.get(colours)}")
                 seen[colours] = (kind, palette_set)
@@ -84,9 +96,25 @@ class EnemyKindTests(unittest.TestCase):
                                  ENTITY_KIND_IDS[entity.kind], (level.name, slot))
             bank = br.level_rom_offset(index) + br.LEVEL_ACTOR_OFFSET - 0x4000
             self.assertEqual(self.rom[bank:bank + len(records)], records, level.name)
-        # The campaign actually uses the variety it can express.
+        # The campaign actually uses the variety it can express; the boss
+        # arrives with the episode-closing sectors.
         kinds = {entity.kind for level in br.CAMPAIGN for entity in level.entities}
-        self.assertEqual(kinds, set(ENTITY_KIND_IDS))
+        self.assertLessEqual({"sentinel", "skirmisher", "warden"}, kinds)
+        self.assertLessEqual(kinds, set(ENTITY_KIND_IDS))
+
+    def test_a_level_may_field_a_boss_and_it_leaves_a_medkit(self):
+        source = json.loads((ROOT / "levels" / "cryo_vault.json").read_text())
+        entities = [dict(source["entities"][0], kind="boss", health=12)] + source["entities"][1:]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "boss.json"
+            path.write_text(json.dumps(dict(source, entities=entities)))
+            level = levels.compile_level(path)
+        records = br.actor_records(level)
+        self.assertEqual(records[br.ACTOR_KIND_OFFSET], ENTITY_KIND_IDS["boss"])
+        self.assertEqual(levels.KIND_DROPS["boss"], "medkit")
+        # Contact with the boss costs more than any other kind, on every skill.
+        boss = self.stats[ENTITY_KIND_IDS["boss"]]
+        self.assertEqual(boss[DAMAGE], max(record[DAMAGE] for record in self.stats))
 
     def test_the_loaded_slot_carries_its_kind_through_save_and_load(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))

@@ -383,3 +383,75 @@ class ResultsStatisticsTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.SECTOR_TIME) | cgb.read8(br.SECTOR_TIME + 1) << 8, 750)
         self.assertEqual(cgb.read8(br.CAMPAIGN_TIME) | cgb.read8(br.CAMPAIGN_TIME + 1) << 8, 1_750)
         self.assertEqual(cgb.read8(br.CAMPAIGN_KILLS), 9)
+
+
+class EpisodeScreenTests(unittest.TestCase):
+    """The title opens episode one; later episodes open on their first sector
+    and close on the intermission that crossed into the next."""
+    @classmethod
+    def setUpClass(cls):
+        cls.rom, cls.asm, _ = br.make_rom()
+
+    def _start_every(self, cgb, samples):
+        """START held for `samples` joypad samples (one per VBlank), then
+        released for as many: a rising edge every other period."""
+        counter = {"n": 0}
+        def provider(*_):
+            counter["n"] += 1
+            return 0x80 if (counter["n"] // samples) % 2 else 0
+        cgb.button_provider = provider
+
+    def _call(self, cgb, routine):
+        self._start_every(cgb, 4)
+        cgb.call_subroutine(routine, max_steps=3_000_000)
+
+    def test_the_screens_exist_in_order_and_fit_the_bank(self):
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS, SCREEN_SOURCES
+        self.assertEqual(len(SCREEN_EPISODE_CLOSINGS), len(br.EPISODE_STARTS))
+        self.assertEqual(len(SCREEN_EPISODE_OPENINGS), len(br.EPISODE_STARTS))
+        for index in SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS:
+            self.assertLess(index, len(SCREEN_SOURCES))
+        self.assertEqual(br.EPISODE_STARTS, tuple(br.EPISODE_SECTORS * n for n in range(1, len(br.EPISODE_STARTS) + 1)))
+
+    def test_no_episode_screen_shows_inside_an_episode(self):
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.rom_bank = 1
+        for index in (0, 3, br.EPISODE_STARTS[0] - 1, br.EPISODE_STARTS[0] + 1):
+            cgb.write8(br.LEVEL_INDEX, index)
+            cgb.write8(br.GAME_MODE, br.MODE_INTERMISSION)
+            before = cgb.read8(br.SCREEN_INDEX)
+            cgb.button_provider = lambda *_: 0
+            cgb.call_subroutine("show_episode_closing", max_steps=20_000)
+            cgb.call_subroutine("show_episode_opening", max_steps=20_000)
+            self.assertEqual(cgb.read8(br.SCREEN_INDEX), before, index)
+            self.assertNotIn(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS)
+
+    def test_an_episode_start_opens_it_and_an_intermission_onto_it_closes_the_last(self):
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.rom_bank = 1
+        for episode, start in enumerate(br.EPISODE_STARTS):
+            cgb.write8(br.LEVEL_INDEX, start)
+            # A continue code into the episode: the opening alone.
+            cgb.write8(br.GAME_MODE, br.MODE_TITLE)
+            self._call(cgb, "show_episode_opening")
+            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[episode], episode)
+            # The intermission that advanced onto it: the closing, then the
+            # opening, each waiting for its own START.
+            cgb.write8(br.GAME_MODE, br.MODE_INTERMISSION)
+            shown = []
+            original = cgb.write8
+            def spy(address, value, original=original):
+                if address == br.SCREEN_INDEX:
+                    shown.append(value)
+                original(address, value)
+            cgb.write8 = spy
+            self._call(cgb, "show_episode_closing")
+            cgb.write8 = original
+            self.assertEqual(shown, [SCREEN_EPISODE_CLOSINGS[episode], SCREEN_EPISODE_OPENINGS[episode]], episode)
+            # A death retry onto the same index shows nothing.
+            cgb.write8(br.GAME_MODE, br.MODE_GAMEOVER)
+            cgb.button_provider = lambda *_: 0
+            cgb.call_subroutine("show_episode_closing", max_steps=20_000)
+            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[episode])

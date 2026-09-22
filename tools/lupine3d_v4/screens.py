@@ -135,6 +135,11 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
 # Authored screens. Order is the runtime screen index; keep it stable, the
 # emitter indexes a directory by it.
 SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWORD = range(5)
+# Episode screens: the closing of episodes one and two, the opening of
+# episodes two and three (the title opens episode one). Indices are stable;
+# EPISODE_STARTS in layout.py names the sectors they sit before.
+SCREEN_EPISODE_CLOSINGS = (5, 6)
+SCREEN_EPISODE_OPENINGS = (7, 8)
 
 SCREEN_SOURCES = (
     # A field line is a label and the map cells the runtime writes after it;
@@ -170,7 +175,33 @@ SCREEN_SOURCES = (
         ("START ACCEPTS", 104, 1, 1),
         ("SELECT CANCELS", 118, 1, 1),
      ), ()),
+    ("episode_one_closing", (
+        ("OUTPOST SECURED", 30, 2, 2),
+        ("THE SIGNAL CAME", 62, 1, 1),
+        ("FROM BELOW", 76, 1, 1),
+        ("PRESS START", 118, 2, 1),
+     ), ()),
+    ("episode_two_closing", (
+        ("REACTOR SEALED", 30, 2, 2),
+        ("THE SPIRE STILL", 62, 1, 1),
+        ("TRANSMITS", 76, 1, 1),
+        ("PRESS START", 118, 2, 1),
+     ), ()),
+    ("episode_two_opening", (
+        ("EPISODE TWO", 26, 3, 2),
+        ("REACTOR DEEP", 58, 2, 2),
+        ("COOLANT DARK", 90, 1, 1),
+        ("PRESS START", 118, 2, 1),
+     ), ()),
+    ("episode_three_opening", (
+        ("EPISODE THREE", 26, 3, 2),
+        ("SIGNAL SPIRE", 58, 2, 2),
+        ("OPEN SKY", 90, 1, 1),
+        ("PRESS START", 118, 2, 1),
+     ), ()),
 )
+assert tuple(name for name, _, _ in SCREEN_SOURCES[5:]) == (
+    "episode_one_closing", "episode_two_closing", "episode_two_opening", "episode_three_opening")
 
 
 @lru_cache(maxsize=1)
@@ -396,6 +427,31 @@ def emit_screens(a: Assembler) -> None:
     a.ld_r_n("b", 3); a.ld_r_n("c", 0); a.call("screen_write_number")
     a.ld_rr_nn("hl", CAMPAIGN_TIME)
     a.ld_r_n("b", 4); a.ld_r_n("c", 3); a.jp("screen_seconds_from")
+
+    # Episode screens. The title opens episode one; a later episode's opening
+    # shows whenever its first sector is about to load (a cleared sector or a
+    # continue code), and an episode's closing shows on the intermission that
+    # advanced LEVEL_INDEX onto the next episode, before that opening. Three
+    # compares, no modulo: LEVEL_INDEX is fixed WRAM. Each screen waits for
+    # START like any other and returns; the caller then loads the level.
+    a.label("show_episode_closing")   # after an intermission only
+    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_INTERMISSION); a.ret("nz")
+    a.ld_a_abs(LEVEL_INDEX)
+    for episode, start in enumerate(EPISODE_STARTS):
+        a.cp_n(start); a.jr(f"episode_closing_{episode}", "z")
+    a.ret()
+    for episode in range(len(EPISODE_STARTS)):
+        a.label(f"episode_closing_{episode}")
+        a.ld_r_n("a", SCREEN_EPISODE_CLOSINGS[episode]); a.call("show_screen"); a.call("screen_wait_start")
+        a.jr("show_episode_opening")
+    a.label("show_episode_opening")
+    a.ld_a_abs(LEVEL_INDEX)
+    for episode, start in enumerate(EPISODE_STARTS):
+        a.cp_n(start); a.jr(f"episode_opening_{episode}", "z")
+    a.ret()
+    for episode in range(len(EPISODE_STARTS)):
+        a.label(f"episode_opening_{episode}")
+        a.ld_r_n("a", SCREEN_EPISODE_OPENINGS[episode]); a.call("show_screen"); a.jp("screen_wait_start")
 
     a.label("screen_wait_start")
     a.call("wait_vblank")

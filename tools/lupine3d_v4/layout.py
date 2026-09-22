@@ -362,6 +362,12 @@ WEAPON_SHEET_LABELS = ("weapon_tiles", "slug_tiles", "arc_tiles", "pulse_tiles")
 # WEAPONS_OWNED from the index, so a continue code restores the arsenal for
 # free and a code that moves backwards can take a weapon away.
 WEAPON_UNLOCK_SECTORS = (0, 0, 6, 12)
+# Episodes are six sectors each. The title is the first episode's opening;
+# reaching the first sector of a later episode (by clearing the one before or
+# by a continue code) shows that episode's opening, and clearing an episode
+# shows its closing before the next opening.
+EPISODE_SECTORS = 6
+EPISODE_STARTS = (6, 12)
 assert len(WEAPON_UNLOCK_SECTORS) == WEAPON_COUNT == len(WEAPON_SHEET_LABELS) and WEAPON_COUNT & (WEAPON_COUNT - 1) == 0
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.

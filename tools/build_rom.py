@@ -195,6 +195,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # SELECT opens code entry; a rejected or cancelled code returns here.
     a.call("password_entry"); a.or_r("a"); a.jr("title_screen", "z")
     a.label("title_start")
+    # A continue code into a later episode opens it first; the title is
+    # episode one's opening. Still in the title mode, so nothing is queued.
+    a.call("show_episode_opening")
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
     a.call("load_level")
 
@@ -301,6 +304,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Edges latched while the world was frozen are not an answer to this screen.
     a.di(); a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
     a.call("screen_wait_start")
+    # An intermission that crossed into the next episode closes the one just
+    # finished and opens the next before its first sector loads.
+    a.call("show_episode_closing")
     a.xor_r("a"); a.ld_abs_a(MODE_DELAY)
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
     a.call("load_level")
@@ -380,9 +386,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         14, 12, 5, 6, DROP_KIND_IDS["medkit"], 0, 0, 0,   # warden: slow and
                            # heavy, and the only thing in the outpost that
                            # takes a third of your health on contact
-        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the spare repeats the
-                           # Sentinel, so a corrupt kind byte still reads a
-                           # playable actor
+        20, 10, 6, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,   # boss: the Sentinel's
+                           # cels and palette with the heaviest contact damage
+                           # in the game, slow, and the health its level gives
+                           # it; a corrupt kind byte still reads a playable
+                           # actor, only a dangerous one
     )), "enemy kind stats")
     # Two bytes per weapon: damage a hit takes off, and the simulation ticks
     # before it can fire again. The shotgun keeps the engine's original

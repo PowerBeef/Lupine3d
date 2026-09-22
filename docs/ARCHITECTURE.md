@@ -76,7 +76,7 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 173–236 | Prepared ray metadata: 1,048,576 bytes |
 | 237 | Unfolded diagnostic strip allocation: 8,064 bytes |
 | 238 | Cold raw ray vectors and camera-plane offset/correction tables |
-| 239 | Authored full-screen presentation (title, results, intermission) |
+| 239 | Authored full-screen presentation (title, results, intermission, episode openings and closings) |
 | 240 | Songs and the sequencer's note periods |
 | 241+ | Campaign levels, five per bank in page-aligned slots |
 | … –255 | Unallocated cartridge capacity |
@@ -226,9 +226,10 @@ An actor slot's byte 15 holds its kind, so the kind rides the per-slot save and
 load and the bank-1 snapshot like every other actor field. A four-record table
 gives each kind contact damage, attack recovery in AI ticks, Q8 move per tick,
 an OBJ palette and what it drops when it dies; records are a power of two wide
-so the lookup still indexes by shifting. The kind byte is masked to two bits
-and the spare record repeats the Sentinel, so a corrupt byte still reads a
-playable actor.
+so the lookup still indexes by shifting. The kind byte is masked to two bits;
+the fourth record is the boss, the Sentinel's cels and palette with the
+heaviest contact damage in the game, so a corrupt byte still reads a playable
+actor, only a dangerous one.
 
 Kinds share the Sentinel's cels, so variety costs ROM bytes rather than VRAM
 patterns. A distinct *look*, though, costs an OBJ palette, and all eight are
