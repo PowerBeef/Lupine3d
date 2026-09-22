@@ -64,7 +64,7 @@ texture (`docs/TEXTURED_WALLS.md`).
 | `entities` | yes | one to six actors (see below) |
 | `pickups` | yes | the drops the level fields (see below) |
 | `exit` | yes | `x`, `y` of the exit cell (walkable); `marker` is retained but not read |
-| `palette_profile` | yes | `outpost` (the only palette set; every campaign level must agree) |
+| `palette_profile` | yes | `outpost`, `reactor` or `spire`: the palette set every entry into this level uploads (`docs/ART_PIPELINE.md`); levels of one campaign may differ |
 | `vram_profile` | yes | `renderer-heavy` or `entity-heavy` (the resident atlas; every campaign level must agree) |
 | `readability` | no (v2) | per-level certificate limits; defaults below |
 | `fixtures` | no | up to sixteen wall-mounted landmarks |

@@ -58,28 +58,28 @@
       "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "36ac890638409bddc8d93828f7771ebb19204f32a3258844b45b80f29ba4c5d6",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "10cc036c12afad646c947fa871f4046ab4d45525caa392b196b43128da94d9af",
+      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:06:35+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "36ac890638409bddc8d93828f7771ebb19204f32a3258844b45b80f29ba4c5d6",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "10cc036c12afad646c947fa871f4046ab4d45525caa392b196b43128da94d9af",
+      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:06:35+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "918b97057f90d8815567b9bebcf9ac2879bdbd292779482f4407420421e9d514",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "caf364d1363d54353299e1791468cab210199289678dc57242fcdf0fe7959fd1",
+      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:06:35+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
     },
     "11_pickup_collected": {
       "rgb_sha256": "440fa7b4287ebca97b16b3c648dbdb81e9037e5db17978399976bfdecc30a766",

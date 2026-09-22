@@ -66,14 +66,24 @@ def emit_div_u16_u8_sat9(a: Assembler) -> None:
 
 
 def emit_palette_init(a: Assembler) -> None:
-    """Upload all eight BG palettes and the two OBJ palettes in use."""
+    """Upload the eight BG and eight OBJ palettes of the level's palette set.
+
+    `PALETTE_SET` (fixed WRAM, written by load_level) selects one 128-byte
+    set from `bg_palettes`: 64 BG bytes then 64 OBJ bytes, so the OBJ upload
+    continues from where the BG upload stopped. A set beyond the table reads
+    set 0, so a power-on value never indexes past it. Called with the LCD
+    off (boot and enter_world); clobbers A, B, DE, HL and the flags.
+    """
     a.label("init_palettes")
-    a.ld_r_n("a", 0x80); a.ldh_n_a(BGPI)
-    a.ld_rr_label("hl", "bg_palettes"); a.ld_r_n("b", 64)
+    a.ld_a_abs(PALETTE_SET); a.cp_n(PALETTE_SET_COUNT); a.jr("init_palettes_set", "c"); a.xor_r("a")
+    a.label("init_palettes_set")
+    a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
+    for _ in range(7): a.add_hl_rr("hl")  # set * 128
+    a.ld_rr_label("de", "bg_palettes"); a.add_hl_rr("de")
+    a.ld_r_n("a", 0x80); a.ldh_n_a(BGPI); a.ld_r_n("b", 64)
     a.label("init_bg_palette_loop")
     a.ldi_a_hl(); a.ldh_n_a(BGPD); a.dec_r("b"); a.jr("init_bg_palette_loop", "nz")
-    a.ld_r_n("a", 0x80); a.ldh_n_a(OBPI)
-    a.ld_rr_label("hl", "obj_palettes"); a.ld_r_n("b", 64)
+    a.ld_r_n("a", 0x80); a.ldh_n_a(OBPI); a.ld_r_n("b", 64)
     a.label("init_obj_palette_loop")
     a.ldi_a_hl(); a.ldh_n_a(OBPD); a.dec_r("b"); a.jr("init_obj_palette_loop", "nz")
     a.ret()

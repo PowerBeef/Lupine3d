@@ -173,9 +173,16 @@ regression contract.
   and only change with the LCD off. The surface table must stay exactly 1,024
   bytes above the segment table: `lookup_segment_id` reads both through one
   pointer. Every level bank read restores ROM bank 1.
-- All campaign levels share one `vram_profile` and `palette_profile`: the
-  resident atlas is still chosen at build time and `layout.py` rejects a
-  campaign that disagrees. Lifting that needs atlas streaming, not a new flag.
+- All campaign levels share one `vram_profile`: the resident atlas is still
+  chosen at build time and `layout.py` rejects a campaign that disagrees.
+  Lifting that needs atlas streaming, not a new flag. `palette_profile` is
+  per level (`PALETTE_IDS`: outpost 0, reactor 1, spire 2): `load_level`
+  stores header byte 3 in `PALETTE_SET` and `enter_world` uploads that
+  128-byte set (BG then OBJ) with the LCD off, clamping an unknown set to 0.
+  Sets recolour only the world (BG 0, 2-6; OBJ 1, 6, 7); BG 1 and 7 and the
+  weapon, drop, flash, decor and reticle palettes are identical in every set
+  because screens never rewrite palettes. Set 0 is byte-identical to the
+  original table, so the outpost goldens do not move.
 - Death retries the current sector; completion advances `LEVEL_INDEX` through an
   intermission, and the last sector's ending restarts the campaign. Host
   geometry oracles must follow the ROM: select the reference level from the

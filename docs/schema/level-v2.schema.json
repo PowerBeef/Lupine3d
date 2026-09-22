@@ -64,7 +64,7 @@
       "type": "object", "required": ["x", "y"],
       "properties": {"x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"}, "marker": {"type": "string"}}
     },
-    "palette_profile": {"enum": ["outpost"]},
+    "palette_profile": {"enum": ["outpost", "reactor", "spire"]},
     "vram_profile": {"enum": ["renderer-heavy", "entity-heavy"]},
     "readability": {
       "type": "object",

@@ -16,7 +16,10 @@ PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # means re-planning the weapon/reticle palettes, not editing this table.
 # The order is the runtime stat-table index; keep it stable.
 ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2}
-PALETTE_IDS = {"outpost": 0}
+# Palette sets: one per episode. The header byte selects the 128-byte set
+# `init_palettes` uploads at every world entry, so levels of one campaign may
+# differ; the order is the ROM table index and the runtime clamp, keep it.
+PALETTE_IDS = {"outpost": 0, "reactor": 1, "spire": 2}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 6
 DOOR_RECORD_BYTES = 6

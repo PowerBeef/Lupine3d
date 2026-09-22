@@ -17,7 +17,8 @@ ROM.
 3. Add the file name to `CAMPAIGN_ORDER` in `tools/lupine3d_v4/levels.py`.
    Levels are packed five to a ROM bank from 241 (a resident directory gives
    the loader each one's bank and slot page), and every campaign level must
-   share the first level's `vram_profile` and `palette_profile`.
+   share the first level's `vram_profile`; `palette_profile` names the
+   episode's palette set and may differ per level.
 4. `make build test playthrough`: the controller route plays every sector
    with input only, so it must be able to clear yours. `make variants` if you
    changed a level the variants use.

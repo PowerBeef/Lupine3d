@@ -27,9 +27,10 @@ def emit_level_loader(a: Assembler) -> None:
     # all coordinates, profiles, spawns, door metadata, and exit placement.
     a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET); add_level_page(a)
     a.inc_rr("hl"); a.inc_rr("hl")  # width, height
-    for address in (VRAM_PROFILE,):
+    # The palette set is a fixed-WRAM campaign scalar: enter_world uploads
+    # the set it names with the LCD off, after this loader has run.
+    for address in (VRAM_PROFILE, PALETTE_SET):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.inc_rr("hl")  # palette profile (palette set 0 is currently resident)
     for address in (
         PLAYER_XL, PLAYER_XH, PLAYER_YL, PLAYER_YH, ANGLE,
         SENTINEL_XL, SENTINEL_XH, SENTINEL_YL, SENTINEL_YH,

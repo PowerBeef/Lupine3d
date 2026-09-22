@@ -65,14 +65,16 @@ class EnemyKindTests(unittest.TestCase):
 
     def test_every_visible_kind_has_a_palette_of_its_own_in_the_rom(self):
         start = self.asm.labels["obj_palettes"]
-        def palette(index):
-            base = start + index * 8
+        def palette(palette_set, index):
+            base = start + palette_set * 128 + index * 8
             return tuple(self.rom[base + i] | self.rom[base + i + 1] << 8 for i in range(0, 8, 2))
+        # In every episode's set, and no kind wears another set's colours.
         seen = {}
-        for kind, index in ENTITY_KIND_IDS.items():
-            colours = palette(self.stats[index][PALETTE])
-            self.assertNotIn(colours, seen, f"{kind} looks exactly like {seen.get(colours)}")
-            seen[colours] = kind
+        for palette_set in range(br.PALETTE_SET_COUNT):
+            for kind, index in ENTITY_KIND_IDS.items():
+                colours = palette(palette_set, self.stats[index][PALETTE])
+                self.assertNotIn(colours, seen, f"{kind} in set {palette_set} looks exactly like {seen.get(colours)}")
+                seen[colours] = (kind, palette_set)
 
     def test_authored_kinds_reach_the_actor_slots_of_every_level(self):
         for index, level in enumerate(br.CAMPAIGN):

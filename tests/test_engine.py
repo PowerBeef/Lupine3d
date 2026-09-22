@@ -310,9 +310,10 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(br.level_location(0), (br.LEVEL_ROM_BANK_BASE, 0))
         self.assertEqual(len({br.level_location(i) for i in range(len(br.CAMPAIGN))}), len(br.CAMPAIGN))
         for index, level in enumerate(br.CAMPAIGN):
-            # One resident atlas and palette set serves the whole run.
+            # One resident atlas serves the whole run; the palette set is
+            # per level and every named set exists in the ROM.
             self.assertEqual(level.vram_profile, br.ACTIVE_LEVEL.vram_profile, level.name)
-            self.assertEqual(level.palette_profile, br.ACTIVE_LEVEL.palette_profile, level.name)
+            self.assertLess(level.palette_profile, br.PALETTE_SET_COUNT, level.name)
             # Every level carries the same certificate the shipped one does.
             self.assertEqual(level.readability.unreachable_cells, 0, level.name)
             self.assertLessEqual(level.readability.maximum_sightline, 6, level.name)

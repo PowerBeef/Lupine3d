@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""The sixteen CGB palettes a build ships, their owners, and the nearest slot
-for a proposed indexed PNG.
+"""The sixteen CGB palettes of every palette set a build ships, their owners,
+and the nearest slot for a proposed indexed PNG.
 
-    python tools/palette_plan.py                  # owners and RGB555 values
+    python tools/palette_plan.py                  # owners and RGB555 values, every set
     python tools/palette_plan.py --swatches out.png  # a swatch sheet (an authoring aid, never a build input)
     python tools/palette_plan.py --propose sprite.png  # nearest OBJ (or BG) palette to the PNG's colours
+    python tools/palette_plan.py --set 1 --propose sprite.png  # against the reactor set
 
 The values come from a fresh in-memory build of the current configuration,
-read back from the `bg_palettes`/`obj_palettes` tables, so they are the
-bytes the console writes, not a copy of the source.
+read back from the `bg_palettes` table (128 bytes per set, BG then OBJ), so
+they are the bytes the console writes, not a copy of the source.
 """
 from __future__ import annotations
 
@@ -30,10 +31,12 @@ def rgb555_to_rgb(value: int) -> tuple[int, int, int]:
     return tuple((value >> shift) & 31 for shift in (0, 5, 10))
 
 
-def palettes(rom: bytes, assembler) -> tuple[list[list[int]], list[list[int]]]:
+def palettes(rom: bytes, assembler, palette_set: int = 0) -> tuple[list[list[int]], list[list[int]]]:
+    """The BG and OBJ palettes of one set: 128 bytes per set from
+    `bg_palettes`, BG first, exactly as `init_palettes` uploads them."""
     out = []
-    for label in ("bg_palettes", "obj_palettes"):
-        base = assembler.labels[label]
+    for half in range(2):
+        base = assembler.labels["bg_palettes"] + palette_set * 128 + half * 64
         words = [rom[base + i] | (rom[base + i + 1] << 8) for i in range(0, 64, 2)]
         out.append([words[p * 4:(p + 1) * 4] for p in range(8)])
     return out[0], out[1]
@@ -85,19 +88,26 @@ def main(argv=None) -> int:
     parser.add_argument("--swatches", type=Path, help="write a swatch sheet PNG (authoring aid)")
     parser.add_argument("--propose", type=Path, help="an indexed PNG whose colours to match to a palette")
     parser.add_argument("--bg", action="store_true", help="match --propose against BG palettes instead of OBJ")
+    parser.add_argument("--set", type=int, default=0, help="palette set (episode) for --swatches and --propose")
     args = parser.parse_args(argv)
     rom, assembler, metadata = br.make_rom()
-    bg, obj = palettes(rom, assembler)
+    names = metadata["palette_set_names"]
+    if not 0 <= args.set < len(names):
+        raise SystemExit(f"--set: the build has sets 0..{len(names) - 1} ({', '.join(names)})")
     print(f"configuration {metadata['configuration_id']}")
-    print("\n".join(describe("BG", bg, BG_OWNERS)))
-    print("\n".join(describe("OBJ", obj, OBJ_OWNERS)))
+    for index, name in enumerate(names):
+        bg, obj = palettes(rom, assembler, index)
+        print(f"\npalette set {index} ({name})")
+        print("\n".join(describe("BG", bg, BG_OWNERS)))
+        print("\n".join(describe("OBJ", obj, OBJ_OWNERS)))
+    bg, obj = palettes(rom, assembler, args.set)
     if args.swatches:
         write_swatches(args.swatches, bg, obj)
-        print(f"swatches: {args.swatches}")
+        print(f"swatches (set {args.set}): {args.swatches}")
     if args.propose:
         colours = png_colours(args.propose)
         table, owners = (bg, BG_OWNERS) if args.bg else (obj, OBJ_OWNERS)
-        print(f"\n{args.propose}: RGB555 colours {colours}")
+        print(f"\n{args.propose}: RGB555 colours {colours} against set {args.set}")
         for index, distance in nearest(colours, table, skip_zero=not args.bg)[:3]:
             print(f"  palette {index} ({owners[index]}): distance {distance}")
     return 0

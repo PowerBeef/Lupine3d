@@ -66,25 +66,35 @@ There are eight BG and eight OBJ palettes and all sixteen are spoken for.
 fresh build, and `--propose asset.png` reports the nearest existing palette to
 an indexed PNG's colours, so a new asset is designed for a slot that exists.
 
+A build ships one **palette set** per episode (`outpost`, `reactor`, `spire`;
+a level's `palette_profile` names its set) as 128 bytes each in the
+`bg_palettes` table, BG then OBJ. `enter_world` uploads the level's set with
+the LCD off, so an episode recolours the world without touching a pattern.
+A set may change only the rows marked *per set* below; the others are the
+same bytes in every set, because screens never rewrite palettes and the
+weapon, drops and HUD must not change colour between sectors. Sets are
+authored in `make_palette_sets` (`tools/build_rom.py`) from the outpost set;
+`--set N` selects the set for `--swatches` and `--propose`.
+
 | BG | Owner |
 |---|---|
-| 0 | structure walls, upper half (ceiling colour 0, wall light and dark) |
+| 0 | structure walls, upper half (ceiling colour 0, wall light and dark), *per set* |
 | 1 | HUD (the steel palette in `steel_hud.py`) |
-| 2 | structure walls, lower half: colour 0 is the floor, so the Y-flipped upper patterns need no recolouring |
-| 3, 4 | door faces, upper and lower (cyan/white, reserved for functioning doors) |
-| 5, 6 | machinery faces, upper and lower (cool green) |
+| 2 | structure walls, lower half: colour 0 is the floor, so the Y-flipped upper patterns need no recolouring, *per set* |
+| 3, 4 | door faces, upper and lower (cyan/white in the outpost, amber in the reactor, violet on the spire; reserved for functioning doors), *per set* |
+| 5, 6 | machinery faces, upper and lower (cool green, coolant teal, signal amber), *per set* |
 | 7 | screens |
 
 | OBJ | Owner |
 |---|---|
 | 0 | weapon |
-| 1 | Sentinel (red armour) |
+| 1 | Sentinel (red armour; rust in the reactor, pale blue on the spire), *per set* |
 | 2 | drops (medkit, keycard) |
 | 3 | muzzle flash and decor |
 | 4 | decor and the reticle |
 | 5 | the weapon's lit corners |
-| 6 | warden (brass) |
-| 7 | skirmisher (cold blue) |
+| 6 | warden (brass; acid green, crimson), *per set* |
+| 7 | skirmisher (cold blue; violet, teal), *per set* |
 
 A fourth visible enemy kind or a new drop colour means re-planning this
 table, not adding to it (`AGENTS.md`, "Enemies and skill"). Depth shading in

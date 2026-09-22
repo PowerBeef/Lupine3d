@@ -49,6 +49,51 @@ from lupine3d_v4.texture_reference import reference_compose_textured_view  # noq
 from lupine3d_v4.packets import emit_packets
 from lupine3d_v4.physical_depth import emit_physical_depth
 
+def make_palette_sets(bg_values: list[int], obj_values: list[int]) -> list[tuple[list[int], list[int]]]:
+    """The per-episode palette sets, derived from the outpost set.
+
+    Set 0 is the outpost set exactly as given. The others recolour only what
+    an episode owns: the ceiling and floor, the structure, door and machinery
+    tones (BG 0, 2..6) and the three enemy kinds (OBJ 1, 6, 7). BG palette 1
+    (the steel HUD, which the screens also use) and BG 7, the weapon, the
+    drops, the muzzle flash, the decor and the reticle are the same bytes in
+    every set, so nothing outside the world changes colour between episodes.
+    """
+    def derive(ceiling, floor, wall, door, machinery, sentinel, warden, skirmisher):
+        bg = list(bg_values)
+        bg[0:4] = [ceiling, floor, *wall]
+        bg[8:12] = [floor, floor, *wall]
+        for upper, lower, tones in ((3, 4, door), (5, 6, machinery)):
+            bg[upper * 4:upper * 4 + 4] = [ceiling, floor, *tones]
+            bg[lower * 4:lower * 4 + 4] = [floor, floor, *tones]
+        obj = list(obj_values)
+        obj[4:8] = [0, *sentinel]
+        obj[24:28] = [0, *warden]
+        obj[28:32] = [0, *skirmisher]
+        return bg, obj
+
+    sets = [(list(bg_values), list(obj_values))]
+    # Reactor Deep: warmer, darker steel lit by amber doors, with coolant
+    # teal on the machinery; rust, acid and violet armour.
+    sets.append(derive(rgb15(1, 1, 2), rgb15(4, 3, 3), (rgb15(13, 11, 10), rgb15(5, 4, 5)),
+                       (rgb15(14, 8, 2), rgb15(28, 20, 6)), (rgb15(4, 13, 15), rgb15(2, 6, 8)),
+                       (rgb15(3, 2, 2), rgb15(22, 10, 3), rgb15(30, 22, 12)),
+                       (rgb15(2, 3, 2), rgb15(8, 16, 6), rgb15(22, 28, 12)),
+                       (rgb15(3, 1, 3), rgb15(17, 6, 20), rgb15(29, 20, 31))))
+    # Signal Spire: cold, brighter hull under a blue sky ceiling, violet doors
+    # and signal-amber machinery; pale, crimson and teal armour.
+    sets.append(derive(rgb15(2, 3, 7), rgb15(5, 6, 9), (rgb15(16, 18, 23), rgb15(7, 9, 14)),
+                       (rgb15(12, 5, 18), rgb15(26, 19, 31)), (rgb15(17, 12, 4), rgb15(8, 5, 2)),
+                       (rgb15(2, 2, 4), rgb15(9, 12, 22), rgb15(24, 26, 31)),
+                       (rgb15(4, 1, 1), rgb15(26, 6, 4), rgb15(31, 22, 18)),
+                       (rgb15(1, 3, 3), rgb15(5, 20, 18), rgb15(20, 31, 28))))
+    assert len(sets) == PALETTE_SET_COUNT
+    for bg, obj in sets[1:]:
+        assert bg[4:8] == bg_values[4:8] and bg[28:32] == bg_values[28:32]
+        assert obj[0:4] == obj_values[0:4] and obj[8:24] == obj_values[8:24]
+    return sets
+
+
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
     return [
@@ -147,6 +192,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # snapshot and its publication. Entered from boot and from any screen.
     a.label("enter_world")
     a.call("lcd_off")
+    # The level's palette set, with the LCD off: a screen never rewrites the
+    # palettes (it owns only BG palette 1), so the world's own set is the one
+    # thing a transition has to put back, and load_level has already chosen it.
+    a.call("init_palettes")
     a.ld_r_n("a", SONG_WORLD); a.call("music_start")
     a.call("init_vram"); a.call("prepare_hud_tiles"); a.call("update_hud_tiles"); a.call("init_oam")
     if FOREGROUND_PUBLICATION:
@@ -392,6 +441,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                                        (5, 6, rgb15(10, 14, 12), rgb15(4, 8, 7))):
         bg_palette_values[upper * 4:upper * 4 + 4] = [bg_palette_values[0], bg_palette_values[1], light, dark]
         bg_palette_values[lower * 4:lower * 4 + 4] = [bg_palette_values[1], bg_palette_values[1], light, dark]
+    palette_sets = make_palette_sets(bg_palette_values, obj_palette_values)
     # The padding this alignment costs depends on every byte emitted before
     # it, so the manifest reports it: a variant whose fixed code is a few
     # bytes longer can cross a page boundary here and pay up to 255 bytes
@@ -447,8 +497,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Palettes are cold startup data. Keeping them after the aligned hot tables
     # avoids wasting a complete 1 KiB alignment page as the resident art/UI
     # vocabulary grows.
-    a.label("bg_palettes"); a.bytes(words_le(bg_palette_values), "eight CGB BG palettes")
-    a.label("obj_palettes"); a.bytes(words_le(obj_palette_values), "two CGB OBJ palettes")
+    # One 128-byte set per episode, BG then OBJ, so init_palettes uploads a
+    # set as one run; set 0 is byte-identical to the single table it replaced
+    # and `obj_palettes` still names its OBJ half.
+    for index, (bg_values, obj_values) in enumerate(palette_sets):
+        a.label("bg_palettes" if index == 0 else f"bg_palettes_{index}")
+        a.bytes(words_le(bg_values), f"eight CGB BG palettes, set {index}")
+        a.label("obj_palettes" if index == 0 else f"obj_palettes_{index}")
+        a.bytes(words_le(obj_values), f"eight CGB OBJ palettes, set {index}")
 
     # Cold code, above $4000 in ROM bank 1. Nothing here switches a bank, runs
     # inside another section's bank window, or is reachable from an interrupt
@@ -576,6 +632,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "render_snapshot_wram_bank": 1,
         "sliding_door_geometry": "Q8 centre-plane finite segment, shared by rays/LOS/hitscan/radius collision",
         "actor_slot_capacity": MAX_ACTORS,
+        "palette_sets": PALETTE_SET_COUNT,
+        "palette_set_names": list(PALETTE_SET_NAMES),
         "active_actor_count": len(ACTIVE_LEVEL.entities),
         "entity_size_lods": [[16, 32], [16, 16], [8, 16]],
         "masked_obj_patterns": ENTITY_OAM_COUNT * 2,

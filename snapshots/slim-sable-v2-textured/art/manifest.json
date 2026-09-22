@@ -45,9 +45,9 @@
       "rgb_sha256": "b29aa0ebc658f79bf881598c6eca265f24ea53d6956bb78bd63cfa00e3bacc98",
       "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T05:05:12+00:00",
+      "accepted_at": "2026-09-22T18:06:35+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the update reaches this pose on a different accepted snapshot tick, so the Sentinel shows the other walk cel; every frame check including dynamic_tiles_exact against texture_reference passed unchanged"
+      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
     }
   }
 }

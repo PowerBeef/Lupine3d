@@ -35,7 +35,9 @@ bank from 241 (five levels per bank) at fixed offsets inside the slot, and the
 loader reads the bank and slot page from a resident directory by `LEVEL_INDEX`.
 The hot geometry path pays two fixed-WRAM loads per wall hit for it. The resident wall
 atlas is still chosen at build time, so every campaign level must declare the
-same VRAM and palette profile; `layout.py` rejects a campaign that disagrees.
+same VRAM profile; `layout.py` rejects a campaign that disagrees. The palette
+set is per level: the header byte the loader keeps in `PALETTE_SET` picks one
+of the three 128-byte sets that `enter_world` uploads with the LCD off.
 
 **Screens borrow the renderer's own scratch.** A full-screen mode owns the
 whole background with LCDC `$81` and VBlank only, and its patterns go into the

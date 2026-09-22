@@ -26,13 +26,18 @@ ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / 
 CAMPAIGN = level_codec.campaign(ROOT)
 ACTIVE_LEVEL = CAMPAIGN[0]
 LEVEL_COUNT = len(CAMPAIGN)
-# The resident wall atlas and palette set are chosen once, at build time: the
-# VRAM profile selects which of the two atlases stays resident and which is
-# banked. A campaign level that wanted the other profile would have to stream
-# its atlas through a transition, so require one profile for the whole run.
+# The resident wall atlas is chosen once, at build time: the VRAM profile
+# selects which of the two atlases stays resident and which is banked. A
+# campaign level that wanted the other profile would have to stream its atlas
+# through a transition, so require one profile for the whole run. The palette
+# set is not resident: every world entry uploads the set the level header
+# names, so episodes may differ.
 for _level in CAMPAIGN[1:]:
-    if (_level.vram_profile, _level.palette_profile) != (ACTIVE_LEVEL.vram_profile, ACTIVE_LEVEL.palette_profile):
-        raise ValueError(f"campaign level {_level.name!r} does not share the resident VRAM/palette profile")
+    if _level.vram_profile != ACTIVE_LEVEL.vram_profile:
+        raise ValueError(f"campaign level {_level.name!r} does not share the resident VRAM profile")
+PALETTE_SET_COUNT = len(level_codec.PALETTE_IDS)
+PALETTE_SET_NAMES = tuple(sorted(level_codec.PALETTE_IDS, key=level_codec.PALETTE_IDS.get))
+assert set(level_codec.PALETTE_IDS.values()) == set(range(PALETTE_SET_COUNT))
 SLIM_DISPLAY = RENDER_CONFIG["display"] == "slim"
 COMPACT_DISPLAY = RENDER_CONFIG["display"] != "legacy"
 SABLE_ART = RENDER_CONFIG["art"] == "sable-v2"

@@ -108,9 +108,16 @@ the renderer under the bank-1 snapshot, and they are deliberately outside the
 snapshot copy because they cannot change while a frame is in flight. The hot
 geometry path pays two fixed-WRAM loads per wall hit for this.
 
-The resident wall atlas and palette set are still chosen once, at build time,
-from the first level's `vram_profile`/`palette_profile`; `layout.py` rejects a
-campaign whose levels disagree.
+The resident wall atlas is still chosen once, at build time, from the first
+level's `vram_profile`; `layout.py` rejects a campaign whose levels disagree.
+The palette set is not resident: `load_level` keeps header byte 3 in the
+fixed-WRAM `PALETTE_SET`, and `enter_world` calls `init_palettes` with the LCD
+off, which uploads that set's 128 bytes (eight BG then eight OBJ palettes)
+from the `bg_palettes` table; a set past the table reads set 0. Sets differ
+only in what the world owns (ceiling, floor, structure, door and machinery
+tones, the three enemy kinds); BG palette 1 (the HUD, which the screens use),
+BG 7, the weapon, drops, muzzle flash, decor and reticle are the same bytes in
+every set, so a screen never has to restore anything.
 
 For the qualified v0.8 ROM, fixed code ended at `$3910` (1,776 bytes below
 `$4000`); resident data ended at `$73CD`, leaving **3,123 bytes** below `$8000`.
