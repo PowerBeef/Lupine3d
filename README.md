@@ -53,7 +53,7 @@ The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means 
 
 ## Performance and qualification
 
-Active 60-second scenarios measure **5.50–7.92 full geometry updates/s**, and the nine-image tour **6.611/s**, unchanged across all of the campaign work. Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second remains unmet.
+Active 60-second scenarios measure **6.80–10.27 full geometry updates/s** (v0.9: 5.53–8.15 on the same replays), and the slowest image of the nine-image tour **7.45/s** (v0.9: 6.611/s). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is met while turning and missed by less than 0.15/s in two more scenarios; it remains unmet in the other five.
 
 v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted, and v0.9 inherits it unchanged. Memory, graphics capacity and publication safety limits remain enforced.
 

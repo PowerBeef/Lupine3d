@@ -29,7 +29,7 @@ false. The previous release is retained in [the v0.9 report](TEST_REPORT_V09.md)
 
 | Lane | Result and scope |
 | --- | --- |
-| Regression suite | RESULT_TESTS |
+| Regression suite | 229 tests pass (`make test`), including the HBlank DMA model, streamed-publication safety and the compact-strips saving stated exactly over selector bytes and page alignment |
 | Slim emitted-ROM gate | `tools/check_sable.py` passes, now including streamed-publication windows on both sides of every historical budget boundary up to the maximal 96+32 packet, the HBlank bank-isolation check (every block lands with WRAM bank 2 mapped) and the LCD-off/chaining checks |
 | Display | `tools/check_display.py` passes; the legacy ROM is byte-identical to the one the v0.9 sources build |
 | Coherence/world/art routes | All pass; nine RGB fixtures match `sable_v10_capture_pixels.json`, eight of them identical to v0.9's; see **What changed visually** |
@@ -52,7 +52,21 @@ observes about 59.99 seconds of LCD intervals; host execution time is
 irrelevant. Recorded game-RAM writes after trial start: zero. The v0.9 column
 is the retained v0.9 evidence on the same replays.
 
-RESULT_SUSTAINED
+| Scenario | Full geometry/s | v0.9 | Full mean ms | v0.9 | Full worst ms | v0.9 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| turning | **10.27** | 8.15 | 97.33 | 122.37 | 117.46 | 150.69 |
+| moving fire | **9.89** | 7.55 | 101.05 | 132.28 | 133.98 | 167.44 |
+| walking turning | **9.87** | 7.55 | 101.19 | 132.28 | 133.97 | 167.42 |
+| closed door | **8.68** | 7.15 | 114.69 | 139.60 | 117.25 | 150.69 |
+| walking | **7.77** | 6.37 | 128.59 | 156.82 | 133.95 | 167.43 |
+| open door | **7.30** | 5.90 | 136.51 | 169.04 | 150.69 | 184.17 |
+| two actor corner | **6.80** | 5.53 | 146.95 | 180.34 | 234.40 | 284.63 |
+| opening door | **0.08** | 0.08 | 130.64 | 164.19 | 150.68 | 200.92 |
+
+Active scenarios deliver **6.80–10.27 full geometry updates/s**, against
+v0.9's 5.53–8.15 on the same replays: every scenario's mean full-update time
+falls by 17.8–23.0%, and its worst case by 18.2–25.0%. Zero input-queue
+overflows and zero unsafe GDMA starts in all eight trials.
 
 The opening-door trial intentionally becomes stationary after the door
 finishes; its full-update rate is wall-cache reuse, not moving-camera
@@ -60,14 +74,17 @@ throughput. Cached sprite/HUD presentations are counted separately and do not
 inflate these rates.
 
 On the host harness the nine-image tour falls from 866,119 to 674,644
-T-cycles per full update (**−22.1%**) and the living-world route from 719,567
-to 632,973 (**−12.0%**). Of the tour's saving, streaming alone is 102,378
+T-cycles per full update (**−22.1%**), its slowest image from 6.611 to 7.452
+driven updates/s, and the living-world route from 719,567 to 632,973
+(**−12.0%**). Of the tour's saving, streaming alone is 102,378
 cycles per update; the exact engine work is the rest.
 
 The original quality rule, `Q <= (B + P) / 2`, is the v0.8 acceptance
 exception: the owner explicitly accepted the art and viewport tradeoff, and
 this release does not re-litigate it. The ten-full-updates/s target is
-RESULT_TARGET.
+**met while turning (10.27/s)** for the first time, missed by less than
+0.15/s while moving and firing and while walking and turning, and still unmet
+in the five remaining scenarios; it is not a guarantee.
 
 ## What changed visually
 

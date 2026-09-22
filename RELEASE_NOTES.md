@@ -35,7 +35,9 @@ interval without moving a pixel.
 **Measured** on the host harness against the v0.9 ROM: the nine-image tour
 falls from 866,119 to 674,644 T-cycles per full update (−22.1%) and the
 living-world route from 719,567 to 632,973 (−12.0%). Sustained sixty-second
-full-geometry rates are in `docs/TEST_REPORT.md`.
+trials deliver 6.80–10.27 full geometry updates/s against v0.9's 5.53–8.15 on
+the same replays; turning reaches the ten-updates/s target for the first
+time. The table is in `docs/TEST_REPORT.md`.
 
 **Changed pixels:** six, in one capture of the nine-image tour — the helmet
 portrait's blink in `09_exit_approach`, because that update now completes one
