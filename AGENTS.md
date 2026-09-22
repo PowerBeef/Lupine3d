@@ -138,10 +138,13 @@ regression contract.
   composed column (`TEX_RUNS`, `TEX_WINDOWS`, `TEX_MASKS`). Runs split on
   face key, surface profile and the shade bit. Bank switches stay in the
   resident half (`tex_column_runs`); the row kernel is cold.
-- Measured on the coherence tour, the kernel costs about 200k T per full
-  update against the flat compositor's 60k, so the profile is not yet the
-  default: the emitted-kernel numbers and the missed gate are recorded in
-  `docs/TEXTURED_WALLS.md` and `research/results/textured_walls_lab_v2.json`.
+- Measured over every code region of the coherence tour, the kernel costs
+  about 270k T per full update against the flat compositor's 60k (tour mean
+  917k T against 675k), so the profile is not the default: the numbers, the
+  missed gate and what each part costs are in `docs/TEXTURED_WALLS.md` and
+  `research/results/textured_walls_lab_v2.json`. One-face columns run
+  `tex_column_single` with the accumulator, step and slot in registers
+  across the column; seam columns run `tex_compose_tile` per tile.
 
 ## Campaign, modes and screens
 

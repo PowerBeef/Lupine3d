@@ -110,10 +110,10 @@ re-runs this gate on the emitted ROM.
 
 *Re-evaluated after emission:* the table above is the pre-emission
 estimate (`textured_walls_lab_v1.json`). The kernel model now carries the
-costs measured on the emitted ROM, and the same lab and corpus give
-`textured_walls_lab_v2.json`: +96k T mean, +215k T p95, +10.6% intervals -
-the gate is not met. The measured numbers and their consequences are in
-"Cost, measured on the emitted ROM" below.
+costs measured over every code region of the emitted ROM, and the same lab
+and corpus give `textured_walls_lab_v2.json`: +211k T mean, +334k T p95,
++23.9% intervals - the gate is not met. The measured numbers and their
+consequences are in "Cost, measured on the emitted ROM" below.
 
 ## What was emitted (Phase 2b)
 
@@ -204,32 +204,50 @@ and `upload_hidden_page` drains whatever the last column left before the map.
 
 ### Cost, measured on the emitted ROM
 
-Cycles by code region on the coherence tour, mean per update (T-cycles):
+Cycles by code region over **every** region of the coherence tour, mean per
+full update (T-cycles). An earlier version of this table summed only the
+profiler's top regions and understated the kernel by a third; these are the
+complete figures.
 
-| Region | Textured | Flat |
-| --- | --- | --- |
-| row kernel (`tex_compose_run`, eight rows) | 93k | - |
-| column setup (change bits, records, shade, tables, window copy) | 50k | - |
-| boundary masks (tables and application) | 29k | - |
-| seam tiles (scratch and merge) | 10k | - |
-| tile bookkeeping, ring wait, map writes | 30k | 9k |
-| flat compositor (microstrips, atlas lookup) | - | 51k |
-| `compute_along` (Stage A) | 21k | - |
+| Kernel part | Textured |
+| --- | --- |
+| the rows (single-column and seam kernels) | 75k |
+| column setup (equality walks, records, shade, tables, window copy) | 61k |
+| per-tile bookkeeping of the single-column routine | 38k |
+| seam tiles (per-run compose and merge) | 32k |
+| boundary masks (outline pass and application) | 32k |
+| ring hand-off and idle spin | 21k |
+| map writes | 11k |
+| **kernel** | **270k** |
+| `compute_along` (Stage A) | 21k |
+| flat compositor it replaces (microstrips, atlas, map writes) | 60k |
 
-About 200k T of kernel against 60k of flat compositor: roughly +140k T per
-full update, one LCD interval. `research/textured_walls_lab.py` now carries
-these per-tile and per-column constants and, over the 700-pose corpus,
-models +96k T mean, +215k p95 and +10.6% LCD intervals, projecting the
-sustained rates at turning 8.8/s, walking 6.9/s and two-actor corner 6.1/s
-against v0.10's 10.27, 7.77 and 6.80 (`research/results/textured_walls_lab_v2.json`).
-The prototype gate's estimates (700/1,300 T per tile, no column cost) were
-optimistic by about 2x; the gate as written - +70k T mean, rates within 10% -
-is **not met** by this first emission, and the profile therefore stays
-opt-in. Exactness, publication safety and the pinned cores are all green,
-so the remaining work is performance, which Phase 5 takes up on this code
-with the profile above as its baseline: the column setup and the boundary
-masks are the largest reducible items, and per-frame pattern sharing
-(p95 63 unique of 160 raw) the largest structural one.
+The tour's full updates average 917k T against 675k on the flat build. A
+second round after the first emission took the setup from three change
+passes to equality walks with an early exit, folded the coverage pass into
+the mask application, entered the unrolled kernel at a run's first row so
+the rows above it are never composed, and gave one-face columns
+(`tex_column_single`, about three columns in four) a routine that keeps the
+accumulator, step and ring slot in registers across the column; that round
+saved about 30k T per update and was exact on every gate. Pattern sharing
+was measured and dropped: 44 of 85 tiles per frame are byte duplicates, but
+an exact key on the window and the accumulator finds 0.3 of them, so
+sharing needs a content hash whose cost matches its saving.
+
+`research/textured_walls_lab.py` carries these constants (1,500 T per
+interior tile, 3,360 per boundary tile, 2,280 more per seam tile, 4,650 per
+column) and over the 700-pose corpus models +211k T mean, +334k T p95 and
++23.9% LCD intervals, projecting the sustained rates at turning 7.7/s,
+walking 6.2/s and two-actor corner 5.6/s against v0.10's 10.27, 7.77 and
+6.80 (`research/results/textured_walls_lab_v2.json`). The prototype gate's
+estimates (700/1,300 T per tile, no column cost) were optimistic by about
+3x; the gate - +70k T mean, rates within 10% - is **not met**, and the
+profile stays opt-in. Exactness, publication safety and the pinned cores are
+green, so the rate is the whole tradeoff: textured walls at about three
+quarters of the flat frame rate. Closing that gap needs a structural change
+rather than trims - fewer composed rows (grouping screen rows that share a
+texture row on near walls, or half-height texel rows) or content-hashed
+pattern sharing - and is Phase 5's baseline.
 
 ### Not done in this phase
 

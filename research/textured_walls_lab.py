@@ -158,13 +158,16 @@ def textured_columns(pose, grid, doors) -> tuple[list[tx.TexturedColumn], dict]:
 # ----- cycle model ------------------------------------------------------------
 
 # Per-tile and per-column costs of the emitted kernel (tools/lupine3d_v4/
-# textured.py), measured by code region on the coherence tour with
-# LUPINE3D_TEXTURED_WALLS=1 (docs/TEXTURED_WALLS.md, "What was emitted"):
-# the eight-row kernel and its call, the boundary tile's mask tables and
-# their application, the extra run of a seam tile, and the column setup
-# (change bits, records, shade, tables and the window copy). The gate
-# before emission used the estimates 700/1300/600 and no column cost.
-KERNEL = {"interior": 1050, "boundary": 1770, "seam": 420, "column": 2500, "u_per_ray": 257, "u_per_pixel": 12,
+# textured.py), measured by code region over every region of the coherence
+# tour with LUPINE3D_TEXTURED_WALLS=1 (docs/TEXTURED_WALLS.md, "Cost"):
+# an interior tile is its eight rows plus the column routine's per-tile
+# bookkeeping; a boundary tile adds the outline pass and the mask
+# application; a seam tile adds the per-run compose and merge; a column
+# adds the run setup (change walks, records, shade, tables, the window
+# copy) and its share of the ring hand-off and the map copy. The gate
+# before emission used 700/1300/600 and no column cost; an earlier
+# recalibration from a truncated profile used 1050/1770/420/2500.
+KERNEL = {"interior": 1500, "boundary": 3360, "seam": 2280, "column": 4650, "u_per_ray": 257, "u_per_pixel": 12,
           "hblank_block": 64, "flat_dynamic": 6700, "flat_atlas_hit": 300}
 
 
