@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
+import math
 
 from .layout import *  # noqa: F401,F403
 from .resources import *  # noqa: F401,F403
@@ -32,6 +34,10 @@ class ReferenceRayHit:
     depth_q5: int
     segment_id: int
     surface_profile: int
+    # Position of the hit along the face it struck, Q8 within the cell (0..255),
+    # measured along the axis the face is parallel to, from that axis's low
+    # edge. This is the texture column's source; flat shading never reads it.
+    along_q8: int = 0
 
 
 def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
@@ -120,6 +126,15 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
             ny += 256
             err -= 256 * order_ax
 
+    # Exact along-face position: the coordinate perpendicular to the axis of
+    # travel, advanced by the axis distance in the ray's own proportions.
+    # Doors share the formula, since their panel sits on an axis plane too.
+    if axis == 0:
+        along_q8 = (Fraction(player_y_q8) + sy * Fraction(distance * order_ay, order_ax)) if order_ax else Fraction(player_y_q8)
+    else:
+        along_q8 = (Fraction(player_x_q8) + sx * Fraction(distance * order_ax, order_ay)) if order_ay else Fraction(player_x_q8)
+    along_q8 = int(math.floor(along_q8)) & 0xFF
+
     component = ax if axis == 0 else ay
     d32 = min(511, (distance + 4) >> 3)
     perp32 = 511 if component == 0 else min(511, (d32 * corr + component // 2) // component)
@@ -146,6 +161,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
         face_key=face_key, along=along & 0xFF,
         depth_q5=depth_q5, segment_id=segment_id,
         surface_profile=reference_level().surface_table[(my * 16 + mx) * 4 + side],
+        along_q8=along_q8,
     )
 
 
