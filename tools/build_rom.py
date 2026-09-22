@@ -306,6 +306,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # rather than VRAM patterns - but a distinct look costs an OBJ palette,
     # and exactly one was free. The record is a power of two so
     # actor_kind_record still indexes it by shifting.
+    # Two bytes per campaign level: the ROM bank and the page of its slot in
+    # that bank. select_level reads them by LEVEL_INDEX; a corrupt index past
+    # the campaign reads whatever follows, which is why the loader bounds it.
+    a.label("level_directory"); a.bytes(bytes(
+        byte for index in range(LEVEL_COUNT) for byte in level_location(index)),
+        "level bank and slot page per index")
     a.label("actor_kind_stats"); a.bytes(bytes((
         # damage, recovery, step, palette, drop, spare...
         8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # sentinel: Sable armour
@@ -635,9 +641,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "maximum_level_doors": MAX_DOORS,
         "campaign_levels": len(CAMPAIGN),
         "campaign_level_bank_base": LEVEL_ROM_BANK_BASE,
+        "campaign_levels_per_bank": LEVELS_PER_BANK,
+        "campaign_level_slot_pitch": LEVEL_SLOT_PITCH,
         "campaign_level_payload_bytes": LEVEL_PAYLOAD_END - 0x4000,
         "campaign": [
-            {"index": index, "name": level.name, "rom_bank": LEVEL_ROM_BANK_BASE + index,
+            {"index": index, "name": level.name, "rom_bank": level_location(index)[0],
+             "rom_page": level_location(index)[1],
              "doors": len(level.doors), "actors": len(level.entities),
              "fixtures": len(level.fixtures), "pickup_value": level.pickups[0].value,
              "walkable_cells": level.readability.walkable_cells,
@@ -739,10 +748,11 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     ))
     banked_atlas_start = BANKED_ATLAS_ROM_BANK * 0x4000
     rom[banked_atlas_start:banked_atlas_start + len(banked_atlas_payload)] = banked_atlas_payload
-    # Each campaign level owns a bank; the loader derives it from LEVEL_INDEX.
+    # Five campaign levels share a bank in page-aligned slots; the resident
+    # level_directory gives the loader each level's bank and slot page.
     for index, level in enumerate(CAMPAIGN):
         payload = make_level_payload(level)
-        start = (LEVEL_ROM_BANK_BASE + index) * 0x4000
+        start = level_rom_offset(index)
         rom[start:start + len(payload)] = payload
     boot_payload = b"".join(payload for _, payload in make_boot_assets())
     boot_start = BOOT_ASSETS_ROM_BANK * 0x4000

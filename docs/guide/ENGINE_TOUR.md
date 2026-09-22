@@ -63,7 +63,7 @@ subcommands spawn the right process for you.
 - `screens.py` owns the title, code entry, intermission, death and ending
   modes: full-screen backgrounds composed with the LCD off into the idle
   pattern window, with runtime digit cells for scores and continue codes.
-- `levels.py` compiles JSON levels into one ROM bank each and issues the
+- `levels.py` compiles JSON levels into page-aligned ROM slots, five to a bank, and issues the
   certificate (`docs/LEVEL_FORMAT.md`, `docs/LEVEL_CERTIFICATE.md`).
 - `music.py` holds the songs and the sequencer; `artwork.py`,
   `sprite_assets.py` and `texture_assets.py` compile the native art

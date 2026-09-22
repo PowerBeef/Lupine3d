@@ -20,7 +20,7 @@ longer gate anything (the files are retained under `playtests/archive/oracles/`)
 | Independent cores: pinned SameBoy CGB-0/CGB-E and mGBA produce byte-identical RGB to the host over the frozen witness scenes and the 480-frame script | `tools/independent_witnesses.py`, `tools/sameboy_verify.py`, `tools/mgba_verify.py` |
 | The frozen v1 ROM hash and deterministic rebuilds; the legacy profile byte-identical to its previous sources | `tests/test_engine.py`, `tools/check_display.py` |
 | Level compiler certificates for every campaign level | `tools/lupine3d_v4/levels.py`, `tools/release_check.py` |
-| Controller-only completion of every sector with zero game-RAM writes | `tools/playthrough.py` |
+| Controller-only completion of every sector with zero game-RAM writes (`--sectors A-B` plays a range, entering a later start by typing its continue code on the title; the failure report lists every combat exchange) | `tools/playthrough.py` |
 
 Never weaken one of these to pass. If a gate and the ROM disagree, one of
 them has a bug; find which.

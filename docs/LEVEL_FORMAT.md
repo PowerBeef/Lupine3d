@@ -153,8 +153,12 @@ or the reachability rule.
 
 ## Compiled payload
 
-Each campaign level owns one 16 KiB ROM bank from `LEVEL_ROM_BANK_BASE`
-(241) at fixed offsets, so the loader needs a bank number and no directory:
+Campaign levels are packed five to a 16 KiB ROM bank from
+`LEVEL_ROM_BANK_BASE` (241), in page-aligned slots of `LEVEL_SLOT_PITCH`
+(2,816) bytes, at fixed offsets inside the slot. A resident directory gives
+the loader each level's bank and slot page (`level_location(index)`), and
+every reader adds the page to the high byte of its offset, so the offsets
+below are the first slot's:
 
 | Offset | Bytes | Contents |
 |---|---|---|
@@ -167,7 +171,7 @@ Each campaign level owns one 16 KiB ROM bank from `LEVEL_ROM_BANK_BASE`
 | `$4980` | 256 | sixteen sixteen-byte fixture records |
 
 `levels.py` names these offsets; `docs/ARCHITECTURE.md` explains how
-`LEVEL_INDEX`/`LEVEL_BANK` select a level at runtime.
+`LEVEL_INDEX`, `LEVEL_BANK` and `LEVEL_PAGE` select a level at runtime.
 
 ## Tiled (TMX) mapping
 

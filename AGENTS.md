@@ -164,12 +164,15 @@ regression contract.
   the map, the camera, the 128-byte world window and the actor slots). Per-level
   constants (`ACTOR_COUNT`, the palette set, weapons owned, the level page) are
   fixed-WRAM campaign scalars written by `load_level` with the LCD off.
-- Level selection is runtime, not an assembled immediate. Each campaign level
-  owns one ROM bank from `LEVEL_ROM_BANK_BASE` at the fixed offsets in
-  `levels.py`; `LEVEL_INDEX`/`LEVEL_BANK` live in fixed WRAM outside the
-  snapshot copy and only change with the LCD off. The surface table must stay
-  exactly 1,024 bytes above the segment table: `lookup_segment_id` reads both
-  through one pointer. Every level bank read restores ROM bank 1.
+- Level selection is runtime, not an assembled immediate. Campaign levels are
+  packed five to a ROM bank from `LEVEL_ROM_BANK_BASE` in page-aligned slots
+  (`LEVEL_SLOT_PITCH`) at the fixed offsets in `levels.py`; the resident
+  `level_directory` gives `select_level` each level's bank and slot page, and
+  every reader adds the page with `add_level_page`. `LEVEL_INDEX`,
+  `LEVEL_BANK` and `LEVEL_PAGE` live in fixed WRAM outside the snapshot copy
+  and only change with the LCD off. The surface table must stay exactly 1,024
+  bytes above the segment table: `lookup_segment_id` reads both through one
+  pointer. Every level bank read restores ROM bank 1.
 - All campaign levels share one `vram_profile` and `palette_profile`: the
   resident atlas is still chosen at build time and `layout.py` rejects a
   campaign that disagrees. Lifting that needs atlas streaming, not a new flag.
@@ -334,7 +337,7 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | --- | --- |
 | Art/HUD/palettes/fixtures | `make playtest-art`; `tools/check_sable.py`; inspect emitted-ROM stills and motion |
 | Display dimensions/folding | `tools/check_display.py`; variants; boundary/publication checks |
-| Movement/doors/combat/progression | `make playthrough variants`; `tools/playthrough.py --restart` |
+| Movement/doors/combat/progression | `make playthrough variants`; `tools/playthrough.py --restart`; `--sectors A-B` replays one sector through its continue code |
 | Geometry/composition/cache/timing | `make variants wall-reuse motion`; `make research-tail` for traversal/projection |
 | CPU/banks/interrupts/DMA/publication | Both pinned `make sameboy` and `make mgba`; `tools/independent_witnesses.py` |
 | Assembler or harness opcode/flag semantics | `make conformance SAMEBOY_DIR=…` (`tools/harness_conformance.py`): every emitted form, harness vs SameBoy |

@@ -19,11 +19,64 @@ from playtest import validate_frame, oam_budget, make_contact_sheet
 from sm83emu import CGB, parse_symbols, run_to_world
 
 
-def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapshot_mode="record"):
+def enter_sector(cgb, level: int) -> None:
+    """Start the campaign at sector `level` (0-based) the way a player would:
+    the continue code the ROM prints for it, typed on the title with the
+    controller. Nothing is written to game RAM; the code table is the build's."""
+    from lupine3d_v4.screens import continue_codes
+    cgb.button_provider = lambda *_: 0
+    for _ in range(2_000_000):
+        if cgb.read8(br.GAME_MODE) == br.MODE_TITLE and cgb.io[0x40] & 0x80:
+            break
+        cgb.step()
+    else:
+        raise AssertionError("the title never appeared")
+
+    def press(button, steps=160_000):
+        # Selection follows rising edges, so every press is a release too.
+        for held in (button, 0):
+            cgb.button_provider = lambda *_, value=held: value
+            for _ in range(steps):
+                cgb.step()
+
+    code = continue_codes(br.LEVEL_COUNT, br.DIFFICULTY_LEVELS)[level * br.DIFFICULTY_LEVELS + cgb.read8(br.DIFFICULTY)]
+    press(0x40)                                   # SELECT opens code entry
+    assert cgb.read8(br.SCREEN_INDEX) == br.SCREEN_PASSWORD, "SELECT did not open code entry"
+    for index, digit in enumerate(code):
+        for _ in range(digit):
+            press(0x04)                           # up rolls the digit
+        if index < len(code) - 1:
+            press(0x01)                           # right moves the cursor
+    assert [cgb.read8(br.SCREEN_DIGITS + i) for i in range(br.PASSWORD_DIGITS)] == list(code)
+    press(0x80)                                   # START accepts
+    cgb.button_provider = lambda *_: 0
+    for _ in range(2_000_000):
+        if cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == cgb.symbols["main_loop"]:
+            break
+        cgb.step()
+    else:
+        raise AssertionError(f"the code for sector {level + 1} did not start the world")
+    assert cgb.read8(br.LEVEL_INDEX) == level, (cgb.read8(br.LEVEL_INDEX), level)
+    cgb.button_provider = None
+
+
+def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapshot_mode="record",
+        sectors=None):
     output.mkdir(parents=True, exist_ok=True)
     rom = (rom_path or br.BUILD / "lupine3d.gb").read_bytes()
     cgb = CGB(rom, parse_symbols(symbols_path or br.BUILD / "lupine3d.sym"))
+    # The route follows the ROM under test, not the build-time source: a
+    # pinned baseline carries one compile-time level and no results screens.
+    campaign = br.CAMPAIGN if "select_level" in cgb.symbols else br.CAMPAIGN[:1]
+    first, last = sectors or (1, len(campaign))
+    if not 1 <= first <= last <= len(campaign):
+        raise ValueError(f"sectors {first}-{last} are not within 1-{len(campaign)}")
+    if restart and last != len(campaign):
+        raise ValueError("--restart needs the route to reach the last sector")
+    if first > 1:
+        enter_sector(cgb, first - 1)
     run_to_world(cgb)
+    watchdog = 1200 * (last - first + 1)
     records, captures, sectors = [], [], []
     # The route's captures are reviewable snapshots (suite `route`), recorded
     # rather than checked by default: where a capture lands depends on the
@@ -56,8 +109,8 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         return controller
 
     def step(keys=0):
-        if len(records) >= 6000:
-            raise AssertionError("controller route exceeded 6000-update watchdog")
+        if len(records) >= watchdog:
+            raise AssertionError(f"controller route exceeded its {watchdog}-update watchdog")
         cgb.button_provider = latch(keys)
         cycles = cgb.cycles
         cgb.run(until_presentations=cgb.presentations + 1, max_steps=3_000_000)
@@ -205,10 +258,13 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                  "flags": live8(base + br.DOOR_FLAGS_OFFSET), "state": live8(base + br.DOOR_STATE_OFFSET)}
                 for base in (br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES for index in range(live8(br.DOOR_COUNT)))]
 
+    exchanges = []  # one record per combat exchange, for the failure report
+
     def situation():
         """Everything a stalled route needs in its report to be diagnosable."""
         return (f"pose={pose()} health={live8(br.PLAYER_HEALTH)} keys={live8(br.PLAYER_KEYS)} "
-                f"weapon={live8(br.WEAPON_INDEX)} actors={actors()} doors={doors()}")
+                f"weapon={live8(br.WEAPON_INDEX)} actors={actors()} doors={doors()} "
+                f"last exchanges={exchanges[-8:]}")
 
     def living():
         return [actor for actor in actors() if actor["state"] != br.SENTINEL_DEAD]
@@ -228,7 +284,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             return None
         return min(alive, key=lambda a: max(abs(a["x"] - px), abs(a["y"] - py)))
 
-    def has_sight(actor):
+    def has_sight(actor, origin=None):
         """Walk the live map along the shot. Proximity is not a clear line, and
         a closed panel counts as cover, so the route never fires into a wall.
 
@@ -236,7 +292,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         two cells it squeezes between are checked as well: a shot does not pass
         through a wall corner, whatever the sampling rate.
         """
-        px, py, _ = pose()
+        px, py = pose()[:2] if origin is None else origin
         solid = lambda cx, cy: live8(br.MAP + cy * 16 + cx)
         steps = max(abs(actor["x"] - px), abs(actor["y"] - py)) // 32 + 1
         cell = px >> 8, py >> 8
@@ -270,6 +326,21 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
 
     hold_aim = [False]  # set while an exchange has proved that kiting settles nothing
 
+    kind_stats = cgb.symbols.get("actor_kind_stats")
+
+    def contact_damage(actor):
+        """What one AI tick beside this actor costs, from the ROM's own kind table."""
+        if kind_stats is None:
+            return 8
+        authored = rom[kind_stats + (actor["kind"] & 3) * br.ACTOR_KIND_RECORD_BYTES]
+        return (authored // 2, authored, authored + authored // 2)[live8(br.DIFFICULTY)]
+
+    def survives_contact(actor):
+        # Standing beside an actor costs a contact per AI tick until the shot
+        # lands; a warden takes a third of the bar each time. Only close in
+        # when two of them still leave the route alive.
+        return live8(br.PLAYER_HEALTH) > 2 * contact_damage(actor)
+
     def aiming():
         # Re-pick the nearest survivor every interval: whoever closed to
         # contact is the one answering fire, not the one we set out to kill.
@@ -291,6 +362,38 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         contact = abs(dx) < 512 and abs(dy) < 512 and not hold_aim[0]
         return ((1 if delta > 0 else 2) if delta else 0) | (8 if contact else 0) | \
                (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
+
+    def firing_cell(actor):
+        """The nearest reachable cell two to five cells from the actor with a
+        host line to it. The ROM's contact rule is cell adjacency, diagonals
+        included, so an actor across a wall corner can reach the route while
+        no shot reaches it: the answer is to leave the adjacency and shoot
+        from a cell with a line, never to stand there trading health."""
+        ax, ay = actor["x"] >> 8, actor["y"] >> 8
+        best = None
+        for cy in range(1, 15):
+            for cx in range(1, 15):
+                distance = max(abs(cx - ax), abs(cy - ay))
+                if not 2 <= distance <= 6 or live8(br.MAP + cy * 16 + cx):
+                    continue
+                if not has_sight(actor, origin=(cx * 256 + 128, cy * 256 + 128)):
+                    continue
+                path = path_to((cx, cy), reachable_only=True)
+                if path is None or any(max(abs(x - ax), abs(y - ay)) <= 1 for x, y in path):
+                    continue                   # never walk past it to get there
+                # A cell on the actor's own row or column first, and the
+                # farther the better: a chaser then comes straight down the
+                # line of fire and stays in the crosshair while it does.
+                rank = (0 if cx == ax or cy == ay else 1, -distance if cx == ax or cy == ay else len(path))
+                if best is None or rank < best[0]:
+                    best = (rank, (cx, cy))
+        return None if best is None else best[1]
+
+    def face(actor):
+        """Turn to the actor at once: the walk away leaves the route facing the
+        wrong way, and every update spent turning under a chaser costs health."""
+        px, py, _ = pose()
+        turn(round(math.atan2(actor["y"] - py, actor["x"] - px) * 256 / math.tau) & 255)
 
     def reposition(actor):
         """The cell to shoot from next when firing from here settles nothing."""
@@ -361,21 +464,72 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             px, py, _ = pose()
             contact = abs(target["x"] - px) < 512 and abs(target["y"] - py) < 512
             # Two exchanges that settled nothing mean kiting is what keeps the
-            # shot off the actor: stand and hold the aim for the next one.
-            hold_aim[0] = fruitless.get(target["slot"], 0) >= 2
+            # shot off the actor: stand and hold the aim for the next one -
+            # unless standing still beside it would be the death of the route.
+            # Holding still beside an actor that is already chasing or attacking
+            # is how the route dies; kiting is right against one that comes.
+            hold_aim[0] = (fruitless.get(target["slot"], 0) >= 2 and survives_contact(target)
+                           and target["state"] not in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK))
+            start_health = live8(br.PLAYER_HEALTH)
+            record = {"update": len(records), "target": target["slot"], "kind": target["kind"],
+                      "state": target["state"], "at": (target["x"], target["y"]), "from": (px, py),
+                      "health": start_health, "target_health": target["health"],
+                      "contact": contact, "hold": hold_aim[0]}
             while living() and engageable() and cgb.frame_count - exchange < (120 if contact else 300):
                 step(aiming)
+                # Two contacts taken and nothing dealt: this line does not
+                # reach it, and every further frame here only costs health.
+                if (live8(br.PLAYER_HEALTH) <= start_health - 2 * contact_damage(target)
+                        and next((a["health"] for a in actors() if a["slot"] == target["slot"]), 0) == target["health"]):
+                    record["decision"] = "cut short"
+                    break
             hold_aim[0] = False
             survivor = nearest_living(walkable=True)
+            after = next((a for a in actors() if a["slot"] == target["slot"]), target)
+            record.update(frames=cgb.frame_count - exchange, target_health_after=after["health"],
+                          target_state_after=after["state"], health_after=live8(br.PLAYER_HEALTH))
+            exchanges.append(record)
+            px, py, _ = pose()
+            adjacent = abs((px >> 8) - (after["x"] >> 8)) <= 1 and abs((py >> 8) - (after["y"] >> 8)) <= 1
+            if after["state"] != br.SENTINEL_DEAD and after["health"] == target["health"] and adjacent:
+                # Beside it and nothing landed: the ROM's ray is blocked by a
+                # corner its contact rule ignores. Leave the adjacency for the
+                # nearest cell with a line and hold the aim from there.
+                cell = firing_cell(after)
+                if cell is not None:
+                    record["decision"] = f"firing position {cell}"
+                    fruitless[target["slot"]] = max(fruitless.get(target["slot"], 0), 2)
+                    navigate(cell)
+                    chaser = next((a for a in living() if a["slot"] == target["slot"]), None)
+                    if chaser is not None:
+                        face(chaser)
+                    continue
             if len(living()) < opening:
                 fruitless.clear()
             elif survivor is not None:
                 count = fruitless[survivor["slot"]] = fruitless.get(survivor["slot"], 0) + 1
-                if count >= 4:
-                    # Nothing shot from anywhere nearby has reached it: walk
-                    # onto its own cell, where no corner is left to hide behind.
+                awake = survivor["state"] in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK)
+                if count >= 4 and (awake or not survives_contact(survivor)):
+                    # Walking onto an actor that is already coming, or one the
+                    # bar cannot afford to stand beside, is how the route dies:
+                    # a warden takes a third of it per contact and a long walk
+                    # is many contacts. Take a drop already on the floor if one
+                    # is reachable, otherwise change the line from one cell
+                    # away and keep trading from range; it will come to us.
+                    fruitless[survivor["slot"]] = 2
+                    record["decision"] = "reposition"
+                    if any(a["pickup"] and path_to((a["x"] >> 8, a["y"] >> 8), reachable_only=True) is not None
+                           for a in actors()) and not survives_contact(survivor):
+                        collect_drops()
+                    else:
+                        navigate(reposition(survivor))
+                elif count >= 4:
+                    # Nothing shot from anywhere nearby has reached a dormant
+                    # or patrolling actor: walk onto its own cell, where no
+                    # corner is left to hide behind, while the bar can take it.
                     fruitless[survivor["slot"]] = 0
-                    navigate((survivor["x"] >> 8, survivor["y"] >> 8))
+                    record["decision"] = "close in"
+                    navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=lambda: not survives_contact(survivor))
                 elif engageable(survivor):
                     # The shot had a host-side line but the ROM's exact centre
                     # ray did not reach the actor: it stands against a corner
@@ -404,13 +558,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         drive(0, lambda: cgb.pc == cgb.symbols["main_loop"], "the world never came back")
         cgb.button_provider = None; cgb.buttons = 0
 
-    # The route follows the ROM under test, not the build-time source: a
-    # pinned baseline carries one compile-time level and no results screens.
-    campaign = br.CAMPAIGN if "select_level" in cgb.symbols else br.CAMPAIGN[:1]
-    for index, level in enumerate(campaign):
+    for index in range(first - 1, last):
+        level = campaign[index]
         if "select_level" in cgb.symbols:
             assert cgb.read8(br.LEVEL_INDEX) == index, (index, cgb.read8(br.LEVEL_INDEX))
-            assert cgb.read8(br.LEVEL_BANK) == br.LEVEL_ROM_BANK_BASE + index
+            assert (cgb.read8(br.LEVEL_BANK), cgb.read8(br.LEVEL_PAGE)) == br.level_location(index)
         assert bytes(live8(br.MAP + cell) for cell in range(256)) == level.grid
         opened = len(records)
         capture(f"sector{index + 1}_start")
@@ -432,7 +584,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                         "actors": live8(br.ACTOR_COUNT), "health_remaining": live8(br.PLAYER_HEALTH)})
         capture(f"sector{index + 1}_complete")
         print(f"Sector {index + 1} ({level.name}) complete after {len(records)} updates", flush=True)
-        if index + 1 < len(campaign):
+        if index + 1 < last:
             generation = cgb.read16(br.WALL_EPOCH)
             cross_screen(br.MODE_INTERMISSION, f"sector{index + 2}_intermission")
             assert cgb.read16(br.WALL_EPOCH) != generation
@@ -462,7 +614,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
               "schema":"lupine3d.controller-route.v3","input_replay_sha256":hashlib.sha256(tape).hexdigest(),
               "input_replay_encoding":"one controller byte per LCD interval; adaptive controller recorded for replay",
               "lcd_intervals":len(tape),"completion_update":completed_at,"restart_verified":restart,
-              "campaign_levels":len(campaign),"sectors":sectors,
+              "campaign_levels":len(campaign),"sector_range":[first, last],"sectors":sectors,
               "update_count": len(records), "health_remaining": cgb.read8(br.PLAYER_HEALTH),
               "sentinel_dead": True, "pickup_collected": True, "level_complete": True,
               "unsafe_gdma_starts": cgb.gdma_vblank_violations, "updates": records}
@@ -481,7 +633,13 @@ if __name__ == "__main__":
     parser.add_argument("--rom",type=Path);parser.add_argument("--symbols",type=Path)
     parser.add_argument("--restart",action="store_true")
     parser.add_argument("--snapshot-mode",choices=("check","record","none"),default="record")
+    parser.add_argument("--sectors",help="play sectors A-B (1-based, inclusive) instead of the whole campaign; "
+                                          "a start past 1 is entered with that sector's continue code")
     args=parser.parse_args()
     if bool(args.rom)!=bool(args.symbols):parser.error("Supply ROM and symbols together")
+    sectors=None
+    if args.sectors:
+        first,_,last=args.sectors.partition("-")
+        sectors=(int(first),int(last or first))
     run(args.output_dir,rom_path=args.rom,symbols_path=args.symbols,restart=args.restart,
-        snapshot_mode=None if args.snapshot_mode=="none" else args.snapshot_mode)
+        snapshot_mode=None if args.snapshot_mode=="none" else args.snapshot_mode,sectors=sectors)

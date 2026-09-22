@@ -274,12 +274,15 @@ def main() -> None:
             and 1 <= level["actors"] <= 4 and level["fixtures"] <= 16
             for level in v2_manifest["campaign"]
         ),
-        "campaign_level_banks_distinct": (
-            [level["rom_bank"] for level in v2_manifest["campaign"]]
-            == list(range(int(v2_manifest["campaign_level_bank_base"]),
-                          int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"])))
-            and int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"]) <= 256
-            and int(v2_manifest["campaign_level_payload_bytes"]) <= 0x4000
+        "campaign_level_slots_distinct": (
+            len({(level["rom_bank"], level["rom_page"]) for level in v2_manifest["campaign"]})
+            == int(v2_manifest["campaign_levels"])
+            and all(int(v2_manifest["campaign_level_bank_base"]) <= level["rom_bank"] < 256
+                    and 0 <= level["rom_page"] * 256 < 0x4000
+                    and level["rom_page"] * 256 + int(v2_manifest["campaign_level_payload_bytes"]) <= 0x4000
+                    for level in v2_manifest["campaign"])
+            and int(v2_manifest["campaign_level_payload_bytes"]) <= int(v2_manifest["campaign_level_slot_pitch"])
+            and int(v2_manifest["campaign_levels_per_bank"]) * int(v2_manifest["campaign_level_slot_pitch"]) <= 0x4000
         ),
         "campaign_route_completed_every_sector": (
             len(completion["sectors"]) == int(v2_manifest["campaign_levels"])

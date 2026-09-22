@@ -175,7 +175,7 @@ class ContinueCodeTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.LEVEL_INDEX), level)
         self.assertEqual(cgb.read8(br.DIFFICULTY), skill)
         self.assertEqual(cgb.read8(br.GAME_MODE), br.MODE_PLAYING)
-        self.assertEqual(cgb.read8(br.LEVEL_BANK), br.LEVEL_ROM_BANK_BASE + level)
+        self.assertEqual((cgb.read8(br.LEVEL_BANK), cgb.read8(br.LEVEL_PAGE)), br.level_location(level))
         self.assertEqual(bytes(cgb.wramx[2][br.MAP - 0xD000:br.MAP - 0xD000 + 256]),
                          br.CAMPAIGN[level].grid)
 
@@ -237,7 +237,7 @@ class ModeMachineTests(unittest.TestCase):
             "START did not restore the world")
         self.assertEqual(cgb.io[0x40], br.BG_LCDC)
         self.assertEqual(cgb.read8(br.LEVEL_INDEX), expected_level)
-        self.assertEqual(cgb.read8(br.LEVEL_BANK), br.LEVEL_ROM_BANK_BASE + expected_level)
+        self.assertEqual((cgb.read8(br.LEVEL_BANK), cgb.read8(br.LEVEL_PAGE)), br.level_location(expected_level))
         self.assertEqual(bytes(cgb.wramx[2][br.MAP - 0xD000:br.MAP - 0xD000 + 256]),
                          br.CAMPAIGN[expected_level].grid)
         self.assertEqual(cgb.wramx[2][br.PLAYER_HEALTH - 0xD000], 99)

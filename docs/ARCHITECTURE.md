@@ -75,14 +75,17 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 238 | Cold raw ray vectors and camera-plane offset/correction tables |
 | 239 | Authored full-screen presentation (title, results, intermission) |
 | 240 | Songs and the sequencer's note periods |
-| 241+ | Campaign levels, one per bank |
+| 241+ | Campaign levels, five per bank in page-aligned slots |
 | … –255 | Unallocated cartridge capacity |
 
 ### Campaign levels
 
-Level selection is a runtime value, not an assembled immediate. Each compiled
-level occupies one bank from `LEVEL_ROM_BANK_BASE` (241) at fixed offsets, so
-the loader needs only a bank number and no directory:
+Level selection is a runtime value, not an assembled immediate. Compiled
+levels are packed five to a bank from `LEVEL_ROM_BANK_BASE` (241) in
+page-aligned slots of `LEVEL_SLOT_PITCH` (2,816) bytes, at fixed offsets
+inside the slot; the resident `level_directory` gives `select_level` each
+level's bank and slot page, and every reader adds the page to the high byte of
+its offset (`add_level_page`). The first slot's offsets are:
 
 | Offset | Contents |
 | --- | --- |
@@ -96,11 +99,11 @@ the loader needs only a bank number and no directory:
 
 `lookup_segment_id` reads the segment and its surface profile through one
 pointer, so the surface table must stay exactly 1,024 bytes above the segment
-table. `LEVEL_INDEX` and the derived `LEVEL_BANK` live in fixed WRAM: they are
-written with the LCD off during a transition and read by the renderer under the
-bank-1 snapshot, and they are deliberately outside the snapshot copy because
-they cannot change while a frame is in flight. The hot geometry path pays one
-extra fixed-WRAM load per wall hit for this.
+table. `LEVEL_INDEX` and the derived `LEVEL_BANK` and `LEVEL_PAGE` live in
+fixed WRAM: they are written with the LCD off during a transition and read by
+the renderer under the bank-1 snapshot, and they are deliberately outside the
+snapshot copy because they cannot change while a frame is in flight. The hot
+geometry path pays two fixed-WRAM loads per wall hit for this.
 
 The resident wall atlas and palette set are still chosen once, at build time,
 from the first level's `vram_profile`/`palette_profile`; `layout.py` rejects a

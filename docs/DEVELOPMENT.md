@@ -95,6 +95,7 @@ See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapsh
 ```sh
 make playthrough variants wall-reuse motion
 python tools/playthrough.py --restart
+python tools/playthrough.py --sectors 3-3 --output-dir build/playthrough_s3  # one sector, entered by its continue code
 python tools/check_sable.py --output-dir build/v09/art-checks
 python tools/check_display.py --output-dir build/v09/display
 make preview

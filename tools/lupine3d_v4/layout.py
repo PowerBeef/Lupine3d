@@ -526,6 +526,11 @@ DOOR_RECORD_BYTES = level_codec.DOOR_RECORD_BYTES
 MAX_FIXTURES = level_codec.MAX_FIXTURES
 LEVEL_HEADER_BYTES = level_codec.LEVEL_HEADER_BYTES
 LEVEL_ROM_BANK_BASE = level_codec.LEVEL_ROM_BANK_BASE
+LEVELS_PER_BANK = level_codec.LEVELS_PER_BANK
+LEVEL_SLOT_PITCH = level_codec.LEVEL_SLOT_PITCH
+level_location = level_codec.level_location
+level_rom_offset = level_codec.level_rom_offset
+LEVEL_BANK_COUNT = (LEVEL_COUNT + LEVELS_PER_BANK - 1) // LEVELS_PER_BANK
 LEVEL_SEGMENT_OFFSET = level_codec.LEVEL_SEGMENT_OFFSET
 LEVEL_SURFACE_OFFSET = level_codec.LEVEL_SURFACE_OFFSET
 LEVEL_GRID_OFFSET = level_codec.LEVEL_GRID_OFFSET
@@ -534,8 +539,15 @@ LEVEL_DOOR_OFFSET = level_codec.LEVEL_DOOR_OFFSET
 LEVEL_ACTOR_OFFSET = level_codec.LEVEL_ACTOR_OFFSET
 LEVEL_FIXTURE_OFFSET = level_codec.LEVEL_FIXTURE_OFFSET
 LEVEL_PAYLOAD_END = level_codec.LEVEL_PAYLOAD_END
-if LEVEL_ROM_BANK_BASE + LEVEL_COUNT > 256:
+if LEVEL_ROM_BANK_BASE + LEVEL_BANK_COUNT > 256:
     raise ValueError("campaign level banks exceed the 4 MiB MBC5 image")
+
+
+def add_level_page(a) -> None:
+    """HL = HL + (LEVEL_PAGE << 8): from a slot-relative level offset to the
+    running level's slot. Six M-cycles; A is clobbered, HL cannot carry
+    because every offset plus its index stays inside the slot."""
+    a.ld_a_abs(LEVEL_PAGE); a.add_a_r("h"); a.ld_r_r("h", "a")
 DOOR_X_OFFSET = level_codec.DOOR_X
 DOOR_Y_OFFSET = level_codec.DOOR_Y
 DOOR_ORIENTATION_OFFSET = level_codec.DOOR_ORIENTATION

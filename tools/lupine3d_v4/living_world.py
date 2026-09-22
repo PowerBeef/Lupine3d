@@ -8,20 +8,24 @@ from .resources import make_entity_tiles, make_oam_shadow  # noqa: F401
 
 
 def emit_level_loader(a: Assembler) -> None:
-    # LEVEL_INDEX selects the campaign level; its bank is the only variable in
-    # the payload, which is laid out at fixed offsets (see levels.py). Derive
-    # LEVEL_BANK once here so the hot segment lookup only has to read a byte.
+    # LEVEL_INDEX selects the campaign level. Its bank and the page of its slot
+    # in that bank are the only variables in the payload, which is laid out at
+    # fixed offsets inside the slot (see levels.py); the resident directory
+    # gives both, so the hot segment lookup only has to read two bytes.
     a.label("select_level")
-    a.ld_a_abs(LEVEL_INDEX); a.add_a_n(LEVEL_ROM_BANK_BASE); a.ld_abs_a(LEVEL_BANK); a.ret()
+    a.ld_a_abs(LEVEL_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "level_directory"); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_abs_a(LEVEL_BANK); a.ld_a_hl(); a.ld_abs_a(LEVEL_PAGE); a.ret()
 
     a.label("load_level")
     a.call("invalidate_wall_cache")
     a.call("select_level")
     a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); add_level_page(a)
+    a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
     # The resident slice consumes a fixed header but the authored source owns
     # all coordinates, profiles, spawns, door metadata, and exit placement.
-    a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET)
+    a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET); add_level_page(a)
     a.inc_rr("hl"); a.inc_rr("hl")  # width, height
     for address in (VRAM_PROFILE,):
         a.ldi_a_hl(); a.ld_abs_a(address)
@@ -40,7 +44,7 @@ def emit_level_loader(a: Assembler) -> None:
     for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT,
                     ACTOR_COUNT, LEVEL_FIXTURE_COUNT, LEVEL_PICKUP_VALUE):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); a.ld_rr_nn("de", DOOR_TABLE)
+    a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); add_level_page(a); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)

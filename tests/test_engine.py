@@ -300,8 +300,14 @@ class Lupine3DTests(unittest.TestCase):
     def test_campaign_levels_share_the_resident_profile_and_own_a_bank_each(self) -> None:
         self.assertGreaterEqual(len(br.CAMPAIGN), 1)
         self.assertIs(br.CAMPAIGN[0], br.ACTIVE_LEVEL)
-        self.assertLessEqual(br.LEVEL_ROM_BANK_BASE + len(br.CAMPAIGN), 256)
-        self.assertLessEqual(br.LEVEL_PAYLOAD_END, 0x8000)
+        self.assertLessEqual(br.LEVEL_ROM_BANK_BASE + br.LEVEL_BANK_COUNT, 256)
+        self.assertLessEqual(br.LEVEL_PAYLOAD_END - 0x4000, br.LEVEL_SLOT_PITCH)
+        self.assertLessEqual(br.LEVELS_PER_BANK * br.LEVEL_SLOT_PITCH, 0x4000)
+        # The directory the loader reads is the placement the build used.
+        directory = self.rom[self.symbols["level_directory"]:self.symbols["level_directory"] + 2 * len(br.CAMPAIGN)]
+        self.assertEqual(list(directory), [byte for i in range(len(br.CAMPAIGN)) for byte in br.level_location(i)])
+        self.assertEqual(br.level_location(0), (br.LEVEL_ROM_BANK_BASE, 0))
+        self.assertEqual(len({br.level_location(i) for i in range(len(br.CAMPAIGN))}), len(br.CAMPAIGN))
         for index, level in enumerate(br.CAMPAIGN):
             # One resident atlas and palette set serves the whole run.
             self.assertEqual(level.vram_profile, br.ACTIVE_LEVEL.vram_profile, level.name)
@@ -318,7 +324,7 @@ class Lupine3DTests(unittest.TestCase):
             self.assertEqual(header[20], level.pickups[0].value, level.name)
             self.assertLessEqual(len(level.entities), br.MAX_ACTORS, level.name)
             self.assertLessEqual(len(level.fixtures), br.MAX_FIXTURES, level.name)
-            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            bank = br.level_rom_offset(index)
             self.assertEqual(self.rom[bank + br.LEVEL_GRID_OFFSET - 0x4000:
                                       bank + br.LEVEL_GRID_OFFSET - 0x4000 + 256], level.grid)
             self.assertEqual(self.rom[bank + br.LEVEL_HEADER_OFFSET - 0x4000:
@@ -342,9 +348,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(level.pickups[0].source, "sentinel_drop")
         self.assertEqual(len(level.segment_table), 16 * 16 * 4)
         # Every campaign level carries its own payload at fixed offsets in its
-        # own bank; the loader derives the bank from LEVEL_INDEX alone.
+        # own slot; the loader finds the slot through the resident directory.
         for index, entry in enumerate(br.CAMPAIGN):
-            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            bank = br.level_rom_offset(index)
             self.assertEqual(self.rom[bank:bank + br.LEVEL_PAYLOAD_END - 0x4000],
                              br.make_level_payload(entry))
             start = bank + br.LEVEL_SEGMENT_OFFSET - 0x4000

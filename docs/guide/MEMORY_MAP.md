@@ -9,7 +9,7 @@ free for that owner's neighbour in the same sequence.
 
 | Budget | Bytes |
 |---|---:|
-| Free below `$4000` (fixed ROM half) | 2352 |
+| Free below `$4000` (fixed ROM half) | 2304 |
 | Resident reserve (must stay >= 3,000) | 5083 |
 | Free WRAM banks | 6, 7 |
 | Render snapshot copy | 456 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+128, `$D990`+64 |
@@ -30,7 +30,7 @@ free for that owner's neighbour in the same sequence.
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
 | bank 238 `$4000-$52D0` | 4,816 | cold raw vectors and camera-plane tables | persistent |
 | bank 240 `$4000-$8000` | 16,384 | songs and note periods | persistent |
-| banks 241-246 (`$4000` in 241 to `$4A80` in 246) | 84,608 | campaign levels, one bank each | persistent |
+| banks 241-242 (`$4000` in 241 to `$4A80` in 242) | 19,072 | campaign levels, 5 per bank in 2816-byte slots | persistent |
 
 ## Fixed WRAM (`$C000-$CFFF`)
 

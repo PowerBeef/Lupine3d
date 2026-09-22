@@ -36,11 +36,16 @@ DOOR_FLAG_KEYCARD = 0x04
 DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
 KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit"}
 
-# One ROM bank per campaign level, at fixed offsets, so the SM83 loader needs
-# only a bank number and no per-level directory. lookup_segment_id reads the
-# segment and its surface through one pointer, so the surface table must stay
-# exactly 1024 bytes above the segment table.
+# Campaign levels are packed five to a ROM bank from LEVEL_ROM_BANK_BASE, in
+# 256-byte-aligned slots, at fixed offsets inside the slot. A resident
+# directory gives the loader each level's bank and the page of its slot; every
+# reader adds that page to the high byte of its offset, so the first slot of a
+# bank (page 0) reads exactly as the one-level-per-bank layout did.
+# lookup_segment_id reads the segment and its surface through one pointer, so
+# the surface table must stay exactly 1024 bytes above the segment table.
 LEVEL_ROM_BANK_BASE = 241
+LEVELS_PER_BANK = 5
+LEVEL_SLOT_PITCH = 0x0B00       # 2,816 bytes: the payload rounded up to a page
 LEVEL_SEGMENT_OFFSET = 0x4000   # 1024 bytes, indexed (cell * 4 + side)
 LEVEL_SURFACE_OFFSET = 0x4400   # 1024 bytes, same index
 LEVEL_GRID_OFFSET = 0x4800      # the 16x16 world map
@@ -49,6 +54,26 @@ LEVEL_DOOR_OFFSET = 0x4920
 LEVEL_ACTOR_OFFSET = 0x4940     # MAX_ACTORS * 16 bounded Sentinel slots
 LEVEL_FIXTURE_OFFSET = 0x4980   # MAX_FIXTURES * 16 wall-mounted landmarks
 LEVEL_PAYLOAD_END = 0x4A80
+assert LEVEL_PAYLOAD_END - 0x4000 <= LEVEL_SLOT_PITCH, "a level payload overruns its slot"
+assert LEVELS_PER_BANK * LEVEL_SLOT_PITCH <= 0x4000, "level slots overrun their bank"
+assert LEVEL_SLOT_PITCH % 256 == 0, "the loader adds a slot's page to the high byte alone"
+
+
+def level_location(index: int) -> tuple[int, int]:
+    """(ROM bank, page offset of the slot) of campaign level `index`.
+
+    The page offset is what the console adds to the high byte of every
+    slot-relative offset: 0 for a bank's first slot, LEVEL_SLOT_PITCH >> 8 for
+    the second, and so on.
+    """
+    bank, slot = divmod(index, LEVELS_PER_BANK)
+    return LEVEL_ROM_BANK_BASE + bank, slot * (LEVEL_SLOT_PITCH >> 8)
+
+
+def level_rom_offset(index: int) -> int:
+    """Absolute ROM offset of the level's slot (its `$4000`)."""
+    bank, page = level_location(index)
+    return bank * 0x4000 + (page << 8)
 # The campaign, in order. LUPINE3D_LEVEL still selects a single level for
 # diagnostic and research builds; that build is a one-level campaign.
 CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json",

@@ -21,7 +21,8 @@ def emit_actors(a: Assembler) -> None:
     # Slot contents come from the selected level's bank; ACTOR_COUNT was
     # already read out of that level's header by load_level.
     a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_nn("hl", LEVEL_ACTOR_OFFSET); a.ld_rr_nn("de", ENTITY_SLOTS); a.ld_rr_nn("bc", MAX_ACTORS * 16); a.call("copy_bc")
+    a.ld_rr_nn("hl", LEVEL_ACTOR_OFFSET); add_level_page(a)
+    a.ld_rr_nn("de", ENTITY_SLOTS); a.ld_rr_nn("bc", MAX_ACTORS * 16); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     # Patrol headings are not authored: each slot starts on its own compass
     # point, so a room full of actors does not set off as one column.

@@ -80,7 +80,7 @@ class EnemyKindTests(unittest.TestCase):
             for slot, entity in enumerate(level.entities):
                 self.assertEqual(records[slot * 16 + br.ACTOR_KIND_OFFSET],
                                  ENTITY_KIND_IDS[entity.kind], (level.name, slot))
-            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000 + br.LEVEL_ACTOR_OFFSET - 0x4000
+            bank = br.level_rom_offset(index) + br.LEVEL_ACTOR_OFFSET - 0x4000
             self.assertEqual(self.rom[bank:bank + len(records)], records, level.name)
         # The campaign actually uses the variety it can express.
         kinds = {entity.kind for level in br.CAMPAIGN for entity in level.entities}

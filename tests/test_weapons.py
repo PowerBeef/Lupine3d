@@ -120,6 +120,11 @@ class WeaponSwapTests(unittest.TestCase):
     def test_the_weapon_stays_in_hand_across_a_level_load(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         self._press(cgb, 0x40)
+        # The press stops wherever its step count lands, which can be inside a
+        # banked table lookup. load_level's real callers (the title and the
+        # transition screens) always run it with ROM bank 1 mapped, so give
+        # the direct call the same precondition.
+        cgb.rom_bank = 1
         cgb.call_subroutine("load_level", max_steps=4_000_000)
         cgb.call_subroutine("init_vram", max_steps=4_000_000)
         self.assertEqual(cgb.read8(br.WEAPON_INDEX), 1)

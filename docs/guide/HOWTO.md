@@ -15,8 +15,9 @@ ROM.
    certificate passes (`docs/LEVEL_CERTIFICATE.md`). Fix the level, never
    the limits.
 3. Add the file name to `CAMPAIGN_ORDER` in `tools/lupine3d_v4/levels.py`.
-   Each level owns one ROM bank from 241, and every campaign level must share
-   the first level's `vram_profile` and `palette_profile`.
+   Levels are packed five to a ROM bank from 241 (a resident directory gives
+   the loader each one's bank and slot page), and every campaign level must
+   share the first level's `vram_profile` and `palette_profile`.
 4. `make build test playthrough`: the controller route plays every sector
    with input only, so it must be able to clear yours. `make variants` if you
    changed a level the variants use.

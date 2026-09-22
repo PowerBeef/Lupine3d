@@ -38,7 +38,7 @@ def emit_world_decor(a: Assembler):
     a.ld_r_n("a",1); a.ld_abs_a(DECAL_PROJECTING)
     a.label("fixture_next_record")
     a.ld_a_abs(DECAL_INDEX); a.cb("swap","a"); a.ld_r_r("e","a"); a.ld_r_n("d",0)
-    a.ld_rr_nn("hl",LEVEL_FIXTURE_OFFSET); a.add_hl_rr("de")
+    a.ld_rr_nn("hl",LEVEL_FIXTURE_OFFSET); a.add_hl_rr("de"); add_level_page(a)
     # Records live in the selected level's bank. Keep the window around the
     # fetch only: everything downstream works from the DECAL_RECORD copy, and
     # projection reads banked ROM of its own.

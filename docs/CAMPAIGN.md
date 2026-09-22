@@ -30,9 +30,10 @@ with the run's totals.
 
 **Levels became data, not opcodes.** Selection used to be assembled into
 immediate operands — entity counts, fixture counts, the pickup value, the
-segment-table bank. Each campaign level now owns one ROM bank from 241 at fixed
-offsets, and the loader derives that bank from `LEVEL_INDEX` alone. The hot
-geometry path pays one fixed-WRAM load per wall hit for it. The resident wall
+segment-table bank. Each campaign level now owns a page-aligned slot in a ROM
+bank from 241 (five levels per bank) at fixed offsets inside the slot, and the
+loader reads the bank and slot page from a resident directory by `LEVEL_INDEX`.
+The hot geometry path pays two fixed-WRAM loads per wall hit for it. The resident wall
 atlas is still chosen at build time, so every campaign level must declare the
 same VRAM and palette profile; `layout.py` rejects a campaign that disagrees.
 
