@@ -4,7 +4,7 @@ This report describes the shipped **160×120 / 24-pixel steel HUD / animated Sab
 configuration. Qualification is emulator-only. The owner has no physical CGB or
 flash cartridge; physical hardware and original Nintendo boot-ROM testing remain
 false. The previous release is retained in [the beta.6 report](TEST_REPORT_BETA6.md);
-this report is itself retained, and [the v0.9 report](TEST_REPORT.md) is
+this report is itself retained, and [the v0.9 report](TEST_REPORT_V09.md) is
 current.
 
 **ROM SHA-256:**

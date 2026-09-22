@@ -160,14 +160,16 @@ class RuntimeObserver:
             if c.pc == self.actor_pc:
                 self.world_actor_candidates.add(c.read8(br.ENTITY_SLOT))
         category = self.scopes[-1][2] if self.scopes else "engine"
-        before, gdmas, presentations = c.cycles, len(c.gdma_events), c.presentations
+        before, dma_before, presentations = c.cycles, c.dma_cycles, c.presentations
         self.executing = True
         try:
             result = self._step()
         finally:
             self.executing = False
         elapsed = c.cycles - before
-        dma = sum(e["blocks"] * (64 if c.double_speed else 32) for e in c.gdma_events[gdmas:])
+        # Every GDMA block and every HBlank block the harness charged during
+        # this instruction, whichever instruction happened to be executing.
+        dma = c.dma_cycles - dma_before
         dma += max(0, min(c.cycles, self.oam_dma_end) - before)
         assert 0 <= dma <= elapsed, (dma, elapsed)
         self.totals["dma"] += dma

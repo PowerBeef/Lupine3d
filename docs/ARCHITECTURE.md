@@ -290,17 +290,27 @@ the same share of a full geometry update.
 
 ## Publication and timing
 
-A full packet contains at most 176 GDMA blocks: 96 BG, 32 OBJ, 24 map and 24
-attribute blocks. The retained bulk map transfers cover twelve rows. Slim's
-three additional rows require **192 bounded CPU-copy bytes** into hidden maps:
-96 map + 32 attribute bytes during the pattern stage, then 64 attribute bytes
-in the final commit. HUD and OAM are committed with matching bank/map state.
+On the compact and slim profiles a full packet is **streamed**: the hidden
+dynamic patterns (at most 96 blocks) and the complete hidden tile-number map
+(30 blocks on slim) travel by HBlank DMA while `render_view` is still
+composing, one block at the HBlank of each visible line, into the bank and
+map the displayed page never reads. `render_view` hands each column's
+patterns over as it finishes them; `upload_hidden_page` streams the remainder
+and the map, builds the attribute packet underneath the transfer, then uses
+**one VBlank** for the banked tail: masked OBJ patterns and the attribute
+packet by GDMA (at most 62 blocks), the HUD map cells, OAM DMA and the flip.
+HBlank sources are fixed WRAM because a block reads through SVBK and a
+simulation yield may have bank 2 mapped; VBK belongs to the transfer for its
+whole life; nothing streams with the LCD off. See
+[streamed publication](STREAMED_PUBLICATION.md).
 
-The first stage remains bounded to 96 blocks. Above 48 dynamic+mask patterns,
-an additional VBlank precedes the pattern stage. Full packets therefore use
-two or three VBlanks; cached packets use one. Writes must finish before line
-153. No partially prepared row or mask bank becomes visible. GDMA and OAM DMA
-halt CPU execution and are counted as work, not background transfers.
+The legacy profile keeps the staged packet: at most 176 GDMA blocks (96 BG,
+32 OBJ, 24 map, 24 attribute) over two VBlanks, the pattern stage bounded to
+96 blocks, with the experimental foreground/reprojection lanes built on it.
+Cached packets use one VBlank on every profile. Writes must finish before line
+153. No partially prepared row or mask bank becomes visible. GDMA, HBlank
+blocks and OAM DMA halt CPU execution and are counted as work, not background
+transfers.
 
 The steel HUD retains a 16-byte packet: four health IDs, one enemy count,
 two caption IDs, three status IDs and six portrait IDs. Text starts at HUD y=4

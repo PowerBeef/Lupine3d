@@ -15,9 +15,16 @@
 
 </div>
 
-Fight through five sectors of an industrial outpost: clear each one, take what the dead leave, and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
+Fight through six sectors of an industrial outpost: clear each one, take what the dead leave, and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
 
-**v0.9 turns the tech demo into a campaign:** five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
+**v0.10 makes the renderer stream:** a full geometry update publishes in one VBlank instead of two or three, because hidden patterns and the hidden map now travel by HBlank DMA while the CPU is still composing, and a sixth sector joins the campaign. v0.9 turned the tech demo into a campaign: five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
+
+## What's new in v0.10
+
+- **HBlank-streamed publication.** The dynamic patterns and the whole hidden tile-number map stream into the hidden bank by HBlank DMA as each column is composed, so the VBlank tail is only the banked masks, attributes, HUD and OAM. A full update no longer spends an LCD interval idle between its pattern stage and its map stage. Every descriptor, packet and VRAM byte is unchanged; see [streamed publication](docs/STREAMED_PUBLICATION.md).
+- **Exact engine savings.** The folded compositor writes each column's fifteen map cells from one pointer instead of walking two per row; the column scan keeps its extremes in registers; the depth pass keeps each actor's projection for the draw pass; the wall-key compare and the snapshot copies run eight bytes per counter step. No pixel, packet or allocation order moves.
+- **A sixth sector.** Cryo Vault: a warden and a skirmisher above, a keycard hatch, and a sump with a Sentinel and a second skirmisher below, carrying the same compiler certificate as the other five.
+- **Measured.** The nine-image tour falls from 866,119 to 674,644 CPU T-cycles per update (−22.1%) and the living-world route from 719,567 to 632,973 (−12.0%) on the host harness; the sustained sixty-second results are in [the test report](docs/TEST_REPORT.md).
 
 ## What's new in v0.9
 

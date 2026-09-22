@@ -90,6 +90,19 @@ run inside another section's window and are unreachable from an interrupt are
 emitted after the data and land above `$4000` in bank 1. Of 16.5 KB of
 instructions, 1.6 KB are genuinely pinned below the boundary.
 
+## The sixth sector
+
+v0.10 adds **Cryo Vault**, sector six, in ROM bank 246: a vault of four
+rooms above a keycard hatch, with a warden and a card-carrying skirmisher
+upstairs and a Sentinel and a second skirmisher in the sump below, and the
+exit behind the Sentinel-locked door of a fourth room. It carries the same
+compiler certificate as the other five (no unreachable cell, sightlines of at
+most six cells, doors that each separate at least eight walkable cells, a
+critical path of twenty steps and seven turns, no open room beyond the 4×4
+envelope, and a card that can be reached with the hatch shut), and the
+controller route plays it like the others. The continue-code table grew from
+fifteen codes to eighteen, which changes every code: they are content.
+
 ## What the last five cost
 
 The first pass left five things out, each for a stated reason. Each turned out

@@ -75,6 +75,14 @@ Four of these redirect effort away from the intuitive answers:
 
 ## 3. Publication spends a whole LCD interval idle
 
+> **Outcome (v0.10).** The dead interval this section describes is gone,
+> but not by the interrupt-driven route prototyped in §3.1: the hidden
+> patterns and the hidden map now stream by HBlank DMA during composition
+> and the tail is one VBlank, which keeps the verification vantage point and
+> every packet byte. See [streamed publication](STREAMED_PUBLICATION.md).
+> The alignment wait that §3.1 would also remove is still there, and so is
+> that decision.
+
 `emitter.py`, `upload_hidden_page`. On slim, publication calls `wait_vblank` two
 or three times: once to align (legitimate), once more when
 `DYN_COUNT + MASK_TILE_COUNT >= 49`, and once unconditionally before the

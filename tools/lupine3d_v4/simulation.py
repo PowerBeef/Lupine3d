@@ -18,17 +18,20 @@ NARROW_CONTEXTS = {
 
 
 def emit_copy_bulk(a: Assembler) -> None:
-    """HL -> DE, BC bytes; four-byte loop halves the counter overhead.
+    """HL -> DE, BC bytes; eight-byte loop amortizes the counter overhead.
 
     The ISR never calls this routine. Its fixed remainder byte is therefore
     non-reentrant by design, independent of the selected world WRAM bank.
     """
     a.label("copy_bc")
-    a.ld_r_r("a", "c"); a.and_n(3); a.ld_abs_a(COPY_REMAINDER)
-    for _ in range(2): a.cb("srl", "b"); a.cb("rr", "c")
+    # Eight bytes per iteration: the two 457-byte snapshot copies and the
+    # 290-byte wall-key capture are the bulk of every update's copying, and
+    # the counter/branch tax is paid once per eight bytes instead of four.
+    a.ld_r_r("a", "c"); a.and_n(7); a.ld_abs_a(COPY_REMAINDER)
+    for _ in range(3): a.cb("srl", "b"); a.cb("rr", "c")
     a.ld_r_r("a", "b"); a.or_r("c"); a.jr("copy_bulk_tail", "z")
     a.label("copy_bulk_loop")
-    for _ in range(4): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
+    for _ in range(8): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.dec_rr("bc"); a.ld_r_r("a", "b"); a.or_r("c"); a.jr("copy_bulk_loop", "nz")
     a.label("copy_bulk_tail")
     a.ld_a_abs(COPY_REMAINDER); a.or_r("a"); a.ret("z"); a.ld_r_r("b", "a")

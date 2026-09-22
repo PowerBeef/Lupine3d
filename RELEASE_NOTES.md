@@ -1,3 +1,54 @@
+# Lupine 3D v0.10 — The renderer streams
+
+v0.9 spent a whole LCD interval idle inside every full geometry update: the
+hidden patterns went up in one VBlank, and the CPU then spun until the next
+one to send the map, the attributes, the HUD and OAM. v0.10 removes that
+interval without moving a pixel.
+
+- **HBlank-streamed publication.** The hidden dynamic patterns and the whole
+  hidden tile-number map now travel by HBlank DMA while `render_view` is
+  still composing, one block per visible line into the bank and map the
+  displayed page never reads. `render_view` hands each column's patterns
+  over as it finishes them; the tail is one VBlank of banked GDMA (masks and
+  attributes, at most 62 blocks) plus the HUD, OAM and the flip. The 192
+  bytes of CPU map/attribute copying are gone. Every descriptor, packet and
+  VRAM byte is unchanged; only the presentation time moves. The legacy
+  profile keeps the staged packet byte for byte, and `LUPINE3D_HDMA_STREAMING=0`
+  builds it on any profile. See `docs/STREAMED_PUBLICATION.md`.
+- **Exact engine savings.** The folded compositor's rows are unrolled and
+  each column writes its fifteen map cells from one pointer; the column scan
+  keeps its extremes in registers and the row classification folds the row
+  origin into immediates; the depth pass keeps every actor's projection so
+  the draw pass restores it instead of projecting the same inputs again; the
+  wall-key compare, the snapshot copies and the actor slot copies run eight
+  or ten bytes per counter step; the midpoint descriptors and cast results
+  are stored without a result-byte round trip. No pixel, packet or dynamic
+  allocation order moves.
+- **A sixth sector.** Cryo Vault, in ROM bank 246, with the same compiler
+  certificate as the other five. The continue-code table grew to eighteen
+  codes, which changes every code.
+- **The harness models HBlank DMA** (`tools/sm83emu.py`): a block per visible
+  line, read through SVBK and written to the bank VBK selects, with the CPU
+  stall charged where it lands; a commit reports HBlank and VBlank blocks
+  separately and is safe only if no transfer is still active at the flip.
+
+**Measured** on the host harness against the v0.9 ROM: the nine-image tour
+falls from 866,119 to 674,644 T-cycles per full update (−22.1%) and the
+living-world route from 719,567 to 632,973 (−12.0%). Sustained sixty-second
+full-geometry rates are in `docs/TEST_REPORT.md`.
+
+**Changed pixels:** six, in one capture of the nine-image tour — the helmet
+portrait's blink in `09_exit_approach`, because that update now completes one
+LCD interval earlier and the accepted tick lands differently on the 62–63
+blink window. v0.10 carries its own oracle, `playtests/sable_v10_capture_pixels.json`,
+with the other eight hashes identical to v0.9's, which is retained.
+
+**Route:** the controller route died once on the faster ROM, standing in a
+doorway firing at a Sentinel pressed against a wall corner that its sampled
+sight test cleared and the ROM's exact centre ray did not. It now kites from
+contact range and moves one cell when an exchange settles nothing; the
+gameplay it exercises is unchanged.
+
 # Lupine 3D v0.9 — The campaign
 
 v0.8 was one level, one enemy and no way to stop playing but turning the

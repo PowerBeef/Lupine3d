@@ -322,6 +322,10 @@ def emit_dma(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE); a.call("build_surface_attributes")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE); a.ldh_n_a(VBK); a.ret()
 
+    if HDMA_STREAMING:
+        emit_streamed_publication(a)
+        return
+
     a.label("upload_hidden_page")
     a.xor_r("a"); a.ld_abs_a(FRAME_REUSED)
     a.call("prepare_hud_tiles")
@@ -365,6 +369,77 @@ def emit_dma(a: Assembler) -> None:
     a.call("update_muzzle_oam"); a.call("publish_oam_packet")
     if ENABLE_MICRO_REPROJECTION:
         a.call("reset_reprojection_for_commit")
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
+    a.or_r("a"); a.jr("display_page_zero", "z")
+    a.ld_r_n("a", BG_LCDC | 8); a.ldh_n_a(LCDC); a.jr("display_page_done")
+    a.label("display_page_zero")
+    a.ld_r_n("a", BG_LCDC); a.ldh_n_a(LCDC)
+    a.label("display_page_done")
+    a.ld_r_n("a", 1); a.ld_abs_a(WALL_CACHE_VALID)
+    a.jp("finish_presentation")
+
+
+def emit_streamed_publication(a: Assembler) -> None:
+    """One-VBlank publication: hidden patterns and map stream during composition.
+
+    A full packet used to spend a whole LCD interval idle: patterns in one
+    VBlank, then a spin until the next for the map, attributes, HUD and OAM.
+    HBlank DMA moves the hidden resources instead - one 16-byte block at the
+    HBlank of every visible line, into the bank the displayed page never
+    reads - so only the banked tail is left for the VBlank.
+
+    Contracts:
+    * A transfer is started only while HDMA5 reads idle (bit 7 set) and with
+      the LCD on; nothing ever terminates one. Completion is polled.
+    * VBK is owned by the transfer for its whole life. The renderer, the
+      simulation yields and both interrupt handlers leave VBK alone.
+    * HBlank sources are fixed WRAM: an HBlank block reads through SVBK, and
+      a yield may have bank 2 mapped when the line ends. MASK_TILES and
+      VIEW_ATTRIBUTES live in bank 1, so they keep their VBlank GDMA.
+    * DYN_STREAMED is reset by render_view and advanced by every chained
+      transfer; the tail streams whatever the last column left over.
+    """
+    a.label("stream_wait_idle")   # spin until no HBlank transfer is active
+    a.ldh_a_n(HDMA5); a.rla(); a.jr("stream_wait_idle", "nc"); a.ret()
+
+    a.label("stream_dynamic_tiles")  # DYN_STREAMED..DYN_COUNT-1 -> hidden $9000; clobbers A/B/C
+    a.ld_a_abs(DYN_STREAMED); a.ld_r_r("c", "a")
+    a.ld_a_abs(DYN_COUNT); a.sub_r("c"); a.ret("z")
+    a.dec_r("a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(DYN_COUNT); a.ld_abs_a(DYN_STREAMED)
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ldh_n_a(VBK)
+    # Block C sits at DYNAMIC_TILES + C*16 and lands at $9000 + C*16.
+    a.ld_r_r("a", "c"); a.cb("swap", "a"); a.and_n(0x0F); a.add_a_n(DYNAMIC_TILES >> 8); a.ldh_n_a(HDMA1)
+    a.ld_r_r("a", "c"); a.cb("swap", "a"); a.and_n(0xF0); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA4)
+    a.ld_r_r("a", "c"); a.cb("swap", "a"); a.and_n(0x0F); a.add_a_n((DYNAMIC_TILE_VRAM >> 8) & 0x1F); a.ldh_n_a(HDMA3)
+    a.ld_r_r("a", "b"); a.or_n(0x80); a.ldh_n_a(HDMA5); a.ret()
+
+    a.label("stream_view_map")   # the complete hidden tile-number map, VRAM bank 0
+    a.xor_r("a"); a.ldh_n_a(VBK); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA4)
+    a.ld_r_n("a", VIEW_MAP >> 8); a.ldh_n_a(HDMA1)
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.or_r("a"); a.ld_r_n("a", 0x18); a.jr("stream_map_page_ready", "z")
+    a.ld_r_n("a", 0x1C)
+    a.label("stream_map_page_ready"); a.ldh_n_a(HDMA3)
+    a.ld_r_n("a", 0x80 | (VIEW_MAP_BYTES // 16 - 1)); a.ldh_n_a(HDMA5); a.ret()
+
+    a.label("upload_hidden_page")
+    a.xor_r("a"); a.ld_abs_a(FRAME_REUSED)
+    # Whatever the last composed column left behind, then the whole map,
+    # while the CPU builds the attribute packet and the HUD underneath it.
+    a.call("stream_wait_idle"); a.call("stream_dynamic_tiles"); a.call("stream_wait_idle")
+    a.call("stream_view_map")
+    a.call("build_surface_attributes")
+    a.call("prepare_hud_tiles")
+    a.call("stream_wait_idle")
+    # Every hidden resource is in VRAM. The old page, OAM and HUD are still
+    # displayed untouched; the tail below is one VBlank of banked GDMA and
+    # the coherent HUD/OAM/flip.
+    a.label("upload_packet_ready")
+    a.call("wait_vblank")
+    a.call("upload_masked_tiles"); a.call("upload_surface_attributes")
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.call("update_hud_tiles")
+    a.call("update_muzzle_oam"); a.call("publish_oam_packet")
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
     a.or_r("a"); a.jr("display_page_zero", "z")
     a.ld_r_n("a", BG_LCDC | 8); a.ldh_n_a(LCDC); a.jr("display_page_done")
@@ -738,14 +813,23 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_a_abs(ADAPTIVE_CASTS); a.inc_r("a"); a.ld_abs_a(ADAPTIVE_CASTS)
     a.call("cast_indexed_prepared")
     a.label("store_cast_result")
-    a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", RAY_TOPS); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_DEPTH); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.ret()
+    # The seven ray arrays share four page offsets, so L is rebuilt once per
+    # offset group and each store is a page byte plus the result byte. Only
+    # the segment array's offset can carry for a ray index below 80.
+    stores = ((RAY_TOPS, TOP_RESULT), (RAY_STYLES, STYLE_RESULT), (RAY_KEYS, FACE_RESULT),
+              (RAY_ALONG, ALONG_RESULT), (RAY_DEPTH, DEPTH_RESULT), (RAY_SEGMENT, SEGMENT_RESULT),
+              (RAY_SURFACE, SURFACE_RESULT))
+    a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a")
+    for offset in sorted({address & 255 for address, _ in stores}):
+        carries = offset + RAYS - 1 > 255
+        if offset: a.ld_r_r("a", "e"); a.add_a_n(offset); a.ld_r_r("l", "a")
+        else: a.ld_r_r("l", "e")
+        for address, result in stores:
+            if address & 255 != offset: continue
+            if carries: a.ld_r_n("a", address >> 8); a.adc_a_n(0); a.ld_r_r("h", "a")
+            else: a.ld_r_n("h", address >> 8)
+            a.ld_a_abs(result); a.ld_hl_a()
+    a.ret()
 
     a.label("cast_physical_and_store")
     a.ld_a_abs(EDGE_RECASTS); a.inc_r("a"); a.ld_abs_a(EDGE_RECASTS)
@@ -812,28 +896,21 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_rr_nn("hl", RAY_TOPS + 2); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("c", "a")
     a.sub_r("b"); a.jr("adaptive_top_positive", "nc"); a.cpl(); a.inc_r("a")
     a.label("adaptive_top_positive"); a.cp_n(3); a.jp("adaptive_cast_mid", "nc")
-    # Affine midpoint of the two integer top edges.
-    a.ld_r_r("a", "c"); a.add_a_r("b"); a.inc_r("a"); a.cb("srl", "a"); a.ld_abs_a(TOP_RESULT)
-    # Copy left style/key/along to midpoint.
-    a.ld_rr_nn("hl", RAY_STYLES); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(STYLE_RESULT)
-    a.ld_rr_nn("hl", RAY_KEYS); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(FACE_RESULT)
-    a.ld_rr_nn("hl", RAY_ALONG); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(ALONG_RESULT)
-    a.ld_rr_nn("hl", RAY_SEGMENT); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SEGMENT_RESULT)
-    a.ld_rr_nn("hl", RAY_SURFACE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(SURFACE_RESULT)
+    # Affine midpoint of the two integer top edges, stored at the midpoint
+    # and kept in C for the depth class below.
+    a.ld_r_r("a", "c"); a.add_a_r("b"); a.inc_r("a"); a.cb("srl", "a"); a.ld_r_r("c", "a")
+    a.ld_rr_nn("hl", RAY_TOPS + 1); a.add_hl_rr("de"); a.ld_hl_a()
+    # The left anchor's style/key/along/segment/surface become the midpoint's:
+    # each array is read at the anchor and written one byte on, with no
+    # result byte in between. The same bytes land in the same arrays.
+    for address in (RAY_STYLES, RAY_KEYS, RAY_ALONG, RAY_SEGMENT, RAY_SURFACE):
+        a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_hl(); a.inc_rr("hl"); a.ld_hl_a()
     # Re-certify the interpolated top through the same conservative exact
     # projection class used by cast rays. Averaging depths can otherwise move
     # an occluder farther away than the nearer member of its top class.
     # BC indexes the class table so DE keeps addressing the anchor pair.
-    a.ld_a_abs(TOP_RESULT); a.ld_r_r("c", "a"); a.ld_r_n("b", 0)
-    a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("bc"); a.ld_a_hl(); a.ld_abs_a(DEPTH_RESULT)
-    # Store the interpolated descriptor without incrementing cast count.
-    a.ld_rr_nn("hl", RAY_TOPS + 1); a.add_hl_rr("de"); a.ld_a_abs(TOP_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_STYLES + 1); a.add_hl_rr("de"); a.ld_a_abs(STYLE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_KEYS + 1); a.add_hl_rr("de"); a.ld_a_abs(FACE_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_ALONG + 1); a.add_hl_rr("de"); a.ld_a_abs(ALONG_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_DEPTH + 1); a.add_hl_rr("de"); a.ld_a_abs(DEPTH_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SEGMENT + 1); a.add_hl_rr("de"); a.ld_a_abs(SEGMENT_RESULT); a.ld_hl_a()
-    a.ld_rr_nn("hl", RAY_SURFACE + 1); a.add_hl_rr("de"); a.ld_a_abs(SURFACE_RESULT); a.ld_hl_a(); a.jr("adaptive_fill_done")
+    a.ld_r_n("b", 0); a.ld_rr_label("hl", "top_depth_lut"); a.add_hl_rr("bc"); a.ld_a_hl()
+    a.ld_rr_nn("hl", RAY_DEPTH + 1); a.add_hl_rr("de"); a.ld_hl_a(); a.jr("adaptive_fill_done")
     a.label("adaptive_cast_mid"); a.ld_a_abs(ADAPTIVE_INDEX); a.call("cast_and_store")
     a.label("adaptive_fill_done")
     a.ld_a_abs(ADAPTIVE_INDEX); a.add_a_n(2); a.ld_abs_a(ADAPTIVE_INDEX); a.cp_n(79); a.jp("adaptive_fill_loop", "c")
@@ -928,6 +1005,64 @@ def emit_renderer(a: Assembler) -> None:
     emit_strip_pointers(a)
 
     emit_tile_compositor(a)
+
+
+def emit_folded_column(a: Assembler) -> None:
+    """One composed column of the folded compositor, rows unrolled.
+
+    The looped body spent about 250 T-cycles per row keeping two map
+    pointers (the row and its mirror) in HRAM and walking both. Each row now
+    leaves its tile ID in COLUMN_ROWS, and the column writes all VIEW_ROWS map
+    cells once, walking a single pointer down the column: the folded rows in
+    order, then their mirrors back up. Composition order, atlas lookups and
+    dynamic allocation order are unchanged, so every tile ID and every map
+    byte is the same; only the pointer work moved.
+    """
+    for row in range(FOLDED_ROWS):
+        y0 = row * 8
+        a.ld_r_n("a", y0); a.ld_abs_a(TILE_Y0)
+        # classify_row with the row origin folded into the immediates: the
+        # same four comparisons and the same seam lookup, in the same order.
+        a.ld_a_abs(MIN_TOP); a.cp_n(y0 + 8); a.jr(f"folded_row_{row}_ceiling", "nc")
+        a.cp_n(VIEW_HEIGHT - y0); a.jr(f"folded_row_{row}_floor", "nc")
+        a.ld_a_abs(MAX_TOP); a.cp_n(y0 + 1); a.jr(f"folded_row_{row}_dynamic", "nc")
+        a.cp_n(VIEW_HEIGHT - y0 - 7); a.jr(f"folded_row_{row}_dynamic", "nc")
+        if SURFACE_DETAIL_ENABLED:
+            a.call("classify_row"); a.ld_a_abs(DYNAMIC_FLAG); a.or_r("a"); a.jr(f"folded_row_{row}_write", "z")
+            a.jr(f"folded_row_{row}_dynamic")
+        a.ld_a_abs(DARK_MASK); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "seam_tile_lookup"); a.add_hl_rr("de")
+        a.ld_a_hl(); a.or_r("a"); a.jr(f"folded_row_{row}_dynamic", "z")
+        a.ld_abs_a(TILE_ID_RESULT); a.jr(f"folded_row_{row}_write")
+        a.label(f"folded_row_{row}_ceiling"); a.ld_r_n("a", CEILING_TILE); a.ld_abs_a(TILE_ID_RESULT); a.jr(f"folded_row_{row}_write")
+        a.label(f"folded_row_{row}_floor"); a.ld_r_n("a", FLOOR_TILE); a.ld_abs_a(TILE_ID_RESULT); a.jr(f"folded_row_{row}_write")
+        a.label(f"folded_row_{row}_dynamic")
+        # The exact atlas key describes silhouettes and light/shadow only. A
+        # decorated half-height tile therefore bypasses it and is composed exactly.
+        if SURFACE_DETAIL_ENABLED:
+            a.ld_a_abs(TILE_Y0); a.cp_n(SURFACE_RAIL_Y0); a.jr(f"folded_row_{row}_atlas", "nz")
+            a.ld_a_abs(DETAIL_MASK); a.cp_n(2); a.jr(f"folded_row_{row}_miss", "z")
+            a.label(f"folded_row_{row}_atlas")
+        a.call("build_tile_signature"); a.call("find_atlas_tile"); a.or_r("a"); a.jr(f"folded_row_{row}_miss", "z")
+        a.ld_abs_a(TILE_ID_RESULT); a.jr(f"folded_row_{row}_write")
+        a.label(f"folded_row_{row}_miss")
+        a.ld_a_abs(DYN_COUNT); a.cp_n(DYNAMIC_TILE_CAPACITY); a.jr(f"folded_row_{row}_overflow", "nc")
+        a.ld_abs_a(TILE_ID_RESULT); a.call("compose_dynamic_tile_cached" if DYNAMIC_TILE_CACHE else "compose_dynamic_tile")
+        a.ld_a_abs(DYN_COUNT); a.inc_r("a"); a.ld_abs_a(DYN_COUNT)
+        a.ld_r_r("b", "a"); a.ld_a_abs(DYN_HIGH_WATER); a.cp_r("b"); a.jr(f"folded_row_{row}_write", "nc"); a.ld_r_r("a", "b"); a.ld_abs_a(DYN_HIGH_WATER)
+        a.jr(f"folded_row_{row}_write")
+        a.label(f"folded_row_{row}_overflow")
+        a.ld_r_n("a", 1); a.ld_abs_a(DYN_OVERFLOW); a.ld_r_n("a", WALL_TILE_BASE); a.ld_abs_a(TILE_ID_RESULT)
+        a.label(f"folded_row_{row}_write")
+        a.ld_a_abs(TILE_ID_RESULT); a.ld_abs_a(COLUMN_ROWS + row)
+    # Both halves of the column from one pointer: the folded rows downward,
+    # then their mirrors on the way to the last world row. Lower attributes
+    # supply the Y-flip; the patterns are composed and transferred once.
+    load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); a.ld_rr_nn("de", 32)
+    for row in range(FOLDED_ROWS):
+        if row: a.add_hl_rr("de")
+        a.ld_a_abs(COLUMN_ROWS + row); a.ld_hl_a()
+    for row in range(VIEW_ROWS - 1 - FOLDED_ROWS, -1, -1):
+        a.add_hl_rr("de"); a.ld_a_abs(COLUMN_ROWS + row); a.ld_hl_a()
 
 
 def emit_general_strip_selector(a: Assembler) -> None:
@@ -1078,29 +1213,32 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.ret()
 
     a.label("scan_column")
-    a.ld_r_n("a", 0xFF); a.ld_abs_a(MIN_TOP); a.xor_r("a"); a.ld_abs_a(MAX_TOP); a.ld_abs_a(DARK_MASK)
+    # Column extremes in B/C over the eight tops, then the eight-pixel dark
+    # mask over the styles: the same minimum, maximum and mask the looped
+    # scan produced, without an HRAM round trip per comparison.
     if SURFACE_DETAIL_ENABLED:
         a.ld_r_n("a", 2); a.ld_abs_a(DETAIL_MASK)
-    load_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H); a.push("hl")
-    load_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H); a.ld_r_r("d", "h"); a.ld_r_r("e", "l"); a.pop("hl")
-    a.ld_a_mem_rr("de"); a.ld_abs_a(FIRST_STYLE); a.ld_r_n("a", 8); a.ld_abs_a(CLASSIFY_COUNT)
-    a.label("scan_column_loop")
-    a.ldi_a_hl(); a.ld_r_r("b", "a")
-    a.ld_a_abs(MIN_TOP); a.cp_r("b"); a.jr("scan_min_keep", "c"); a.jr("scan_min_keep", "z"); a.ld_r_r("a", "b"); a.ld_abs_a(MIN_TOP)
-    a.label("scan_min_keep")
-    a.ld_a_abs(MAX_TOP); a.cp_r("b"); a.jr("scan_max_keep", "nc"); a.ld_r_r("a", "b"); a.ld_abs_a(MAX_TOP)
-    a.label("scan_max_keep")
-    a.ld_a_mem_rr("de"); a.inc_rr("de"); a.ld_r_r("b", "a")
+    load_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H)
+    a.ld_r_n("b", 0xFF); a.ld_r_n("c", 0)
+    for pixel in range(8):
+        a.ldi_a_hl(); a.cp_r("b"); a.jr(f"scan_min_keep_{pixel}", "nc"); a.ld_r_r("b", "a")
+        a.label(f"scan_min_keep_{pixel}")
+        a.cp_r("c"); a.jr(f"scan_max_keep_{pixel}", "c"); a.ld_r_r("c", "a")
+        a.label(f"scan_max_keep_{pixel}")
+    a.ld_r_r("a", "b"); a.ld_abs_a(MIN_TOP); a.ld_r_r("a", "c"); a.ld_abs_a(MAX_TOP)
+    load_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H)
+    a.ld_a_hl(); a.ld_abs_a(FIRST_STYLE)
     # All light base styles resolve to colour 2 and all odd render styles to
     # colour 3. Build the exact eight-pixel dark mask for the static seam atlas.
-    a.ld_a_abs(DARK_MASK); a.add_a_r("a"); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.and_n(1); a.or_r("c"); a.ld_abs_a(DARK_MASK)
-    # Retain bit 1 only while every physical pixel is machinery material 2.
-    # Mixed boundary/rib tiles conservatively omit the rail and keep using the
-    # established exact atlas; this is both coherent and much cheaper than a
-    # per-pixel decorative mask in the hot compositor scan.
-    if SURFACE_DETAIL_ENABLED:
-        a.ld_a_abs(DETAIL_MASK); a.and_r("b"); a.and_n(2); a.ld_abs_a(DETAIL_MASK)
-    a.ld_a_abs(CLASSIFY_COUNT); a.dec_r("a"); a.ld_abs_a(CLASSIFY_COUNT); a.jr("scan_column_loop", "nz"); a.ret()
+    a.ld_r_n("c", 0)
+    for pixel in range(8):
+        a.ldi_a_hl(); a.and_n(1); a.ld_r_r("b", "a")
+        if SURFACE_DETAIL_ENABLED:
+            # Retain bit 1 only while every physical pixel is machinery material 2.
+            a.dec_rr("hl"); a.ld_a_hl(); a.inc_rr("hl"); a.ld_r_r("d", "a")
+            a.ld_a_abs(DETAIL_MASK); a.and_r("d"); a.and_n(2); a.ld_abs_a(DETAIL_MASK)
+        a.ld_r_r("a", "c"); a.add_a_r("a"); a.or_r("b"); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "c"); a.ld_abs_a(DARK_MASK); a.ret()
 
     a.label("classify_row")
     a.ld_a_abs(TILE_Y0); a.add_a_n(7); a.ld_r_r("b", "a")
@@ -1123,6 +1261,7 @@ def emit_tile_compositor(a: Assembler) -> None:
 
     a.label("render_view")
     a.xor_r("a"); a.ld_abs_a(DYN_COUNT); a.ld_abs_a(DYN_OVERFLOW)
+    if HDMA_STREAMING: a.ld_abs_a(DYN_STREAMED)
     a.ld_rr_nn("hl", DYNAMIC_TILES); store_hl_abs(a, DYN_PTR_L, DYN_PTR_H)
     a.ld_rr_nn("hl", VIEW_MAP); store_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H)
     a.ld_rr_nn("hl", PIXEL_TOPS); store_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H)
@@ -1132,14 +1271,12 @@ def emit_tile_compositor(a: Assembler) -> None:
     if FIXED_SIMULATION:
         a.call("render_yield_column" if NARROW_YIELDS else "render_yield")
     a.call("scan_column")
+    if FOLDED_COMPOSITOR:
+        emit_folded_column(a)
+        a.jp("render_column_done")
     a.xor_r("a"); a.ld_abs_a(TILE_Y0)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
-    if FOLDED_COMPOSITOR:
-        # Seed the mirrored destination at the last world row. It walks back one
-        # row per iteration, so the row loop never rebuilds VIEW_ROWS-1-row.
-        a.ld_rr_nn("de", (VIEW_ROWS - 1) * 32); a.add_hl_rr("de")
-        store_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
-    a.ld_r_n("a", FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS); a.ld_abs_a(ROW_RENDER_COUNT)
+    a.ld_r_n("a", VIEW_ROWS); a.ld_abs_a(ROW_RENDER_COUNT)
     a.label("render_row_loop")
     a.call("classify_row")
     a.ld_a_abs(DYNAMIC_FLAG); a.or_r("a"); a.jr("render_static_tile", "z")
@@ -1161,16 +1298,20 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ld_abs_a(DYN_OVERFLOW); a.ld_r_n("a", WALL_TILE_BASE); a.ld_abs_a(TILE_ID_RESULT); a.jr("render_write_tile")
     a.label("render_static_tile")
     a.label("render_write_tile")
-    if FOLDED_COMPOSITOR:
-        # Mirror map position around the viewport centre. Patterns need neither
-        # a second composition nor a second DMA; lower attrs supply Y-flip.
-        load_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
-        a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a()
-        a.ld_rr_nn("de", (-32) & 0xFFFF); a.add_hl_rr("de")
-        store_hl_abs(a, MIRROR_MAP_L, MIRROR_MAP_H)
     load_hl_abs(a, MAP_PTR_L, MAP_PTR_H); a.ld_a_abs(TILE_ID_RESULT); a.ld_hl_a(); a.ld_rr_nn("de", 32); a.add_hl_rr("de"); store_hl_abs(a, MAP_PTR_L, MAP_PTR_H)
     a.ld_a_abs(TILE_Y0); a.add_a_n(8); a.ld_abs_a(TILE_Y0)
     a.ld_a_abs(ROW_RENDER_COUNT); a.dec_r("a"); a.ld_abs_a(ROW_RENDER_COUNT); a.jp("render_row_loop", "nz")
+    a.label("render_column_done")
+    if HDMA_STREAMING:
+        # This column's patterns are final: hand them to the hidden bank now
+        # if the previous transfer has landed, so nearly everything is in VRAM
+        # by the time the last column is composed. Never with the LCD off
+        # (enter_world composes blind and uploads with GDMA), and never on top
+        # of a transfer that is still running.
+        a.ldh_a_n(LCDC); a.rla(); a.jr("render_column_no_stream", "nc")
+        a.ldh_a_n(HDMA5); a.rla(); a.jr("render_column_no_stream", "nc")
+        a.call("stream_dynamic_tiles")
+        a.label("render_column_no_stream")
     # Advance eight physical-pixel descriptors and one BG-map column.
     load_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H); a.ld_rr_nn("de", 8); a.add_hl_rr("de"); store_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H)
     load_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H); a.ld_rr_nn("de", 8); a.add_hl_rr("de"); store_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H)

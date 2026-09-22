@@ -73,14 +73,63 @@ def check(output):
         c.write8=observed
         c.pc=a.labels['upload_hidden_page'];c.run(until_pc=a.labels['upload_packet_ready'])
         assert bytes(c.oam)==old_oam and c.read8(b.CURRENT_PAGE)==old_page
+        if b.HDMA_STREAMING:
+            # Everything hidden has already streamed by HBlank DMA: no
+            # transfer is active, and the hidden bank/map hold the packet
+            # before the tail's VBlank is even reached.
+            assert not c.hdma_active and c.io[0x55]==0xFF
+            hidden=old_page^1;offset=0x1800+hidden*0x400
+            assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes(c.read8(b.VIEW_MAP+i) for i in range(b.VIEW_MAP_BYTES))
+            assert bytes(c.vram[hidden][0x1000:0x1000+dyn*16])==bytes(c.read8(b.DYNAMIC_TILES+i) for i in range(dyn*16))
         c.run(until_presentations=1);event=c.commit_events[-1]
-        assert event['blocks']==dyn+mask+48 and event['vblank_safe'],event
+        map_blocks=b.VIEW_MAP_BYTES//16
+        if b.HDMA_STREAMING:
+            # HBlank: dynamic patterns and the map. VBlank: masks and attributes.
+            assert event['hblank_blocks']==dyn+map_blocks and event['vblank_blocks']==mask+map_blocks,event
+            assert all(e['vblank_safe_complete'] for e in event['events']) and event['vblank_safe'],event
+            assert 144<=event['ly']<153,event
+        else:
+            assert event['blocks']==dyn+mask+48 and event['vblank_safe'],event
         assert not violations,violations[:5]
         page=c.read8(b.CURRENT_PAGE);offset=0x1800+page*0x400
         assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes(c.read8(b.VIEW_MAP+i) for i in range(b.VIEW_MAP_BYTES))
         assert bytes(c.vram[1][offset:offset+b.VIEW_MAP_BYTES])==bytes(c.read8(b.VIEW_ATTRIBUTES+i) for i in range(b.VIEW_MAP_BYTES))
         windows.append({'dynamic':dyn,'mask':mask,'blocks':event['blocks'],'commit_ly':event['ly'],'staged':event['staged']})
     checks['publication_cpu_and_dma_windows']=True
+    if b.HDMA_STREAMING:
+        # An HBlank block reads its source through SVBK. The streamed sources
+        # are fixed WRAM precisely so that a simulation yield with bank 2
+        # mapped cannot corrupt them: force bank 2 across every visible line
+        # of a transfer and require the hidden bank to hold the exact bytes.
+        c=boot();c.ime=False;c.write8(b.SIM_READY,0)
+        for i in range(96*16):c.write8(b.DYNAMIC_TILES+i,(i*29+5)&255)
+        for i in range(b.VIEW_MAP_BYTES):c.write8(b.VIEW_MAP+i,(i*7+1)&255)
+        c.write8(b.DYN_COUNT,96);c.write8(b.DYN_STREAMED,0)
+        # Spin on the idle poll alone with bank 2 mapped: it touches no
+        # memory, so every block lands while the wrong WRAM bank is selected.
+        c.call_subroutine('stream_dynamic_tiles');assert c.hdma_active
+        c.write8(0xff70,2);c.call_subroutine('stream_wait_idle');c.write8(0xff70,1)
+        assert not c.hdma_active
+        c.call_subroutine('stream_view_map');assert c.hdma_active
+        c.write8(0xff70,2);c.call_subroutine('stream_wait_idle');c.write8(0xff70,1)
+        hidden=c.read8(b.CURRENT_PAGE)^1;offset=0x1800+hidden*0x400
+        assert bytes(c.vram[hidden][0x1000:0x1000+96*16])==bytes((i*29+5)&255 for i in range(96*16))
+        assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes((i*7+1)&255 for i in range(b.VIEW_MAP_BYTES))
+        assert c.read8(b.DYN_STREAMED)==96 and c.io[0x55]==0xFF
+        # Composition with the LCD off (enter_world) never starts a transfer,
+        # and the tail then streams everything the blind pass left behind.
+        c=boot();c.ime=False;c.write8(b.SIM_READY,0);c.write8(0xff40,0)
+        transfers=len(c.gdma_events);c.call_subroutine('render_view')
+        assert len(c.gdma_events)==transfers and c.read8(b.DYN_STREAMED)==0 and not c.hdma_active
+        # Streaming during a real composition hands over every column's
+        # patterns as it finishes: the tail's own transfer is a remainder.
+        c=boot();c.ime=False;c.write8(b.SIM_READY,0);apply_diagnostic_camera(c,{'pose':(1152,3100,191)})
+        c.call_subroutine('cast_all');transfers=len(c.gdma_events);c.call_subroutine('render_view')
+        chained=[e for e in c.gdma_events[transfers:] if e.get('kind')=='hdma']
+        assert chained and sum(e['blocks'] for e in chained)==c.read8(b.DYN_STREAMED)<=c.read8(b.DYN_COUNT)
+        c.call_subroutine('upload_hidden_page')
+        event=c.commit_events[-1];assert event['vblank_safe'] and event['hblank_blocks']==c.read8(b.DYN_COUNT)+b.VIEW_MAP_BYTES//16
+        checks['hblank_streaming_bank_isolation_and_chaining']=True
     output.mkdir(parents=True,exist_ok=True)
     for index,pose in enumerate(((1152,3456,192),(1408,3328,192),(1152,3136,192),(1152,3100,191),(1152,3100,255),(1408,3200,0))):
         c=boot();c.write8(b.SIM_READY,0);apply_diagnostic_camera(c,{'pose':pose});c.run(until_presentations=2)

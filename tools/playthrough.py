@@ -55,7 +55,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         data = validate_frame(cgb)
         data.update(oam_budget(cgb), keys="VBlank controller" if callable(keys) else keys, cycles=cgb.cycles - cycles,
                     health=live8(br.PLAYER_HEALTH))
-        assert data["health"] > 0, "player died during controller-only route"
+        if data["health"] <= 0:
+            capture("death")
+            raise AssertionError(
+                f"player died during controller-only route at pose={pose()} after {len(records)} updates: "
+                f"actors={actors()} weapon={live8(br.WEAPON_INDEX)} keys={[r['keys'] for r in records[-6:]]}")
         assert data["max_oam_per_scanline"] <= 10
         assert cgb.commit_events[-1]["vblank_safe"]
         records.append(data)
@@ -242,9 +246,28 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         delta = (heading - angle + 128) % 256 - 128
         # Keep steering to the target rather than parking one degree away:
         # at close range the legacy Q4 transform can put that pose outside
-        # the aim window. Fire while making the final small correction.
-        return ((1 if delta > 0 else 2) if delta else 0) | \
+        # the aim window. Fire while making the final small correction, and
+        # back away from anything already at contact range: every AI tick
+        # spent adjacent costs health, and stepping back also moves the shot
+        # off a corner the actor may be pressed against.
+        # Contact is cell adjacency: the ROM attacks when both cell deltas
+        # are below two, whatever the fraction, so kite from inside two cells.
+        contact = abs(dx) < 512 and abs(dy) < 512
+        return ((1 if delta > 0 else 2) if delta else 0) | (8 if contact else 0) | \
                (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
+
+    def reposition(actor):
+        """The cell to shoot from next when firing from here settles nothing."""
+        px, py, _ = pose()
+        here = px >> 8, py >> 8
+        dx, dy = here[0] - (actor["x"] >> 8), here[1] - (actor["y"] >> 8)
+        away = (1 if dx > 0 else -1 if dx < 0 else 0, 0) if abs(dx) >= abs(dy) else (0, 1 if dy > 0 else -1)
+        candidates = [(here[0] + away[0], here[1] + away[1]),
+                      (here[0] + away[1], here[1] + away[0]), (here[0] - away[1], here[1] - away[0])]
+        for cell in candidates:
+            if path_to(cell, reachable_only=True) is not None and cell != here:
+                return cell
+        return actor["x"] >> 8, actor["y"] >> 8
 
     def swap_weapon():
         """Press SELECT and let the ROM stream the other weapon's patterns in.
@@ -294,16 +317,29 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
                 navigate((target["x"] >> 8, target["y"] >> 8), stop=engageable)
                 continue
             # Cached presentations can run much faster than simulation
-            # cooldowns. Bound each exchange by LCD time, not render cadence.
+            # cooldowns. Bound each exchange by LCD time, not render cadence,
+            # and by less of it when the target is already in contact range:
+            # every AI tick it spends adjacent costs health.
             exchange, opening = cgb.frame_count, len(living())
-            while living() and engageable() and cgb.frame_count - exchange < 300:
+            px, py, _ = pose()
+            contact = abs(target["x"] - px) < 512 and abs(target["y"] - py) < 512
+            while living() and engageable() and cgb.frame_count - exchange < (120 if contact else 300):
                 step(aiming)
             survivor = nearest_living(walkable=True)
             if len(living()) == opening and survivor is not None:
-                # The exchange settled nothing. Close the distance only while
-                # the shot still cannot reach; walking onto a live chaser is
-                # how the route used to die.
-                navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=engageable)
+                if engageable():
+                    # The shot had a host-side line but the ROM's exact centre
+                    # ray did not reach the actor: it stands against a corner
+                    # the sampled line squeezed past. Standing still and firing
+                    # is how the route dies now, so move one cell and change
+                    # the line - back along the shot if that cell is open,
+                    # otherwise onto the actor's own cell.
+                    navigate(reposition(survivor))
+                else:
+                    # Close the distance only while the shot still cannot
+                    # reach; walking onto a live chaser is how the route used
+                    # to die.
+                    navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=engageable)
         step(0)
         collect_drops()
 

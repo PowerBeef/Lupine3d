@@ -119,6 +119,19 @@ INCREMENTAL_CERTIFICATE = RENDER_CONFIG["incremental_certificate"]
 DYNAMIC_TILE_CACHE = RENDER_CONFIG["dynamic_tile_cache"]
 CACHE_KEY_MIX = RENDER_CONFIG["cache_key_mix"]
 ATTRIBUTE_PADDING = RENDER_CONFIG["attribute_padding"]
+# HBlank-streamed publication: hidden dynamic patterns and the hidden BG map
+# travel by HBlank DMA while the CPU is still composing, so a full packet
+# needs one VBlank instead of two or three. Both sources are fixed WRAM,
+# because an HBlank block reads through SVBK and a simulation yield may have
+# bank 2 mapped when it lands. Banked sources (masks, attributes) stay GDMA
+# in the VBlank tail. DYN_STREAMED counts the dynamic patterns already handed
+# to the transfer; render_view resets it and chains at column boundaries.
+HDMA_STREAMING = RENDER_CONFIG["hdma_streaming"]
+DYN_STREAMED = 0xC8CE
+# The folded compositor's column of tile IDs, written once per row and
+# copied into the map (both halves) once per column, after the snapshot copy
+# buffer and before the saved render HRAM.
+COLUMN_ROWS = 0xCAD0
 NARROW_YIELDS = RENDER_CONFIG["narrow_yields"]
 ANCHOR_PACKETS = RENDER_CONFIG["anchor_packets"]
 PACKET_BOUNDS_REUSE = RENDER_CONFIG["packet_bounds_reuse"]
@@ -949,6 +962,16 @@ SECTOR_TIME = SECTOR_START + 2        # u16 VBlanks, stamped when it is cleared
 CAMPAIGN_TIME = SECTOR_TIME + 2       # u16 VBlanks across the run
 GAME_STATE_END = CAMPAIGN_TIME + 2
 VBLANKS_PER_SECOND = 60
+
+# The depth pass projects every actor; the draw pass used to project each
+# one again with identical inputs. The depth pass now keeps what the draw
+# pass reads (SENTINEL_VISIBLE..SENTINEL_LOD, the foot row, the two strip
+# masks and MASK_BITS) per slot, beside the copied world window, and a flag
+# per slot says the record is this frame's. Bank 2 never reads either.
+ACTOR_PROJECTION = 0xD7A0          # MAX_ACTORS records, ACTOR_PROJECTION_BYTES each
+ACTOR_PROJECTION_BYTES = 8
+ACTOR_PROJECTED = ACTOR_PROJECTION + MAX_ACTORS * ACTOR_PROJECTION_BYTES
+assert VRAM_PROFILE + 128 <= ACTOR_PROJECTION and ACTOR_PROJECTED + MAX_ACTORS <= 0xD800
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.

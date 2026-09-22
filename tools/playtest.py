@@ -388,7 +388,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rom", type=Path, default=ROOT / "build" / "lupine3d.gb")
     parser.add_argument("--symbols", type=Path, default=ROOT / "build" / "lupine3d.sym")
-    parser.add_argument("--scenario", type=Path, default=ROOT / "playtests" / ("sable_v09_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART else "coherence_tour.json"))
+    parser.add_argument("--scenario", type=Path, default=ROOT / "playtests" / ("sable_v10_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART else "coherence_tour.json"))
     parser.add_argument("--output-dir", type=Path, default=ROOT / "build" / "playtest" / "coherence_tour")
     parser.add_argument("--record-all", action="store_true")
     args = parser.parse_args()

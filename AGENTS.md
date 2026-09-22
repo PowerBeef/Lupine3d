@@ -248,12 +248,18 @@ regression contract.
 - Limits: 96 dynamic BG patterns, 32 masked OBJ patterns, four actor slots,
   16 world objects/four per scanline, 40 total objects/ten per scanline.
   Do not partially admit an actor or overwrite published patterns.
-- Full packets remain at most **176 GDMA blocks**, staged across VBlanks.
-  This is not a single-VBlank allowance. Slim map/attribute buffers are 480 bytes.
-  Extra hidden-map CPU copies total 96 map + 96 attribute bytes: 96 map and
-  32 attribute bytes in the pattern stage, 64 attributes in the final commit.
-  Above 48 dynamic+mask patterns, insert another VBlank before the pattern stage.
-  Preserve the 96-block first-stage limit and finish writes before line 153.
+- Compact/slim full packets are **HBlank-streamed** (`HDMA_STREAMING`, see
+  `docs/STREAMED_PUBLICATION.md`): dynamic patterns and the whole hidden map
+  go by HBlank DMA during composition, from **fixed-WRAM sources only** (a
+  block reads through SVBK and a yield may have bank 2 mapped); the tail is
+  one VBlank of at most 62 banked GDMA blocks (masks + attributes) plus
+  HUD/OAM/flip. Start a transfer only while `HDMA5` reads idle and the LCD is
+  on, never terminate one, never write VBK while one is active, and keep
+  `DYN_STREAMED` in step with the hand-offs. Finish the tail before line 153.
+  The legacy profile keeps the staged packet: at most **176 GDMA blocks** over
+  two VBlanks, 96-block first stage, 192 CPU-copied hidden-map bytes on the
+  compact profiles only when streaming is off. Slim map/attribute buffers are
+  480 bytes.
 - Physical depth validity means an actual query at that column and wall key.
   Same-key appearance refinement must promote a coherent full wall packet.
   Never relabel duplicated or height-class depths as physical measurements.
@@ -296,10 +302,13 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Geometry/composition/cache/timing | `make variants wall-reuse motion`; `make research-tail` for traversal/projection |
 | CPU/banks/interrupts/DMA/publication | Both pinned `make sameboy` and `make mgba`; `tools/independent_witnesses.py` |
 
-Current nine-image oracle: `playtests/sable_v09_capture_pixels.json`. It differs
-from the v0.8 oracle in eight pixels a frame: the reticle moved to OBJ palette 4
-so palette 6 could carry a third enemy kind. Preserve the prior objective,
-helmet, steel, slim, initial Sable and beta.6 fixtures.
+Current nine-image oracle: `playtests/sable_v10_capture_pixels.json`. It differs
+from the v0.9 oracle in six pixels of one capture: the helmet blink phase in
+`09_exit_approach`, because streamed publication presents that update one LCD
+interval earlier and the accepted tick lands differently on the 62–63 blink
+window. The v0.9 oracle differs from v0.8 in eight pixels a frame (the reticle
+moved to OBJ palette 4). Preserve the prior v0.9, objective, helmet, steel,
+slim, initial Sable and beta.6 fixtures.
 Intentional image changes need explained before/after ROM captures and a new
 versioned oracle. Never weaken checks or change hashes just to pass.
 

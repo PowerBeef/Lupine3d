@@ -123,7 +123,15 @@ class ObservationContracts(unittest.TestCase):
 
     def test_production_defaults_preserve_historical_diagnostic_commands(self):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
-                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation"})
+                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming"})
+        # HBlank-streamed publication follows the display profile: on for the
+        # compact/slim production paths, off for the byte-exact legacy ROM,
+        # and never alongside the legacy-only experimental lanes.
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "legacy"})["hdma_streaming"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "compact"})["hdma_streaming"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_HDMA_STREAMING": "1"})["hdma_streaming"])
+        with self.assertRaises(ValueError):
+            resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_HDMA_STREAMING": "1", "LUPINE3D_FOREGROUND_PUBLICATION": "1", "LUPINE3D_SCANLINE_ADMISSION": "1"})
         for legacy, experiment in (("FOLDED", "COMPACT_STRIPS"),
                                    ("PREPARED_RAYS", "CAMERA_SETUP"),
                                    ("REPROJECTION", "NARROW_YIELDS")):

@@ -79,6 +79,12 @@ Allocation assertions enforce these boundaries and preserve the3,000-byte
 resident reserve. The current ROM retains3,123 resident bytes and1,808
 fixed-ROM bytes free.
 
+> Superseded for the default build by [streamed publication](STREAMED_PUBLICATION.md):
+> the slim packet now streams patterns and the whole 480-byte map by HBlank
+> DMA during composition and commits masks, attributes, HUD and OAM in one
+> VBlank. The staged contract below is what `LUPINE3D_HDMA_STREAMING=0` and
+> the legacy profile still build.
+
 The total GDMA ceiling remains176 blocks:96 dynamic patterns,32 masked
 patterns,24 original map blocks and24 original attribute blocks. The three
 additional rows of each plane use bounded CPU copies into hidden maps:

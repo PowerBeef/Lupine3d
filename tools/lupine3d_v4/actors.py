@@ -32,14 +32,18 @@ def emit_actors(a: Assembler) -> None:
     a.label("actor_pointer")
     a.ld_a_abs(ENTITY_SLOT); a.cb("swap", "a"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
     a.ld_rr_nn("de", ENTITY_SLOTS); a.add_hl_rr("de"); a.ret()
+    # Ten fixed bytes each way, inline: a slot is loaded and stored about
+    # sixteen times per update, and copy_bc's prologue outweighs the copy.
     a.label("actor_save")
     a.call("actor_pointer"); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
-    a.ld_rr_nn("hl", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
+    a.ld_rr_nn("hl", SENTINEL_XL)
+    for _ in range(10): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
     for address in ACTOR_SLOT_TAIL:
         a.ld_a_abs(address); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.ret()
     a.label("actor_load")
-    a.call("actor_pointer"); a.ld_rr_nn("de", SENTINEL_XL); a.ld_rr_nn("bc", 10); a.call("copy_bc")
+    a.call("actor_pointer"); a.ld_rr_nn("de", SENTINEL_XL)
+    for _ in range(10): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
     for address in ACTOR_SLOT_TAIL:
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.ret()
@@ -70,10 +74,39 @@ def emit_actors(a: Assembler) -> None:
     a.label("actor_update_store"); a.call("actor_save"); a.call("actor_next"); a.jr("actor_update_loop", "nz")
     a.call("check_all_actors_dead"); a.jp("restore_primary_actor")
 
+    # What project_sentinel leaves for the draw paths, kept per slot so the
+    # draw pass restores it instead of projecting the same inputs again. The
+    # LOD hysteresis is idempotent for a repeated projection (a second call
+    # with the first call's history returns the first call's LOD), so the
+    # restored record is exactly what the second projection would produce.
+    PROJECTION_RECORD = ((SENTINEL_VISIBLE, 4), (ENTITY_FOOT_Y, 1), (ENTITY_SCREEN_LEFT, 2), (MASK_BITS, 1))
+    assert sum(count for _, count in PROJECTION_RECORD) == ACTOR_PROJECTION_BYTES
+    a.label("actor_projection_pointer")   # HL -> this slot's record
+    a.ld_a_abs(ENTITY_SLOT)
+    for _ in range(ACTOR_PROJECTION_BYTES.bit_length() - 1): a.add_a_r("a")
+    a.add_a_n(ACTOR_PROJECTION & 255); a.ld_r_r("l", "a"); a.ld_r_n("h", ACTOR_PROJECTION >> 8); a.ret()
+
+    a.label("cache_actor_projection")
+    a.call("actor_projection_pointer"); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
+    for address, count in PROJECTION_RECORD:
+        a.ld_rr_nn("hl", address)
+        for _ in range(count): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
+    a.ld_a_abs(ENTITY_SLOT); a.add_a_n(ACTOR_PROJECTED & 255); a.ld_r_r("l", "a"); a.ld_r_n("h", ACTOR_PROJECTED >> 8)
+    a.ld_r_n("a", 1); a.ld_hl_a(); a.ret()
+
+    a.label("project_sentinel_cached")   # this frame's record if the depth pass made one
+    a.ld_a_abs(ENTITY_SLOT); a.add_a_n(ACTOR_PROJECTED & 255); a.ld_r_r("l", "a"); a.ld_r_n("h", ACTOR_PROJECTED >> 8)
+    a.ld_a_hl(); a.or_r("a"); a.jp("project_sentinel", "z")
+    a.call("actor_projection_pointer")
+    for address, count in PROJECTION_RECORD:
+        a.ld_rr_nn("de", address)
+        for _ in range(count): a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de")
+    a.ret()
+
     a.label("project_actor_depths")
     a.call("save_primary_actor")
     a.label("actor_project_loop")
-    a.call("actor_load"); a.call("project_sentinel")
+    a.call("actor_load"); a.call("project_sentinel"); a.call("cache_actor_projection")
     a.ld_r_n("b", 255); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.jr("actor_depth_ready", "z")
     a.ld_a_abs(SENTINEL_DEPTH); a.ld_r_r("b", "a")
     a.label("actor_depth_ready")

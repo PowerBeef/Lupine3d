@@ -23,15 +23,21 @@ FLAGS = {
     "door_identity": "DOOR_IDENTITY",
     "near_field": "NEAR_FIELD",
     "foreground_publication": "FOREGROUND_PUBLICATION",
+    "hdma_streaming": "HDMA_STREAMING",
 }
-IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication"}
+IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication", "hdma_streaming"}
 DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"}
+# HBlank-streamed publication follows the display profile: it is the compact
+# and slim production path, and the legacy profile keeps its staged VBlank
+# packets byte for byte. Resolved after the display, below.
+PROFILE_DEFAULTS = {"hdma_streaming"}
 
 
 def resolve(environ=None):
     env = os.environ if environ is None else environ
     result = {}
     for name, flag in FLAGS.items():
+        if name in PROFILE_DEFAULTS: continue
         enabled = name in DEFAULTS
         # Preserve historical diagnostic commands. An explicit incompatible
         # request still fails below; only the implicit production default adapts.
@@ -67,6 +73,12 @@ def resolve(environ=None):
     if (display != "legacy" or art == "sable-v2") and env.get("LUPINE3D_FIXED_SIM", "1") == "0":
         raise ValueError("Compact display/new art require accepted fixed simulation ticks")
     result.update(display=display, art=art, art_animation=animation == "1")
+    streaming = env.get("LUPINE3D_HDMA_STREAMING", "0" if display == "legacy" else "1")
+    if streaming not in ("0", "1"):
+        raise ValueError("LUPINE3D_HDMA_STREAMING must be 0 or 1")
+    result["hdma_streaming"] = streaming == "1"
+    if result["hdma_streaming"] and (result["foreground_publication"] or env.get("LUPINE3D_REPROJECTION", "0") == "1"):
+        raise ValueError("HBlank-streamed publication excludes the experimental foreground/reprojection lanes")
     if result["compact_strips"] and env.get("LUPINE3D_FOLDED", "1") == "0":
         raise ValueError("Compact strips require folded rendering; disable COMPACT_STRIPS for the unfolded oracle")
     if result["anchor_packets"] and (env.get("LUPINE3D_Q14", "1") == "0" or env.get("LUPINE3D_PREPARED_RAYS", "1") == "0"):

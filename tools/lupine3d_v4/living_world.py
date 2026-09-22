@@ -104,6 +104,7 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_rr_nn("hl", OAM_SHADOW + ENTITY_OAM_FIRST * 4); store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     a.xor_r("a"); a.ld_abs_a(SENTINEL_OAM_USED)
     a.ld_abs_a(MASK_TILE_COUNT)
+    for index in range(MAX_ACTORS): a.ld_abs_a(ACTOR_PROJECTED + index)
     a.ld_rr_nn("hl", WORLD_SCANLINES); a.ld_r_n("b", 144)
     a.label("clear_world_scanlines"); a.ldi_hl_a(); a.dec_r("b"); a.jr("clear_world_scanlines", "nz")
     if SCANLINE_ADMISSION or SABLE_ART: a.ld_abs_a(ADMISSION_MODE)

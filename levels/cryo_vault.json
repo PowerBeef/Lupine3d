@@ -1,0 +1,212 @@
+{
+  "format": "lupine-level-v2",
+  "name": "Cryo Vault",
+  "width": 16,
+  "height": 16,
+  "rows": [
+    "1111111111111111",
+    "1000011111100001",
+    "1010010000100001",
+    "1000030100300101",
+    "1000010000100001",
+    "1111112202211111",
+    "1111111101111111",
+    "1111111100001111",
+    "1111111110001111",
+    "1111111110001111",
+    "1111111111311111",
+    "1000011110000111",
+    "1000030100000012",
+    "1000010000100002",
+    "1000010000100002",
+    "1111111111111111"
+  ],
+  "player_spawn": {
+    "x_q8": 640,
+    "y_q8": 896,
+    "angle": 0,
+    "safe_radius_cells": 5
+  },
+  "doors": [
+    {
+      "id": "vault_gate",
+      "x": 5,
+      "y": 3,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "cold_throat",
+      "x": 10,
+      "y": 3,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "sump_lock",
+      "x": 10,
+      "y": 10,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "keycard"
+    },
+    {
+      "id": "vault_exit",
+      "x": 5,
+      "y": 12,
+      "orientation": "vertical",
+      "kind": "exit",
+      "unlock": "sentinel_dead"
+    }
+  ],
+  "entities": [
+    {
+      "kind": "sentinel",
+      "x_q8": 3200,
+      "y_q8": 3456,
+      "health": 3,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "warden",
+      "x_q8": 3200,
+      "y_q8": 640,
+      "health": 5,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 2688,
+      "y_q8": 2176,
+      "health": 2,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 1920,
+      "y_q8": 3712,
+      "health": 2,
+      "activation_radius_q4": 96
+    }
+  ],
+  "pickups": [
+    {
+      "kind": "medkit",
+      "source": "sentinel_drop",
+      "value": 25
+    },
+    {
+      "kind": "keycard",
+      "source": "sentinel_drop",
+      "value": 1
+    }
+  ],
+  "triggers": [
+    {
+      "kind": "activate_exit",
+      "condition": "sentinel_dead"
+    }
+  ],
+  "exit": {
+    "x": 2,
+    "y": 13,
+    "marker": "beacon"
+  },
+  "readability": {
+    "maximum_sightline": 6,
+    "minimum_door_separation": 8,
+    "minimum_critical_path_steps": 15,
+    "minimum_critical_path_turns": 3,
+    "maximum_material_singletons": 16
+  },
+  "fixtures": [
+    {
+      "x": 5,
+      "y": 3,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 10,
+      "y": 3,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 10,
+      "y": 10,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 5,
+      "y": 12,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 7,
+      "y": 3,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 13,
+      "y": 3,
+      "side": "north",
+      "kind": "sector"
+    },
+    {
+      "x": 8,
+      "y": 8,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "side": "south",
+      "kind": "light"
+    },
+    {
+      "x": 10,
+      "y": 13,
+      "side": "east",
+      "kind": "sector"
+    },
+    {
+      "x": 15,
+      "y": 13,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 7,
+      "y": 12,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 6,
+      "y": 5,
+      "side": "north",
+      "kind": "sector"
+    },
+    {
+      "x": 12,
+      "y": 10,
+      "side": "south",
+      "kind": "light"
+    }
+  ],
+  "palette_profile": "outpost",
+  "vram_profile": "entity-heavy"
+}

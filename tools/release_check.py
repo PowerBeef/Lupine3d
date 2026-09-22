@@ -76,7 +76,10 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
             "all_commits_vblank_safe": all(bool(event["vblank_safe"]) for event in commits),
             "all_commits_bounded_transfers": all(
                 (int(event["event_count"]) <= 1 and int(event["blocks"]) <= 32) if event["reused"]
-                else 2 <= int(event["event_count"]) <= 4 for event in commits),
+                else ((int(event["vblank_blocks"]) <= 62 and int(event["hblank_blocks"]) <= 126
+                       and all(e.get("kind") != "hdma" or e["vblank_safe_complete"] for e in event["events"]))
+                      if v2_manifest["hblank_streaming"]["enabled"]
+                      else 2 <= int(event["event_count"]) <= 4) for event in commits),
             "commit_payload_bytes": number_stats([value * 16 for value in commit_blocks]),
             "last_adaptive_casts": cgb.read8(v2.ADAPTIVE_CASTS),
             "last_edge_recasts": cgb.read8(v2.EDGE_RECASTS),
@@ -177,8 +180,15 @@ def main() -> None:
         "header_checksum": header_checksum(v2_rom) == v2_rom[0x014D],
         "global_checksum": global_checksum(v2_rom) == expected_global,
         "engine_fits_rom": int(v2_manifest["engine_end"]) <= 0x8000,
-        "maximum_commit_176_blocks": int(v2_manifest["maximum_commit_blocks"]) <= 176,
-        "bounded_publication_stages": v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80,
+        # Staged: at most 176 GDMA blocks over two or three VBlanks. Streamed:
+        # patterns and map by HBlank DMA (at most 126 blocks over visible
+        # lines), then one VBlank of at most 62 banked GDMA blocks.
+        "maximum_commit_176_blocks": (int(v2_manifest["maximum_commit_blocks"]) <= 176 if not v2_manifest["hblank_streaming"]["enabled"]
+                                      else v2_manifest["hblank_streaming"]["maximum_vblank_gdma_blocks"] <= 62
+                                      and v2_manifest["hblank_streaming"]["maximum_hblank_blocks"] <= 126
+                                      and int(v2_manifest["maximum_commit_blocks"]) <= 188),
+        "bounded_publication_stages": (v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80) if not v2_manifest["hblank_streaming"]["enabled"]
+                                      else v2_manifest["maximum_final_stage_blocks"] <= 62 and v2_manifest["maximum_publication_vblanks"] == 1,
         "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == current_sha,
         "sable_art_tour_current": art_playtest["rom_sha256"] == current_sha and art_playtest["summary"]["passed"] and art_playtest["summary"]["capture_count"] == 6,
         "hud_and_fixture_budgets": v2_manifest["hud_patterns"] <= 96 and v2_manifest["wall_fixture_oam_budget"] <= 4,

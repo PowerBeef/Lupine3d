@@ -170,7 +170,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("cast_all")
     if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
     a.label("compose_full_snapshot")
-    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("frame_done")
+    if HDMA_STREAMING:
+        # Entities first: their masks are banked and go by GDMA in the tail
+        # anyway, while render_view's patterns stream by HBlank DMA as each
+        # column is composed. Neither pass reads what the other writes.
+        a.call("render_entities"); a.call("render_view")
+    else:
+        a.call("render_view"); a.call("render_entities")
+    a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("frame_done")
     a.label("reuse_wall_view")
     if PHYSICAL_DEPTH:
         a.call("refine_reused_snapshot"); a.or_r("a"); a.jp("compose_full_snapshot","nz")
@@ -467,7 +474,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "signature_offset": 4, "pattern_offset": 14,
             "staging_range": [DYNAMIC_CACHE_STAGE, DYNAMIC_CACHE_POINTER+2],
         },
-        "publication": "atomic BG/HUD/OAM; compact high-pressure packets use three VBlanks" if COMPACT_DISPLAY else "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
+        "publication": ("atomic BG/HUD/OAM; hidden patterns and map stream by HBlank DMA during composition, banked masks/attributes and HUD/OAM commit in one VBlank" if HDMA_STREAMING
+                        else "atomic BG/HUD/OAM; compact high-pressure packets use three VBlanks" if COMPACT_DISPLAY else "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks"),
+        "hblank_streaming": {
+            "enabled": HDMA_STREAMING,
+            "hblank_sources": ["dynamic patterns (fixed WRAM $C000)", "hidden tile-number map (fixed WRAM $C600)"] if HDMA_STREAMING else [],
+            "vblank_sources": ["masked OBJ patterns", "hidden attributes", "HUD map cells", "OAM"] if HDMA_STREAMING else [],
+            "maximum_hblank_blocks": DYNAMIC_TILE_CAPACITY + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else 0,
+            "maximum_vblank_gdma_blocks": ENTITY_OAM_COUNT * 2 + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else None,
+            "chained_at": "render_view column boundaries and the publication prologue" if HDMA_STREAMING else None,
+            "streamed_counter_address": DYN_STREAMED if HDMA_STREAMING else None,
+        },
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,
         "folded_compositor": FOLDED_COMPOSITOR,
@@ -477,7 +494,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "display_configuration": {"name": RENDER_CONFIG["display"], "viewport": list(VIEWPORT),
                                   "horizon": HORIZON, "hud_height": HUD_HEIGHT, "map_bytes": VIEW_MAP_BYTES,
                                   "hud_theme": "steel-objective-spaced-v1" if SLIM_DISPLAY else "sable-strip" if COMPACT_DISPLAY else "legacy",
-                                  "extra_cpu_bytes_per_full_packet": (VIEW_MAP_BYTES-384)*2},
+                                  "extra_cpu_bytes_per_full_packet": 0 if HDMA_STREAMING else (VIEW_MAP_BYTES-384)*2},
         "native_art": __import__('lupine3d_v4.sprite_assets', fromlist=['evidence']).evidence() if SABLE_ART or COMPACT_DISPLAY else None,
         "art_animation": ART_ANIMATION,
         "foreground_obj_allocation": {"first":WEAPON_TILE_BASE,"patterns":86 if SABLE_ART else 20,
@@ -509,12 +526,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "dynamic_tile_buffer_bytes": DYNAMIC_TILE_CAPACITY * 16,
         "view_map_buffer_bytes": VIEW_MAP_BYTES,
         "maximum_commit_bytes": DYNAMIC_TILE_CAPACITY * 16 + 768 + ENTITY_OAM_COUNT * 32,
-        "maximum_commit_blocks": DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
-        "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
-        "maximum_final_stage_blocks": 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
+        # Streamed: HBlank blocks (patterns + map) plus the VBlank GDMA tail
+        # (masks + attributes). Staged: the historical 96/32/24/24 packet.
+        "maximum_commit_blocks": (DYNAMIC_TILE_CAPACITY + ENTITY_OAM_COUNT * 2 + 2 * (VIEW_MAP_BYTES // 16)) if HDMA_STREAMING
+                                 else DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
+        "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else DYNAMIC_TILE_CAPACITY,
+        "maximum_final_stage_blocks": (ENTITY_OAM_COUNT * 2 + VIEW_MAP_BYTES // 16) if HDMA_STREAMING
+                                      else 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
         # Slim adds a pattern-stage VBlank above 48 dynamic+mask patterns, so its
-        # worst case is three even without the experimental lanes.
-        "maximum_publication_vblanks": 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
+        # worst case is three even without the experimental lanes. Streaming
+        # leaves one VBlank of banked GDMA and the HUD/OAM/flip.
+        "maximum_publication_vblanks": 1 if HDMA_STREAMING else 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
         "exact_wall_reuse": WALL_REUSE_ENABLED,
         "wall_cache_key_bytes": 290,

@@ -41,6 +41,11 @@ BGPD = 0xFF69
 OBPI = 0xFF6A
 OBPD = 0xFF6B
 SVBK = 0xFF70
+# Nominal first dot of mode 0 on a visible line: 80 dots of OAM scan and the
+# shortest 172-dot mode 3. Hardware starts each HBlank block itself, so this
+# only decides where the harness charges the stall; correctness never
+# depends on it.
+HBLANK_DOT = 252
 
 
 class CPUError(RuntimeError):
@@ -97,6 +102,19 @@ class CGB:
         self.gdma_events: list[dict[str, int | bool]] = []
         self.commit_events: list[dict[str, object]] = []
         self.gdma_vblank_violations = 0
+        # HBlank DMA: one 16-byte block at the HBlank of every visible line
+        # while a transfer is active, reading the source through the CPU's
+        # own memory map (so SVBK selects the WRAM bank) and writing the VRAM
+        # bank VBK selects at that moment - the way both pinned cores do it.
+        # HDMA5 reads back the remaining block count with bit 7 clear while
+        # active and $FF once the last block has landed.
+        self.hdma_active = False
+        self.hdma_remaining = 0
+        self.hdma_src = 0
+        self.hdma_dst = 0
+        self.hdma_served_ly = -1
+        self.hdma_event: dict[str, object] | None = None
+        self.dma_cycles = 0  # every CPU stall spent on GDMA or HBlank blocks
         self.interrupt_events: list[dict[str, int]] = []
         self.scx_events: list[dict[str, int]] = []
         self.raster_lcdc: dict[int, tuple[int, int, int]] = {}
@@ -234,6 +252,8 @@ class CGB:
             if old & value & 0x80 and self.ly < 144 and (old ^ value) & 0x10:
                 self.raster_lcdc[self.ly] = (0x10, value & 0x10, old & 0x10)
             if not (value & 0x80):
+                if self.hdma_active:
+                    raise CPUError(f"LCD turned off with {self.hdma_remaining} HBlank DMA blocks pending")
                 self.raster_lcdc.clear()
                 self.ly = 0
                 self.ppu_dots = 0
@@ -262,10 +282,17 @@ class CGB:
             if self.io[OBPI & 0x7F] & 0x80:
                 self.io[OBPI & 0x7F] = 0x80 | ((index + 1) & 0x3F)
             return
+        if addr == HDMA5:
+            if value & 0x80:
+                self._start_hdma(value)
+            elif self.hdma_active:
+                self._terminate_hdma()
+            else:
+                self.io[HDMA5 & 0x7F] = value
+                self._do_gdma(value)
+            return
         if addr < 0xFF80:
             self.io[addr - 0xFF00] = value
-            if addr == HDMA5 and not (value & 0x80):
-                self._do_gdma(value)
             return
         if addr < 0xFFFF:
             self.hram[addr - 0xFF80] = value
@@ -279,14 +306,23 @@ class CGB:
 
     def _record_presentation(self):
         events = [self.gdma_events[i] for i in self._pending_commit_event_indexes]
-        same_frame = not events or all(event["frame"] == events[0]["frame"] for event in events)
+        # HBlank transfers legitimately span frames: they stream hidden
+        # resources while the previous frame is displayed. Only the general
+        # purpose transfers of the VBlank tail have to share the flip's frame.
+        vblank_events = [event for event in events if event.get("kind") != "hdma"]
+        hblank_events = [event for event in events if event.get("kind") == "hdma"]
+        same_frame = not vblank_events or all(event["frame"] == vblank_events[0]["frame"] for event in vblank_events)
         safe = all(event["vblank_safe_complete"] for event in events) and 144 <= self.ly < 153
-        safe = safe and (not events or self.frame_count == events[-1]["frame"])
+        safe = safe and (not vblank_events or self.frame_count == vblank_events[-1]["frame"])
+        safe = safe and not self.hdma_active
         self.commit_events.append(dict(
             swap=self.page_swaps, presentation=self.presentations + 1,
             displayed_map=bool(self.io[LCDC & 0x7F] & 8), frame=self.frame_count,
             ly=self.ly, cycles=self.cycles, blocks=sum(event["blocks"] for event in events),
-            event_count=len(events), vblank_safe=safe, staged=not same_frame, events=tuple(events),
+            vblank_blocks=sum(event["blocks"] for event in vblank_events),
+            hblank_blocks=sum(event["blocks"] for event in hblank_events),
+            event_count=len(events), vblank_safe=safe,
+            staged=not same_frame or bool(hblank_events), events=tuple(events),
             reused=bool(self.read8(0xC8B5)) if self.explicit_presentations else False,
             object_page=self.read8(0xC8B3) if self.explicit_presentations else None,
         ))
@@ -344,6 +380,59 @@ class CGB:
         # Approximately 8 microseconds per 16-byte block. In CPU T-cycles,
         # that is ~32 normal-speed or ~64 double-speed cycles.
         self.extra_cycles += blocks * (64 if self.double_speed else 32)
+
+    def _start_hdma(self, control: int) -> None:
+        if self.hdma_active:
+            raise CPUError(f"HBlank DMA restarted while {self.hdma_remaining} blocks were pending")
+        if not self.io[LCDC & 0x7F] & 0x80:
+            raise CPUError("HBlank DMA started with the LCD off")
+        self.hdma_remaining = (control & 0x7F) + 1
+        self.hdma_src = (self.io[HDMA1 & 0x7F] << 8) | (self.io[HDMA2 & 0x7F] & 0xF0)
+        self.hdma_dst = 0x8000 | ((self.io[HDMA3 & 0x7F] & 0x1F) << 8) | (self.io[HDMA4 & 0x7F] & 0xF0)
+        self.hdma_active = True
+        self.io[HDMA5 & 0x7F] = (self.hdma_remaining - 1) & 0x7F
+        self.hdma_event = {
+            "kind": "hdma", "frame": self.frame_count, "ly": self.ly,
+            "bank": self.io[VBK & 0x7F] & 1, "source": self.hdma_src, "destination": self.hdma_dst,
+            "blocks": self.hdma_remaining, "lcd_on": True, "vblank_safe_start": True,
+            "vblank_safe_complete": False, "completed_frame": None, "completed_ly": None,
+            "terminated": False,
+        }
+        self.gdma_events.append(self.hdma_event)
+        self._pending_commit_event_indexes.append(len(self.gdma_events) - 1)
+        # Started inside an HBlank: the first block moves at once.
+        if self.ly < 144 and self.ppu_dots >= HBLANK_DOT and self.hdma_served_ly != self.ly:
+            self._hdma_block()
+
+    def _hdma_block(self) -> None:
+        bank = self.io[VBK & 0x7F] & 1
+        for i in range(16):
+            self.vram[bank][(self.hdma_dst - 0x8000 + i) & 0x1FFF] = self.read8((self.hdma_src + i) & 0xFFFF)
+        self.hdma_src = (self.hdma_src + 16) & 0xFFFF
+        self.hdma_dst = 0x8000 | ((self.hdma_dst - 0x8000 + 16) & 0x1FF0)
+        self.hdma_remaining -= 1
+        self.hdma_served_ly = self.ly
+        self.extra_cycles += 64 if self.double_speed else 32
+        assert self.hdma_event is not None
+        self.hdma_event["blocks_done"] = self.hdma_event.get("blocks_done", 0) + 1
+        if self.hdma_remaining:
+            self.io[HDMA5 & 0x7F] = (self.hdma_remaining - 1) & 0x7F
+            return
+        self.hdma_active = False
+        self.io[HDMA1 & 0x7F] = (self.hdma_src >> 8) & 0xFF
+        self.io[HDMA2 & 0x7F] = self.hdma_src & 0xF0
+        self.io[HDMA3 & 0x7F] = (self.hdma_dst >> 8) & 0x1F
+        self.io[HDMA4 & 0x7F] = self.hdma_dst & 0xF0
+        self.io[HDMA5 & 0x7F] = 0xFF
+        self.hdma_event["vblank_safe_complete"] = True
+        self.hdma_event["completed_frame"] = self.frame_count
+        self.hdma_event["completed_ly"] = self.ly
+
+    def _terminate_hdma(self) -> None:
+        self.hdma_active = False
+        self.io[HDMA5 & 0x7F] = 0x80 | ((self.hdma_remaining - 1) & 0x7F)
+        assert self.hdma_event is not None
+        self.hdma_event["terminated"] = True
 
     # ----- helpers --------------------------------------------------------
     def fetch8(self) -> int:
@@ -406,7 +495,11 @@ class CGB:
         return value - 256 if value & 0x80 else value
 
     def _tick(self, cycles: int) -> None:
+        # extra_cycles is only ever a DMA stall. Charge it to dma_cycles at
+        # the moment it is consumed, so a block that lands inside this tick
+        # is attributed to the instruction whose elapsed time it extends.
         cycles += self.extra_cycles
+        self.dma_cycles += self.extra_cycles
         self.extra_cycles = 0
         self.cycles += cycles
         lcdc = self.io[LCDC & 0x7F]
@@ -414,6 +507,10 @@ class CGB:
             dots = cycles // (2 if self.double_speed else 1)
             self.ppu_dots += dots
             while self.ppu_dots >= 456:
+                # The line being left had an HBlank whether or not this
+                # instruction happened to observe it: serve it exactly once.
+                if self.hdma_active and self.ly < 144 and self.hdma_served_ly != self.ly:
+                    self._hdma_block()
                 self.ppu_dots -= 456
                 self.ly += 1
                 if self.ly == 144:
@@ -423,6 +520,9 @@ class CGB:
                 if self.ly >= 154:
                     self.ly = 0
                     self.frame_count += 1
+                    self.hdma_served_ly = -1
+            if self.hdma_active and self.ly < 144 and self.ppu_dots >= HBLANK_DOT and self.hdma_served_ly != self.ly:
+                self._hdma_block()
         else:
             self.ly = 0
             self.ppu_dots = 0

@@ -34,8 +34,12 @@ def emit_wall_cache(a: Assembler):
         a.ld_a_abs(WALL_CACHE_DISABLE); a.or_r("a"); a.jp("wall_cache_miss", "nz")
         a.ld_a_abs(WALL_CACHE_VALID); a.or_r("a"); a.jp("wall_cache_miss", "z")
         for source, key, count in WALL_KEY_RANGES:
-            a.ld_rr_nn("hl", source); a.ld_rr_nn("de", key); a.ld_r_n("b", count & 255)
-            a.call("wall_key_equal"); a.jp("wall_cache_miss", "nz")
+            a.ld_rr_nn("hl", source); a.ld_rr_nn("de", key)
+            if count == 256:
+                a.call("wall_key_equal_256")
+            else:
+                a.ld_r_n("b", count & 255); a.call("wall_key_equal")
+            a.jp("wall_cache_miss", "nz")
         a.ld_r_n("a", 1); a.ld_abs_a(FRAME_REUSED); a.ret()
     a.label("wall_cache_miss")
     a.xor_r("a"); a.ld_abs_a(WALL_CACHE_VALID)
@@ -46,6 +50,17 @@ def emit_wall_cache(a: Assembler):
     a.label("wall_key_equal")  # B=0 compares exactly 256 bytes
     a.ld_a_mem_rr("de"); a.cp_r("(hl)"); a.ret("nz")
     a.inc_rr("hl"); a.inc_rr("de"); a.dec_r("b"); a.jr("wall_key_equal", "nz")
+    a.xor_r("a"); a.ret()
+
+    a.label("wall_key_equal_256")  # the map: eight bytes per counter step
+    # Byte for byte the same comparison and the same first-mismatch exit; a
+    # reusable view pays this on every cached frame, so the counter and
+    # branch are amortized over eight bytes rather than paid on each.
+    a.ld_r_n("b", 32)
+    a.label("wall_key_equal_256_loop")
+    for _ in range(8):
+        a.ld_a_mem_rr("de"); a.cp_r("(hl)"); a.ret("nz"); a.inc_rr("hl"); a.inc_rr("de")
+    a.dec_r("b"); a.jr("wall_key_equal_256_loop", "nz")
     a.xor_r("a"); a.ret()
 
     a.label("upload_entities_hud")
