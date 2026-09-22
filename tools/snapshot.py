@@ -55,13 +55,16 @@ def profile_name() -> str:
     name = f"{config['display']}-{config['art']}"
     if not config.get("art_animation", True):
         name += "-static"
+    if config.get("textured_walls"):
+        name += "-textured"
     return name
 
 
-def build_identity() -> tuple[str, str]:
-    """ROM SHA-256 and configuration id of the current default build."""
+def build_identity(build_dir: Path | None = None) -> tuple[str, str]:
+    """ROM SHA-256 and configuration id of a build: the default build, or
+    the one whose manifest sits in `build_dir` (a profile built elsewhere)."""
     import build_rom as br
-    manifest_path = br.BUILD / "build_manifest.json"
+    manifest_path = (build_dir or br.BUILD) / "build_manifest.json"
     if manifest_path.is_file():
         manifest = json.loads(manifest_path.read_text())
         return manifest["sha256"], manifest["configuration_id"]

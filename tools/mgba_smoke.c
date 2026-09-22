@@ -29,10 +29,14 @@ static void capture(const char *prefix, const char *label) {
 
 static bool enter_world(struct mCore *core)
 {
+    /* Power-on RAM may already hold MODE_PLAYING before the ROM initialises
+     * the byte: the world is entered only once the title has been seen first. */
+    bool seen_title = false;
     for (unsigned waited = 0; waited < 600; ++waited) {
         core->setKeys(core, 1 << GB_KEY_START);
         core->runFrame(core);
-        if (core->busRead8(core, GAME_MODE_ADDRESS) == MODE_PLAYING) {
+        if (core->busRead8(core, GAME_MODE_ADDRESS) != MODE_PLAYING) seen_title = true;
+        if (seen_title && core->busRead8(core, GAME_MODE_ADDRESS) == MODE_PLAYING) {
             core->setKeys(core, 0);
             core->runFrame(core);       /* release, so START is an edge again */
             return true;

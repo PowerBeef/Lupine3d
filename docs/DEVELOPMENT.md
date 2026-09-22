@@ -55,6 +55,18 @@ make conformance SAMEBOY_DIR=/your/path/SameBoy   # harness CPU model vs SameBoy
 
 Both adapters press START before anything else: the campaign holds the world behind a title screen, and an adapter that does not reach `MODE_PLAYING` exits 3 rather than reporting a pass. mGBA's adapter consumes `flags.make` to match the library ABI, hence the explicit Makefiles generator. SameBoy uses an original synthetic bootstrap; mGBA uses skip-BIOS. Only SameBoy instruments GDMA/page-flip writes. Neither proves physical CGB or Nintendo boot-ROM behaviour.
 
+### Power-on RAM in the core adapters
+
+SameBoy randomises power-on RAM from a time seed. Both adapters therefore
+treat world entry as an event, not a value: SameBoy's waits for the ROM's
+own write of `MODE_PLAYING` through its memory hook, mGBA's for the title to
+be seen before the mode reads playing. Before this rule a random image that
+happened to hold the playing value at `GAME_MODE` made an adapter release
+START on the title screen and time out (about one run in 150). For
+reproduction, `LUPINE3D_SAMEBOY_SEED=<n>` fixes the seed and
+`LUPINE3D_DUMP_RAM=<path>` writes the power-on image (WRAM, HRAM, VRAM,
+OAM) that the host harness can replay; every adapter failure reports its seed.
+
 ## Content and diagnostics
 
 Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
@@ -78,6 +90,22 @@ python tools/preview_sable.py --scene combat --output-dir build/v09/motion-previ
 ```
 
 Controller completion uses no game-RAM writes, but reads live state to steer; it is functional verification, not blind human navigation. Variants cover two actors, folded/unfolded, wall reuse, prepared rays and reprojection diagnostics. Wall-reuse testing includes 53 frozen comparisons. Current capture previews are emulator output; generated masters are design references only.
+
+### The textured profile
+
+`LUPINE3D_TEXTURED_WALLS=1` builds the row-window kernel of
+`docs/TEXTURED_WALLS.md` (slim, Sable and streaming only). It is opt-in and
+does not change the default ROM:
+
+```sh
+make textured                  # build/textured/lupine3d.gb, .sym, manifest
+make playtest-textured         # the three driven tours, frame-validated
+make sable-check-textured      # the Sable checks, textured variants included
+make snapshot-diff-textured    # its own suites under snapshots/slim-sable-v2-textured/
+```
+
+`tests/test_textured_walls.py` runs the Sable checks under the flag in a
+fresh process, and the CI slow lane runs the tours and checks above.
 
 ## Measurement
 

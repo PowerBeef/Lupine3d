@@ -44,6 +44,8 @@ from lupine3d_v4 import layout as active_layout
 from lupine3d_v4.allocation import memory_ledger
 from lupine3d_v4.configuration import identity
 from lupine3d_v4.tile_cache import emit_tile_cache
+from lupine3d_v4.textured import emit_textured_compositor, emit_textured_kernel
+from lupine3d_v4.texture_reference import reference_compose_textured_view  # noqa: F401
 from lupine3d_v4.packets import emit_packets
 from lupine3d_v4.physical_depth import emit_physical_depth
 
@@ -276,6 +278,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("world_decor", emit_world_decor), ("entity_projection", emit_entity_projection),
         ("masked_entities", emit_masked_entities), ("reprojection", emit_reprojection),
     ]
+    if TEXTURED_WALLS: resident_sections.append(("textured", emit_textured_kernel))
     for name, emit in resident_sections:
         a.section(name); emit(a)
 
@@ -290,6 +293,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
         ("entity_renderer_v7", emit_entity_renderer_v7), ("movement_v6", emit_movement_v6),
     ]
+    if TEXTURED_WALLS: cold_sections.append(("textured_compositor", emit_textured_compositor))
 
     # Data section.
     a.align(16, text="data alignment")
@@ -398,28 +402,37 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         raw_address += len(payload)
     assert raw_address <= 0x8000, "raw ray tables exceed one MBC5 bank"
     a.label("top_depth_lut"); a.bytes(make_top_depth_lut(), "projected-top to conservative corrected Q5 depth")
-    a.label("seam_tile_lookup"); a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
-    a.label("active_atlas_bucket_start"); a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
-    a.label("active_atlas_bucket_count"); a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
-    a.label("active_atlas_entries"); a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
-    microstrips = make_microstrips(STORED_STRIP_STATES)
+    # The textured profile composes every wall tile from row windows in the
+    # texture banks: the seam lookup, the trained atlas and the microstrips
+    # are never read, so their labels bind to empty tables and the resident
+    # bytes go to the kernel instead. The flat profiles keep them verbatim.
+    flat_tables = not TEXTURED_WALLS
+    a.label("seam_tile_lookup")
+    if flat_tables: a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
+    a.label("active_atlas_bucket_start")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
+    a.label("active_atlas_bucket_count")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
+    a.label("active_atlas_entries")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
+    microstrips = make_microstrips(STORED_STRIP_STATES) if flat_tables else b""
     style_block = STORED_STRIP_COUNT * 8 * 16
     a.label("microstrip_style_bases")
     for style in range(2): a.dw_label(f"microstrips_style_{style}")
     for style in range(2):
         if FOLDED_COMPOSITOR:
             a.label(f"microstrips_style_{style}")
-            a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
+            if flat_tables: a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
         else:
             a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block
-    pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES)
+    pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES) if flat_tables else b""
     pair_style_block = STORED_STRIP_COUNT * 4 * 16
     a.label("pair_microstrip_style_bases")
     for style in range(2): a.dw_label(f"pair_microstrips_style_{style}")
     for style in range(2):
         if FOLDED_COMPOSITOR:
             a.label(f"pair_microstrips_style_{style}")
-            a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+            if flat_tables: a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
         else:
             a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block
     if NEAR_FIELD:

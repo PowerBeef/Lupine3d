@@ -1,5 +1,11 @@
 """The textured-wall reference: along-face coordinates, symmetric textures,
-and the row-window composition equal to the pixel-level one."""
+and the row-window composition equal to the pixel-level one.
+
+The textured profile exists on the slim viewport only, so these tests run
+under it: `tools/run_tests.py` runs the historical suite under the legacy
+geometry, where they are skipped, and `tests/test_textured_walls.py` runs
+this module again in a fresh slim process.
+"""
 from fractions import Fraction
 from pathlib import Path
 import sys
@@ -10,12 +16,15 @@ import build_rom as br  # noqa: E402
 from lupine3d_v4 import texture_reference as tx  # noqa: E402
 from lupine3d_v4.reference import reference_cast_hit  # noqa: E402
 
+SLIM = unittest.skipUnless(br.SLIM_DISPLAY, "the textured reference is defined on the slim viewport")
+
 
 def checker(name="checker"):
     rows = tuple(tuple(1 + ((u // 4 + v // 2) % 3) for u in range(16)) for v in range(8))
     return tx.Texture(name, rows)
 
 
+@SLIM
 class AlongFaceTests(unittest.TestCase):
     def test_along_face_is_the_hit_point_on_the_face(self):
         # Facing +x from the middle of a cell, the centre ray hits the wall
@@ -74,6 +83,7 @@ class TextureTests(unittest.TestCase):
             self.assertEqual(rows, sorted(rows))
 
 
+@SLIM
 class CompositionTests(unittest.TestCase):
     def test_row_windows_equal_pixel_level_composition(self):
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "research"))
@@ -86,9 +96,12 @@ class CompositionTests(unittest.TestCase):
             affine = tx.affine_columns(columns)
             pixels, view_map, count, overflow, stats = tx.compose_pixels(textures, affine)
             self.assertFalse(overflow)
-            self.assertEqual(tx.compose_windows(textures, columns, windows), pixels, pose)
+            by_kernel, kernel_map, kernel_count, kernel_overflow = tx.compose_kernel(textures, columns, windows)
+            self.assertEqual(by_kernel, pixels, pose)
+            self.assertEqual(kernel_map, view_map, pose)
+            self.assertEqual((kernel_count, kernel_overflow), (count, False))
             self.assertEqual(count, len(pixels) // 16)
-            self.assertLessEqual(count, 254)
+            self.assertLessEqual(count, tx.DYNAMIC_TILE_CAPACITY)   # the textured profile's 238, whatever this build's
             # Every wall tile is mirrored into the lower half of the map.
             for row in range(br.FOLDED_ROWS):
                 self.assertEqual(view_map[row * 32:row * 32 + 20], view_map[(br.VIEW_ROWS - 1 - row) * 32:(br.VIEW_ROWS - 1 - row) * 32 + 20])

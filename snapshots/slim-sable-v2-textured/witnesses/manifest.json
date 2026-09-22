@@ -1,0 +1,701 @@
+{
+  "schema": "lupine3d.snapshots.v1",
+  "scenes": {
+    "actor_covered_discontinuity": {
+      "rgb_sha256": "02595d4a2e64795dcd9886de22626bf232d452ac106910bd1090f785e839fe7a",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "close_clipped_wall": {
+      "rgb_sha256": "e85e0aa7c8913402924eb58c4232d4d1a97977c006b3b07e38a7612aa4ce6876",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "finite_door_0": {
+      "rgb_sha256": "3a568773853924adfe39a6f9d740312a5d12457a3468282d679587812690493f",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "finite_door_128": {
+      "rgb_sha256": "84bb6c3877e2f64db15cef64153483f614f336d5414c645b865906ea4cc0ecac",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "finite_door_192": {
+      "rgb_sha256": "793db7cc6b335e0c1e3316f38eacfea78be38a0e88fcf6ab3b30adf67bf5a35a",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "finite_door_224": {
+      "rgb_sha256": "e85927cb59dccd940e36d875f3c0688208fbc958bf2719d0eff6b0ea4aa70a44",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "finite_door_64": {
+      "rgb_sha256": "260bc6ec0623fecacbb6bc468d8f1356965550ef05dcaa642c2edeebd3146cff",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "four_actor_coverage": {
+      "rgb_sha256": "ece9498bddfdbb3036f7e49b9948fc935485b40c95b3dc463511f7c5ef166c6f",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_00": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_01": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_02": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_03": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_04": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_05": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_06": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_07": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_08": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_09": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_10": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_11": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_12": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_13": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_14": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "fractional_actor_15": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "height_class_occlusion": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0064": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0079": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0080": {
+      "rgb_sha256": "f54f8074b72501781ae22f0276f533d515f74e26370724873674b50993c7dfa3",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0081": {
+      "rgb_sha256": "f54f8074b72501781ae22f0276f533d515f74e26370724873674b50993c7dfa3",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0095": {
+      "rgb_sha256": "f54f8074b72501781ae22f0276f533d515f74e26370724873674b50993c7dfa3",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0096": {
+      "rgb_sha256": "f54f8074b72501781ae22f0276f533d515f74e26370724873674b50993c7dfa3",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0447": {
+      "rgb_sha256": "e1273eaf92e23720f84a15893b8afacbe62d20d28cc16c2f4d3ab100c7f6d829",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0448": {
+      "rgb_sha256": "e1273eaf92e23720f84a15893b8afacbe62d20d28cc16c2f4d3ab100c7f6d829",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0449": {
+      "rgb_sha256": "e1273eaf92e23720f84a15893b8afacbe62d20d28cc16c2f4d3ab100c7f6d829",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0575": {
+      "rgb_sha256": "16b21aa3c1d35a7173defc1b09cd43aa7bd424db4db1c4aa143fdda0111092e2",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0576": {
+      "rgb_sha256": "692d5b9f7cea1b4cfbe969a196004f82b444679158816ef46cb3e13f5c987fff",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0959": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_0960": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_1087": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_1088": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "near_lod_1089": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_00": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_01": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_02": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_03": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_04": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_05": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_06": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_07": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_08": {
+      "rgb_sha256": "3c6d1ed165f01a7df008a9a7018af6d41377fe9985946c81e7f873444dcf065b",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_09": {
+      "rgb_sha256": "692213e9cd888c9a865f0b0c434a1ab2b7ff8819374fea9c4e2551f36717d8f1",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_10": {
+      "rgb_sha256": "692213e9cd888c9a865f0b0c434a1ab2b7ff8819374fea9c4e2551f36717d8f1",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_far_11": {
+      "rgb_sha256": "692213e9cd888c9a865f0b0c434a1ab2b7ff8819374fea9c4e2551f36717d8f1",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_00": {
+      "rgb_sha256": "309c8767d9981d9d32713b6455c436a666e7a22438807261bb9d0569b046a314",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_01": {
+      "rgb_sha256": "71a642fefc535cdd7eb2eeab2323306c9447b18b34aa6552a230e93ad2e6b15a",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_02": {
+      "rgb_sha256": "9316a0711b328ef8107df2a270565b5f5a5ff805edb719adcd38c5ba3da86270",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_03": {
+      "rgb_sha256": "9498506f83d362c3f31bd6b0c5a6a3188f36edbfe0304dcb400a6cc4cd454dd0",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_04": {
+      "rgb_sha256": "f475e512482c14d16729264fea6b79067e9875608dee1ae95a3a06d25abd8713",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_05": {
+      "rgb_sha256": "3c062dc88825f22d4d91294a118303ae88f96c7a6ee6f8bb2f765d3349c5f5b8",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_06": {
+      "rgb_sha256": "301ad12a264b7a0588b23edb852ffb564431dadb8cb8057c24efd731458ab95e",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_07": {
+      "rgb_sha256": "708c214198a1358fe53c7f3fa885f7357de77ab4aab2409ba54146f419ff2141",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_08": {
+      "rgb_sha256": "6142a51dd51daceca2b800225ee274bf731690f035d2ca5e6a236fa7e19cf721",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_09": {
+      "rgb_sha256": "d9936a731bcca1f61a8f0166fd9a6edc0d49218a08cdcacae4574381a5ae503d",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_10": {
+      "rgb_sha256": "d68e02a45af3501f4551205407d39bb41b81fbc241b3cc37d883de25e77b5ba4",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_mid_11": {
+      "rgb_sha256": "ffe0136ecd7c9dc5108ea7a129e455d3eab0b2f93eca8eb977d87c1a0ef48ee9",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_00": {
+      "rgb_sha256": "983d50d43d028b3f2e03df31deecea805030ed791226747c592e02892a8b634c",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_01": {
+      "rgb_sha256": "6252f662c85c810263ebbf7f2cc6aeafb6822960ab0dbeb669ab7c8786b5849f",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_02": {
+      "rgb_sha256": "4f19930adcbf6360ca5af94411f1d88708a06c3e4fd3f2aa7d6d6708c7c5d9b9",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_03": {
+      "rgb_sha256": "773cc5dbc5947d341cf67c29adc9f18a74b403c7b314d2e8be0975976d0335b6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_04": {
+      "rgb_sha256": "2258832cbbc25d0c238b1598d4685d2190daf9f3f68579a0344538b130edaaef",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_05": {
+      "rgb_sha256": "6a37f03edc5752e5f87060ba91eb79304e06c3bc9183deded27f1936996b7b8a",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_06": {
+      "rgb_sha256": "50413f0d4be31b23fa73d4a9b133ec1cddac6f9d6fa293930c39cbd52d9f2b3e",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_07": {
+      "rgb_sha256": "a3a84e5b2f00df62062c5630fdd7cf4b6d9aedf07e9b1d7c606949529b550cbb",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_08": {
+      "rgb_sha256": "19793069cd5c0e82c5d0f2ea88d7f9ead39e64a1d0422e0f689aad5a44f28f5c",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_09": {
+      "rgb_sha256": "8d076d3db368a58d8992c3dda1a7ee341274da42e9562ace465f1cea9f7b4193",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_10": {
+      "rgb_sha256": "a291c795d539cee820efc4e7f1aaa7d5af75cabf5406c668cadf96466fd1a3bd",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "sable_near_11": {
+      "rgb_sha256": "a835d0b183d1cdbc9eea1c6a92937010f8ec654d664eb597cb9b7aa91ada2603",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "shallow_angle": {
+      "rgb_sha256": "c5c01652181d3898da9dd0024f81e01ecb3e8aa1c29a201e40a27c7b4721c41c",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "thin_occluder": {
+      "rgb_sha256": "f1ee78dbe1f20c9092d9782907e6f0b524ea78b64f1b9f4d65b02e2d1ce0f052",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "touching_doors_axis_0": {
+      "rgb_sha256": "60a8dcd9c8a45f5632cb8a70e65c97f1fc07b14ac999359eb12edf48b0919494",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "touching_doors_axis_1": {
+      "rgb_sha256": "fe5d65d8da756197fef29469fdc9e7d31cf3c4e1fefc03cd11bc417af0066883",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "two_actor_corner": {
+      "rgb_sha256": "c33716f88764a3d5afa4ef3540ebf42e4c6f0a58f2ab63fd0f27f75dc38e0880",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "yaw_wrap_000": {
+      "rgb_sha256": "2ad3786100953135d05c99bb27d8ed5d1b30af43f114734331cc1ff1759d8bd6",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "yaw_wrap_001": {
+      "rgb_sha256": "4ec482e1866d22244185f0369a349e33662ddaef93d55bc047fbe26824eaf208",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "yaw_wrap_002": {
+      "rgb_sha256": "54663a08fbd133c8b0a6504e06bf7eb0e01b607bfb880f61b98d79d25efdfe5a",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "yaw_wrap_254": {
+      "rgb_sha256": "36f98325804a1ba5cc736631d098cf17268c4513c4c52c5a09332aa1d0381fe9",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    },
+    "yaw_wrap_255": {
+      "rgb_sha256": "25559628c796dbf6722954d4b51f140c0a5070e38d94a697ac56d28fb95967bd",
+      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-22T03:31:16+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+    }
+  }
+}

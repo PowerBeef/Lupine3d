@@ -24,10 +24,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
+from functools import lru_cache
 from typing import Sequence
 
 from .layout import (FOLDED_ROWS, HORIZON, PHYSICAL_COLUMNS, RAYS, VIEW_HEIGHT, VIEW_MAP_BYTES,
-                     VIEW_ROWS, CEILING_TILE, FLOOR_TILE)
+                     VIEW_ROWS, TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE, TEXTURED_DYNAMIC_TILE_CAPACITY)
+
+# The textured profile's static ids and pattern budget, whatever the build's own profile.
+CEILING_TILE, FLOOR_TILE = TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE
+WALL_TILE_BASE = TEXTURED_CEILING_TILE
+DYNAMIC_TILE_CAPACITY = TEXTURED_DYNAMIC_TILE_CAPACITY
 
 TEXELS = 16            # texture columns across one cell face
 TEXEL_ROWS = 8         # authored rows, mirrored about the horizon
@@ -158,6 +164,7 @@ def midpoint_u(left: int, right: int) -> int:
     return (left - ((backward + 1) >> 1)) & 0xFF
 
 
+@lru_cache(maxsize=1)
 def make_stride_class_lut() -> bytes:
     """Delta class for (run length - 1, first-to-last coordinate difference)."""
     out = bytearray()
@@ -209,56 +216,117 @@ def texel_column(u_q8: int) -> Fraction:
     return Fraction(u_q8 * TEXELS, 256)
 
 
-PROFILE_TEXTURE = (0, 1, 2)   # surface profile structure/machinery/door -> texture index
+# The kernel's stride classes in Q8 along-face units: a texel is 16 units.
+DELTA_Q8 = tuple(int(delta * TEXELS) for delta in DELTA_CLASSES)   # 2, 4, 8, 16, 32
+# A pixel's surface profile is its texture: structure, machinery, door.
+PROFILE_TEXTURE = (0, 1, 2)
 
 
-def rom_texture_columns(tops: Sequence[int], styles: Sequence[int], keys: Sequence[int],
-                        surfaces: Sequence[int], pixel_u: Sequence[int]) -> list["TexturedColumn"]:
-    """The 160 columns the console kernel composes, from its own descriptors."""
-    return [TexturedColumn(tops[x], styles[x], keys[x], PROFILE_TEXTURE[surfaces[x]], texel_column(pixel_u[x]))
-            for x in range(PHYSICAL_COLUMNS)]
-
-
-# ----- pixel-level composition ----------------------------------------------
+# ----- what one physical column shows ----------------------------------------
 
 @dataclass(frozen=True)
 class TexturedColumn:
-    """What one physical pixel column shows: silhouette, face and texture."""
+    """What one physical pixel column shows: silhouette, face and texture.
+
+    `half` is the height class the column's *run* shares - the tallest pixel
+    of the run of one face inside the tile column - which is what selects the
+    texture row and the shade; `u` is the texel column, oriented.
+    """
     top: int
     style: int
     key: int
     texture: int
-    u: Fraction          # texel column with sub-texel precision, oriented
+    u: Fraction
+    half: int
 
 
-def wall_pixel(textures: Sequence[Texture], column: TexturedColumn, half: int, y: int, *, outline: bool = True) -> int:
-    """Colour index of world pixel (x, y) for y in the upper half."""
+def run_identity(column: TexturedColumn) -> tuple[int, int, int]:
+    return column.key, column.texture, column.style & 1
+
+
+def tile_runs(columns: Sequence[TexturedColumn], first: int) -> list[tuple[int, int]]:
+    """Runs of one face inside the tile column starting at physical pixel
+    `first`: consecutive pixels with the same face key, surface profile and
+    shade bit (style bit 0: decoration can darken single pixels of a face)."""
+    runs, start = [], first
+    while start < first + 8:
+        end = start + 1
+        while end < first + 8 and run_identity(columns[end]) == run_identity(columns[start]):
+            end += 1
+        runs.append((start, end)); start = end
+    return runs
+
+
+def rom_texture_columns(tops: Sequence[int], styles: Sequence[int], keys: Sequence[int],
+                        surfaces: Sequence[int], pixel_u: Sequence[int]) -> list[TexturedColumn]:
+    """The 160 columns the console kernel composes, from its own descriptors."""
+    columns = [TexturedColumn(tops[x], styles[x], keys[x], PROFILE_TEXTURE[surfaces[x]], texel_column(pixel_u[x]), 0)
+               for x in range(PHYSICAL_COLUMNS)]
+    for first in range(0, PHYSICAL_COLUMNS, 8):
+        for start, end in tile_runs(columns, first):
+            half = HORIZON - min(c.top for c in columns[start:end])
+            for x in range(start, end):
+                c = columns[x]
+                columns[x] = TexturedColumn(c.top, c.style, c.key, c.texture, c.u, half)
+    return columns
+
+
+def run_window(run: Sequence[TexturedColumn], start_in_tile: int) -> tuple[int, int]:
+    """(stride class, phase index) of one run, by the console's rule.
+
+    The class comes from the run's length and the Q8 difference between its
+    last and first coordinates (the stride table); the phase is the quarter
+    texel of the coordinate extrapolated back to the tile column's first
+    pixel, so the window's texel i is the tile's pixel i and a run needs no
+    shifting - only its pixel mask.
+    """
+    u_q8 = [int(c.u * 16) & 0xFF for c in run]
+    span = len(run) - 1
+    k = make_stride_class_lut()[span * 256 + ((u_q8[-1] - u_q8[0]) & 0xFF)]
+    u0 = (u_q8[0] - start_in_tile * DELTA_Q8[k]) & 0xFF
+    return k, u0 >> 2
+
+
+def affine_columns(columns: Sequence[TexturedColumn]) -> list[TexturedColumn]:
+    """Replace each run's texel columns by the affine approximation the
+    row-window kernel composes: from the run's class and phase, the tile's
+    pixel i shows texel phase/4 + i * delta, modulo the texture width."""
+    out: list[TexturedColumn] = list(columns)
+    for first in range(0, len(columns), 8):
+        for start, end in tile_runs(columns, first):
+            k, phase = run_window(columns[start:end], start - first)
+            for x in range(start, end):
+                c = columns[x]
+                u = (Fraction(phase, PHASE_STEPS) + (x - first) * DELTA_CLASSES[k]) % TEXELS
+                out[x] = TexturedColumn(c.top, c.style, c.key, c.texture, u, c.half)
+    return out
+
+
+# ----- pixel-level composition ----------------------------------------------
+
+def wall_pixel(textures: Sequence[Texture], column: TexturedColumn, y: int, *, outline: bool = True) -> int:
+    """Colour index of world pixel (x, y) for a column: 0 above the wall, the
+    one-pixel outline in colour 3 on its top and bottom rows, the shaded
+    texel between, and the floor tone below."""
     if y < column.top:
         return 0
     if y >= VIEW_HEIGHT - column.top:
         return 1
-    if outline and y in (column.top, VIEW_HEIGHT - 1 - column.top) and half < HORIZON:
+    if outline and y in (column.top, VIEW_HEIGHT - 1 - column.top):
         return 3
-    v = texel_row(half, min(y, HORIZON - 1)) if y < HORIZON else texel_row(half, VIEW_HEIGHT - 1 - y)
+    v = texel_row(column.half, y) if y < HORIZON else texel_row(column.half, VIEW_HEIGHT - 1 - y)
     texel = textures[column.texture].texel(int(column.u) & (TEXELS - 1), v)
-    return SHADE_REMAP[shade_set(column.style, half)][texel]
+    return SHADE_REMAP[shade_set(column.style, column.half)][texel]
 
 
-def column_half(columns: Sequence[TexturedColumn]) -> int:
-    """The height class a tile column shares: the tallest of its eight pixels
-    that lies within two rows of the first, else the first's."""
-    first = columns[0].top
-    tops = [c.top for c in columns if abs(c.top - first) <= 2]
-    return HORIZON - min(tops)
-
-
-def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn], *, outline: bool = True
-                   ) -> tuple[bytes, bytes, int, bool, dict[str, int]]:
+def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn], *, outline: bool = True,
+                   dedup: bool = False) -> tuple[bytes, bytes, int, bool, dict[str, int]]:
     """Pixel-level textured compositor: dynamic tiles, view map, count, overflow, stats.
 
-    Every wall tile is composed (there is no seam atlas for textured walls);
-    identical tiles within a frame share one pattern, which is what a
-    per-frame signature cache would achieve on the console.
+    Every wall tile is composed in the console's order (columns first, rows
+    down); there is no seam atlas. With `dedup`, identical tiles share one
+    pattern, which reports what a signature cache could save; the console
+    does not do that.
     """
     if len(columns) != PHYSICAL_COLUMNS:
         raise ValueError("160 physical columns expected")
@@ -266,12 +334,10 @@ def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn
     ids: dict[bytes, int] = {}
     view_map = bytearray([CEILING_TILE] * VIEW_MAP_BYTES)
     stats = {"wall_tiles": 0, "boundary_tiles": 0, "seam_tiles": 0, "unique_tiles": 0}
-    capacity = 254
     overflow = False
     for tile_col in range(20):
         cols = columns[tile_col * 8:tile_col * 8 + 8]
         min_top = min(c.top for c in cols)
-        half = column_half(cols)
         for tile_row in range(FOLDED_ROWS):
             y0 = tile_row * 8
             if y0 + 7 < min_top:
@@ -282,7 +348,7 @@ def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn
                 tile = bytearray(16)
                 for i, c in enumerate(cols):
                     for row in range(8):
-                        colour = wall_pixel(textures, c, half, y0 + row, outline=outline)
+                        colour = wall_pixel(textures, c, y0 + row, outline=outline)
                         if colour & 1: tile[row * 2] |= 0x80 >> i
                         if colour & 2: tile[row * 2 + 1] |= 0x80 >> i
                 stats["wall_tiles"] += 1
@@ -291,73 +357,20 @@ def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn
                 if len({(c.key, c.texture) for c in cols}) > 1:
                     stats["seam_tiles"] += 1
                 key = bytes(tile)
-                if key in ids:
+                if dedup and key in ids:
                     tile_id = ids[key]
+                elif len(dynamic) // 16 >= DYNAMIC_TILE_CAPACITY:
+                    overflow = True; tile_id = WALL_TILE_BASE
                 else:
                     tile_id = len(dynamic) // 16
-                    if tile_id >= capacity:
-                        overflow = True; tile_id = 0
-                    else:
-                        dynamic.extend(tile); ids[key] = tile_id
+                    dynamic.extend(tile); ids.setdefault(key, tile_id)
             view_map[tile_row * 32 + tile_col] = tile_id
             view_map[(VIEW_ROWS - 1 - tile_row) * 32 + tile_col] = tile_id
-    stats["unique_tiles"] = len(dynamic) // 16
+    stats["unique_tiles"] = len(ids)
     return bytes(dynamic), bytes(view_map), len(dynamic) // 16, overflow, stats
 
 
-# ----- row-window composition ------------------------------------------------
-
-def delta_class(u: Sequence[Fraction]) -> int:
-    """Index into DELTA_CLASSES nearest the texel stride across the run."""
-    if len(u) < 2:
-        return 2
-    stride = abs(u[-1] - u[0]) / (len(u) - 1)
-    return min(range(len(DELTA_CLASSES)), key=lambda k: abs(DELTA_CLASSES[k] - stride))
-
-
-def tile_runs(columns: Sequence[TexturedColumn], first: int) -> list[tuple[int, int]]:
-    """Runs of one face inside the tile column starting at physical pixel `first`."""
-    runs, start = [], first
-    while start < first + 8:
-        end = start + 1
-        while end < first + 8 and (columns[end].key, columns[end].texture, columns[end].style) == (columns[start].key, columns[start].texture, columns[start].style):
-            end += 1
-        runs.append((start, end)); start = end
-    return runs
-
-
-def affine_columns(columns: Sequence[TexturedColumn]) -> list[TexturedColumn]:
-    """Replace each run's texel columns by the affine approximation the
-    row-window kernel can afford: within one tile column, a class stride
-    from a quantised phase. Faces are oriented so the coordinate never
-    decreases along a run; a wrap at a cell boundary is a stride like any
-    other because the window reads texels modulo the texture width."""
-    out: list[TexturedColumn] = list(columns)
-    for first in range(0, len(columns), 8):
-        for start, end in tile_runs(columns, first):
-            run = columns[start:end]
-            u = [c.u for c in run]
-            unwrapped = [u[0]]
-            for value in u[1:]:
-                step = (value - unwrapped[-1]) % TEXELS
-                unwrapped.append(unwrapped[-1] + step)
-            k = delta_class(unwrapped)
-            phase = Fraction(int(run[0].u * PHASE_STEPS), PHASE_STEPS)
-            for i, c in enumerate(run):
-                out[start + i] = TexturedColumn(c.top, c.style, c.key, c.texture, (phase + i * DELTA_CLASSES[k]) % TEXELS)
-    return out
-
-
-def window_key(run: Sequence[TexturedColumn]) -> tuple[int, int, int, int]:
-    """(texture, dark side, delta class, phase index) for one tile-column run."""
-    u = [c.u for c in run]
-    unwrapped = [u[0]]
-    for value in u[1:]:
-        unwrapped.append(unwrapped[-1] + (value - unwrapped[-1]) % TEXELS)
-    k = delta_class(unwrapped)
-    phase = int(run[0].u * PHASE_STEPS) % (TEXELS * PHASE_STEPS)
-    return (run[0].texture, run[0].style & 1, k, phase)
-
+# ----- row-window composition: the kernel --------------------------------------
 
 def make_row_windows(textures: Sequence[Texture]) -> dict[tuple[int, int, int, int, int], tuple[int, ...]]:
     """Every row window: eight texels for (texture, shade, delta class, phase, v)."""
@@ -377,47 +390,96 @@ def window_table_bytes(texture_count: int) -> int:
     return texture_count * SHADE_SETS * len(DELTA_CLASSES) * TEXELS * PHASE_STEPS * TEXEL_ROWS * 2
 
 
-def compose_windows(textures: Sequence[Texture], columns: Sequence[TexturedColumn],
-                    windows: dict, *, outline: bool = True) -> bytes:
-    """The kernel's composition: one window lookup per run and tile row, under
-    the silhouette mask, for every wall tile, in the same order as compose_pixels."""
+def window_planes(texels: Sequence[int]) -> tuple[int, int]:
+    plane0 = plane1 = 0
+    for i, colour in enumerate(texels):
+        if colour & 1: plane0 |= 0x80 >> i
+        if colour & 2: plane1 |= 0x80 >> i
+    return plane0, plane1
+
+
+def compose_kernel(textures: Sequence[Texture], columns: Sequence[TexturedColumn], windows: dict,
+                   *, outline: bool = True) -> tuple[bytes, bytes, int, bool]:
+    """The console kernel, instruction for instruction in spirit: per tile
+    column, runs of one face with a pixel mask, a height class, a shade, a
+    stride class, a phase and a Q8 row accumulator; per tile row, the eight
+    rows' coverage and outline masks; per row and run, one sixteen-byte window
+    read at the accumulator's texel row, masked into the two planes. The
+    self-mirrored centre tile computes its upper four rows and mirrors them
+    with the floor tone under the wall. Tiles are numbered in composition
+    order without sharing; the map carries each one twice.
+    """
     dynamic = bytearray()
-    ids: dict[bytes, int] = {}
-    affine = affine_columns(columns)
+    view_map = bytearray([CEILING_TILE] * VIEW_MAP_BYTES)
+    overflow = False
+    centre = (FOLDED_ROWS - 1) * 8 if VIEW_ROWS % 2 else None
     for tile_col in range(20):
-        cols = affine[tile_col * 8:tile_col * 8 + 8]
+        first = tile_col * 8
+        cols = columns[first:first + 8]
         min_top = min(c.top for c in cols)
-        half = column_half(cols)
-        shade_by_col = [shade_set(c.style, half) for c in cols]
-        # Runs inside the tile column: (start, end) with one window key each.
-        runs = [(s - tile_col * 8, e - tile_col * 8) for s, e in tile_runs(affine, tile_col * 8)]
+        runs = []
+        for start, end in tile_runs(columns, first):
+            run = columns[start:end]
+            top = min(c.top for c in run)
+            half = HORIZON - top
+            shade = shade_set(run[0].style, half)
+            k, phase = run_window(run, start - first)
+            cache = [window_planes(windows[run[0].texture, shade, k, phase, v]) for v in range(TEXEL_ROWS)]
+            mask = sum(0x80 >> (x - first) for x in range(start, end))
+            runs.append({"top": top, "step": row_step(half), "acc": 0, "mask": mask, "cache": cache})
         for tile_row in range(FOLDED_ROWS):
             y0 = tile_row * 8
-            if y0 + 7 < min_top or y0 >= VIEW_HEIGHT - min_top:
-                continue
-            tile = bytearray(16)
-            for row in range(8):
-                y = y0 + row
-                # Silhouette masks for this row: wall coverage, outline, floor.
-                cover = sum(0x80 >> i for i, c in enumerate(cols) if c.top <= y < VIEW_HEIGHT - c.top)
-                floor = sum(0x80 >> i for i, c in enumerate(cols) if y >= VIEW_HEIGHT - c.top)
-                edge = sum(0x80 >> i for i, c in enumerate(cols) if outline and y == c.top and half < HORIZON)
-                v = texel_row(half, y) if y < HORIZON else texel_row(half, VIEW_HEIGHT - 1 - y)
-                plane0 = plane1 = 0
-                for s, e in runs:
-                    run = cols[s:e]
-                    t, dark, k, phase = window_key(run)
-                    texels = windows[t, shade_by_col[s], k, phase, v]
-                    # The run's first pixel is texel 0 of the window: its pixels sit at s..e-1.
-                    for i in range(e - s):
-                        bit = 0x80 >> (s + i)
-                        if texels[i] & 1: plane0 |= bit
-                        if texels[i] & 2: plane1 |= bit
-                plane0 = (plane0 & cover & ~edge) | edge | floor
-                plane1 = (plane1 & cover & ~edge) | edge
-                tile[row * 2], tile[row * 2 + 1] = plane0 & 0xFF, plane1 & 0xFF
-            key = bytes(tile)
-            if key not in ids:
-                ids[key] = len(dynamic) // 16
-                dynamic.extend(tile)
-    return bytes(dynamic)
+            if y0 + 7 < min_top:
+                tile_id = CEILING_TILE
+            elif y0 >= VIEW_HEIGHT - min_top:
+                tile_id = FLOOR_TILE
+            else:
+                tile = bytearray(16)
+                rows = 4 if y0 == centre else 8
+                for row in range(rows):
+                    y = y0 + row
+                    cover = sum(0x80 >> i for i, c in enumerate(cols) if c.top <= y)
+                    edge = sum(0x80 >> i for i, c in enumerate(cols) if c.top == y) if outline else 0
+                    plane0 = plane1 = 0
+                    for run in runs:
+                        if y < run["top"]:
+                            continue
+                        v = run["acc"] >> 8
+                        run["acc"] += run["step"]
+                        p0, p1 = run["cache"][v]
+                        plane0 |= p0 & run["mask"]; plane1 |= p1 & run["mask"]
+                    plane0 = (plane0 & cover & ~edge) | edge
+                    plane1 = (plane1 & cover & ~edge) | edge
+                    tile[row * 2], tile[row * 2 + 1] = plane0 & 0xFF, plane1 & 0xFF
+                    if rows == 4:
+                        mirror = 7 - row
+                        tile[mirror * 2], tile[mirror * 2 + 1] = (plane0 | ~cover) & 0xFF, plane1 & 0xFF
+                if len(dynamic) // 16 >= DYNAMIC_TILE_CAPACITY:
+                    overflow = True; tile_id = WALL_TILE_BASE
+                else:
+                    tile_id = len(dynamic) // 16
+                    dynamic.extend(tile)
+            view_map[tile_row * 32 + tile_col] = tile_id
+            view_map[(VIEW_ROWS - 1 - tile_row) * 32 + tile_col] = tile_id
+    return bytes(dynamic), bytes(view_map), len(dynamic) // 16, overflow
+
+
+_WINDOWS: dict[int, dict] = {}
+
+
+def asset_windows() -> tuple[tuple[Texture, ...], dict]:
+    """The authored textures and their row windows, built once per process."""
+    from .texture_assets import textures
+    loaded = textures()
+    if id(loaded) not in _WINDOWS:
+        _WINDOWS[id(loaded)] = make_row_windows(loaded)
+    return loaded, _WINDOWS[id(loaded)]
+
+
+def reference_compose_textured_view(tops: Sequence[int], styles: Sequence[int], keys: Sequence[int],
+                                    surfaces: Sequence[int], pixel_u: Sequence[int]) -> tuple[bytes, bytes, int, bool]:
+    """Byte-exact host model of the textured compositor from the console's
+    own descriptors: dynamic patterns in composition order, the view map,
+    the pattern count and the overflow flag."""
+    textures, windows = asset_windows()
+    return compose_kernel(textures, rom_texture_columns(tops, styles, keys, surfaces, pixel_u), windows)

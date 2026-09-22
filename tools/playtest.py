@@ -94,6 +94,18 @@ def apply_diagnostic_camera(cgb: CGB, action: dict[str, Any]) -> None:
         set_test_world_byte(cgb, br.ANGLE, round(math.atan2(dy, dx) * 128 / math.pi) & 255)
 
 
+def published_dynamic_patterns(cgb, count: int) -> bytes:
+    """The textured profile's dynamic patterns as the displayed page's bank
+    holds them: ids below 128 at $9000, the rest at $8800. The WRAM ring has
+    already been reused, so the patterns are checked where they landed."""
+    bank = cgb.read8(br.CURRENT_PAGE)
+    out = bytearray()
+    for tile_id in range(count):
+        address = (0x1000 + tile_id * 16) if tile_id < 128 else (0x0800 + (tile_id - 128) * 16)
+        out += bytes(cgb.vram[bank][address:address + 16])
+    return bytes(out)
+
+
 def validate_frame(cgb: CGB) -> dict[str, Any]:
     physical = "refine_full_snapshot" in cgb.symbols
     x_q8 = cgb.read16(br.PLAYER_XL)
@@ -129,7 +141,11 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         list(read_block(cgb, br.PIXEL_KEYS, br.PHYSICAL_COLUMNS)),
         list(read_block(cgb, br.PIXEL_ALONG, br.PHYSICAL_COLUMNS)),
     )
-    dynamic, view_map, dynamic_count, overflow = br.reference_compose_view(pixel[0], pixel[1])
+    if br.TEXTURED_WALLS:
+        ray_u, pixel_u = br.reference_pixel_u_view(x_q8, y_q8, angle, grid, door_states)
+        dynamic, view_map, dynamic_count, overflow = br.reference_compose_textured_view(pixel[0], pixel[1], pixel[2], pixel[10], pixel_u)
+    else:
+        dynamic, view_map, dynamic_count, overflow = br.reference_compose_view(pixel[0], pixel[1])
     checks = {
         "pair_descriptors_exact": actual_pair == pair[:4],
         "ray_depth_exact": list(read_block(cgb, br.RAY_DEPTH, br.RAYS)) == pair[5],
@@ -142,7 +158,8 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "edge_recast_count_exact": cgb.read8(br.EDGE_RECASTS) == pixel[5],
         "material_event_count_exact": cgb.read8(br.EVENT_COUNT) == pixel[6],
         "dynamic_count_exact": cgb.read8(br.DYN_COUNT) == dynamic_count,
-        "dynamic_tiles_exact": read_block(cgb, br.DYNAMIC_TILES, len(dynamic)) == dynamic,
+        "dynamic_tiles_exact": published_dynamic_patterns(cgb, dynamic_count) == dynamic if br.TEXTURED_WALLS
+        else read_block(cgb, br.DYNAMIC_TILES, len(dynamic)) == dynamic,
         "view_map_exact": read_block(cgb, br.VIEW_MAP, len(view_map)) == view_map,
         "no_dynamic_overflow": not overflow and cgb.read8(br.DYN_OVERFLOW) == 0,
         "pixel_surface_profiles_exact": list(read_block(cgb, br.PIXEL_SURFACE, 160)) == pixel[10],
@@ -154,7 +171,6 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "no_mode3_palette_writes": cgb.mode3_palette_writes == 0,
     }
     if br.TEXTURED_WALLS:
-        ray_u, pixel_u = br.reference_pixel_u_view(x_q8, y_q8, angle, grid, door_states)
         checks["ray_u_exact"] = list(read_block(cgb, br.RAY_U, br.RAYS)) == ray_u
         checks["pixel_u_exact"] = list(read_block(cgb, br.PIXEL_U, br.PHYSICAL_COLUMNS)) == pixel_u
     page = cgb.read8(br.CURRENT_PAGE)
@@ -239,18 +255,21 @@ def default_scenario() -> Path:
     return ROOT / "playtests" / name
 
 
-def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str | None):
+def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str | None,
+                        rom_path: Path | None = None):
     """The golden-image suite a scenario declares, or None when it has none.
 
     A scenario names its suite with `snapshot_suite`; every capture is then
-    compared with the golden of the same name (see tools/snapshot.py).
+    compared with the golden of the same name (see tools/snapshot.py). The
+    configuration id comes from the manifest beside the ROM under test, so a
+    profile built into its own directory (build/textured) is identified too.
     """
     suite_name = scenario.get("snapshot_suite")
     if not suite_name or snapshot_mode is None:
         return None
     from snapshot import Suite, build_identity
     rom_sha = hashlib.sha256(rom).hexdigest()
-    built_sha, configuration_id = build_identity()
+    built_sha, configuration_id = build_identity(rom_path.parent if rom_path is not None else None)
     return Suite(str(suite_name), mode=snapshot_mode, rom_sha256=rom_sha,
                  configuration_id=configuration_id if built_sha == rom_sha else "foreign-rom")
 
@@ -260,7 +279,7 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                  snapshot_mode: str | None = "check") -> dict[str, Any]:
     scenario = json.loads(scenario_path.read_text(encoding="utf-8"))
     rom = rom_path.read_bytes()
-    snapshots = open_snapshot_suite(scenario, rom, snapshot_mode)
+    snapshots = open_snapshot_suite(scenario, rom, snapshot_mode, rom_path)
     symbols = parse_symbols(symbols_path)
     cgb = CGB(rom, symbols)
     run_to_world(cgb)

@@ -299,11 +299,15 @@ def emit_dma(a: Assembler) -> None:
     # Dynamic tile pixels live in the VRAM bank selected by each page's
     # preloaded attribute map. Tile-number maps themselves always live in
     # VRAM bank 0; writing them with VBK=1 would corrupt CGB attributes.
-    a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
+    if TEXTURED_WALLS:
+        a.call("tex_flush_gdma")    # the ring already flushed to both banks as it composed
+    else:
+        a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
     a.ld_r_n("a", 1); a.ld_abs_a(CURRENT_PAGE)  # hidden page = 0 -> 9800
     a.xor_r("a"); a.ldh_n_a(VBK); a.call("upload_view_map")
     if COMPACT_DISPLAY: a.call("upload_extra_map")
-    a.ld_r_n("a", 1); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
+    if not TEXTURED_WALLS:
+        a.ld_r_n("a", 1); a.ldh_n_a(VBK); a.call("upload_dynamic_tiles")
     a.xor_r("a"); a.ld_abs_a(CURRENT_PAGE)     # hidden page = 1 -> 9C00
     a.ldh_n_a(VBK); a.call("upload_view_map")
     if COMPACT_DISPLAY: a.call("upload_extra_map")
@@ -426,7 +430,14 @@ def emit_streamed_publication(a: Assembler) -> None:
     a.xor_r("a"); a.ld_abs_a(FRAME_REUSED)
     # Whatever the last composed column left behind, then the whole map,
     # while the CPU builds the attribute packet and the HUD underneath it.
-    a.call("stream_wait_idle"); a.call("stream_dynamic_tiles"); a.call("stream_wait_idle")
+    if TEXTURED_WALLS:
+        # The ring drains in chunks that stop at its wrap and the VRAM half.
+        a.label("upload_drain_ring")
+        a.call("stream_wait_idle"); a.call("tex_stream_hblank")
+        a.ld_a_abs(DYN_STREAMED); a.ld_r_r("b", "a"); a.ld_a_abs(DYN_COUNT); a.cp_r("b"); a.jr("upload_drain_ring", "nz")
+        a.call("stream_wait_idle")
+    else:
+        a.call("stream_wait_idle"); a.call("stream_dynamic_tiles"); a.call("stream_wait_idle")
     a.call("stream_view_map")
     a.call("build_surface_attributes")
     a.call("prepare_hud_tiles")
@@ -1320,6 +1331,7 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.label("render_view")
     a.xor_r("a"); a.ld_abs_a(DYN_COUNT); a.ld_abs_a(DYN_OVERFLOW)
     if HDMA_STREAMING: a.ld_abs_a(DYN_STREAMED)
+    if TEXTURED_WALLS: a.ld_abs_a(DYN_INFLIGHT)
     a.ld_rr_nn("hl", DYNAMIC_TILES); store_hl_abs(a, DYN_PTR_L, DYN_PTR_H)
     a.ld_rr_nn("hl", VIEW_MAP); store_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H)
     a.ld_rr_nn("hl", PIXEL_TOPS); store_hl_abs(a, SCAN_TOP_PTR_L, SCAN_TOP_PTR_H)
@@ -1329,6 +1341,10 @@ def emit_tile_compositor(a: Assembler) -> None:
     if FIXED_SIMULATION:
         a.call("render_yield_column" if NARROW_YIELDS else "render_yield")
     a.call("scan_column")
+    if TEXTURED_WALLS:
+        from .textured import emit_textured_column
+        emit_textured_column(a)
+        a.jp("render_column_done")
     if FOLDED_COMPOSITOR:
         emit_folded_column(a)
         a.jp("render_column_done")
@@ -1360,7 +1376,15 @@ def emit_tile_compositor(a: Assembler) -> None:
     a.ld_a_abs(TILE_Y0); a.add_a_n(8); a.ld_abs_a(TILE_Y0)
     a.ld_a_abs(ROW_RENDER_COUNT); a.dec_r("a"); a.ld_abs_a(ROW_RENDER_COUNT); a.jp("render_row_loop", "nz")
     a.label("render_column_done")
-    if HDMA_STREAMING:
+    if TEXTURED_WALLS:
+        # The ring drains by HBlank DMA while the LCD is on; with it off
+        # (enter_world composes blind) the chunk goes to both banks at once.
+        a.ldh_a_n(LCDC); a.rla(); a.jr("render_column_lcd_off", "nc")
+        a.ldh_a_n(HDMA5); a.rla(); a.jr("render_column_no_stream", "nc")
+        a.call("tex_stream_hblank"); a.jr("render_column_no_stream")
+        a.label("render_column_lcd_off"); a.call("tex_flush_gdma")
+        a.label("render_column_no_stream")
+    elif HDMA_STREAMING:
         # This column's patterns are final: hand them to the hidden bank now
         # if the previous transfer has landed, so nearly everything is in VRAM
         # by the time the last column is composed. Never with the LCD off

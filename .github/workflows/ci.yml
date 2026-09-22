@@ -151,6 +151,13 @@ jobs:
       - name: Verify LCD-timed walking, turning and door animation
         run: make motion
 
+      - name: Build the textured profile and verify it against its goldens and the Sable checks
+        run: make playtest-textured sable-check-textured
+
+      - name: Summarise the textured profile's snapshot suites
+        if: always()
+        run: make snapshot-diff-textured || true
+
       - name: Restore the pinned emulator cores
         id: cores
         uses: actions/cache@v4

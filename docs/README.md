@@ -13,7 +13,7 @@ build with a 24-pixel HUD and HBlank-streamed publication.
 | [Steel HUD](STEEL_HUD.md) | Current health, helmet, skull and objective implementation |
 | [Test report](TEST_REPORT.md) | ROM-bound v0.10 qualification and performance |
 | [Streamed publication](STREAMED_PUBLICATION.md) | How a full update now publishes in one VBlank, its contracts and measurements |
-| [Textured walls](TEXTURED_WALLS.md) | Design, exact host reference and the prototype gate for texture-mapped walls with depth shading |
+| [Textured walls](TEXTURED_WALLS.md) | Texture-mapped walls with depth shading: the exact host reference, the prototype gate, the emitted row-window kernel and ring under the opt-in `LUPINE3D_TEXTURED_WALLS=1` profile, and its measured cost |
 | [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |
 | [Agent guidance](../AGENTS.md) | Implementation map, invariants and checks |

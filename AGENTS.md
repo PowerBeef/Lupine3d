@@ -113,6 +113,36 @@ regression contract.
 - Preserve prepared scalar records 0–240 and raw-query sentinel semantics.
   Packet experiments own records 241–250 only.
 
+## Textured walls (opt-in profile)
+
+- `LUPINE3D_TEXTURED_WALLS=1` (slim + Sable + streaming only) replaces the
+  microstrip compositor and the trained atlas with the row-window kernel in
+  `textured.py`; `texture_reference.compose_kernel` is its byte-exact model
+  and `docs/TEXTURED_WALLS.md` the contract. The default ROM is unchanged;
+  `make textured playtest-textured sable-check-textured` verify the profile
+  and its goldens live under `snapshots/slim-sable-v2-textured/`.
+- Every cast records its along-face coordinate (`RAY_U`, `PIXEL_U`), oriented
+  so texture columns never decrease across the view: the console negates the
+  east and north faces. Textures are authored 16x8 indexed PNGs under
+  `assets/textures/`, mirrored about the horizon by construction; builds
+  compile them into row-window blocks (bank 248+) and never generate images.
+- Dynamic patterns are numbered in composition order (ids 0..237: below 128
+  at `$9000`, the rest at `$8800`; ceiling 238, floor 239) and composed into
+  a 96-slot ring at `$C000` that HBlank DMA drains in chunks that never cross
+  the ring wrap or the VRAM half. `DYN_STREAMED`/`DYN_INFLIGHT` are the
+  hand-off; a tile waits only when it would lap a slot still in flight. With
+  the LCD off the ring flushes into both banks by GDMA as it composes, so
+  `enter_world` uploads no patterns separately.
+- The kernel's scalars alias the flat compositor's compositor-local HRAM
+  (HRAM is full); its run records, window caches and mask tables live for one
+  composed column (`TEX_RUNS`, `TEX_WINDOWS`, `TEX_MASKS`). Runs split on
+  face key, surface profile and the shade bit. Bank switches stay in the
+  resident half (`tex_column_runs`); the row kernel is cold.
+- Measured on the coherence tour, the kernel costs about 200k T per full
+  update against the flat compositor's 60k, so the profile is not yet the
+  default: the emitted-kernel numbers and the missed gate are recorded in
+  `docs/TEXTURED_WALLS.md` and `research/results/textured_walls_lab_v2.json`.
+
 ## Campaign, modes and screens
 
 - `GAME_MODE` in fixed WRAM drives the loop: only `MODE_PLAYING` runs the world

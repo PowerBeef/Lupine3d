@@ -157,13 +157,21 @@ def textured_columns(pose, grid, doors) -> tuple[list[tx.TexturedColumn], dict]:
 
 # ----- cycle model ------------------------------------------------------------
 
-KERNEL = {"interior": 700, "boundary": 1300, "seam": 600, "u_per_ray": 70, "u_per_pixel": 12,
+# Per-tile and per-column costs of the emitted kernel (tools/lupine3d_v4/
+# textured.py), measured by code region on the coherence tour with
+# LUPINE3D_TEXTURED_WALLS=1 (docs/TEXTURED_WALLS.md, "What was emitted"):
+# the eight-row kernel and its call, the boundary tile's mask tables and
+# their application, the extra run of a seam tile, and the column setup
+# (change bits, records, shade, tables and the window copy). The gate
+# before emission used the estimates 700/1300/600 and no column cost.
+KERNEL = {"interior": 1050, "boundary": 1770, "seam": 420, "column": 2500, "u_per_ray": 257, "u_per_pixel": 12,
           "hblank_block": 64, "flat_dynamic": 6700, "flat_atlas_hit": 300}
 
 
 def model_delta(stats: dict, flat_dynamic: int, flat_atlas_hits: int, textured_patterns: int) -> int:
     textured = (stats["wall_tiles"] - stats["boundary_tiles"]) * KERNEL["interior"] \
         + stats["boundary_tiles"] * KERNEL["boundary"] + stats["seam_tiles"] * KERNEL["seam"]
+    textured += 20 * KERNEL["column"]
     textured += br.RAYS * KERNEL["u_per_ray"] + br.PHYSICAL_COLUMNS * KERNEL["u_per_pixel"]
     textured += max(0, textured_patterns - flat_dynamic) * KERNEL["hblank_block"]
     flat = flat_dynamic * KERNEL["flat_dynamic"] + flat_atlas_hits * KERNEL["flat_atlas_hit"]
@@ -202,14 +210,13 @@ def render_textured(textures, columns, *, outline=True) -> Image.Image:
     pixels = image.load()
     for tile_col in range(20):
         cols = columns[tile_col * 8:tile_col * 8 + 8]
-        half = tx.column_half(cols)
         for i, c in enumerate(cols):
             x = tile_col * 8 + i
             palette = PALETTES[PROFILE_PALETTE.get({0: 0, 1: 1, 2: 2}.get(c.texture, 0), 0)]
             for y in range(br.HORIZON):
-                colour = tx.wall_pixel(textures, c, half, y, outline=outline)
+                colour = tx.wall_pixel(textures, c, y, outline=outline)
                 pixels[x, y] = palette[colour]
-                mirrored = tx.wall_pixel(textures, c, half, y, outline=outline)
+                mirrored = tx.wall_pixel(textures, c, y, outline=outline)
                 # Lower half: the Y-flip mirror, with palette 2's colour 0 = floor.
                 lower = (41, 49, 57) if mirrored == 0 else palette[mirrored]
                 pixels[x, br.VIEW_HEIGHT - 1 - y] = lower
@@ -277,15 +284,20 @@ def main() -> None:
             columns, info = textured_columns(pose, grid, doors)
         except Exception as exc:  # a pose the reference cannot cast (e.g. inside a wall) is reported, not hidden
             rows.append({"scene": name, "error": repr(exc)}); continue
-        dynamic, view_map, count, overflow, stats = tx.compose_pixels(textures, columns, outline=outline)
-        by_windows = tx.compose_windows(textures, columns, windows, outline=outline)
-        # The kernel composes the affine coordinates; prove its table lookup equals
-        # the pixel-level composition of those same affine coordinates.
-        affine_dynamic, _, affine_count, _, _ = tx.compose_pixels(textures, tx.affine_columns(columns), outline=outline)
-        exact = by_windows == affine_dynamic
+        dynamic, view_map, count, overflow, stats = tx.compose_pixels(textures, columns, outline=outline, dedup=True)
+        affine = tx.affine_columns(columns)
+        # The kernel composes the affine coordinates in the console's order
+        # without sharing patterns; prove its window lookups equal the
+        # pixel-level composition of those same affine coordinates, and count
+        # what a signature cache would still save.
+        affine_dynamic, _, raw_count, _, _ = tx.compose_pixels(textures, affine, outline=outline)
+        by_kernel, kernel_map, kernel_count, kernel_overflow = tx.compose_kernel(textures, columns, windows, outline=outline)
+        exact = by_kernel == affine_dynamic and kernel_map == tx.compose_pixels(textures, affine, outline=outline)[1] and kernel_count == raw_count
         mismatches += not exact
+        affine_count = tx.compose_pixels(textures, affine, outline=outline, dedup=True)[2]
+        overflow = overflow or kernel_overflow
         flat_dynamic, _, flat_count, _ = reference_compose_view(info["tops"], info["styles"])
-        raw_patterns = stats["wall_tiles"]
+        raw_patterns = kernel_count
         hits = flat_atlas_hits(info["tops"], info["styles"])
         delta = model_delta(stats, flat_count, hits, affine_count)
         base = cycles if cycles is not None else flat_cycles.get(tuple(pose))

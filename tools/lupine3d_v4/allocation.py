@@ -88,6 +88,10 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xDF60, 0xE000, "physical depth (reserved)" if not l.TEXTURED_WALLS
           else "physical-pixel texture coordinates (physical depth excluded)"),
         *([A("WRAM1", l.U_RESULT, l.U_SLOPE_H + 1, "along-face result and slope scratch", "one cast"),
+           A("WRAM0", l.TEX_RUNS, l.TEX_RUNS + 8 * l.TEX_RUN_BYTES, "textured run records", "one composed column"),
+           A("WRAM0", l.DYN_INFLIGHT, l.DYN_INFLIGHT + 1, "first pattern of the HBlank transfer in flight", "composition through publication"),
+           A("WRAM1", l.TEX_MASKS, l.TEX_MASKS + 16, "boundary tile keep/edge masks", "one composed tile"),
+           A("WRAM1", l.TEX_WINDOWS, l.TEX_WINDOWS + 8 * 16, "run row-window caches", "one composed column"),
            A("ROM", l.TEXTURE_LUT_ROM_BANK * 0x4000, (l.TEXTURE_LUT_ROM_BANK + 1) * 0x4000,
              "texture slopes, height-class rows and stride classes")] if l.TEXTURED_WALLS else []),
         A("WRAM2", 0xD000, 0xE000, "live world and query scratch"),

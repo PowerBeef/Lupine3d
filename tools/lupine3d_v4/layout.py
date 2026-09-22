@@ -699,6 +699,7 @@ if _hram_next > OAM_DMA_HRAM:
 # used by another live routine.
 SECOND_TOP = GEN_GLOBAL_Y
 SECOND_STYLE = GEN_ROW_COUNT
+
 STRIP_KIND = GEN_PAIR_COUNT
 D32_LOW = TEMP_CODE
 LUT_CORRECTION = PROJECTION_PAGE
@@ -706,6 +707,19 @@ LUT_SLICE_LOW = SIGNATURE_COUNT
 # Reserved compositor detail byte. Spatial Clarity deliberately leaves it
 # inactive; eye-height surface rails proved to be a false horizon cue.
 DETAIL_MASK = STYLE_DIFF
+
+# The textured kernel replaces the microstrip compositor and the atlas lookup
+# under its profile, so their compositor-local HRAM scratch becomes its own
+# scalars: HRAM is full (the OAM-DMA stub sits four bytes above) and these
+# names are read by no other live routine. All live for one composed column.
+TEX_RUN_COUNT = SIGNATURE_HASH      # runs in the tile column being composed
+TEX_COL_OFFSET = ATLAS_ENTRY_COUNT  # first physical pixel of that column
+TEX_REC_L, TEX_REC_H = COMPOSE_DST_L, COMPOSE_DST_H   # the run record in hand
+TEX_LOOP = DYNAMIC_FLAG             # runs left to set up / merge
+TEX_INTERIOR = STRIP_STATE          # the tile needs no coverage masks
+TEX_CACHE_L = STRIP_PAIR            # the run's window cache (low byte)
+TEX_DST_L, TEX_DST_H = ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H   # where the run composes
+TEX_TMP0, TEX_TMP1, TEX_TMP2, TEX_TMP3, TEX_TMP4 = TEMP_TOP, SECOND_TOP, SECOND_STYLE, STRIP_STYLE, STRIP_KIND
 
 # Renderer constants / tile IDs.
 RAYS = 80
@@ -753,16 +767,22 @@ ATLAS_TILE_BASE = SURFACE_RAIL_TILE_BASE + SURFACE_RAIL_VARIANTS
 # ceiling and floor move above them, below the sixteen UI tiles at $8F00.
 # The WRAM buffer keeps 96 slots and becomes a ring the HBlank stream drains.
 DYNAMIC_RING_SLOTS = 96
+TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE = 238, 239
+TEXTURED_DYNAMIC_TILE_CAPACITY = 238
 if TEXTURED_WALLS:
-    CEILING_TILE, FLOOR_TILE, WALL_TILE_BASE = 238, 239, 238
+    CEILING_TILE, FLOOR_TILE = TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE
+    WALL_TILE_BASE = TEXTURED_CEILING_TILE
     STATIC_VIEW_TILES = 2
-    DYNAMIC_TILE_CAPACITY = 238
+    DYNAMIC_TILE_CAPACITY = TEXTURED_DYNAMIC_TILE_CAPACITY
 TEXTURE_STEP_OFFSET = 0x6800        # 61 half heights x Q8 row step (little-endian)
-TEX_RUN_COUNT = 0xC8DE              # runs in the tile column being composed
-TEX_COL_OFFSET = 0xC8DF             # first physical pixel of that column
-TEX_TILE = STRIP_SCRATCH            # the 16-byte tile under composition (the unfolded diagnostic is excluded)
+# The kernel's per-column state: eight run records in fixed WRAM (mask, top,
+# Q8 accumulator, Q8 step, window cache address) and each run's sixteen-byte
+# row-window cache in the render bank, both alive for one composed column.
 TEX_RUNS = 0xCBA0                   # eight 12-byte run records
 TEX_RUN_BYTES = 12
+TEX_WINDOWS = 0xD170                # eight 16-byte window caches (WRAM bank 1)
+TEX_MASKS = 0xD130                  # a boundary tile's [keep, edge] masks per row (WRAM bank 1)
+DYN_INFLIGHT = 0xC8DE               # first pattern of the HBlank transfer in flight
 FOV_DEGREES = 60.5
 CAMERA_FOCAL_PIXELS = round(80 / math.tan(math.radians(FOV_DEGREES / 2)))
 RAY_VECTOR_SCALE = 127

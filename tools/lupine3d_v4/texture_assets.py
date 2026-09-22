@@ -18,7 +18,7 @@ from pathlib import Path
 from PIL import Image
 
 from .texture_reference import (DELTA_CLASSES, PHASE_STEPS, SHADE_SETS, TEXEL_ROWS, TEXELS, Texture,
-                                make_row_windows)
+                                make_row_windows, window_planes)
 
 TEXTURE_DIR = Path(__file__).resolve().parents[2] / "assets" / "textures"
 # The order is the texture index a surface profile selects (structure,
@@ -46,18 +46,17 @@ def textures() -> tuple[Texture, ...]:
 
 
 def window_block(texture_index: int, shade: int) -> bytes:
-    """One (texture, shade) block: for class, phase, row -> plane0, plane1."""
+    """One (texture, shade) block: for class and phase, sixteen bytes - the
+    eight rows' plane-0 bytes, then their plane-1 bytes. Split by plane, the
+    kernel's row accumulator addresses a row with its high byte alone: the
+    cache sits at a sixteen-aligned address and row v's planes are at +v
+    and +8+v (docs/TEXTURED_WALLS.md)."""
     windows = make_row_windows(textures())
     out = bytearray()
     for k in range(len(DELTA_CLASSES)):
         for phase in range(TEXELS * PHASE_STEPS):
-            for v in range(TEXEL_ROWS):
-                texels = windows[texture_index, shade, k, phase, v]
-                plane0 = plane1 = 0
-                for i, colour in enumerate(texels):
-                    if colour & 1: plane0 |= 0x80 >> i
-                    if colour & 2: plane1 |= 0x80 >> i
-                out += bytes((plane0, plane1))
+            planes = [window_planes(windows[texture_index, shade, k, phase, v]) for v in range(TEXEL_ROWS)]
+            out += bytes(plane0 for plane0, _ in planes) + bytes(plane1 for _, plane1 in planes)
     assert len(out) == BLOCK_BYTES
     return bytes(out)
 

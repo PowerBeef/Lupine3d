@@ -72,6 +72,26 @@ snapshot-accept:
 	test -n "$(SUITE)" && test -n "$(NOTE)"
 	$(PYTHON) tools/snapshot.py accept --suite "$(SUITE)" $(if $(SCENE),--scene "$(SCENE)",) --note "$(NOTE)"
 
+# The textured profile (docs/TEXTURED_WALLS.md) is opt-in: its ROM builds into
+# build/textured and is verified by the same driven tours, the Sable checks
+# and its own golden snapshots under snapshots/slim-sable-v2-textured/.
+TEXTURED := LUPINE3D_TEXTURED_WALLS=1
+TEXTURED_ROM := --rom build/textured/lupine3d.gb --symbols build/textured/lupine3d.sym
+
+textured:
+	$(TEXTURED) $(PYTHON) tools/build_rom.py --output-dir build/textured
+
+playtest-textured: textured
+	$(TEXTURED) $(PYTHON) tools/playtest.py $(TEXTURED_ROM) --output-dir build/playtest/textured/coherence_tour
+	$(TEXTURED) $(PYTHON) tools/playtest.py $(TEXTURED_ROM) --scenario playtests/living_world.json --output-dir build/playtest/textured/living_world
+	$(TEXTURED) $(PYTHON) tools/playtest.py $(TEXTURED_ROM) --scenario playtests/sable_art_tour.json --output-dir build/playtest/textured/sable_art_tour
+
+sable-check-textured:
+	$(TEXTURED) $(PYTHON) tools/check_sable.py --output-dir build/sable-v2/textured-checks
+
+snapshot-diff-textured:
+	$(TEXTURED) $(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable
+
 # Build SameBoy's lib target first. The core is external and revision-pinned
 # by CI; it is not vendored into the source/release bundle.
 sameboy: build

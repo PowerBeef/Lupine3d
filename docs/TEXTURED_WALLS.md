@@ -108,18 +108,131 @@ The summary is `research/results/textured_walls_lab_v1.json`.
 profile flag, keeps the legacy and compact profiles byte-identical, and
 re-runs this gate on the emitted ROM.
 
-## What Phase 2b must emit
+*Re-evaluated after emission:* the table above is the pre-emission
+estimate (`textured_walls_lab_v1.json`). The kernel model now carries the
+costs measured on the emitted ROM, and the same lab and corpus give
+`textured_walls_lab_v2.json`: +96k T mean, +215k T p95, +10.6% intervals -
+the gate is not met. The measured numbers and their consequences are in
+"Cost, measured on the emitted ROM" below.
 
-1. `RAY_U` (80 bytes) after `project_hit`, from `DDA_ERR` and the axis
-   component through the quotient table, equal to `along_q8`; `PIXEL_U`
-   (160 bytes) by the pair expansion and edge recasts, equal to
-   `expand_pixel_u`.
-2. The row-window kernel in the fixed half: per tile column, the height
-   class, the shade, the runs; per row, the coverage, edge and floor masks
-   and one window lookup per run; every wall tile composed into a 96-slot
-   WRAM ring that HBlank streaming drains into up to 254 VRAM patterns.
-3. `validate_frame` gains `ray_u_exact`, `pixel_u_exact`, and reads the
-   dynamic tiles from the hidden VRAM bank after publication; the atlas
-   and seam tiles retire under the textured profile.
-4. Texture assets as indexed 16×8 PNGs under `assets/textures/`, compiled
-   to window tables by `texture_assets.py`; a level names its texture set.
+## What was emitted (Phase 2b)
+
+The textured profile is built with `LUPINE3D_TEXTURED_WALLS=1` (slim, Sable
+art and HBlank streaming only; `make textured`). It is opt-in: the default
+ROM is byte-identical. The contact sheet below is the coherence tour captured
+from the emitted ROM by the harness, not a host rendering.
+
+![The coherence tour on the textured ROM](images/textured_walls_rom_tour.png)
+
+### The cast: `RAY_U` and `PIXEL_U`
+
+`compute_along` (resident, one bank switch) evaluates the reference's
+`rom_along` after `project_hit`: the player's other coordinate advanced by
+the axis distance times the direction's Q8 slope, taken modulo 65536
+through three product-table lookups, then negated for the east face (x step
+negative) and the north face (y step positive) so that texture columns never
+decrease across the view. Anchors store it, midpoints take the circular mean
+(`midpoint_u`), edge recasts store their own, and `expand_pixel_u` pulls each
+pixel a quarter of the way towards its neighbour's ray with a wrap test.
+`validate_frame` requires `ray_u_exact` and `pixel_u_exact` on every update.
+
+### The kernel: `tools/lupine3d_v4/textured.py`
+
+Per tile column (`tex_column_runs`, resident because it switches banks):
+
+1. change bits between neighbouring pixels over the face key, the surface
+   profile and the shade bit (style bit 0: decoration darkens single pixels
+   of a face, so it splits a run); one face across the column is the common
+   case and takes an immediate record;
+2. per run: the height class (its tallest pixel), the shade set (dark side,
+   or near/mid/far by height), the stride class from the stride table
+   (run length, Q8 difference of its last and first coordinates), the phase
+   from the coordinate extrapolated back to the tile's first pixel (so the
+   window's texel *i* is the tile's pixel *i* and a run needs only a pixel
+   mask), the Q8 row step from the step table, and one sixteen-byte copy of
+   the row window from its bank into the run's cache (`TEX_WINDOWS`).
+
+Per tile (`tex_compose_tile`, cold): the ring wait; the boundary masks
+(`tex_mask_tables`: per row the covered pixels not on the outline and the
+outline pixels, built in one pass over the eight tops); then for each run
+the eight-row kernel (`tex_compose_run`). The window cache is split by
+plane - eight plane-0 rows then eight plane-1 rows - so the run's row
+accumulator, `H` = the cache row's address and `L` = the fraction, addresses
+a row without arithmetic: a row is `push hl; ld l,h; ld h,$D1; ld a,(hl);
+ld (bc),a; inc c; ld a,l; add 8; ld l,a; ld a,(hl); ld (bc),a; inc c;
+pop hl; add hl,de` - 96 T. A run that starts inside the tile begins at
+`cache - (top - y0) * step` so its rows above the top read garbage the
+coverage mask removes and row `top` reads texture row 0 exactly; a run
+below the tile is skipped. The first run of a seam tile composes into the
+slot and keeps its own pixels; later runs compose into the scratch tile and
+merge under their masks. Boundary tiles then apply `(plane & keep) | edge`
+per row, and the centre tile mirrors its four upper rows with the floor tone
+under the wall. `texture_reference.compose_kernel` is the byte-exact model
+of all of this, proven equal to the pixel-level composition over the 700-pose
+corpus and checked against the console on every driven update.
+
+### The ring and its transfers
+
+Patterns are numbered in composition order, ids 0..237 (below 128 at `$9000`,
+the rest at `$8800`; ceiling 238, floor 239), and composed into the 96-slot
+ring at `$C000`. `tex_stream_hblank` hands the next chunk to HBlank DMA into
+the hidden bank; a chunk stops at the ring wrap and at the VRAM half so both
+ends stay contiguous, and `DYN_INFLIGHT`/`DYN_STREAMED` record what is in
+flight and what has been handed over. `tex_ring_wait` lets a tile reuse a
+slot only once the pattern that used it 96 ago has landed: below the transfer
+in flight, or handed over while idle; otherwise it starts the next chunk and
+spins. With the LCD off, `tex_flush_gdma` moves every pending chunk into
+both banks synchronously, so `enter_world` needs no separate pattern upload
+and `upload_hidden_page` drains whatever the last column left before the map.
+
+### Verification
+
+* `validate_frame`: `dynamic_tiles_exact` reads the displayed page's bank at
+  the ids' addresses (the ring has been reused by then), plus the map, the
+  published map, `ray_u_exact`, `pixel_u_exact` and the mode-3 counters. The
+  coherence, living-world and art tours pass on every update.
+* `tools/check_sable.py` under the flag: the window blocks and directory in
+  the ROM equal the reference tables; the kernel composed blind (LCD off)
+  for far walls in the centre tile, a seam with a decorated pixel and a
+  full-height wall whose 160 patterns lap the ring and cross the VRAM half
+  lands in both banks exactly; publication windows up to 160 patterns; the
+  chunked hand-off under a foreign WRAM bank; six validated poses.
+* Pinned SameBoy (CGB-0 and CGB-E) and mGBA run the textured ROM with no
+  unsafe transfer, no visible-map write and no mode-3 VRAM or palette write.
+* `tests/test_textured_walls.py` runs the Sable checks under the flag in a
+  fresh process; the CI slow lane runs the tours and checks.
+
+### Cost, measured on the emitted ROM
+
+Cycles by code region on the coherence tour, mean per update (T-cycles):
+
+| Region | Textured | Flat |
+| --- | --- | --- |
+| row kernel (`tex_compose_run`, eight rows) | 93k | - |
+| column setup (change bits, records, shade, tables, window copy) | 50k | - |
+| boundary masks (tables and application) | 29k | - |
+| seam tiles (scratch and merge) | 10k | - |
+| tile bookkeeping, ring wait, map writes | 30k | 9k |
+| flat compositor (microstrips, atlas lookup) | - | 51k |
+| `compute_along` (Stage A) | 21k | - |
+
+About 200k T of kernel against 60k of flat compositor: roughly +140k T per
+full update, one LCD interval. `research/textured_walls_lab.py` now carries
+these per-tile and per-column constants and, over the 700-pose corpus,
+models +96k T mean, +215k p95 and +10.6% LCD intervals, projecting the
+sustained rates at turning 8.8/s, walking 6.9/s and two-actor corner 6.1/s
+against v0.10's 10.27, 7.77 and 6.80 (`research/results/textured_walls_lab_v2.json`).
+The prototype gate's estimates (700/1,300 T per tile, no column cost) were
+optimistic by about 2x; the gate as written - +70k T mean, rates within 10% -
+is **not met** by this first emission, and the profile therefore stays
+opt-in. Exactness, publication safety and the pinned cores are all green,
+so the remaining work is performance, which Phase 5 takes up on this code
+with the profile above as its baseline: the column setup and the boundary
+masks are the largest reducible items, and per-frame pattern sharing
+(p95 63 unique of 160 raw) the largest structural one.
+
+### Not done in this phase
+
+A level does not yet name its texture set: the surface profile selects the
+texture (structure, machinery, door). The V-row lookup table in bank 247 is
+still written but unused by the kernel, which accumulates rows instead.

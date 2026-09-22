@@ -38,14 +38,53 @@ def check(output,snapshot_mode='check'):
     assert bytes(c.vram[1][0x700:0x760])==compile_sheet('reticle')+compile_sheet('flash')
     assert len(b.make_entity_tiles())==242*16 and len(b.hud_assets()[0])<=96*16
     checks['cold_art_and_raster_boundary']=True
-    # Every translated atlas signature independently composes to its unchanged
-    # checked-in payload; all new/near-clipped signatures remain exact misses.
-    for offset in range(0,len(b.TILE_ATLAS_ENTRIES),11):
-        row=b.TILE_ATLAS_ENTRIES[offset:offset+11];y,dark=row[:2]
-        _,tile=b.reference_tile_signature_and_bytes(list(row[2:10]),[(dark>>(7-x))&1 for x in range(8)],y)
-        assert tile==b.TILE_ATLAS_TILES[(row[10]-b.ATLAS_TILE_BASE)*16:(row[10]-b.ATLAS_TILE_BASE+1)*16]
-    checks['every_translated_atlas_pattern']=True
-    if b.SLIM_DISPLAY:
+    if b.TEXTURED_WALLS:
+        # The kernel's window blocks and their directory are the reference's
+        # tables, bank for bank; the flat atlas is retired under this profile.
+        from lupine3d_v4 import texture_assets as ta
+        for bank,offset,payload in ta.window_payloads(b.TEXTURE_WINDOW_ROM_BANK_BASE):
+            assert rom[bank*0x4000+offset:bank*0x4000+offset+len(payload)]==payload,(bank,offset)
+        directory=a.labels['tex_block_directory'];entry=ta.block_directory(b.TEXTURE_WINDOW_ROM_BANK_BASE)
+        assert rom[directory:directory+len(entry)]==entry
+        checks['texture_window_blocks_and_directory']=True
+    else:
+        # Every translated atlas signature independently composes to its unchanged
+        # checked-in payload; all new/near-clipped signatures remain exact misses.
+        for offset in range(0,len(b.TILE_ATLAS_ENTRIES),11):
+            row=b.TILE_ATLAS_ENTRIES[offset:offset+11];y,dark=row[:2]
+            _,tile=b.reference_tile_signature_and_bytes(list(row[2:10]),[(dark>>(7-x))&1 for x in range(8)],y)
+            assert tile==b.TILE_ATLAS_TILES[(row[10]-b.ATLAS_TILE_BASE)*16:(row[10]-b.ATLAS_TILE_BASE+1)*16]
+        checks['every_translated_atlas_pattern']=True
+    def textured_pattern(c,tile_id):
+        address=0x1000+tile_id*16 if tile_id<128 else 0x0800+(tile_id-128)*16
+        return bytes(c.vram[0][address:address+16]),bytes(c.vram[1][address:address+16])
+    if b.SLIM_DISPLAY and b.TEXTURED_WALLS:
+        # The kernel composed blind (LCD off, as enter_world does) for far
+        # walls inside the self-mirrored centre tile, a seam of two faces with
+        # a decorated pixel, and a full-height wall whose 160 patterns lap the
+        # 96-slot ring and cross the VRAM half: every pattern must land in
+        # both banks exactly as the reference kernel composes it.
+        c=boot();c.ime=False;c.write8(0xff40,0);c.write8(b.SIM_READY,0)
+        scenes=[]
+        for pattern in ((57,)*8,(58,)*8,(0,56,57,58,58,57,56,0)):
+            tops=list(pattern)+[56]*152;styles=[0,1]*4+[0]*152
+            scenes.append((tops,styles,[36]*160,[0]*160,[(x*5)&255 for x in range(160)]))
+        scenes.append(([40]*160,[0]*80+[1]*80,[36]*77+[172]*83,[0]*40+[1]*60+[2]*60,[(x*3)&255 for x in range(160)]))
+        scenes.append(([0]*160,[0,0,0,5]+[0]*156,[36]*160,[1]*160,[(x*17)&255 for x in range(160)]))
+        for tops,styles,keys,surfaces,pixel_u in scenes:
+            for x in range(160):
+                c.write8(b.PIXEL_TOPS+x,tops[x]);c.write8(b.PIXEL_STYLES+x,styles[x]);c.write8(b.PIXEL_KEYS+x,keys[x])
+                c.write8(b.PIXEL_SURFACE+x,surfaces[x]);c.write8(b.PIXEL_U+x,pixel_u[x])
+            c.call_subroutine('render_view')
+            dynamic,tilemap,count,overflow=b.reference_compose_textured_view(tops,styles,keys,surfaces,pixel_u)
+            assert not overflow and c.read8(b.DYN_COUNT)==count and c.read8(b.DYN_STREAMED)==count and not c.hdma_active,(count,c.read8(b.DYN_COUNT))
+            assert bytes(c.read8(b.VIEW_MAP+i) for i in range(b.VIEW_MAP_BYTES))==tilemap
+            for tile_id in range(count):
+                expected=dynamic[tile_id*16:tile_id*16+16]
+                assert textured_pattern(c,tile_id)==(expected,expected),(tile_id,count)
+        assert count==160
+        checks['textured_blind_composition_ring_lap_and_vram_half']=True
+    if b.SLIM_DISPLAY and not b.TEXTURED_WALLS:
         # Independent pixel coverage for the self-mirrored centre tile: these
         # far walls have both boundaries inside the same eight-pixel strip.
         for top in (57,58):
@@ -77,8 +116,22 @@ def check(output,snapshot_mode='check'):
     checks['complete_legal_strip_selector_domain']=True
     # Boundaries on both sides of stage thresholds, including maximal packet.
     windows=[]
-    for dyn,mask in ((0,0),(8,0),(9,0),(0,16),(0,18),(0,32),(8,16),(9,16),(24,0),(25,0),(48,0),(49,0),(16,32),(17,32),(71,0),(72,0),(73,0),(40,32),(41,32),(96,0),(96,16),(96,32)):
+    cases=((0,0),(8,0),(9,0),(0,16),(0,18),(0,32),(8,16),(9,16),(24,0),(25,0),(48,0),(49,0),(16,32),(17,32),(71,0),(72,0),(73,0),(40,32),(41,32),(96,0),(96,16),(96,32))
+    if b.TEXTURED_WALLS:
+        # The ring drains in chunks that stop at its wrap and the VRAM half;
+        # counts beyond 96 reuse slots, so pattern i is expected from slot i mod 96.
+        cases+=((97,0),(127,16),(128,0),(129,32),(160,0),(160,32))
+    def expected_patterns(c,dyn):
+        if not b.TEXTURED_WALLS:
+            return bytes(c.read8(b.DYNAMIC_TILES+i) for i in range(dyn*16))
+        return b''.join(bytes(c.read8(b.DYNAMIC_TILES+(i%b.DYNAMIC_RING_SLOTS)*16+j) for j in range(16)) for i in range(dyn))
+    def hidden_patterns(c,bank,dyn):
+        if not b.TEXTURED_WALLS:
+            return bytes(c.vram[bank][0x1000:0x1000+dyn*16])
+        return b''.join(textured_pattern(c,i)[bank] for i in range(dyn))
+    for dyn,mask in cases:
         c=boot();c.write8(b.SIM_READY,0);c.write8(b.DYN_COUNT,dyn);c.write8(b.MASK_TILE_COUNT,mask)
+        if b.TEXTURED_WALLS:c.write8(b.DYN_STREAMED,0);c.write8(b.DYN_INFLIGHT,0)
         old_page=c.read8(b.CURRENT_PAGE);old_oam=bytes(c.oam)
         violations=[];original=c.write8
         def observed(address,value):
@@ -98,7 +151,7 @@ def check(output,snapshot_mode='check'):
             assert not c.hdma_active and c.io[0x55]==0xFF
             hidden=old_page^1;offset=0x1800+hidden*0x400
             assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes(c.read8(b.VIEW_MAP+i) for i in range(b.VIEW_MAP_BYTES))
-            assert bytes(c.vram[hidden][0x1000:0x1000+dyn*16])==bytes(c.read8(b.DYNAMIC_TILES+i) for i in range(dyn*16))
+            assert hidden_patterns(c,hidden,dyn)==expected_patterns(c,dyn)
         c.run(until_presentations=1);event=c.commit_events[-1]
         map_blocks=b.VIEW_MAP_BYTES//16
         if b.HDMA_STREAMING:
@@ -123,9 +176,10 @@ def check(output,snapshot_mode='check'):
         for i in range(96*16):c.write8(b.DYNAMIC_TILES+i,(i*29+5)&255)
         for i in range(b.VIEW_MAP_BYTES):c.write8(b.VIEW_MAP+i,(i*7+1)&255)
         c.write8(b.DYN_COUNT,96);c.write8(b.DYN_STREAMED,0)
+        if b.TEXTURED_WALLS:c.write8(b.DYN_INFLIGHT,0)
         # Spin on the idle poll alone with bank 2 mapped: it touches no
         # memory, so every block lands while the wrong WRAM bank is selected.
-        c.call_subroutine('stream_dynamic_tiles');assert c.hdma_active
+        c.call_subroutine('tex_stream_hblank' if b.TEXTURED_WALLS else 'stream_dynamic_tiles');assert c.hdma_active
         c.write8(0xff70,2);c.call_subroutine('stream_wait_idle');c.write8(0xff70,1)
         assert not c.hdma_active
         c.call_subroutine('stream_view_map');assert c.hdma_active
@@ -134,11 +188,18 @@ def check(output,snapshot_mode='check'):
         assert bytes(c.vram[hidden][0x1000:0x1000+96*16])==bytes((i*29+5)&255 for i in range(96*16))
         assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes((i*7+1)&255 for i in range(b.VIEW_MAP_BYTES))
         assert c.read8(b.DYN_STREAMED)==96 and c.io[0x55]==0xFF
-        # Composition with the LCD off (enter_world) never starts a transfer,
-        # and the tail then streams everything the blind pass left behind.
         c=boot();c.ime=False;c.write8(b.SIM_READY,0);c.write8(0xff40,0)
         transfers=len(c.gdma_events);c.call_subroutine('render_view')
-        assert len(c.gdma_events)==transfers and c.read8(b.DYN_STREAMED)==0 and not c.hdma_active
+        if b.TEXTURED_WALLS:
+            # Composition with the LCD off (enter_world) flushes the ring into
+            # both banks by general-purpose DMA as it goes: nothing is left
+            # for the tail and no HBlank transfer was ever started.
+            flushed=c.gdma_events[transfers:]
+            assert flushed and all(e.get('kind')!='hdma' for e in flushed) and c.read8(b.DYN_STREAMED)==c.read8(b.DYN_COUNT) and not c.hdma_active
+        else:
+            # Composition with the LCD off (enter_world) never starts a transfer,
+            # and the tail then streams everything the blind pass left behind.
+            assert len(c.gdma_events)==transfers and c.read8(b.DYN_STREAMED)==0 and not c.hdma_active
         # Streaming during a real composition hands over every column's
         # patterns as it finishes: the tail's own transfer is a remainder.
         c=boot();c.ime=False;c.write8(b.SIM_READY,0);apply_diagnostic_camera(c,{'pose':(1152,3100,191)})
