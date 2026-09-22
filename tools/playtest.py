@@ -153,6 +153,10 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "no_mode3_vram_writes": cgb.mode3_vram_writes == 0,
         "no_mode3_palette_writes": cgb.mode3_palette_writes == 0,
     }
+    if br.TEXTURED_WALLS:
+        ray_u, pixel_u = br.reference_pixel_u_view(x_q8, y_q8, angle, grid, door_states)
+        checks["ray_u_exact"] = list(read_block(cgb, br.RAY_U, br.RAYS)) == ray_u
+        checks["pixel_u_exact"] = list(read_block(cgb, br.PIXEL_U, br.PHYSICAL_COLUMNS)) == pixel_u
     page = cgb.read8(br.CURRENT_PAGE)
     if physical:
         checks["queried_physical_depth_exact"] = all(cgb.read8(br.PIXEL_DEPTH+x)==depth for x,depth in physical_depths.items())

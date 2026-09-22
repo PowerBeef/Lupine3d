@@ -743,6 +743,22 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom[song_start:song_start + len(song_payload)] = song_payload
     q14_start = Q14_ROM_BANK * 0x4000
     rom[q14_start:q14_start + Q14_ROM_BYTES] = make_q14_directions()
+    if TEXTURED_WALLS:
+        from lupine3d_v4.texture_reference import make_slope_table, make_v_lut, make_stride_class_lut, make_step_lut
+        from lupine3d_v4 import texture_assets
+        lut_bank = TEXTURE_LUT_ROM_BANK * 0x4000
+        for offset, payload in ((TEXTURE_SLOPES_OFFSET, make_slope_table()), (TEXTURE_V_LUT_OFFSET, make_v_lut()),
+                                (TEXTURE_STRIDE_LUT_OFFSET, make_stride_class_lut()), (TEXTURE_STEP_OFFSET, make_step_lut())):
+            assert offset + len(payload) <= 0x8000, "texture lookup tables exceed their bank"
+            rom[lut_bank + offset - 0x4000:lut_bank + offset - 0x4000 + len(payload)] = payload
+        for bank, offset, payload in texture_assets.window_payloads(TEXTURE_WINDOW_ROM_BANK_BASE):
+            assert bank < ROM_BANKS and offset + len(payload) <= 0x4000
+            rom[bank * 0x4000 + offset:bank * 0x4000 + offset + len(payload)] = payload
+        metadata["textured_walls"] = {"enabled": True, "lut_rom_bank": TEXTURE_LUT_ROM_BANK,
+                                      "window_rom_bank_base": TEXTURE_WINDOW_ROM_BANK_BASE,
+                                      "ray_u": RAY_U, "pixel_u": PIXEL_U, **texture_assets.evidence()}
+    else:
+        metadata["textured_walls"] = {"enabled": False}
     if PREPARED_RAYS:
         setup_start = RAY_SETUP_ROM_BANK * 0x4000
         assert setup_start >= q14_start + Q14_ROM_BYTES

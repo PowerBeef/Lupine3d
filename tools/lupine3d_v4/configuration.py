@@ -24,8 +24,9 @@ FLAGS = {
     "near_field": "NEAR_FIELD",
     "foreground_publication": "FOREGROUND_PUBLICATION",
     "hdma_streaming": "HDMA_STREAMING",
+    "textured_walls": "TEXTURED_WALLS",
 }
-IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication", "hdma_streaming"}
+IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication", "hdma_streaming", "textured_walls"}
 DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"}
 # HBlank-streamed publication follows the display profile: it is the compact
 # and slim production path, and the legacy profile keeps its staged VBlank
@@ -79,6 +80,13 @@ def resolve(environ=None):
     result["hdma_streaming"] = streaming == "1"
     if result["hdma_streaming"] and (result["foreground_publication"] or env.get("LUPINE3D_REPROJECTION", "0") == "1"):
         raise ValueError("HBlank-streamed publication excludes the experimental foreground/reprojection lanes")
+    # Textured walls (docs/TEXTURED_WALLS.md) compose every wall tile into a
+    # ring the HBlank stream drains, so they need streaming; their texture
+    # coordinates borrow the physical-depth window, so the two exclude each other.
+    if result["textured_walls"] and not result["hdma_streaming"]:
+        raise ValueError("Textured walls require HBlank-streamed publication")
+    if result["textured_walls"] and (result["physical_depth"] or result["anchor_packets"] or env.get("LUPINE3D_FOLDED", "1") == "0"):
+        raise ValueError("Textured walls exclude physical depth, anchor packets and the unfolded diagnostic")
     if result["compact_strips"] and env.get("LUPINE3D_FOLDED", "1") == "0":
         raise ValueError("Compact strips require folded rendering; disable COMPACT_STRIPS for the unfolded oracle")
     if result["anchor_packets"] and (env.get("LUPINE3D_Q14", "1") == "0" or env.get("LUPINE3D_PREPARED_RAYS", "1") == "0"):

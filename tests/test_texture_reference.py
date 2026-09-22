@@ -28,9 +28,14 @@ class AlongFaceTests(unittest.TestCase):
             hit = reference_cast_hit(px, py, yaw, ray, grid, {})
             if hit.axis == 0:
                 expected = py + (1 if hit.dy > 0 else -1) * hit.axis_distance_q8 * abs(hit.dy) / abs(hit.dx)
+                mirrored = hit.dx < 0
             else:
                 expected = px + (1 if hit.dx > 0 else -1) * hit.axis_distance_q8 * abs(hit.dx) / abs(hit.dy)
-            error = min(abs(hit.along_q8 - int(expected) % 256), 256 - abs(hit.along_q8 - int(expected) % 256))
+                mirrored = hit.dy > 0
+            # The east and north faces are read right to left so texture
+            # columns never decrease across the view (reference.py).
+            expected_q8 = (-int(expected) if mirrored else int(expected)) % 256
+            error = min(abs(hit.along_q8 - expected_q8), 256 - abs(hit.along_q8 - expected_q8))
             # The reference advances the Q14 ordering direction; the raw 7-bit
             # components used here differ from it by a few units over five cells.
             self.assertLessEqual(error, 12, (px, py, yaw, ray, hit.along_q8, expected))

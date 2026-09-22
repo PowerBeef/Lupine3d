@@ -238,7 +238,7 @@ def emit_vram_init(a: Assembler) -> None:
     # Bank 0: shared static viewport tiles, UI tiles and tile maps.
     a.xor_r("a"); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
-    a.call("upload_profile_tiles")
+    if not TEXTURED_WALLS: a.call("upload_profile_tiles")   # textured walls compose every wall tile: no atlas
     a.ld_rr_label("hl", "ui_tiles"); a.ld_rr_nn("de", 0x8F00); a.ld_rr_nn("bc", 256); a.call("copy_bc")
     from .artwork import hud_assets
     a.ld_rr_label("hl", "hud_tiles"); a.ld_rr_nn("de", 0x8200); a.ld_rr_nn("bc", len(hud_assets()[0])); a.call("copy_bc")
@@ -247,7 +247,7 @@ def emit_vram_init(a: Assembler) -> None:
     # Bank 1 mirrors viewport tiles and holds weapon OBJ tiles plus attributes.
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
-    a.call("upload_profile_tiles")
+    if not TEXTURED_WALLS: a.call("upload_profile_tiles")
     a.call("weapon_source"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
     a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
@@ -774,7 +774,52 @@ def emit_projection_and_casting(a: Assembler) -> None:
 
     a.label("cast_one_v2"); a.call("dda_cast")
     a.label("cast_precision_done"); a.call("project_hit")
+    if TEXTURED_WALLS: a.call("compute_along")
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD); a.ret()
+
+    if TEXTURED_WALLS:
+        # Where along its face the hit landed (docs/TEXTURED_WALLS.md): the
+        # player's other coordinate advanced by the axis distance times the
+        # direction's Q8 slope, the product taken modulo 65536 through three
+        # 8x8 products so no division is needed. Fixed half: it switches banks.
+        a.label("compute_along")
+        a.ld_r_n("a", TEXTURE_LUT_ROM_BANK); a.ld_abs_a(0x2000)
+        load_hl_abs(a, DDA_ANGLE_L, DDA_ANGLE_H)
+        a.add_hl_rr("hl"); a.add_hl_rr("hl")
+        a.ld_a_abs(DDA_AXIS); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", TEXTURE_SLOPES_OFFSET >> 8); a.add_hl_rr("de")
+        a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ld_a_hl(); a.ld_r_r("e", "a")   # C = S_L, E = S_H
+
+        def product(byte: str) -> None:
+            """A = the low or high byte of B*C from the product table, inline:
+            the bank stays selected between the products and is restored once."""
+            a.ld_r_r("a", "c")
+            for _ in range(3): a.rlca()
+            a.and_n(7); a.add_a_n(PRODUCT_LUT_BASE_BANK); a.ld_abs_a(0x2000)
+            a.ld_r_r("a", "c"); a.and_n(0x1F); a.add_a_r("a"); a.ld_r_r("d", "a")
+            a.ld_r_r("a", "b"); a.add_a_r("a"); a.ld_r_r("l", "a")
+            a.ld_r_n("a", 0); a.adc_a_n(0); a.or_r("d"); a.or_n(0x40); a.ld_r_r("h", "a")
+            if byte == "high": a.inc_rr("hl")
+            a.ld_a_hl()
+
+        # (D_L*S_L) >> 8, plus the low bytes of D_H*S_L and, unless the slope
+        # is below one texel per unit, D_L*S_H.
+        a.ld_a_abs(DDA_DIST_L); a.ld_r_r("b", "a"); product("high"); a.ld_abs_a(U_RESULT)
+        a.ld_a_abs(DDA_DIST_H); a.ld_r_r("b", "a"); product("low"); a.ld_r_r("d", "a"); a.ld_a_abs(U_RESULT); a.add_a_r("d"); a.ld_abs_a(U_RESULT)
+        a.ld_r_r("a", "e"); a.or_r("a"); a.jr("along_products_done", "z")
+        a.ld_r_r("c", "a"); a.ld_a_abs(DDA_DIST_L); a.ld_r_r("b", "a"); product("low"); a.ld_r_r("d", "a"); a.ld_a_abs(U_RESULT); a.add_a_r("d"); a.ld_abs_a(U_RESULT)
+        a.label("along_products_done")
+        a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+        a.ld_a_abs(U_RESULT); a.ld_r_r("b", "a")
+        # E's bit 7 says the face reads right to left (reference.py): the east
+        # face, struck with a negative x step, and the north face, struck with
+        # a positive y step, whose step byte is complemented so 1 sets bit 7.
+        a.ld_a_abs(DDA_AXIS); a.or_r("a"); a.jr("along_axis_y", "nz")
+        a.ld_a_abs(DDA_STEP_Y); a.ld_r_r("c", "a"); a.ld_a_abs(DDA_STEP_X); a.ld_r_r("e", "a"); a.ld_a_abs(PLAYER_YL); a.jr("along_apply")
+        a.label("along_axis_y"); a.ld_a_abs(DDA_STEP_X); a.ld_r_r("c", "a"); a.ld_a_abs(DDA_STEP_Y); a.cpl(); a.ld_r_r("e", "a"); a.ld_a_abs(PLAYER_XL)
+        a.label("along_apply"); a.cb("bit", "c", 7); a.jr("along_negative", "nz"); a.add_a_r("b"); a.jr("along_orient")
+        a.label("along_negative"); a.sub_r("b")
+        a.label("along_orient"); a.cb("bit", "e", 7); a.jr("along_store", "z"); a.cpl(); a.inc_r("a")
+        a.label("along_store"); a.ld_abs_a(U_RESULT); a.ret()
 
     a.label("cast_indexed")  # Public self-contained probe entry.
     a.call("prepare_frame_boundaries"); a.jp("cast_indexed_prepared")
@@ -818,7 +863,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # the segment array's offset can carry for a ray index below 80.
     stores = ((RAY_TOPS, TOP_RESULT), (RAY_STYLES, STYLE_RESULT), (RAY_KEYS, FACE_RESULT),
               (RAY_ALONG, ALONG_RESULT), (RAY_DEPTH, DEPTH_RESULT), (RAY_SEGMENT, SEGMENT_RESULT),
-              (RAY_SURFACE, SURFACE_RESULT))
+              (RAY_SURFACE, SURFACE_RESULT)) + (((RAY_U, U_RESULT),) if TEXTURED_WALLS else ())
     a.ld_a_abs(CAST_INDEX); a.ld_r_r("e", "a")
     for offset in sorted({address & 255 for address, _ in stores}):
         carries = offset + RAYS - 1 > 255
@@ -840,7 +885,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
         (PIXEL_KEYS, FACE_RESULT), (PIXEL_ALONG, ALONG_RESULT),
         (PIXEL_SEGMENT, SEGMENT_RESULT),
         (PIXEL_SURFACE, SURFACE_RESULT),
-    ):
+    ) + (((PIXEL_U, U_RESULT),) if TEXTURED_WALLS else ()):
         a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_abs(result); a.ld_hl_a()
     if PHYSICAL_DEPTH: a.call("save_physical_depth")
     a.ret()
@@ -905,6 +950,19 @@ def emit_projection_and_casting(a: Assembler) -> None:
     # result byte in between. The same bytes land in the same arrays.
     for address in (RAY_STYLES, RAY_KEYS, RAY_ALONG, RAY_SEGMENT, RAY_SURFACE):
         a.ld_rr_nn("hl", address); a.add_hl_rr("de"); a.ld_a_hl(); a.inc_rr("hl"); a.ld_hl_a()
+    if TEXTURED_WALLS:
+        # The midpoint's texture coordinate is the circular mean of the two
+        # anchors' (texture_reference.midpoint_u): the shorter way round,
+        # rounding away from the left anchor. BC still carries the tops the
+        # depth class below needs, so it is kept across this.
+        a.push("bc")
+        a.ld_rr_nn("hl", RAY_U); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")
+        a.inc_rr("hl"); a.inc_rr("hl"); a.ld_a_hl(); a.sub_r("b"); a.dec_rr("hl")
+        a.cb("bit", "a", 7); a.jr("adaptive_u_backward", "nz")
+        a.inc_r("a"); a.cb("srl", "a"); a.add_a_r("b"); a.jr("adaptive_u_store")
+        a.label("adaptive_u_backward"); a.cpl(); a.inc_r("a"); a.inc_r("a"); a.cb("srl", "a"); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c")
+        a.label("adaptive_u_store"); a.ld_hl_a()
+        a.pop("bc")
     # Re-certify the interpolated top through the same conservative exact
     # projection class used by cast rays. Averaging depths can otherwise move
     # an occluder farther away than the nearer member of its top class.

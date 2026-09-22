@@ -469,7 +469,7 @@ def make_obj_ui_tiles() -> bytes:
 
 def make_static_view_tiles() -> bytes:
     tiles = [solid_tile(0), solid_tile(1)]
-    for dark_mask in STATIC_WALL_MASKS:
+    for dark_mask in (() if TEXTURED_WALLS else STATIC_WALL_MASKS):
         pixels = [[3 if dark_mask & (0x80 >> x) else 2 for x in range(8)] for _ in range(8)]
         tiles.append(tile_from_pixels(pixels))
     # The legacy rail variants are intentionally absent in Spatial Clarity.
@@ -547,7 +547,7 @@ def make_pair_microstrips(states=None) -> bytes:
 def make_seam_tile_lookup() -> bytes:
     lookup = bytearray(256)
     for index, mask in enumerate(STATIC_WALL_MASKS):
-        lookup[mask] = WALL_TILE_BASE + index
+        lookup[mask] = FLAT_WALL_TILE_BASE + index
     return bytes(lookup)
 
 

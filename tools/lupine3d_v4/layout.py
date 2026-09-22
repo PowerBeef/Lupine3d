@@ -139,6 +139,23 @@ PACKET_WORKSPACE = 0xD2A0       # current packet plus two pending 32-byte siblin
 PHYSICAL_DEPTH = RENDER_CONFIG["physical_depth"]
 PIXEL_DEPTH_VALID = 0xDF42      # 160 validity bits for the current exact wall key
 PIXEL_DEPTH = 0xDF60            # 160 Q5 depths from actual physical-column queries
+# Textured walls (docs/TEXTURED_WALLS.md). Every cast records where along its
+# face it landed (RAY_U, Q8 within the cell); physical pixels take it by the
+# pair expansion (PIXEL_U, in the window physical depth would otherwise use:
+# the two are exclusive). Bank 247 holds the per-direction slopes the ROM
+# multiplies the axis distance by, the height-class row table and the stride
+# classes; the row-window tables follow, three 5-KiB shade blocks per bank.
+TEXTURED_WALLS = RENDER_CONFIG["textured_walls"]
+RAY_U = 0xD2A0                      # the packet traversal workspace; anchor packets are excluded
+PIXEL_U = 0xDF60
+TEXTURE_LUT_ROM_BANK = 247
+TEXTURE_SLOPES_OFFSET = 0x4000      # 1024 directions x (S_x, S_y) 16-bit = 4 KiB
+TEXTURE_V_LUT_OFFSET = 0x5000       # 61 height classes x 64 rows
+TEXTURE_STRIDE_LUT_OFFSET = 0x6000  # 8 run lengths x 256 coordinate differences
+TEXTURE_WINDOW_ROM_BANK_BASE = 248  # row windows, 5 KiB per (texture, shade)
+TEXTURE_WINDOW_BLOCK_BYTES = 5 * 1024
+U_RESULT = 0xD8F7                   # the cast's along-face coordinate, beside the other results
+U_SLOPE_H = 0xD8F8                  # slope high byte kept across the three products
 REFINEMENT_DIRTY = 0xD3A4
 REFINEMENT_QUERIED = 0xD3A5
 COVERAGE_MODE = 0xD3A6
@@ -699,9 +716,10 @@ RAY_DIRECTION_BITS = 10
 RAY_DIRECTION_COUNT = 1 << RAY_DIRECTION_BITS
 RAY_PLAYER_SHIFT = RAY_DIRECTION_BITS - 8
 RAY_DIRECTION_HIGH_MASK = (RAY_DIRECTION_COUNT >> 8) - 1
-CEILING_TILE = 96
-FLOOR_TILE = 97
-WALL_TILE_BASE = 98
+FLAT_CEILING_TILE, FLAT_FLOOR_TILE, FLAT_WALL_TILE_BASE = 96, 97, 98
+CEILING_TILE = FLAT_CEILING_TILE
+FLOOR_TILE = FLAT_FLOOR_TILE
+WALL_TILE_BASE = FLAT_WALL_TILE_BASE
 STYLE_COUNT = 5
 RENDER_STYLE_COUNT = 8
 CREASE_STYLE = 5
@@ -727,9 +745,24 @@ STATIC_WALL_MASKS = (
     else _COMMON_STATIC_WALL_MASKS + (0x91, 0x89)
 )
 SURFACE_RAIL_VARIANTS = 2 if SURFACE_DETAIL_ENABLED else 0
-SURFACE_RAIL_TILE_BASE = WALL_TILE_BASE + len(STATIC_WALL_MASKS)
+SURFACE_RAIL_TILE_BASE = FLAT_WALL_TILE_BASE + len(STATIC_WALL_MASKS)
 STATIC_VIEW_TILES = 2 + len(STATIC_WALL_MASKS) + SURFACE_RAIL_VARIANTS
 ATLAS_TILE_BASE = SURFACE_RAIL_TILE_BASE + SURFACE_RAIL_VARIANTS
+# Textured walls compose every wall tile, so the seam tiles and the trained
+# atlas retire and the dynamic patterns take BG ids 0..237 of each bank; the
+# ceiling and floor move above them, below the sixteen UI tiles at $8F00.
+# The WRAM buffer keeps 96 slots and becomes a ring the HBlank stream drains.
+DYNAMIC_RING_SLOTS = 96
+if TEXTURED_WALLS:
+    CEILING_TILE, FLOOR_TILE, WALL_TILE_BASE = 238, 239, 238
+    STATIC_VIEW_TILES = 2
+    DYNAMIC_TILE_CAPACITY = 238
+TEXTURE_STEP_OFFSET = 0x6800        # 61 half heights x Q8 row step (little-endian)
+TEX_RUN_COUNT = 0xC8DE              # runs in the tile column being composed
+TEX_COL_OFFSET = 0xC8DF             # first physical pixel of that column
+TEX_TILE = STRIP_SCRATCH            # the 16-byte tile under composition (the unfolded diagnostic is excluded)
+TEX_RUNS = 0xCBA0                   # eight 12-byte run records
+TEX_RUN_BYTES = 12
 FOV_DEGREES = 60.5
 CAMERA_FOCAL_PIXELS = round(80 / math.tan(math.radians(FOV_DEGREES / 2)))
 RAY_VECTOR_SCALE = 127

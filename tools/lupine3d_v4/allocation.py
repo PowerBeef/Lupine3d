@@ -61,7 +61,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xD000, 0xD100, "snapshot map"),
         A("WRAM1", 0xD140, 0xD148, "snapshot camera"),
         A("WRAM1", 0xD200, 0xD2A0, "ray tops/styles"),
-        A("WRAM1", 0xD2A0, 0xD300, "packet traversal workspace (reserved)", "packet traversal"),
+        A("WRAM1", 0xD2A0, 0xD300, "packet traversal workspace (reserved)", "packet traversal") if not l.TEXTURED_WALLS
+        else A("WRAM1", l.RAY_U, l.RAY_U + 80, "ray texture coordinates (anchor packets excluded)"),
         A("WRAM1", 0xD300, 0xD3A0, "ray keys/along"),
         A("WRAM1", 0xD3A0, 0xD3A4, "incremental certificate and prepared camera setup"),
         A("WRAM1", 0xD3A4, 0xD3AC, "physical refinement and coverage state"),
@@ -84,7 +85,11 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xDE80, 0xDF20, "physical surface profiles"),
         A("WRAM1", 0xDF20, 0xDF42, "wall cache metadata"),
         A("WRAM1", 0xDF42, 0xDF56, "physical validity bits (reserved)"),
-        A("WRAM1", 0xDF60, 0xE000, "physical depth (reserved)"),
+        A("WRAM1", 0xDF60, 0xE000, "physical depth (reserved)" if not l.TEXTURED_WALLS
+          else "physical-pixel texture coordinates (physical depth excluded)"),
+        *([A("WRAM1", l.U_RESULT, l.U_SLOPE_H + 1, "along-face result and slope scratch", "one cast"),
+           A("ROM", l.TEXTURE_LUT_ROM_BANK * 0x4000, (l.TEXTURE_LUT_ROM_BANK + 1) * 0x4000,
+             "texture slopes, height-class rows and stride classes")] if l.TEXTURED_WALLS else []),
         A("WRAM2", 0xD000, 0xE000, "live world and query scratch"),
         A("WRAM3", 0xD000, 0xE000, "128 x 32-byte dynamic cache (reserved)"),
         A("WRAM4", 0xD000, 0xD0A0, "foreground composite DMA buffer"),

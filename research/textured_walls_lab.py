@@ -150,18 +150,8 @@ def textured_columns(pose, grid, doors) -> tuple[list[tx.TexturedColumn], dict]:
             continue
         for pixel in (i * 2 + 1, i * 2 + 2):
             edge_u[pixel] = reference_cast_physical_hit(px, py, yaw, pixel, grid, doors).along_q8
-    pixel_u = tx.expand_pixel_u(ray_u, ray_keys, [h.segment_id for h in hits], edge_u)
-    # Face side from the hit: axis 0 west/east by sx, axis 1 north/south by sy.
-    sides = []
-    for i in range(br.RAYS):
-        h = hits[i]
-        side = (0 if h.dx > 0 else 1) if h.axis == 0 else (2 if h.dy > 0 else 3)
-        sides += [side, side]
-    columns = []
-    for x in range(br.PHYSICAL_COLUMNS):
-        profile = surfaces[x]
-        columns.append(tx.TexturedColumn(tops[x], styles[x], keys[x], PROFILE_TEXTURE.get(profile, 0),
-                                         tx.face_texel_column(pixel_u[x], sides[x])))
+    pixel_u = tx.expand_pixel_u(ray_u, edge_u)
+    columns = tx.rom_texture_columns(tops, styles, keys, surfaces, pixel_u)
     return columns, {"tops": tops, "styles": styles, "casts": casts}
 
 

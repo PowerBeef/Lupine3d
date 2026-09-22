@@ -71,12 +71,28 @@ def shade_set(style: int, half: int) -> int:
     return 0 if half >= NEAR_HALF else 1 if half >= MID_HALF else 2
 
 
+def row_step(half: int) -> int:
+    """Q8 texture rows per screen row for a wall of half-height `half`.
+
+    Floor(2048 / half) keeps the last row of the wall inside texture row 7:
+    (half - 1) * step < 2048. The console accumulates this per run and row.
+    """
+    return (TEXEL_ROWS * 256) // max(half, 1)
+
+
 def texel_row(half: int, y: int) -> int:
     """Texture row for a screen row of the upper half of a wall of half-height
-    `half`; rows above the wall clamp to the first texture row (they are
-    masked out of every tile anyway)."""
+    `half`, as the console's accumulator computes it; rows above the wall
+    read row 0 (they are masked out of every tile anyway)."""
     top = HORIZON - half
-    return max(0, min(TEXEL_ROWS - 1, ((y - top) * TEXEL_ROWS) // half))
+    if y < top:
+        return 0
+    return ((y - top) * row_step(half)) >> 8
+
+
+def make_step_lut() -> bytes:
+    """Little-endian Q8 row steps for half heights 0..HORIZON."""
+    return b"".join(row_step(half).to_bytes(2, "little") for half in range(HORIZON + 1))
 
 
 def make_v_lut() -> bytes:
@@ -88,6 +104,73 @@ def make_v_lut() -> bytes:
     return bytes(out)
 
 
+# ----- the console's along-face arithmetic ------------------------------------
+#
+# A hit knows its axis distance D (Q8, `DDA_DIST`) and its direction index
+# (`DDA_ANGLE`, 0..1023). The coordinate along the face is the player's other
+# coordinate advanced by D times the direction's slope: S_x = 256*|sin|/|cos|
+# for a face perpendicular to x, S_y = 256*|cos|/|sin| for one perpendicular
+# to y, each a 16-bit Q8 value from a 1024-entry table. Only the fractional
+# cell matters, so the product is taken modulo 65536 and its high byte is the
+# advance: three 8x8 products through the product table, no division.
+
+DIRECTIONS = 1024
+
+
+def direction_slopes(direction: int) -> tuple[int, int]:
+    import math
+    angle = direction * math.tau / DIRECTIONS
+    cos, sin = math.cos(angle), math.sin(angle)
+    def slope(numerator: float, denominator: float) -> int:
+        if abs(denominator) < 1e-9:
+            return 0xFFFF
+        return min(0xFFFF, int(round(256 * abs(numerator) / abs(denominator))))
+    return slope(sin, cos), slope(cos, sin)
+
+
+def make_slope_table() -> bytes:
+    out = bytearray()
+    for direction in range(DIRECTIONS):
+        for value in direction_slopes(direction):
+            out += value.to_bytes(2, "little")
+    return bytes(out)
+
+
+def rom_advance(distance_q8: int, slope_q8: int) -> int:
+    """High byte of (D * S) mod 65536, as three 8x8 products: the fractional-cell advance."""
+    d_l, d_h = distance_q8 & 0xFF, (distance_q8 >> 8) & 0xFF
+    s_l, s_h = slope_q8 & 0xFF, (slope_q8 >> 8) & 0xFF
+    return (((d_l * s_l) >> 8) + (d_l * s_h) + (d_h * s_l)) & 0xFF
+
+
+def rom_along(other_q8: int, positive: bool, distance_q8: int, slope_q8: int) -> int:
+    advance = rom_advance(distance_q8, slope_q8)
+    return ((other_q8 & 0xFF) + advance if positive else (other_q8 & 0xFF) - advance) & 0xFF
+
+
+def midpoint_u(left: int, right: int) -> int:
+    """The midpoint's coordinate between two anchors on one face: the circular
+    mean, rounding away from the left anchor."""
+    forward = (right - left) & 0xFF
+    if forward < 128:
+        return (left + ((forward + 1) >> 1)) & 0xFF
+    backward = (left - right) & 0xFF
+    return (left - ((backward + 1) >> 1)) & 0xFF
+
+
+def make_stride_class_lut() -> bytes:
+    """Delta class for (run length - 1, first-to-last coordinate difference)."""
+    out = bytearray()
+    for span in range(8):
+        for difference in range(256):
+            if span == 0:
+                out.append(2)  # a single pixel: any stride; class 1/2 is the table's middle
+                continue
+            stride = Fraction(difference * TEXELS, 256 * span)
+            out.append(min(range(len(DELTA_CLASSES)), key=lambda k: abs(DELTA_CLASSES[k] - stride)))
+    return bytes(out)
+
+
 # ----- along-face coordinate per physical pixel -------------------------------
 
 def reference_ray_u(hits: Sequence) -> list[int]:
@@ -95,21 +178,22 @@ def reference_ray_u(hits: Sequence) -> list[int]:
     return [hit.along_q8 for hit in hits]
 
 
-def expand_pixel_u(ray_u: list[int], ray_keys: list[int], ray_segments: list[int],
-                   edge_u: dict[int, int]) -> list[int]:
+def expand_pixel_u(ray_u: list[int], edge_u: dict[int, int]) -> list[int]:
     """Physical-pixel U by the same reconstruction the tops use.
 
     A pair ray covers two pixels; each is pulled a quarter of the way towards
-    its neighbour's ray when both rays lie on the same face (same key and
-    segment) and the coordinates do not wrap. The pixels an edge recast
-    replaced take the recast's exact coordinate.
+    its neighbour's ray unless the coordinates wrap (a cell boundary inside
+    one face, |difference| >= 128). Face breaks need no test: the two pixels
+    beside every pair-level break are recast exactly, and `edge_u` carries
+    those recasts' own coordinates. The first pair's previous sample and the
+    last pair's following sample are the rays themselves.
     """
     pixel_u = [0] * PHYSICAL_COLUMNS
     for i in range(RAYS):
         current = ray_u[i]
         for output, neighbour in ((i * 2, i - 1), (i * 2 + 1, i + 1)):
             value = current
-            if 0 <= neighbour < RAYS and ray_keys[neighbour] == ray_keys[i] and ray_segments[neighbour] == ray_segments[i]:
+            if 0 <= neighbour < RAYS:
                 other = ray_u[neighbour]
                 if abs(other - current) < 128:
                     value = (current * 3 + other + 2) // 4
@@ -119,21 +203,20 @@ def expand_pixel_u(ray_u: list[int], ray_keys: list[int], ray_segments: list[int
     return pixel_u
 
 
-def face_texel_column(u_q8: int, face_side: int) -> Fraction:
-    """Texture column, in texels with sub-texel precision, oriented so that it
-    increases from the viewer's left to right on every side of a cell."""
-    column = Fraction(u_q8 * TEXELS, 256)
-    return column if face_side in (0, 3) else Fraction(TEXELS) - column
+def texel_column(u_q8: int) -> Fraction:
+    """Texture column in texels with sub-texel precision from an oriented Q8
+    coordinate (the cast already reads east and north faces right to left)."""
+    return Fraction(u_q8 * TEXELS, 256)
 
 
-def face_side_of(key: int, style: int) -> int:
-    """0 west, 1 east, 2 north, 3 south, from the descriptor's axis and style.
+PROFILE_TEXTURE = (0, 1, 2)   # surface profile structure/machinery/door -> texture index
 
-    The face key packs axis and plane; the sign of travel is what the style
-    does not carry, so the side is recovered from the key's plane against the
-    hit cell in `texture_pixels`. Callers that already know the side pass it.
-    """
-    return 0 if not key & 0x80 else 2
+
+def rom_texture_columns(tops: Sequence[int], styles: Sequence[int], keys: Sequence[int],
+                        surfaces: Sequence[int], pixel_u: Sequence[int]) -> list["TexturedColumn"]:
+    """The 160 columns the console kernel composes, from its own descriptors."""
+    return [TexturedColumn(tops[x], styles[x], keys[x], PROFILE_TEXTURE[surfaces[x]], texel_column(pixel_u[x]))
+            for x in range(PHYSICAL_COLUMNS)]
 
 
 # ----- pixel-level composition ----------------------------------------------
@@ -154,7 +237,7 @@ def wall_pixel(textures: Sequence[Texture], column: TexturedColumn, half: int, y
         return 0
     if y >= VIEW_HEIGHT - column.top:
         return 1
-    if outline and y == column.top and half < HORIZON:
+    if outline and y in (column.top, VIEW_HEIGHT - 1 - column.top) and half < HORIZON:
         return 3
     v = texel_row(half, min(y, HORIZON - 1)) if y < HORIZON else texel_row(half, VIEW_HEIGHT - 1 - y)
     texel = textures[column.texture].texel(int(column.u) & (TEXELS - 1), v)
