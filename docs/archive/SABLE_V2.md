@@ -1,6 +1,6 @@
 # Initial 32-pixel Sable Outpost candidate
 
-> Historical implementation record for the initial 32-pixel HUD/Sable candidate. For the shipped v0.8 layout and budgets, see [Sable Outpost](SABLE_OUTPOST.md) and [architecture](ARCHITECTURE.md).
+> Historical implementation record for the initial 32-pixel HUD/Sable candidate. For the shipped v0.8 layout and budgets, see [Sable Outpost](../SABLE_OUTPOST.md) and [architecture](../ARCHITECTURE.md).
 
 **Historical qualification:** the current production defaults and 16-pixel HUD
 are documented in [SLIM_HUD.md](SLIM_HUD.md). The owner subsequently accepted
@@ -143,7 +143,7 @@ The independent witness corpus adds 36 frozen animation/LOD scenes. Exact RGB
 comparisons use identical frozen snapshots; normal controller smoke remains
 unpatched. This avoids treating different portrait sampling times as a
 rendering defect. SameBoy CGB-0/E and mGBA are pinned as documented in
-[DEVELOPMENT.md](DEVELOPMENT.md); mGBA's adapter does not instrument DMA writes.
+[DEVELOPMENT.md](../DEVELOPMENT.md); mGBA's adapter does not instrument DMA writes.
 
 ```sh
 make PYTHON=.venv/bin/python sable-sustained
@@ -202,20 +202,20 @@ renderer benchmark level. Maximum wall-top error against the floating reference
 is 4.49 pixels, with no columns reaching the eight-pixel threshold. It retains
 67 segment and three material disagreements, matching the legacy scan; this
 art/display change does not claim to correct those quantized-geometry cases.
-See [the full tail evidence](../milestones/sable-v2/geometry-tail.json).
+See [the full tail evidence](../../milestones/sable-v2/geometry-tail.json).
 
-See [retained checks](../milestones/sable-v2/checks.json),
-[independent cores](../milestones/sable-v2/independent.json),
-[controller route](../milestones/sable-v2/controller.json), and the
-[quality budget](../milestones/sable-v2/quality-budget.json). Portable summaries
+See [retained checks](../../milestones/sable-v2/checks.json),
+[independent cores](../../milestones/sable-v2/independent.json),
+[controller route](../../milestones/sable-v2/controller.json), and the
+[quality budget](../../milestones/sable-v2/quality-budget.json). Portable summaries
 preserve the original B/P values and source-report hashes; the raw original
 reports are additionally retained under `.render-baselines/art-beta6/quality-inputs/`.
 Re-evaluate a candidate with `tools/sable_quality_budget.py`; exit status1 means
 the budget failed and must not be treated as permission to enable it.
 
-![Legacy and compact HUD at native size](images/sable_v2_before_after.png)
+![Legacy and compact HUD at native size](../images/sable_v2_before_after.png)
 
-![ROM-driven combat at actual presentation cadence](images/sable_v2_combat.gif)
+![ROM-driven combat at actual presentation cadence](../images/sable_v2_combat.gif)
 
 The initial candidate bundle was produced by `tools/package_sable_candidate.py`.
 It uses the source allowlist, rebuilds legacy and compact profiles in a clean

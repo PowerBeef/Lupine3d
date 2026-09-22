@@ -55,6 +55,7 @@ BUILD_FILES = (
     "lupine3d.gb",
     "lupine3d.lst",
     "lupine3d.sym",
+    "lupine3d.map",
     "lupine3d_preview.gif",
     "lupine3d_preview_4x.png",
     "playtest/coherence_tour/contact_sheet.png",

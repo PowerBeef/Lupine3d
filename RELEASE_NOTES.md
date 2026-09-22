@@ -162,8 +162,8 @@ Download `Lupine3D_v0.8.gb` to play or the `_complete.zip` for source, assets an
 - Document development directly on `main`. Physical CGB and flash-cartridge access are unavailable; this is an emulator-qualified prerelease.
 
 Production ROM SHA-256: `48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99`.
-See [implementation and evidence](docs/RENDERING_IMPLEMENTATION.md) and the
-[beta.6 test report](docs/TEST_REPORT_BETA6.md). The version update changes release
+See [implementation and evidence](docs/archive/RENDERING_IMPLEMENTATION.md) and the
+[beta.6 test report](docs/archive/TEST_REPORT_BETA6.md). The version update changes release
 metadata; the production ROM is byte-identical to the qualified performance
 milestone.
 
@@ -178,7 +178,7 @@ milestone.
 - 84 tests, nine unchanged reviewed RGB captures, arithmetic/prepared variants, 252-presentation controller-only completion and independent SameBoy CGB-0/CGB-E plus mGBA checks pass.
 - Uses 1 MiB of formerly unused cartridge capacity and four banked WRAM bytes; leaves 304 KiB of cartridge capacity and 3,123 resident bytes free. No additional HRAM or VRAM; publication budgets unchanged.
 
-All four planned steps are complete. These are emulator measurements; original CGB and flash-cartridge acceptance remains pending. See [implementation and evidence](docs/COLUMN_PERFORMANCE.md).
+All four planned steps are complete. These are emulator measurements; original CGB and flash-cartridge acceptance remains pending. See [implementation and evidence](docs/archive/COLUMN_PERFORMANCE.md).
 
 ---
 
@@ -192,7 +192,7 @@ All four planned steps are complete. These are emulator measurements; original C
 - 80 tests, 53 exact cached/full scenes, nine unchanged reviewed captures, reuse on/off and folding variants, 233-update controller-only completion, and SameBoy CGB-0/CGB-E plus mGBA checks pass.
 - Adds 297 WRAM bytes; no new HRAM or VRAM. Cold-map relocation preserves 3,123 free resident bytes and the full stack reservation.
 
-All four planned steps are complete. Original CGB/flash-cartridge validation remains pending. See [implementation and evidence](docs/WALL_REUSE.md).
+All four planned steps are complete. Original CGB/flash-cartridge validation remains pending. See [implementation and evidence](docs/archive/WALL_REUSE.md).
 
 ---
 
@@ -205,7 +205,7 @@ All four planned steps are complete. Original CGB/flash-cartridge validation rem
 - The live combat diagnostic averages 1,218,677 cycles; its slowest update costs 1,685,836 cycles (4.98 visual updates/s). Fixed-tick simulation means live actor poses vary with rendering speed.
 - 75 automated tests, nine unchanged reviewed captures, controller-only completion in 236 updates, and independent SameBoy CGB-0/CGB-E and mGBA checks pass.
 
-The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptance is still pending. See the [step-by-step implementation and evidence](docs/RUNTIME_PERFORMANCE.md).
+The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptance is still pending. See the [step-by-step implementation and evidence](docs/archive/RUNTIME_PERFORMANCE.md).
 
 ---
 
@@ -235,7 +235,7 @@ Implements the software items deferred by the foundation alpha:
 - Optional turning reprojection shifts published world objects with the BG while retaining fixed UI; remains disabled by default.
 - Pinned SameBoy CGB-0/CGB-E and mGBA lanes, two-Sentinel acceptance scene, folded/unfolded RGB equivalence and controller-only level completion.
 
-This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
+This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
 
 ---
 
@@ -255,7 +255,7 @@ First implemented milestone of the overhaul, not completion of the full roadmap.
 
 The opened-airlock RGB fixture intentionally removes 50 false-crease pixels after inspection. The other eight legacy captures are unchanged; all nine folded/unfolded captures match each other.
 
-High-precision tail fallback, fully fixed-rate simulation, masked multi-entity rendering, real sliding apertures and original-hardware validation remain unfinished. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md).
+High-precision tail fallback, fully fixed-rate simulation, masked multi-entity rendering, real sliding apertures and original-hardware validation remain unfinished. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md).
 
 ---
 
@@ -447,6 +447,6 @@ reducing the driven tour's mean update cost by 18.61%.
 
 The VBlank ISR/staging and residual signature-cache ideas were investigated
 but not retained because the measured workload did not benefit. Details and
-checkpoint data are in `docs/PERFORMANCE_V4.md`.
+checkpoint data are in `docs/archive/PERFORMANCE_V4.md`.
 
 Original Game Boy Color and independent-emulator certification remain pending.

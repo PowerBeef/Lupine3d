@@ -118,4 +118,4 @@ CI configuration includes both pinned cores, gameplay completion, variant checks
 
 ## Remaining acceptance boundary
 
-No original CGB or flash cartridge was available. No unlimited-input guarantee after queue overflow, arbitrary-precision depth, arbitrary sprite scaling, or default-enabled reprojection is claimed. See [implementation status](OVERHAUL_IMPLEMENTATION.md) and [hardware checklist](HARDWARE_TEST_CHECKLIST.md).
+No original CGB or flash cartridge was available. No unlimited-input guarantee after queue overflow, arbitrary-precision depth, arbitrary sprite scaling, or default-enabled reprojection is claimed. See [implementation status](OVERHAUL_IMPLEMENTATION.md) and [hardware checklist](../HARDWARE_TEST_CHECKLIST.md).

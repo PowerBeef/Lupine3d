@@ -85,4 +85,4 @@ Default: Q14 on, fixed simulation on, folding on, exact wall reuse on, prepared 
   level must declare the same `vram_profile` and `palette_profile`.
 - A guaranteed frame-rate floor in arbitrary future content. The measured performance pass preserves current scenes; denser actors, longer sightlines and additional effects require their own budgets.
 
-See [test report](TEST_REPORT.md) for candidate-bound evidence.
+See [test report](../TEST_REPORT.md) for candidate-bound evidence.

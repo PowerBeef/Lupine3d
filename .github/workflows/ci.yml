@@ -82,6 +82,9 @@ jobs:
       - name: Build and run regression suite
         run: make test
 
+      - name: Check the documentation (links, commands, generated memory map)
+        run: make docs-check
+
       - name: Run driven playtests against the golden snapshots
         run: make playtest playtest-world playtest-art
 

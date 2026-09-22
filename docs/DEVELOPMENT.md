@@ -17,6 +17,8 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--textured] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+
 | Profile | World / HUD | Default art |
 |---|---|---|
 | `slim` | 160×120 / 160×24 | Sable animated |
@@ -28,7 +30,17 @@ LUPINE3D_DISPLAY=legacy make build
 make build  # Restore the default after the comparison.
 ```
 
-Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](RENDERING_IMPLEMENTATION.md).
+Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](archive/RENDERING_IMPLEMENTATION.md).
+
+### Debugger exports
+
+Every build writes `build/lupine3d.sym` in the bank-prefixed `BB:AAAA name`
+form that RGBDS emits and BGB, Emulicious and SameBoy's debugger load: every
+code and data label, and every named RAM variable of the layout with its
+WRAM bank, under a comment naming the ROM's SHA-256. `build/lupine3d.map`
+lists the assembler's sections with sizes and kinds and then the allocation
+ledger. `build_manifest.json` records both files' hashes under `exports`.
+The host tools read either form (`sm83emu.parse_symbols`).
 
 ## Pinned independent cores
 

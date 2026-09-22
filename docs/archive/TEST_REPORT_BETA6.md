@@ -130,5 +130,5 @@ release manifest and SHA-256 checksums for its distributable files.
 GitHub Actions status is reported separately from these local results. The
 owner has no physical CGB or flash cartridge; hardware status remains false
 and does not block emulator-qualified releases. Development takes place on
-`main`. See the [development policy](../AGENTS.md) and optional future
-[hardware checklist](HARDWARE_TEST_CHECKLIST.md).
+`main`. See the [development policy](../../AGENTS.md) and optional future
+[hardware checklist](../HARDWARE_TEST_CHECKLIST.md).

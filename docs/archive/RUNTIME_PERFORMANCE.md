@@ -102,6 +102,6 @@ completion (236 verified updates, 84 health), rendering variants, and SameBoy
 CGB-0/CGB-E plus mGBA controller/startup lanes. The independent lanes observe
 62 page swaps in 480 LCD frames; SameBoy observes no unsafe DMA starts/flips.
 Detailed hashes and timings are in
-[`research/results/runtime_beta3.json`](../research/results/runtime_beta3.json).
+[`research/results/runtime_beta3.json`](../../research/results/runtime_beta3.json).
 
 Physical CGB/flash-cartridge acceptance remains a separate, pending gate.

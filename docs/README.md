@@ -1,30 +1,39 @@
 # Documentation
 
 These guides describe **v0.10**, the six-sector campaign on the 160×120 Sable
-build with a 24-pixel HUD and HBlank-streamed publication.
+build with a 24-pixel HUD and HBlank-streamed publication, plus the opt-in
+textured-walls profile. `python tools/check_docs.py` (in the fast CI lane)
+keeps every link and command on these pages valid.
+
+## Using the engine
 
 | Guide | Purpose |
 |---|---|
-| [Development](DEVELOPMENT.md) | Build, test, pinned cores, content and releases |
+| [Developer guide](guide/README.md) | Start here to build a first-person game on the engine: the hardware primer, an engine tour, the generated memory map, how-tos and debugging |
+| [Level format](LEVEL_FORMAT.md) | The JSON level format, its units and limits, the compiled payload, and the Tiled (TMX) round trip |
+| [Level certificate](LEVEL_CERTIFICATE.md) | What the compiler measures and refuses, and why |
+| [Art pipeline](ART_PIPELINE.md) | Indexed-PNG conventions, every asset kind, the sixteen palettes and their owners, wall textures |
+| [Development](DEVELOPMENT.md) | Build, test, the `lupine` CLI, debugger exports, pinned cores, content and releases |
 | [Verification](VERIFICATION.md) | Hard gates versus golden-image snapshots, reviewing and accepting a visual change, the CI lanes |
-| [Architecture](ARCHITECTURE.md) | Current memory, renderer and publication contracts |
+
+## How the engine works
+
+| Guide | Purpose |
+|---|---|
+| [Architecture](ARCHITECTURE.md) | Memory, renderer, simulation and publication contracts |
+| [Streamed publication](STREAMED_PUBLICATION.md) | How a full update publishes in one VBlank, its contracts and measurements |
+| [Textured walls](TEXTURED_WALLS.md) | Texture-mapped walls with depth shading: the exact host reference, the prototype gate, the emitted row-window kernel and ring under `LUPINE3D_TEXTURED_WALLS=1`, and its measured cost |
 | [Campaign](CAMPAIGN.md) | What turned the demo into a game, and what each decision cost |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
-| [Steel HUD](STEEL_HUD.md) | Current health, helmet, skull and objective implementation |
-| [Test report](TEST_REPORT.md) | ROM-bound v0.10 qualification and performance |
-| [Streamed publication](STREAMED_PUBLICATION.md) | How a full update now publishes in one VBlank, its contracts and measurements |
-| [Textured walls](TEXTURED_WALLS.md) | Texture-mapped walls with depth shading: the exact host reference, the prototype gate, the emitted row-window kernel and ring under the opt-in `LUPINE3D_TEXTURED_WALLS=1` profile, and its measured cost |
+| [Steel HUD](STEEL_HUD.md) | Health, helmet, skull and objective implementation |
 | [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
+| [Test report](TEST_REPORT.md) | ROM-bound v0.10 qualification and performance |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |
 | [Agent guidance](../AGENTS.md) | Implementation map, invariants and checks |
 
-## Design and historical evidence
+## Evidence and history
 
-- [Slim display contract](SLIM_HUD.md): viewport expansion and publication design; original art/timing figures are historical where marked.
-- [Initial Sable sprites](SABLE_V2.md): the earlier 112-line candidate and its performance decision.
-- [Rendering experiments](RENDERING_IMPLEMENTATION.md): beta.6 exact-output milestone, gated kernels and original B/P measurements.
-- [v0.9 test report](TEST_REPORT_V09.md), [v0.8 test report](TEST_REPORT_V08.md), [beta.6 test report](TEST_REPORT_BETA6.md) and [beta.6 art contract](SABLE_OUTPOST_BETA6.md): retained release evidence.
-- [Beta.5 test report](TEST_REPORT_BETA5.md), [prepared rays](COLUMN_PERFORMANCE.md), [wall reuse](WALL_REUSE.md), [arithmetic](RUNTIME_PERFORMANCE.md), and the numbered research documents: version-specific development history.
+- [Archived documents](archive/README.md): earlier test reports, design documents and research, kept verbatim with an index of what each one measures.
 - [Milestones](../milestones/): immutable results bound to their recorded ROMs.
 - [Generated HUD concept](design/hud-steel/README.md): design references, distinct from native ROM captures.
 - [Physical checklist](HARDWARE_TEST_CHECKLIST.md): optional future work; hardware is unavailable and is not a release prerequisite.

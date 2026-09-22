@@ -367,7 +367,12 @@ and live-controller performance are different comparisons.
 
 Follow `.github/workflows/ci.yml` for complete short CI. `make qa`/`verify` do not
 cover every lane. Reports must identify ROM/configuration and actual checks run.
-Documentation-only edits need link/command/diff checks, not a ROM test rerun.
+Documentation-only edits need link/command/diff checks, not a ROM test rerun:
+`make docs-check` (`tools/check_docs.py`) verifies every link and command and
+that `docs/guide/MEMORY_MAP.md` matches the manifest (regenerate it with
+`make memory-map`, never by hand). Historical documents live in
+`docs/archive/` with an index; `python tools/lupine.py` is the one entry
+point for build, run, snapshot, level, profile and verification commands.
 
 ## Documentation and release hygiene
 

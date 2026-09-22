@@ -304,6 +304,12 @@ MUSIC_ROW_BYTES = 3
 # the ISR reads it under any SVBK, and every display profile leaves this
 # window free (slim's map ends here, and the strip scratch sits elsewhere).
 MUSIC_STATE = 0xC7E0
+# A switchable-WRAM address alone does not name its bank: the render snapshot
+# (bank 1) and the live world (bank 2) share every name by design, and banks
+# 4 and 5 reuse low addresses. The debugger export takes bank 1 for a
+# switchable address unless the name is listed here (lupine3d_v4/symbols.py).
+WRAM_BANK_OF_NAME = {"FG_COMPOSITE_OAM": 4, "FG_PUBLISHED_OAM": 4, "FG_QUEUE": 4,
+                     "MUSIC_NOTE_TABLE": MUSIC_WRAM_BANK, "MUSIC_ROWS": MUSIC_WRAM_BANK}
 MUSIC_ENABLED = MUSIC_STATE
 MUSIC_SONG = MUSIC_STATE + 1
 MUSIC_SPEED = MUSIC_STATE + 2

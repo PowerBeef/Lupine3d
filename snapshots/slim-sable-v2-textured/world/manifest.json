@@ -82,28 +82,28 @@
       "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
     },
     "11_pickup_collected": {
-      "rgb_sha256": "32d77eaa3ccc2da38229aafb55ef2427d3ba05dded46c3c24608694212b7346b",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "440fa7b4287ebca97b16b3c648dbdb81e9037e5db17978399976bfdecc30a766",
+      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T05:03:53+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
     },
     "12_exit_unlocking": {
-      "rgb_sha256": "d244e90b6e896ec3993f92e647f6ee28b8f6970b817ccb8218c614569fd25393",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "ad6cb909fe2b3a5d057ad9b7d8bd265cb43d375252007b8eb7aca47d2e3aedd5",
+      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T05:03:53+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
     },
     "13_exit_beacon": {
-      "rgb_sha256": "d95b8d6985217b322229f19c0b4c432ad4e28d98227ec102a5bf6a2b9d31a02a",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "1fefbdf5654e7dfd8df3b6cd42ca7eb6129816217d79a069ecbe827b3926b69b",
+      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T05:03:53+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
     },
     "14_level_complete": {
       "rgb_sha256": "81d4277ec0e4eddb066c04d6bd1193825bbf4e8a9495a07b65538c65edddce5e",

@@ -329,8 +329,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "four-digit continue code per sector and skill")
     a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
+    bank_bound_labels: dict[str, int] = {}
     for name, payload in make_boot_assets():
-        a.labels[name] = cold_address
+        a.labels[name] = cold_address; bank_bound_labels[name] = BOOT_ASSETS_ROM_BANK
         cold_address += len(payload)
     assert cold_address <= 0x8000, "cold boot assets exceed one MBC5 bank"
 
@@ -398,7 +399,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # spending resident bytes; the readers below select RAW_RAY_ROM_BANK.
     raw_address = RAW_RAY_ROM_ADDRESS
     for name, payload in make_raw_ray_assets(tables):
-        a.labels[name] = raw_address
+        a.labels[name] = raw_address; bank_bound_labels[name] = RAW_RAY_ROM_BANK
         raw_address += len(payload)
     assert raw_address <= 0x8000, "raw ray tables exceed one MBC5 bank"
     a.label("top_depth_lut"); a.bytes(make_top_depth_lut(), "projected-top to conservative corrected Q5 depth")
@@ -424,7 +425,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             a.label(f"microstrips_style_{style}")
             if flat_tables: a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
         else:
-            a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block
+            a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block; bank_bound_labels[f"microstrips_style_{style}"] = UNFOLDED_STRIP_ROM_BANK
     pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES) if flat_tables else b""
     pair_style_block = STORED_STRIP_COUNT * 4 * 16
     a.label("pair_microstrip_style_bases")
@@ -434,7 +435,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             a.label(f"pair_microstrips_style_{style}")
             if flat_tables: a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
         else:
-            a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block
+            a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block; bank_bound_labels[f"pair_microstrips_style_{style}"] = UNFOLDED_STRIP_ROM_BANK
     if NEAR_FIELD:
         a.label("near_correction_q14"); a.bytes(words_le(near_corrections()), "241 Q14 camera-plane cosine corrections")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
@@ -452,6 +453,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     code = a.resolve()
     metadata = {
+        "bank_bound_labels": bank_bound_labels,
         "engine_origin": a.origin,
         "engine_end": a.origin + len(code),
         "engine_size": len(code),
@@ -795,16 +797,38 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     return bytes(rom), assembler, metadata
 
 
+def write_outputs(output: Path, rom: bytes, assembler, metadata: dict) -> Path:
+    """The ROM, its listing, the bank-prefixed symbols, the map and the manifest.
+
+    The symbol and map files are debugger exports (lupine3d_v4/symbols.py):
+    every label and every named RAM variable, in the `BB:AAAA name` form
+    RGBDS, BGB, Emulicious and SameBoy read. The manifest records their
+    hashes, so a package can prove which symbols belong to which ROM.
+    """
+    from lupine3d_v4 import symbols as sym
+    output.mkdir(parents=True, exist_ok=True)
+    rom_path = output / "lupine3d.gb"; rom_path.write_bytes(rom)
+    assembler.write_listing(output / "lupine3d.lst")
+    ledger = metadata.get("allocation_ledger", {})
+    table = sym.symbol_table(assembler, bank_bound=metadata.get("bank_bound_labels", {}),
+                             ram_names=sym.ram_names_from_layout(active_layout),
+                             wram_bank_of_name=getattr(active_layout, "WRAM_BANK_OF_NAME", {}))
+    sym.write_symbols(output / "lupine3d.sym", table, rom_sha256=metadata["sha256"], configuration_id=metadata["configuration_id"])
+    sym.write_map(output / "lupine3d.map", assembler, ledger, rom_sha256=metadata["sha256"])
+    metadata["exports"] = {"format": "rgbds-sym-v1", "symbols": len(table),
+                           "code": sum(s.kind == "code" for s in table), "data": sum(s.kind == "data" for s in table),
+                           "ram": sum(s.kind in ("ram", "hram") for s in table),
+                           "sym_sha256": sym.file_sha256(output / "lupine3d.sym"), "map_sha256": sym.file_sha256(output / "lupine3d.map")}
+    (output / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return rom_path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=BUILD)
     output = parser.parse_args().output_dir
-    output.mkdir(parents=True, exist_ok=True)
     rom, assembler, metadata = make_rom()
-    rom_path = output / "lupine3d.gb"; rom_path.write_bytes(rom)
-    assembler.write_listing(output / "lupine3d.lst")
-    (output / "lupine3d.sym").write_text("\n".join(f"{addr:04X} {name}" for name, addr in sorted(assembler.labels.items(), key=lambda item: item[1])) + "\n", encoding="utf-8")
-    (output / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    rom_path = write_outputs(output, rom, assembler, metadata)
     print(f"Built {rom_path} ({len(rom)} bytes)")
     print(f"Engine: {metadata['engine_size']} bytes, end={metadata['engine_end']:#06x}")
     print(f"Header checksum: {metadata['header_checksum']:#04x}; global: {metadata['global_checksum']:#06x}")

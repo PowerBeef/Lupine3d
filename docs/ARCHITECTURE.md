@@ -4,7 +4,7 @@ Lupine generates a CGB-only, 4 MiB MBC5 cartridge with no cartridge RAM.
 Python emits SM83 machine code, fixed-point tables and native 2bpp assets.
 The console runs in double-speed mode using tiles and 8×16 hardware sprites;
 there is no framebuffer. This document describes the default slim/Sable build.
-Historical beta.6 measurements are retained in [its test report](TEST_REPORT_BETA6.md).
+Historical beta.6 measurements are retained in [its test report](archive/TEST_REPORT_BETA6.md).
 
 ## Frame, input and simulation ownership
 
@@ -24,7 +24,7 @@ configuration and reload generation. A miss casts/reconstructs the view,
 composes tiles, prepares masks/entities and builds a complete publication packet.
 A hit retains matching walls/depth and refreshes entities/HUD only. Bank ownership
 for the published BG and OBJ patterns can consequently differ. See
-[wall reuse](WALL_REUSE.md).
+[wall reuse](archive/WALL_REUSE.md).
 
 ## Display and geometry
 
@@ -352,6 +352,6 @@ Dynamic caching, packet traversal, physical depth, actor precision, scanline
 admission, paged projection, near-field precision and foreground publication
 remain experiments. Reprojection is disabled. Build flags and format versions
 are recorded in the manifest; unsupported explicit combinations fail.
-[Rendering milestone evidence](RENDERING_IMPLEMENTATION.md) describes the earlier
+[Rendering milestone evidence](archive/RENDERING_IMPLEMENTATION.md) describes the earlier
 performance work, while [development guidance](DEVELOPMENT.md) explains how to
 build references and qualify changes without overwriting historical evidence.

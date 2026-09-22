@@ -10,7 +10,7 @@ current.
 **ROM SHA-256:**
 `a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb`
 
-[Machine-readable qualification](../milestones/v0.8/qualification/report.json)
+[Machine-readable qualification](../../milestones/v0.8/qualification/report.json)
 binds the manifest, executed test log, sustained samples, budget decision,
 controller replay and independent-core results to this ROM. The release archive
 also carries fresh short-route/variant reports and separate clean-room evidence.
@@ -60,7 +60,7 @@ presentations are counted separately and do not inflate this rate. The ten-full-
 updates/s target is unmet.
 
 The original quality rule, `Q <= (B + P) / 2`, fails for this complete visual
-upgrade. [The unchanged budget evaluation](../milestones/v0.8/qualification/evidence/quality-budget.json)
+upgrade. [The unchanged budget evaluation](../../milestones/v0.8/qualification/evidence/quality-budget.json)
 uses the immutable pre-viewport baseline/performance lanes and identical replay
 identities. **The owner explicitly accepted the visual/performance tradeoff.**
 This is an acceptance exception, not a passing mathematical result, and does not
@@ -81,8 +81,8 @@ The final spacing change adds six map writes / 108 CPU T-cycles (12.9 µs) per
 HUD publication and leaves world pixels unchanged in the frozen comparison.
 
 Current oracle: `playtests/sable_objective_spaced_capture_pixels.json`.
-[HUD state captures](images/sable_objective_spaced_states_4x.png) and
-[current combat playback](images/v08_combat.gif) show emitted ROM output.
+[HUD state captures](../images/sable_objective_spaced_states_4x.png) and
+[current combat playback](../images/v08_combat.gif) show emitted ROM output.
 Combat previews include explicit diagnostic setup, then controller input; GIF
 frame delays are quantized to 10 ms. The archive also contains inspection-cadence
 and native-resolution previews. Generated masters are art references, not ROM

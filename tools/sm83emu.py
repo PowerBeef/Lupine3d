@@ -944,10 +944,15 @@ def run_to_world(cgb: "CGB", *, max_steps: int = 8_000_000) -> "CGB":
 
 
 def parse_symbols(path: Path) -> dict[str, int]:
+    """Name -> address from a symbol file: the bank-prefixed `BB:AAAA name`
+    form the build writes (comments start with `;`) or the flat `AAAA name`
+    form of the archived baselines. The bank is dropped: the harness
+    addresses the fixed halves and RAM by address alone."""
     symbols: dict[str, int] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip(): continue
+        if not line.strip() or line.lstrip().startswith(";"): continue
         address, name = line.split(maxsplit=1)
+        if ":" in address: address = address.split(":", 1)[1]
         symbols[name] = int(address, 16)
     return symbols
 

@@ -42,12 +42,12 @@
       "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
     },
     "06_sentinel": {
-      "rgb_sha256": "6248a9db529f070b78aecd0a841fa4a373bdf78d9a6795fb80c344c6ab989c51",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "b29aa0ebc658f79bf881598c6eca265f24ea53d6956bb78bd63cfa00e3bacc98",
+      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T05:05:12+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the update reaches this pose on a different accepted snapshot tick, so the Sentinel shows the other walk cel; every frame check including dynamic_tiles_exact against texture_reference passed unchanged"
     }
   }
 }

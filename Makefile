@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -12,6 +12,17 @@ build:
 
 test: build
 	$(PYTHON) tools/run_tests.py
+
+# Documentation: links, commands and the generated memory map (docs/guide/MEMORY_MAP.md).
+docs-check: build
+	$(PYTHON) tools/check_docs.py --require-build
+
+memory-map: build
+	$(PYTHON) tools/memory_map.py
+
+# The `lupine` CLI: make lupine ARGS="level check levels/*.json"
+lupine:
+	$(PYTHON) tools/lupine.py $(ARGS)
 
 research:
 	$(PYTHON) research/geometry_v2_lab.py

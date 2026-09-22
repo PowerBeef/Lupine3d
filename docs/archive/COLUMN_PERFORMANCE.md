@@ -40,7 +40,7 @@ The archived beta.4 ROM is the baseline:
 Candidate:
 `8f0425f07220d7649ff419c9c3fb0a212c4a234b40463ab431c1f97e1b7b3cd3`.
 
-Three isolated scene checkpoints measured expansion, then events, then prepared rays. Their source-ROM/output hashes and complete measurements are preserved in [the evidence file](../research/results/columns_beta5.json). Expansion fell from about 89,000 to 30,492 cycles; events from 86,124–89,440 to 40,980–43,220. Adding prepared rays then saved 3,600–29,400 casting cycles across those scenes.
+Three isolated scene checkpoints measured expansion, then events, then prepared rays. Their source-ROM/output hashes and complete measurements are preserved in [the evidence file](../../research/results/columns_beta5.json). Expansion fell from about 89,000 to 30,492 cycles; events from 86,124–89,440 to 40,980–43,220. Adding prepared rays then saved 3,600–29,400 casting cycles across those scenes.
 
 The final comparison covers all 53 frozen scenes:
 
