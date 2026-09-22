@@ -78,7 +78,7 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
                 (int(event["event_count"]) <= 1 and int(event["blocks"]) <= 32) if event["reused"]
                 else ((int(event["vblank_blocks"]) <= 62 and int(event["hblank_blocks"]) <= 126
                        and all(e.get("kind") != "hdma" or e["vblank_safe_complete"] for e in event["events"]))
-                      if v2_manifest["hblank_streaming"]["enabled"]
+                      if v2.HDMA_STREAMING
                       else 2 <= int(event["event_count"]) <= 4) for event in commits),
             "commit_payload_bytes": number_stats([value * 16 for value in commit_blocks]),
             "last_adaptive_casts": cgb.read8(v2.ADAPTIVE_CASTS),

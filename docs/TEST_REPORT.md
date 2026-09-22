@@ -29,14 +29,15 @@ false. The previous release is retained in [the v0.9 report](TEST_REPORT_V09.md)
 
 | Lane | Result and scope |
 | --- | --- |
-| Regression suite | 229 tests pass (`make test`), including the HBlank DMA model, streamed-publication safety and the compact-strips saving stated exactly over selector bytes and page alignment |
+| Regression suite | 240 tests pass (`make test`), including the HBlank DMA model, streamed-publication safety, the compact-strips saving stated exactly over selector bytes and page alignment, the snapshot workflow and the harness mode model |
+| Release checks | **89 of 89** pass (`tools/release_check.py`), including the streamed publication ceilings, the campaign certificates for all six sectors, the route and the snapshot suites |
 | Slim emitted-ROM gate | `tools/check_sable.py` passes, now including streamed-publication windows on both sides of every historical budget boundary up to the maximal 96+32 packet, the HBlank bank-isolation check (every block lands with WRAM bank 2 mapped) and the LCD-off/chaining checks |
 | Display | `tools/check_display.py` passes; the legacy ROM is byte-identical to the one the v0.9 sources build |
 | Coherence/world/art routes | All pass; nine RGB fixtures match `sable_v10_capture_pixels.json`, eight of them identical to v0.9's; see **What changed visually** |
 | MBC5 bank contract | Six clauses against the emitted image: 40 bank writes, all in the fixed half; 1,620 pinned instruction bytes; 447-byte interrupt closure with no bank write |
 | Exact wall reuse | 53 frozen comparisons, timed feedback, disabled-path equality |
 | Variants | Folded/unfolded, prepared-disabled, reuse-disabled, two actors and reprojection diagnostics, all nine images equal |
-| Controller completion/restart | RESULT_ROUTE |
+| Controller completion/restart | **4,629-update route** (31,202 LCD intervals) clears all six sectors on controller input alone — Sable Outpost 347, Coolant Spine 603, Reactor Gate 641, Vent Stacks 1,530, Signal Deck 654, Cryo Vault 854 updates — collects every drop, crosses every intermission, swaps weapons in sector three, and the ending restarts the campaign; zero game-RAM writes, zero unsafe GDMA starts, every frame checked against the host geometry and compositor models |
 | Independent cores | Pinned SameBoy CGB-0 and CGB-E and pinned mGBA all pass on this ROM (32 page swaps and 290/291 presentations in 480 world frames, zero unsafe GDMA or OAM starts, zero visible mask or map writes), frozen-startup RGB matching the host; **87 frozen scenes** match the harness in all three core/model lanes, HBlank-streamed frames included |
 | Sustained controller motion | Eight approximately 60-second trials; reconciled CPU time, no post-setup diagnostic writes, no queue overflow or unsafe GDMA starts |
 | Golden snapshots | 122 scenes accepted as the v0.10 baseline on this ROM (`tour` 9, `world` 14, `art` 6, `sable` 6, `witnesses` 87); the nine tour goldens are pixel-identical to the retired `sable_v10` hash oracle |
