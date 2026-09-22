@@ -99,17 +99,19 @@ DYNAMIC_TILE_VRAM = 0x9000
 BG_LCDC = 0x87                # signed BG; hardware 8x16 OBJ mode
 HUD_UNSIGNED = True           # viewport-boundary STAT selects bank-0 OBJ-only HUD patterns
 HUD_TILE_BASE = 32
-DECAL_RECORD = 0xD9E0          # x/y Q8, segment, kind, side, along-cell, door index
-DECAL_INDEX = 0xD9E9
-DECAL_USED = 0xD9EA
-DECAL_PROJECTING = 0xD9EB
-DECAL_HEIGHT = 0xD9EC
-DECAL_Y = 0xD9ED
-DECAL_SOURCE = 0xD9EE
-DECAL_WIDE = 0xD9EF
-DECAL_SAVED = 0xD9F0           # four public projection bytes restored after decor
-DECAL_COLUMN = 0xD9F4
-HUD_PACKET = 0xD3D8 if COMPACT_DISPLAY else 0xD9F5           # immutable tile IDs prepared before VBlank
+# Wall fixture (decal) projection scratch, in the block the wall key vacated.
+DECAL_RECORD = 0xDF20          # x/y Q8, segment, kind, side, along-cell, door index
+DECAL_INDEX = 0xDF29
+DECAL_USED = 0xDF2A
+DECAL_PROJECTING = 0xDF2B
+DECAL_HEIGHT = 0xDF2C
+DECAL_Y = 0xDF2D
+DECAL_SOURCE = 0xDF2E
+DECAL_WIDE = 0xDF2F
+DECAL_SAVED = 0xDF30           # four public projection bytes restored after decor
+DECAL_COLUMN = 0xDF34
+DECAL_END = DECAL_COLUMN + 1
+HUD_PACKET = 0xD3D8            # immutable tile IDs prepared before VBlank, every profile
 WEAPON_TILE_BASE = 32 if SABLE_ART else 64          # bank 1 $8400, disjoint from all BG patterns
 FOLDED_COMPOSITOR = os.environ.get("LUPINE3D_FOLDED", "1") != "0"
 COMPACT_STRIPS = RENDER_CONFIG["compact_strips"]
@@ -131,7 +133,7 @@ DYN_STREAMED = 0xC8CE
 # The folded compositor's column of tile IDs, written once per row and
 # copied into the map (both halves) once per column, after the snapshot copy
 # buffer and before the saved render HRAM.
-COLUMN_ROWS = 0xCAD0
+COLUMN_ROWS = 0xCAF0           # after the snapshot copy buffer (WORLD_COPY_BUFFER + WORLD_COPY_BYTES)
 NARROW_YIELDS = RENDER_CONFIG["narrow_yields"]
 ANCHOR_PACKETS = RENDER_CONFIG["anchor_packets"]
 PACKET_BOUNDS_REUSE = RENDER_CONFIG["packet_bounds_reuse"]
@@ -219,14 +221,15 @@ MASK_ROWS = 0xD8D6
 MASK_SCAN_START = 0xD8D7
 MASK_SCAN_COUNT = 0xD8D8
 ENTITY_SLOT = 0xD8D9
-LOD_HISTORY = 0xD8E0           # four actor histories + generic beacon
+MAX_ACTORS = level_codec.MAX_ACTORS
+LOD_HISTORY = 0xD8E0           # MAX_ACTORS actor histories + the generic beacon
 WORLD_SCANLINES = 0xD900      # 144 selected-object counters
-ENTITY_SLOTS = 0xD990         # four fixed 16-byte actor slots (ACTOR_COUNT is fixed WRAM)
-ACTOR_DEPTHS = 0xD9D1
-ACTOR_BEST = 0xD9D5
-ACTOR_BEST_DEPTH = 0xD9D6
-ACTOR_PASS = 0xD9D7
-MAX_ACTORS = 4
+ENTITY_SLOTS = 0xD990         # MAX_ACTORS fixed 16-byte actor slots (ACTOR_COUNT is fixed WRAM)
+ACTOR_DEPTHS = ENTITY_SLOTS + MAX_ACTORS * 16
+ACTOR_BEST = ACTOR_DEPTHS + MAX_ACTORS
+ACTOR_BEST_DEPTH = ACTOR_BEST + 1
+ACTOR_PASS = ACTOR_BEST_DEPTH + 1
+assert LOD_HISTORY + MAX_ACTORS + 1 <= 0xD8F0 and ACTOR_PASS < 0xDA00
 MASK_TILES = 0xDA00          # at most 32 patterns = 512 bytes
 VIEW_ATTRIBUTES = 0xDC00      # hidden 12x32 attribute packet
 RAY_SURFACE = 0xDE00

@@ -135,7 +135,7 @@ def setup(c, scene):
     for index in range(br.MAX_DOORS):
         data = (bytes((*scene.doors[index][:3],0,1,scene.doors[index][3])) if index < len(scene.doors) else bytes(6))
         for offset,value in enumerate(data): set_test_world_byte(c,br.DOOR_TABLE+index*6+offset,value)
-    for index in range(4):
+    for index in range(br.MAX_ACTORS):
         data = bytearray(16); data[4] = br.SENTINEL_DEAD
         if index < len(scene.actors):
             x,y = scene.actors[index]

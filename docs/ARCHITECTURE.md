@@ -97,8 +97,8 @@ its offset (`add_level_page`). The first slot's offsets are:
 | `$4800` | The 16×16 world map |
 | `$4900` | 24-byte header: dimensions, profiles, spawn, primary actor, exit, and the door/actor/fixture counts and pickup value the loader reads |
 | `$4920` | Six fixed-capacity door records |
-| `$4950` | Four bounded actor slots |
-| `$4990` | Up to sixteen wall-mounted fixture records |
+| `$4950` | Six bounded actor slots |
+| `$49B0` | Up to sixteen wall-mounted fixture records |
 
 `lookup_segment_id` reads the segment and its surface profile through one
 pointer, so the surface table must stay exactly 1,024 bytes above the segment

@@ -37,7 +37,7 @@
       }
     },
     "entities": {
-      "type": "array", "minItems": 1, "maxItems": 4,
+      "type": "array", "minItems": 1, "maxItems": 6,
       "items": {
         "type": "object", "required": ["kind", "x_q8", "y_q8", "health", "activation_radius_q4"],
         "properties": {

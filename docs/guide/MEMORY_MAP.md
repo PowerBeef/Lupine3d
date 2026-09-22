@@ -14,7 +14,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | Budget | Value |
 |---|---:|
 | Free WRAM banks | 6, 7 |
-| Render snapshot copy | 464 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+136, `$D990`+64 |
+| Render snapshot copy | 496 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+136, `$D990`+96 |
 | Prepared ray record | 16 bytes; packet records 241-250 |
 
 ## ROM (4 MiB MBC5, 256 banks of 16 KiB; addresses are absolute ROM offsets)
@@ -32,7 +32,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
 | bank 238 `$4000-$52D0` | 4,816 | cold raw vectors and camera-plane tables | persistent |
 | bank 240 `$4000-$8000` | 16,384 | songs and note periods | persistent |
-| banks 241-242 (`$4000` in 241 to `$4A90` in 242) | 19,088 | campaign levels, 5 per bank in 2816-byte slots | persistent |
+| banks 241-242 (`$4000` in 241 to `$4AB0` in 242) | 19,120 | campaign levels, 5 per bank in 2816-byte slots | persistent |
 
 ## Fixed WRAM (`$C000-$CFFF`)
 
@@ -50,8 +50,8 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$C8D0-$C8DE` | 14 | simulation/input clocks | persistent |
 | `$C8E0-$C8F0` | 16 | diagnostic strip scratch | one strip lookup |
 | `$C8F0-$C900` | 16 | screen composition and level selection | persistent |
-| `$C900-$CAD0` | 464 | snapshot copy / later fixture visibility | exclusive sequential reuse |
-| `$CAD0-$CAD8` | 8 | folded column tile IDs | one composed column |
+| `$C900-$CAF0` | 496 | snapshot copy / later fixture visibility | exclusive sequential reuse |
+| `$CAF0-$CAF8` | 8 | folded column tile IDs | one composed column |
 | `$CB00-$CB6F` | 111 | saved render HRAM | simulation service |
 | `$CB70-$CB80` | 16 | dynamic cache key staging and pointer | one tile lookup/composition |
 | `$CB80-$CB9A` | 26 | atomic actor admission staging | entity rendering, no yields |
@@ -76,11 +76,11 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$D3D8-$D400` | 40 | compact HUD packet and animation scratch | persistent |
 | `$D400-$D720` | 800 | physical descriptors and ray depth/segments | persistent |
 | `$D720-$D7A8` | 136 | snapshot world, entity projection and campaign state | persistent |
-| `$D7A8-$D7CC` | 36 | per-slot actor projection records | entity rendering |
+| `$D7A8-$D7DE` | 54 | per-slot actor projection records | entity rendering |
 | `$D800-$D8A0` | 160 | physical segments | persistent |
 | `$D8A0-$D8C8` | 40 | Q14 and door/LOS scratch | persistent |
 | `$D8D0-$D8DA` | 10 | mask submission scratch | persistent |
-| `$D8E0-$D8E5` | 5 | LOD history | persistent |
+| `$D8E0-$D8E7` | 7 | LOD history | persistent |
 | `$D8F0-$D8F7` | 7 | surface and prepared projection metadata | persistent |
 | `$D900-$DA00` | 256 | scanlines, actor slots, decor and HUD | persistent |
 | `$DA00-$DC00` | 512 | masked OBJ patterns | persistent |
@@ -88,6 +88,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$DE00-$DE50` | 80 | ray surface profiles | persistent |
 | `$DE50-$DE7E` | 46 | wall cache metadata | persistent |
 | `$DE80-$DF20` | 160 | physical surface profiles | persistent |
+| `$DF20-$DF35` | 21 | wall fixture projection scratch | entity rendering |
 | `$DF42-$DF56` | 20 | physical validity bits (reserved) | persistent |
 | `$DF60-$E000` | 160 | physical depth (reserved) | persistent |
 

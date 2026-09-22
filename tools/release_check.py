@@ -271,7 +271,7 @@ def main() -> None:
             and level["critical_path_turns"] >= 3 and level["minimum_door_separation"] >= 8
             and level["material_singleton_runs"] <= 16
             and 1 <= level["doors"] <= int(v2_manifest["maximum_level_doors"])
-            and 1 <= level["actors"] <= 4 and level["fixtures"] <= 16
+            and 1 <= level["actors"] <= v2.MAX_ACTORS and level["fixtures"] <= 16
             for level in v2_manifest["campaign"]
         ),
         "campaign_level_slots_distinct": (

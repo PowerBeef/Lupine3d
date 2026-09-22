@@ -61,7 +61,7 @@ texture (`docs/TEXTURED_WALLS.md`).
 | `rows` | yes | sixteen strings of sixteen material digits |
 | `player_spawn` | yes | `x_q8`, `y_q8`, `angle`, optional `safe_radius_cells` (0..15) |
 | `doors` | yes | one to six door records (see below) |
-| `entities` | yes | one to four actors (see below) |
+| `entities` | yes | one to six actors (see below) |
 | `pickups` | yes | the drops the level fields (see below) |
 | `exit` | yes | `x`, `y` of the exit cell (walkable); `marker` is retained but not read |
 | `palette_profile` | yes | `outpost` (the only palette set; every campaign level must agree) |
@@ -100,9 +100,12 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 {"kind": "warden", "x_q8": 2688, "y_q8": 2176, "health": 3, "activation_radius_q4": 96}
 ```
 
-- One to four actors, all of a known kind: `sentinel`, `skirmisher`, `warden`.
+- One to six actors, all of a known kind: `sentinel`, `skirmisher`, `warden`.
   Kinds share the Sentinel's cels and differ by stats and OBJ palette
-  (`AGENTS.md`, "Enemies and skill").
+  (`AGENTS.md`, "Enemies and skill"). Six are simulated, but the renderer
+  admits at most four per frame (sixteen world objects, four per scanline,
+  32 masked patterns), so keep at most four actors on any one sightline; the
+  fifth and sixth belong elsewhere in the sector.
 - `health` is 1..255 hit points before difficulty scaling, which changes
   contact damage only.
 - The first entity is the level's headline actor: its cell is the critical
@@ -167,8 +170,8 @@ below are the first slot's:
 | `$4800` | 256 | the 16×16 material grid |
 | `$4900` | 24 | header: size, profiles, spawn, first actor, exit, counts, medkit value |
 | `$4920` | 36 | six six-byte door records |
-| `$4950` | 64 | four sixteen-byte actor slots |
-| `$4990` | 256 | sixteen sixteen-byte fixture records |
+| `$4950` | 96 | six sixteen-byte actor slots |
+| `$49B0` | 256 | sixteen sixteen-byte fixture records |
 
 `levels.py` names these offsets; `docs/ARCHITECTURE.md` explains how
 `LEVEL_INDEX`, `LEVEL_BANK` and `LEVEL_PAGE` select a level at runtime.

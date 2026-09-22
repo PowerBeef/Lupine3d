@@ -273,7 +273,7 @@ def check(output,snapshot_mode='check'):
     expected=tuple(c.vram[0][0x1800+i] for i in static_slots)
     for count in range(5):
         c.write8(b.ACTOR_COUNT,count)
-        for i in range(4):c.write8(b.ENTITY_SLOTS+i*16+4,b.SENTINEL_DORMANT)
+        for i in range(b.MAX_ACTORS):c.write8(b.ENTITY_SLOTS+i*16+4,b.SENTINEL_DORMANT)
         c.call_subroutine('prepare_hud_tiles');c.call_subroutine('update_hud_tiles')
         if b.SLIM_DISPLAY:
             assert c.read8(b.HUD_PACKET+4)==b.HUD_SMALL_DIGIT_BASE+count
@@ -346,11 +346,11 @@ def check(output,snapshot_mode='check'):
         c.write8(b.PLAYER_HEALTH,0 if terminal==b.PLAYER_HEALTH else 99)
         c.write8(b.LEVEL_COMPLETE,1 if terminal==b.LEVEL_COMPLETE else 0);c.write8(b.PRESSED,0)
         c.write8(b.SHOT_ACTIVE,1);c.write8(b.FLASH,9);c.write8(b.ACTOR_REACTION,3)
-        for i in range(4):c.write8(b.ENTITY_SLOTS+i*16+14,3)
+        for i in range(b.MAX_ACTORS):c.write8(b.ENTITY_SLOTS+i*16+14,3)
         c.write16(b.SIM_TICK,65535);c.call_subroutine('simulation_tick')
         c.write16(b.SIM_TICK,0);c.call_subroutine('simulation_tick')
         assert c.read8(b.SHOT_ACTIVE)==0 and c.read8(b.ACTOR_REACTION)==0
-        assert all(c.read8(b.ENTITY_SLOTS+i*16+14)==0 for i in range(4))
+        assert all(c.read8(b.ENTITY_SLOTS+i*16+14)==0 for i in range(b.MAX_ACTORS))
         assert c.read8(b.FLASH)==9
     checks['terminal_state_wrap_cannot_replay_cosmetics']=True
     result={'schema':'sable.qualification.v1','rom_sha256':hashlib.sha256(rom).hexdigest(),'configuration':b.RENDER_CONFIG,'checks':checks,'assets':evidence(),'publication_windows':windows,'captures':captures,'physical_hardware_tested':False,'passed':all(checks.values())}

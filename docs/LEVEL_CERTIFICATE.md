@@ -28,7 +28,7 @@ the first level's numbers (`walkable_level_cells`, `critical_path_steps`, ...).
 | Every actor at least `safe_radius_cells` walking steps from the spawn with doors closed, or unreachable | no contact damage before the first frame |
 | Exit reachable from the spawn with doors open | the level can be finished |
 | Declared drops are ones the level's actors leave; a keycard door has a card an actor drops on the player's side of every keycard door | the route clears every actor and takes every drop before it walks to the exit, so an unreachable card would deadlock it |
-| One to four actors of known kinds, one to six doors, at most sixteen fixtures | actor slots, the wall key and the world OBJ budget are fixed engine limits |
+| One to six actors of known kinds, one to six doors, at most sixteen fixtures | actor slots, the wall key and the world OBJ budget are fixed engine limits; the renderer admits four actors per frame, so at most four share a sightline |
 
 ## Readability (v2 only)
 

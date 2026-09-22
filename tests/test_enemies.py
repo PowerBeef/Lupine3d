@@ -257,4 +257,4 @@ class PatrolTests(unittest.TestCase):
         cgb.write8(br.ACTOR_PATROL + 2, 0)
         cgb.call_subroutine("sentinel_patrol_step", max_steps=100_000)
         self.assertEqual([cgb.read8(br.ACTOR_PATROL + slot) for slot in range(br.MAX_ACTORS)],
-                         [2, 2, 0, 2])
+                         [2 if slot != 2 else 0 for slot in range(br.MAX_ACTORS)])

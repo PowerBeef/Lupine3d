@@ -20,6 +20,11 @@ PALETTE_IDS = {"outpost": 0}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 6
 DOOR_RECORD_BYTES = 6
+# Simulated actor slots. The renderer admits at most four per frame (sixteen
+# world objects, four per scanline, 32 masked patterns), so a level keeps at
+# most four actors on any one sightline; the slots beyond that are for actors
+# elsewhere in the sector.
+MAX_ACTORS = 6
 LEVEL_HEADER_BYTES = 24
 MAX_FIXTURES = 16
 DOOR_X = 0
@@ -52,9 +57,11 @@ LEVEL_GRID_OFFSET = 0x4800      # the 16x16 world map
 LEVEL_HEADER_OFFSET = 0x4900
 LEVEL_DOOR_OFFSET = 0x4920      # MAX_DOORS * DOOR_RECORD_BYTES, 16-aligned
 LEVEL_ACTOR_OFFSET = 0x4950     # MAX_ACTORS * 16 bounded Sentinel slots
-LEVEL_FIXTURE_OFFSET = 0x4990   # MAX_FIXTURES * 16 wall-mounted landmarks
-LEVEL_PAYLOAD_END = 0x4A90
+LEVEL_FIXTURE_OFFSET = 0x49B0   # MAX_FIXTURES * 16 wall-mounted landmarks
+LEVEL_PAYLOAD_END = 0x4AB0
 assert LEVEL_DOOR_OFFSET + MAX_DOORS * DOOR_RECORD_BYTES <= LEVEL_ACTOR_OFFSET
+assert LEVEL_ACTOR_OFFSET + MAX_ACTORS * 16 <= LEVEL_FIXTURE_OFFSET
+assert LEVEL_FIXTURE_OFFSET + MAX_FIXTURES * 16 <= LEVEL_PAYLOAD_END
 assert LEVEL_PAYLOAD_END - 0x4000 <= LEVEL_SLOT_PITCH, "a level payload overruns its slot"
 assert LEVELS_PER_BANK * LEVEL_SLOT_PITCH <= 0x4000, "level slots overrun their bank"
 assert LEVEL_SLOT_PITCH % 256 == 0, "the loader adds a slot's page to the high byte alone"
@@ -647,8 +654,8 @@ def compile_level(path: Path) -> CompiledLevel:
         PickupSpec(str(item["kind"]), str(item["source"]), _bounded_int(item, "value", 1, 255))
         for item in source.get("pickups", [])
     )
-    if not 1 <= len(entities) <= 4:
-        raise ValueError("levels require one to four actors")
+    if not 1 <= len(entities) <= MAX_ACTORS:
+        raise ValueError(f"levels require one to {MAX_ACTORS} actors")
     unknown = [entity.kind for entity in entities if entity.kind not in ENTITY_KIND_IDS]
     if unknown:
         raise ValueError(f"unknown enemy kinds: {sorted(set(unknown))}")

@@ -289,7 +289,8 @@ regression contract.
 - Full publication owns matching BG patterns/maps/attributes, masks, HUD and
   OAM. Commit coherently. BG/OBJ bank owners may differ after cached updates.
   Preserve exact wall-key validation and reload-generation handling.
-- Limits: 96 dynamic BG patterns, 32 masked OBJ patterns, four actor slots,
+- Limits: 96 dynamic BG patterns, 32 masked OBJ patterns, six simulated actor
+  slots (`MAX_ACTORS`) of which the OBJ budget admits four per frame,
   16 world objects/four per scanline, 40 total objects/ten per scanline.
   Do not partially admit an actor or overwrite published patterns.
 - Compact/slim full packets are **HBlank-streamed** (`HDMA_STREAMING`, see

@@ -67,7 +67,7 @@ def emit_physical_depth(a: Assembler):
     a.label("coverage_exit")
     a.call("restore_primary_actor")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.jr("coverage_fixtures","z")
-    a.ld_r_n("a",4); a.ld_abs_a(ENTITY_SLOT)
+    a.ld_r_n("a",MAX_ACTORS); a.ld_abs_a(ENTITY_SLOT)
     a.ld_r_n("a",128); a.ld_abs_a(ENTITY_WORLD_XL); a.ld_abs_a(ENTITY_WORLD_YL)
     a.ld_a_abs(EXIT_CELL_X); a.ld_abs_a(ENTITY_WORLD_XH); a.ld_a_abs(EXIT_CELL_Y); a.ld_abs_a(ENTITY_WORLD_YH)
     a.call("project_entity"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.jr("coverage_fixtures","z")

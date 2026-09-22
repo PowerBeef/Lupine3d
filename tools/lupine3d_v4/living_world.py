@@ -84,7 +84,7 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_rr_label("hl", "oam_dma_stub"); a.ld_rr_nn("de", OAM_DMA_HRAM); a.ld_rr_nn("bc", OAM_DMA_STUB_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.xor_r("a"); a.ld_abs_a(ENTITY_SLOT)
-    for index in range(5): a.ld_abs_a(LOD_HISTORY + index)
+    for index in range(MAX_ACTORS + 1): a.ld_abs_a(LOD_HISTORY + index)
     a.call_abs(OAM_DMA_HRAM); a.xor_r("a"); a.ld_abs_a(OAM_DIRTY); a.ret()
 
     a.label("publish_oam_if_budget")
