@@ -14,6 +14,10 @@ static unsigned swaps, unsafe_dma, unsafe_flips, dma_starts, frame;
 static unsigned presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes;
 static unsigned foreground_publications, mixed_world_oam;
 static unsigned unsafe_cpu_map_writes, visible_world_map_writes;
+/* CPU writes the PPU forbids while it draws (STAT mode 3): VRAM, and the CGB
+ * palette data ports. The host harness has no mode model, so only this lane
+ * can see them; they are counted from the core's own STAT register. */
+static unsigned mode3_vram_writes, mode3_palette_writes;
 
 static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -29,6 +33,10 @@ static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 static bool write_hook(GB_gameboy_t *gb, uint16_t address, uint8_t value)
 {
     uint8_t lcdc = GB_read_memory(gb, 0xff40);
+    if ((lcdc & 0x80) && (GB_read_memory(gb, 0xff41) & 3) == 3) {
+        if (address >= 0x8000 && address < 0xa000) mode3_vram_writes++;
+        if (address == 0xff69 || address == 0xff6b) mode3_palette_writes++;
+    }
     if (address >= 0x9800 && address < 0xa000 && (lcdc & 0x80)) {
         unsigned ly = GB_read_memory(gb, 0xff44);
         if (ly < 144 || ly >= 153) unsafe_cpu_map_writes++;
@@ -154,9 +162,10 @@ int main(int argc, char **argv)
             }
             if (objects>max_objects) max_objects=objects;
         }
-        bool passed=!unsafe_cpu_map_writes && !visible_world_map_writes && !unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10;
-        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u}\n",
-               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes);
+        bool passed=!unsafe_cpu_map_writes && !visible_world_map_writes && !unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10
+            && !mode3_vram_writes && !mode3_palette_writes;
+        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,\"mode3_vram_writes\":%u,\"mode3_palette_writes\":%u}\n",
+               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes,mode3_vram_writes,mode3_palette_writes);
         GB_dealloc(gb); return passed?0:1;
     }
     if (!enter_world(gb)) return 3;
@@ -188,14 +197,17 @@ int main(int argc, char **argv)
     bool passed = presentations >= 30 && reused > 0 && swaps >= 10 && dma_starts >= 30
         && !unsafe_dma && !unsafe_flips && !unsafe_presentations && !unsafe_oam && !visible_mask_writes
         && !unsafe_cpu_map_writes && !visible_world_map_writes && !mixed_world_oam && (!foreground_test || foreground_publications>0)
+        && !mode3_vram_writes && !mode3_palette_writes
         && angle != initial_angle && y != initial_y && door_open && GB_is_cgb_in_cgb_mode(gb);
     printf("{\"passed\":%s,\"model\":%u,\"lcd_frames\":%u,\"page_swaps\":%u,"
            "\"gdma_starts\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_page_flips\":%u,"
            "\"presentations\":%u,\"reused_presentations\":%u,\"unsafe_presentations\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,"
-           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
+           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,"
+           "\"mode3_vram_writes\":%u,\"mode3_palette_writes\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
            passed ? "true" : "false", model, frame, swaps, dma_starts, unsafe_dma,
            unsafe_flips, presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes,
            foreground_publications, mixed_world_oam, unsafe_cpu_map_writes, visible_world_map_writes,
+           mode3_vram_writes, mode3_palette_writes,
            y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
            door_open ? "true" : "false");
     GB_dealloc(gb);

@@ -39,6 +39,8 @@ false. The previous release is retained in [the v0.9 report](TEST_REPORT_V09.md)
 | Controller completion/restart | RESULT_ROUTE |
 | Independent cores | Pinned SameBoy CGB-0 and CGB-E and pinned mGBA all pass on this ROM (32 page swaps and 290/291 presentations in 480 world frames, zero unsafe GDMA or OAM starts, zero visible mask or map writes), frozen-startup RGB matching the host; **87 frozen scenes** match the harness in all three core/model lanes, HBlank-streamed frames included |
 | Sustained controller motion | Eight approximately 60-second trials; reconciled CPU time, no post-setup diagnostic writes, no queue overflow or unsafe GDMA starts |
+| Golden snapshots | 122 scenes accepted as the v0.10 baseline on this ROM (`tour` 9, `world` 14, `art` 6, `sable` 6, `witnesses` 87); the nine tour goldens are pixel-identical to the retired `sable_v10` hash oracle |
+| Harness CPU conformance | 64 seeded micro-programs of 240 emitted instruction forms each: registers, flags and scratch memory identical between the host harness and pinned SameBoy CGB-E, zero mismatches; SameBoy's adapter also counts zero VRAM or palette writes during mode 3 |
 
 Pinned cores: SameBoy `213a12ce93d66b105a113debd9396306066a7cfc`
 (CGB-0 and CGB-E), mGBA `507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6`.

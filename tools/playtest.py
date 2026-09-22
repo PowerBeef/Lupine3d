@@ -148,6 +148,10 @@ def validate_frame(cgb: CGB) -> dict[str, Any]:
         "pixel_surface_profiles_exact": list(read_block(cgb, br.PIXEL_SURFACE, 160)) == pixel[10],
         "surface_attribute_packet_exact": read_block(cgb, br.VIEW_ATTRIBUTES, br.VIEW_MAP_BYTES) == br.surface_attributes(pixel[10], cgb.read8(br.CURRENT_PAGE)),
         "input_queue_no_overflow": cgb.read8(br.INPUT_QUEUE_OVERFLOW) == 0,
+        # The PPU forbids CPU writes to VRAM and the palette ports while it
+        # draws a line; the harness's coarse mode model counts them.
+        "no_mode3_vram_writes": cgb.mode3_vram_writes == 0,
+        "no_mode3_palette_writes": cgb.mode3_palette_writes == 0,
     }
     page = cgb.read8(br.CURRENT_PAGE)
     if physical:
@@ -223,15 +227,38 @@ def make_contact_sheet(frames: list[tuple[str, Image.Image]], output: Path) -> N
     sheet.save(output)
 
 
+def default_scenario() -> Path:
+    """The coherence tour that matches the build configuration."""
+    name = ("sable_v10_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART
+            else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART
+            else "coherence_tour.json")
+    return ROOT / "playtests" / name
+
+
+def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str | None):
+    """The golden-image suite a scenario declares, or None when it has none.
+
+    A scenario names its suite with `snapshot_suite`; every capture is then
+    compared with the golden of the same name (see tools/snapshot.py).
+    """
+    suite_name = scenario.get("snapshot_suite")
+    if not suite_name or snapshot_mode is None:
+        return None
+    from snapshot import Suite, build_identity
+    rom_sha = hashlib.sha256(rom).hexdigest()
+    built_sha, configuration_id = build_identity()
+    return Suite(str(suite_name), mode=snapshot_mode, rom_sha256=rom_sha,
+                 configuration_id=configuration_id if built_sha == rom_sha else "foreign-rom")
+
+
 def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
-                 output_dir: Path, record_all: bool = False) -> dict[str, Any]:
+                 output_dir: Path, record_all: bool = False,
+                 snapshot_mode: str | None = "check") -> dict[str, Any]:
     scenario = json.loads(scenario_path.read_text(encoding="utf-8"))
-    pixel_oracle: dict[str, str] = {}
-    if oracle_name := scenario.get("pixel_oracle"):
-        oracle_path = scenario_path.parent / str(oracle_name)
-        pixel_oracle = json.loads(oracle_path.read_text(encoding="utf-8"))
+    rom = rom_path.read_bytes()
+    snapshots = open_snapshot_suite(scenario, rom, snapshot_mode)
     symbols = parse_symbols(symbols_path)
-    cgb = CGB(rom_path.read_bytes(), symbols)
+    cgb = CGB(rom, symbols)
     run_to_world(cgb)
     world_mode = str(scenario.get("world_mode", "living")).lower()
     if world_mode not in ("empty", "living"):
@@ -319,10 +346,9 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                 image.save(frame_path)
                 update["capture"] = frame_path.name
                 update["capture_sha256"] = hashlib.sha256(frame_path.read_bytes()).hexdigest()
-                pixel_sha256 = hashlib.sha256(image.convert("RGB").tobytes()).hexdigest()
-                update["capture_pixel_sha256"] = pixel_sha256
-                if frame_path.name in pixel_oracle:
-                    update["capture_pixels_exact"] = pixel_sha256 == pixel_oracle[frame_path.name]
+                update["capture_pixel_sha256"] = hashlib.sha256(image.convert("RGB").tobytes()).hexdigest()
+                if snapshots is not None:
+                    update["snapshot"] = snapshots.observe(frame_path.stem, image)
                 captures.append((label, image))
 
     if not captures:
@@ -342,9 +368,12 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         if (not update["commit_vblank_safe"] or not all(update["checks"].values())
             or update["visible_oam"] > 40 or update["max_oam_per_scanline"] > 10
             or not update["world_expectations_exact"]
-            or not update["door_expectations_exact"]
-            or update.get("capture_pixels_exact") is False)
+            or not update["door_expectations_exact"])
     ]
+    # The snapshot report is evidence in every mode; only `check` lets a
+    # changed, new or missing scene fail the scenario.
+    snapshot_report = snapshots.report() if snapshots is not None else None
+    snapshot_passed = snapshot_report is None or snapshot_report["passed"] or snapshot_mode != "check"
     report = {
         "scenario": scenario.get("name", scenario_path.stem),
         "scenario_file": str(scenario_path),
@@ -369,18 +398,24 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                 for item in updates
             ),
             "gdma_vblank_violations": cgb.gdma_vblank_violations,
-            "pixel_oracle_captures": len(pixel_oracle),
-            "pixel_oracle_exact": all(
-                update.get("capture_pixels_exact", True) for update in updates
-            ),
+            "snapshot": snapshot_report,
             "failed_updates": failures,
-            "passed": not failures and cgb.gdma_vblank_violations == 0,
+            "passed": not failures and cgb.gdma_vblank_violations == 0 and snapshot_passed,
         },
         "artifacts": {"gif": "playtest.gif", "contact_sheet": "contact_sheet.png"},
     }
     (output_dir / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if snapshots is not None:
+        report["snapshot"] = snapshots.finish()  # raises in check mode when a scene differs
     if not report["summary"]["passed"]:
-        raise SystemExit("playtest failed; see report.json")
+        reasons = []
+        for update in updates:
+            if update["update"] in failures:
+                broken = [name for name, ok in update["checks"].items() if not ok]
+                reasons.append(f"update {update['update']}: " + (", ".join(broken) or "safety/world/door expectation"))
+        if cgb.gdma_vblank_violations:
+            reasons.append(f"{cgb.gdma_vblank_violations} GDMA start(s) outside VBlank")
+        raise SystemExit(f"playtest {scenario_path.name} failed: " + "; ".join(reasons) + f" (see {output_dir / 'report.json'})")
     return report
 
 
@@ -388,11 +423,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rom", type=Path, default=ROOT / "build" / "lupine3d.gb")
     parser.add_argument("--symbols", type=Path, default=ROOT / "build" / "lupine3d.sym")
-    parser.add_argument("--scenario", type=Path, default=ROOT / "playtests" / ("sable_v10_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART else "coherence_tour.json"))
+    parser.add_argument("--scenario", type=Path, default=default_scenario())
     parser.add_argument("--output-dir", type=Path, default=ROOT / "build" / "playtest" / "coherence_tour")
     parser.add_argument("--record-all", action="store_true")
+    parser.add_argument("--snapshot-mode", choices=("check", "record", "none"), default="check",
+                        help="check: a changed golden fails; record: write the evidence only; none: no snapshots")
     args = parser.parse_args()
-    report = run_scenario(args.rom, args.symbols, args.scenario, args.output_dir, args.record_all)
+    mode = None if args.snapshot_mode == "none" else args.snapshot_mode
+    report = run_scenario(args.rom, args.symbols, args.scenario, args.output_dir, args.record_all, snapshot_mode=mode)
     print(json.dumps(report["summary"], indent=2))
 
 

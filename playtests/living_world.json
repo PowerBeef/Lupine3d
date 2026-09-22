@@ -1,6 +1,7 @@
 {
   "name": "hangar_breach",
   "world_mode": "living",
+  "snapshot_suite": "world",
   "actions": [
     {
       "buttons": [],

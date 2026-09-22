@@ -1,6 +1,6 @@
 # Development and releases
 
-Lupine 3D v0.8 builds a deterministic Game Boy Color ROM from Python. Work directly on the existing `main` checkout; do not create development branches or worktrees. Temporary clean-room source copies are allowed. Hardware is unavailable, so qualification uses the project harness and pinned independent cores.
+Lupine 3D builds a deterministic Game Boy Color ROM from Python (`VERSION` names the release). Work directly on the existing `main` checkout; do not create development branches or worktrees. Temporary clean-room source copies are allowed. Hardware is unavailable, so qualification uses the project harness and pinned independent cores.
 
 ## Setup and everyday work
 
@@ -50,6 +50,7 @@ cmake -G "Unix Makefiles" -S /your/path/mgba -B /your/path/mgba/build \
 cmake --build /your/path/mgba/build -j2
 make mgba MGBA_DIR=/your/path/mgba
 python tools/independent_witnesses.py
+make conformance SAMEBOY_DIR=/your/path/SameBoy   # harness CPU model vs SameBoy, every emitted instruction form
 ```
 
 Both adapters press START before anything else: the campaign holds the world behind a title screen, and an adapter that does not reach `MODE_PLAYING` exits 3 rather than reporting a pass. mGBA's adapter consumes `flags.make` to match the library ABI, hence the explicit Makefiles generator. SameBoy uses an original synthetic bootstrap; mGBA uses skip-BIOS. Only SameBoy instruments GDMA/page-flip writes. Neither proves physical CGB or Nintendo boot-ROM behaviour.
@@ -58,7 +59,14 @@ Both adapters press START before anything else: the campaign holds the world beh
 
 Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
 
-`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. The active nine-image oracle is `sable_v09_capture_pixels.json`; retain earlier oracles, including `sable_objective_spaced_capture_pixels.json`, as historical evidence.
+`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. Its captures are checked against the golden snapshots under `snapshots/` (suites `tour`, `world`, `art`); a changed frame fails naming the scene and writes `build/snapshots/<profile>/<suite>/report.html` for review. Accept a deliberate change with a note:
+
+```sh
+python tools/snapshot.py diff --suite tour
+python tools/snapshot.py accept --suite tour --scene 09_exit_approach --note "why the frame changed"
+```
+
+See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `playtests/archive/oracles/`.
 
 ```sh
 make playthrough variants wall-reuse motion

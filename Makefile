@@ -54,9 +54,23 @@ playtest-world:
 	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
 
-.PHONY: playthrough sameboy mgba variants wall-reuse motion
+.PHONY: playthrough sameboy mgba variants wall-reuse motion snapshot snapshot-diff snapshot-accept
 playthrough: build
 	$(PYTHON) tools/playthrough.py
+
+# Golden-image snapshots (tools/snapshot.py). `snapshot` runs the fast suites
+# in check mode; `snapshot-diff` summarises the last run; `snapshot-accept`
+# promotes a deliberate change with a note, e.g.
+#   make snapshot-accept SUITE=tour SCENE=09_exit_approach NOTE="helmet blink phase"
+snapshot: build
+	$(PYTHON) tools/snapshot.py run --suite all
+
+snapshot-diff:
+	$(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable --suite witnesses
+
+snapshot-accept:
+	test -n "$(SUITE)" && test -n "$(NOTE)"
+	$(PYTHON) tools/snapshot.py accept --suite "$(SUITE)" $(if $(SCENE),--scene "$(SCENE)",) --note "$(NOTE)"
 
 # Build SameBoy's lib target first. The core is external and revision-pinned
 # by CI; it is not vendored into the source/release bundle.
@@ -67,6 +81,14 @@ sameboy: build
 mgba: build
 	test -n "$(MGBA_DIR)"
 	$(PYTHON) tools/mgba_verify.py --core "$(MGBA_DIR)"
+
+# Differential CPU conformance: every instruction form the emitter can
+# produce, in seeded micro-programs, compared register-for-register and
+# byte-for-byte between the host harness and pinned SameBoy.
+.PHONY: conformance
+conformance:
+	test -n "$(SAMEBOY_DIR)"
+	$(PYTHON) tools/harness_conformance.py --core "$(SAMEBOY_DIR)"
 
 variants:
 	LUPINE3D_REPROJECTION=1 LUPINE3D_NARROW_YIELDS=0 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json

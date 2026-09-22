@@ -58,7 +58,11 @@ jobs:
             build/build_manifest.json
             build/lupine3d.gb
             .render-baselines/baseline/archive.json
-  verify:
+
+  # The fast lane: the regression suite, the driven routes and the golden-image
+  # snapshots. Its artifact is the visual diff a reviewer opens when a
+  # snapshot changed (build/snapshots/**/report.html).
+  fast:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -78,10 +82,64 @@ jobs:
       - name: Build and run regression suite
         run: make test
 
-      - name: Run driven playtest and pixel oracle
+      - name: Run driven playtests against the golden snapshots
         run: make playtest playtest-world playtest-art
 
-      - name: Complete the level with controller input only
+      - name: Summarise snapshot suites
+        if: always()
+        run: python tools/snapshot.py diff --suite tour --suite world --suite art --suite sable || true
+
+      - name: Upload the visual diff
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-diff-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build/snapshots/
+            build/playtest/coherence_tour/report.json
+            build/playtest/coherence_tour/contact_sheet.png
+            build/playtest/living_world/report.json
+            build/playtest/living_world/contact_sheet.png
+            build/playtest/sable_art_tour/report.json
+            build/playtest/sable_art_tour/contact_sheet.png
+
+      - name: Upload ROM and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: lupine3d-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build/lupine3d.gb
+            build/lupine3d.sym
+            build/build_manifest.json
+
+  # The slow lane: the controller route, the exact A/B variants, wall reuse,
+  # LCD-timed motion, and the pinned independent cores over the frozen
+  # witness scenes. Both cores are cached by their pinned commit.
+  slow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Build
+        run: make build
+
+      - name: Complete the campaign with controller input only
         run: make playthrough
 
       - name: Verify two-actor, folding and reprojection variants
@@ -93,51 +151,64 @@ jobs:
       - name: Verify LCD-timed walking, turning and door animation
         run: make motion
 
+      - name: Restore the pinned emulator cores
+        id: cores
+        uses: actions/cache@v4
+        with:
+          path: build/deps
+          key: cores-sameboy-213a12ce93d66b105a113debd9396306066a7cfc-mgba-507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6-v1
+
       - name: Check out pinned independent emulator
+        if: steps.cores.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: LIJI32/SameBoy
           ref: 213a12ce93d66b105a113debd9396306066a7cfc
           path: build/deps/SameBoy
 
-      - name: Verify CPU and PPU in SameBoy CGB-0 and CGB-E
-        run: |
-          make -C build/deps/SameBoy lib -j2 CONF=release DISABLE_DEBUGGER=1 DISABLE_CHEATS=1 DISABLE_REWIND=1
-          make sameboy SAMEBOY_DIR=build/deps/SameBoy
+      - name: Build SameBoy's core library
+        if: steps.cores.outputs.cache-hit != 'true'
+        run: make -C build/deps/SameBoy lib -j2 CONF=release DISABLE_DEBUGGER=1 DISABLE_CHEATS=1 DISABLE_REWIND=1
 
       - name: Check out pinned mGBA core
+        if: steps.cores.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
           repository: mgba-emu/mgba
           ref: 507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6
           path: build/deps/mgba
 
-      - name: Verify CPU and PPU in mGBA
+      - name: Build mGBA's core library
+        if: steps.cores.outputs.cache-hit != 'true'
         run: |
           cmake -S build/deps/mgba -B build/deps/mgba/build -DLIBMGBA_ONLY=ON -DBUILD_STATIC=ON -DBUILD_SHARED=OFF -DBUILD_QT=OFF -DBUILD_SDL=OFF -DUSE_FFMPEG=OFF -DUSE_LIBZIP=OFF -DUSE_SQLITE3=OFF -DUSE_LZMA=OFF -DUSE_PNG=OFF -DUSE_ELF=OFF -DUSE_EDITLINE=OFF -DCMAKE_BUILD_TYPE=Release
           cmake --build build/deps/mgba/build -j2
-          make mgba MGBA_DIR=build/deps/mgba
 
-      - name: Compare frozen art and geometry in all pinned cores
+      - name: Verify CPU and PPU in SameBoy CGB-0 and CGB-E
+        run: make sameboy SAMEBOY_DIR=build/deps/SameBoy
+
+      - name: Compare the host harness's CPU model with SameBoy over every emitted instruction form
+        run: make conformance SAMEBOY_DIR=build/deps/SameBoy
+
+      - name: Verify CPU and PPU in mGBA
+        run: make mgba MGBA_DIR=build/deps/mgba
+
+      - name: Compare frozen art and geometry in all pinned cores and against the witness goldens
         run: python tools/independent_witnesses.py
 
-      - name: Upload ROM and verification evidence
+      - name: Upload verification evidence
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: lupine3d-${{ github.sha }}
+          name: evidence-${{ github.sha }}
           if-no-files-found: error
           retention-days: 14
           path: |
             build/lupine3d.gb
             build/build_manifest.json
-            build/playtest/coherence_tour/report.json
-            build/playtest/coherence_tour/contact_sheet.png
-            build/playtest/living_world/report.json
-            build/playtest/living_world/contact_sheet.png
-            build/playtest/sable_art_tour/report.json
-            build/playtest/sable_art_tour/contact_sheet.png
             build/playthrough/report.json
             build/playthrough/contact_sheet.png
+            build/snapshots/
             build/sameboy_*.json
             build/sameboy_*.ppm
             build/mgba_*.json
@@ -150,3 +221,4 @@ jobs:
             build/motion_benchmark.json
             build/prepared_disabled_pixels.json
             build/independent-witnesses/report.json
+            build/conformance/report.json

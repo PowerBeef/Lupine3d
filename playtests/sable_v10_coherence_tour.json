@@ -1,6 +1,7 @@
 {
   "name": "sable_v10_coherence_tour",
   "world_mode": "empty",
+  "snapshot_suite": "tour",
   "actions": [
     {
       "pose": [
@@ -79,6 +80,5 @@
       "updates": 1,
       "capture": "exit_approach"
     }
-  ],
-  "pixel_oracle": "sable_v10_capture_pixels.json"
+  ]
 }

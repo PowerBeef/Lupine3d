@@ -6,6 +6,7 @@ build with a 24-pixel HUD and HBlank-streamed publication.
 | Guide | Purpose |
 |---|---|
 | [Development](DEVELOPMENT.md) | Build, test, pinned cores, content and releases |
+| [Verification](VERIFICATION.md) | Hard gates versus golden-image snapshots, reviewing and accepting a visual change, the CI lanes |
 | [Architecture](ARCHITECTURE.md) | Current memory, renderer and publication contracts |
 | [Campaign](CAMPAIGN.md) | What turned the demo into a game, and what each decision cost |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |

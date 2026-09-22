@@ -301,16 +301,22 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Movement/doors/combat/progression | `make playthrough variants`; `tools/playthrough.py --restart` |
 | Geometry/composition/cache/timing | `make variants wall-reuse motion`; `make research-tail` for traversal/projection |
 | CPU/banks/interrupts/DMA/publication | Both pinned `make sameboy` and `make mgba`; `tools/independent_witnesses.py` |
+| Assembler or harness opcode/flag semantics | `make conformance SAMEBOY_DIR=…` (`tools/harness_conformance.py`): every emitted form, harness vs SameBoy |
 
-Current nine-image oracle: `playtests/sable_v10_capture_pixels.json`. It differs
-from the v0.9 oracle in six pixels of one capture: the helmet blink phase in
-`09_exit_approach`, because streamed publication presents that update one LCD
-interval earlier and the accepted tick lands differently on the 62–63 blink
-window. The v0.9 oracle differs from v0.8 in eight pixels a frame (the reticle
-moved to OBJ palette 4). Preserve the prior v0.9, objective, helmet, steel,
-slim, initial Sable and beta.6 fixtures.
-Intentional image changes need explained before/after ROM captures and a new
-versioned oracle. Never weaken checks or change hashes just to pass.
+Visual verification is **golden-image snapshots** (`tools/snapshot.py`,
+`docs/VERIFICATION.md`): goldens under `snapshots/<profile>/<suite>/` with a
+manifest binding each scene to the ROM, configuration, author, date and a
+note. Every producer (`playtest`, `check_sable`, `independent_witnesses`)
+checks its captures against them and fails naming the scene; the route only
+records. The evidence (`actual`, `expected`, `diff`, `report.html`) lands in
+`build/snapshots/` and is CI's `visual-diff` artifact. An intentional image
+change is accepted with `python tools/snapshot.py accept --suite … --scene …
+--note "why"` and committed with its PNG so the PR shows the diff; nothing
+in CI accepts, and an empty note is refused. The retired hash oracles live in
+`playtests/archive/oracles/` as evidence only. Engine invariants (model
+equality, publication safety, the bank contract, reserves, A/B equality,
+core agreement, the v1 hash) are hard gates, never snapshots: **never weaken
+a check to pass.**
 
 `playtest`/frozen witnesses may inject diagnostic poses. `playthrough` uses
 controller input without game-RAM writes. Sustained motion uses LCD-indexed

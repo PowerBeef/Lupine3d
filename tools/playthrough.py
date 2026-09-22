@@ -19,12 +19,21 @@ from playtest import validate_frame, oam_budget, make_contact_sheet
 from sm83emu import CGB, parse_symbols, run_to_world
 
 
-def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
+def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapshot_mode="record"):
     output.mkdir(parents=True, exist_ok=True)
     rom = (rom_path or br.BUILD / "lupine3d.gb").read_bytes()
     cgb = CGB(rom, parse_symbols(symbols_path or br.BUILD / "lupine3d.sym"))
     run_to_world(cgb)
     records, captures, sectors = [], [], []
+    # The route's captures are reviewable snapshots (suite `route`), recorded
+    # rather than checked by default: where a capture lands depends on the
+    # steering script, so a tuned route is not a visual regression.
+    snapshots = None
+    if snapshot_mode is not None:
+        from snapshot import Suite, build_identity
+        rom_sha = hashlib.sha256(rom).hexdigest(); built_sha, configuration_id = build_identity()
+        snapshots = Suite("route", mode=snapshot_mode, rom_sha256=rom_sha,
+                          configuration_id=configuration_id if built_sha == rom_sha else "foreign-rom")
     first_lcd=cgb.frame_count
     replay={}
 
@@ -59,8 +68,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             capture("death")
             recent = sorted(replay)[-90:]
             raise AssertionError(
-                f"player died during controller-only route at pose={pose()} after {len(records)} updates: "
-                f"actors={actors()} weapon={live8(br.WEAPON_INDEX)} "
+                f"player died during controller-only route after {len(records)} updates: {situation()} "
                 f"last frames (lcd frame, keys)={[(f, replay[f]) for f in recent]} "
                 f"last updates (pose, health)={[((r['pose']['x_q8'], r['pose']['y_q8'], r['pose']['angle']), r['health']) for r in records[-30:]]}")
         assert data["max_oam_per_scanline"] <= 10
@@ -83,6 +91,8 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         image = cgb.render_screen()
         image.save(output / f"{name}.png")
         captures.append((name, image))
+        if snapshots is not None and name not in snapshots.scenes:
+            snapshots.observe(name, image)
 
     def turn(target):
         def steering():
@@ -186,8 +196,19 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
                  "x": slot_field(slot, 0) | slot_field(slot, 1) << 8,
                  "y": slot_field(slot, 2) | slot_field(slot, 3) << 8,
                  "state": slot_field(slot, 4), "health": slot_field(slot, 5),
-                 "pickup": slot_field(slot, 10)}
+                 "pickup": slot_field(slot, 10), "kind": slot_field(slot, br.ACTOR_KIND_OFFSET) & 3}
                 for slot in range(live8(br.ACTOR_COUNT))]
+
+    def doors():
+        """The live door table: position, flags and state, as the ROM holds it."""
+        return [{"x": live8(base + br.DOOR_X_OFFSET), "y": live8(base + br.DOOR_Y_OFFSET),
+                 "flags": live8(base + br.DOOR_FLAGS_OFFSET), "state": live8(base + br.DOOR_STATE_OFFSET)}
+                for base in (br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES for index in range(live8(br.DOOR_COUNT)))]
+
+    def situation():
+        """Everything a stalled route needs in its report to be diagnosable."""
+        return (f"pose={pose()} health={live8(br.PLAYER_HEALTH)} keys={live8(br.PLAYER_KEYS)} "
+                f"weapon={live8(br.WEAPON_INDEX)} actors={actors()} doors={doors()}")
 
     def living():
         return [actor for actor in actors() if actor["state"] != br.SENTINEL_DEAD]
@@ -229,18 +250,25 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             cell = x, y
         return True
 
-    def engageable():
-        target = nearest_living()
+    def engageable(target=None):
+        # Judge the actor the route is actually hunting: the nearest one it can
+        # walk to, which is what clear_sector chose. The nearest of all can be
+        # one cell away through a wall, and no exchange settles that.
+        target = nearest_living(walkable=True) if target is None else target
         if target is None:
             return True
         px, py, _ = pose()
         dx, dy = abs(target["x"] - px), abs(target["y"] - py)
-        # An actor already at contact range is fought where it stands, whatever
-        # the sampled sight test says about a corner: aiming backs away from it
-        # while firing, and walking towards it is how the route dies.
+        # An actor at contact range is fought where it stands when a shot can
+        # reach it, or when it is already on the attack: aiming backs away from
+        # it while firing, and walking towards it is how the route dies. A
+        # patroller one cell away behind a wall or a shut panel is neither,
+        # and firing at the wall from here would never clear the sector.
         if dx < 512 and dy < 512:
-            return True
+            return has_sight(target) or target["state"] in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK)
         return max(dx, dy) <= ENGAGEMENT_Q8 and has_sight(target)
+
+    hold_aim = [False]  # set while an exchange has proved that kiting settles nothing
 
     def aiming():
         # Re-pick the nearest survivor every interval: whoever closed to
@@ -260,7 +288,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         # off a corner the actor may be pressed against.
         # Contact is cell adjacency: the ROM attacks when both cell deltas
         # are below two, whatever the fraction, so kite from inside two cells.
-        contact = abs(dx) < 512 and abs(dy) < 512
+        contact = abs(dx) < 512 and abs(dy) < 512 and not hold_aim[0]
         return ((1 if delta > 0 else 2) if delta else 0) | (8 if contact else 0) | \
                (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
 
@@ -309,19 +337,20 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
     def clear_sector(name):
         """Kill every actor the route can walk to, taking drops as it goes."""
         opened = cgb.frame_count
+        fruitless = {}  # exchanges per actor slot that killed nothing
         while living():
             if cgb.frame_count - opened > 12_000:
                 capture(f"{name}_combat_watchdog")
-                raise AssertionError(f"sector {name} was not cleared: {living()}, pose={pose()}")
+                raise AssertionError(f"sector {name} was not cleared after {len(records)} updates: {situation()}")
             target = nearest_living(walkable=True)
             if target is None:
                 # Everything left is behind a door that wants a card: take the
                 # drops on this side and the way through opens.
                 collect_drops()
                 assert nearest_living(walkable=True) is not None, \
-                    f"sector {name} deadlocked: {living()}, pose={pose()}"
+                    f"sector {name} deadlocked: {situation()}"
                 continue
-            if not engageable():
+            if not engageable(target):
                 navigate((target["x"] >> 8, target["y"] >> 8), stop=engageable)
                 continue
             # Cached presentations can run much faster than simulation
@@ -331,11 +360,23 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
             exchange, opening = cgb.frame_count, len(living())
             px, py, _ = pose()
             contact = abs(target["x"] - px) < 512 and abs(target["y"] - py) < 512
+            # Two exchanges that settled nothing mean kiting is what keeps the
+            # shot off the actor: stand and hold the aim for the next one.
+            hold_aim[0] = fruitless.get(target["slot"], 0) >= 2
             while living() and engageable() and cgb.frame_count - exchange < (120 if contact else 300):
                 step(aiming)
+            hold_aim[0] = False
             survivor = nearest_living(walkable=True)
-            if len(living()) == opening and survivor is not None:
-                if engageable():
+            if len(living()) < opening:
+                fruitless.clear()
+            elif survivor is not None:
+                count = fruitless[survivor["slot"]] = fruitless.get(survivor["slot"], 0) + 1
+                if count >= 4:
+                    # Nothing shot from anywhere nearby has reached it: walk
+                    # onto its own cell, where no corner is left to hide behind.
+                    fruitless[survivor["slot"]] = 0
+                    navigate((survivor["x"] >> 8, survivor["y"] >> 8))
+                elif engageable(survivor):
                     # The shot had a host-side line but the ROM's exact centre
                     # ray did not reach the actor: it stands against a corner
                     # the sampled line squeezed past. Standing still and firing
@@ -425,9 +466,13 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
               "update_count": len(records), "health_remaining": cgb.read8(br.PLAYER_HEALTH),
               "sentinel_dead": True, "pickup_collected": True, "level_complete": True,
               "unsafe_gdma_starts": cgb.gdma_vblank_violations, "updates": records}
+    if snapshots is not None:
+        report["snapshot"] = snapshots.report()
     (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     make_contact_sheet(captures, output / "contact_sheet.png")
     print(json.dumps({k: v for k, v in report.items() if k != "updates"}, indent=2))
+    if snapshots is not None:
+        snapshots.finish()  # raises in check mode when a capture differs
 
 
 if __name__ == "__main__":
@@ -435,6 +480,8 @@ if __name__ == "__main__":
     parser.add_argument("--output-dir", type=Path, default=br.BUILD / "playthrough")
     parser.add_argument("--rom",type=Path);parser.add_argument("--symbols",type=Path)
     parser.add_argument("--restart",action="store_true")
+    parser.add_argument("--snapshot-mode",choices=("check","record","none"),default="record")
     args=parser.parse_args()
     if bool(args.rom)!=bool(args.symbols):parser.error("Supply ROM and symbols together")
-    run(args.output_dir,rom_path=args.rom,symbols_path=args.symbols,restart=args.restart)
+    run(args.output_dir,rom_path=args.rom,symbols_path=args.symbols,restart=args.restart,
+        snapshot_mode=None if args.snapshot_mode=="none" else args.snapshot_mode)

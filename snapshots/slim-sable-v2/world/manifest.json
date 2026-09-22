@@ -1,0 +1,117 @@
+{
+  "schema": "lupine3d.snapshots.v1",
+  "scenes": {
+    "01_safe_start": {
+      "rgb_sha256": "cab205a63842ac78655dafc0840011c61e101a4cae409d1ed3bd13a5462b636b",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "02_start_airlock_opening": {
+      "rgb_sha256": "1c81ab1b3a7409be0f8feb468114f6c2da1777acd22d42fa5b0bbc531d488622",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "03_start_airlock_open": {
+      "rgb_sha256": "36aea0f67eec10bdf8515a91f0f391b161efe1581988b2c2baf87df4170ff697",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "04_critical_turn": {
+      "rgb_sha256": "371b74ee251817773aaf985c76c6dc0213caa92c50d5bc4804a556c1ab4708b8",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "05_zigzag_opening": {
+      "rgb_sha256": "f5c6790caa74129f6bfceba9aae4506eace94ef95e55dc447fe4895d127234bb",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "06_exit_approach_locked": {
+      "rgb_sha256": "3143ccf8ad8866a6b21711504eddb671a0233299fbdc85eba68fec5e022fcba6",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "07_sentinel_encounter": {
+      "rgb_sha256": "58405a5a769405ec1d6f36105f0fef6156280eae8922b4a070eec93acc0fed9c",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "08_sentinel_hit_one": {
+      "rgb_sha256": "f3f49cc1d56800c45aea735fc8c9fffb7577f4293acc20db6fcf64df9fdde609",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "09_sentinel_hit_two": {
+      "rgb_sha256": "f3f49cc1d56800c45aea735fc8c9fffb7577f4293acc20db6fcf64df9fdde609",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "10_sentinel_dead": {
+      "rgb_sha256": "6d0ed8cb558759367cd6ef7a3692a08ddf6e2b2d24e0ec75258e979e95c80efb",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "11_pickup_collected": {
+      "rgb_sha256": "b7534605e3ec692b7185a437c4ea4ead25b881d3a82e451052dbfb57c2edaa78",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "12_exit_unlocking": {
+      "rgb_sha256": "eeed85a9f3fb3ebd247c7e0a4a9015ff73d16f4b510bcf516d795a9272a22eac",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "13_exit_beacon": {
+      "rgb_sha256": "deb2e138803c2c2aad93bdf47e3a30ea059ef85a3452f536038b3e94ed33556c",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    },
+    "14_level_complete": {
+      "rgb_sha256": "c46915dab388f21a865d418fa542320d275224df4e6f355a152250946320d4f7",
+      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
+      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
+      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+    }
+  }
+}

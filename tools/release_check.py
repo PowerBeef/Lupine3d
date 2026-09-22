@@ -218,7 +218,12 @@ def main() -> None:
         "v3_wrong_segments_improved": current_geometry["improvement"]["wrong_segment_reduction_pct"] > 25.0,
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
-        "driven_playtest_exact_current_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
+        # Golden-image snapshots (tools/snapshot.py): every driven route's
+        # captures match their accepted goldens on this exact ROM.
+        "snapshots_all_match": all(
+            report["summary"]["snapshot"] is not None and report["summary"]["snapshot"]["passed"]
+            and report["summary"]["snapshot"]["rom_sha256"] == current_sha
+            for report in (playtest, world_playtest, art_playtest)),
         # Sable's bounded decals have an explicit visual-content budget.
         "driven_playtest_mean_under_1_050k": float(playtest["summary"]["mean_cycles"]) < 1_050_000,
         "driven_playtest_max_under_1_400k": int(playtest["summary"]["max_cycles"]) < 1_400_000,

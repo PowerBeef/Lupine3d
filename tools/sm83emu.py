@@ -115,6 +115,13 @@ class CGB:
         self.hdma_served_ly = -1
         self.hdma_event: dict[str, object] | None = None
         self.dma_cycles = 0  # every CPU stall spent on GDMA or HBlank blocks
+        # CPU writes the PPU forbids while it draws a line (mode 3): VRAM and
+        # the palette data ports. The line model below is coarse (80 dots of
+        # OAM scan, then 172 dots plus six per object on the line, then
+        # HBlank), so it errs towards calling a write mode 3; the pinned
+        # SameBoy lane counts the same events from the core's own STAT.
+        self.mode3_vram_writes = 0
+        self.mode3_palette_writes = 0
         self.interrupt_events: list[dict[str, int]] = []
         self.scx_events: list[dict[str, int]] = []
         self.raster_lcdc: dict[int, tuple[int, int, int]] = {}
@@ -183,6 +190,10 @@ class CGB:
             return self._read_p1()
         if addr == LY:
             return self.ly
+        if addr == STAT:
+            # Coarse mode bits and the LYC coincidence bit, from the line model.
+            coincidence = 0x04 if self.ly == self.io[LYC & 0x7F] else 0
+            return 0x80 | (self.io[STAT & 0x7F] & 0x78) | coincidence | self.ppu_mode()
         if addr < 0xFF80:
             return self.io[addr - 0xFF00]
         if addr < 0xFFFF:
@@ -202,6 +213,8 @@ class CGB:
                     self.rom_bank = (self.rom_bank & 0x0FF) | ((value & 1) << 8)
             return
         if addr < 0xA000:
+            if self.ppu_mode() == 3:
+                self.mode3_vram_writes += 1
             self.vram[self.io[VBK & 0x7F] & 1][addr - 0x8000] = value
             return
         if addr < 0xC000:
@@ -270,6 +283,8 @@ class CGB:
                     self._record_presentation()
             self.last_lcdc = value
             return
+        if addr in (BGPD, OBPD) and self.ppu_mode() == 3:
+            self.mode3_palette_writes += 1
         if addr == BGPD:
             index = self.io[BGPI & 0x7F] & 0x3F
             self.bg_palette[index] = value
@@ -493,6 +508,24 @@ class CGB:
     @staticmethod
     def signed8(value: int) -> int:
         return value - 256 if value & 0x80 else value
+
+    def ppu_mode(self) -> int:
+        """The coarse STAT mode of the current dot: 0 HBlank, 1 VBlank, 2 OAM scan, 3 drawing."""
+        if not self.io[LCDC & 0x7F] & 0x80:
+            return 0
+        if self.ly >= 144:
+            return 1
+        if self.ppu_dots < 80:
+            return 2
+        height = 16 if self.io[LCDC & 0x7F] & 0x04 else 8
+        objects = 0
+        for index in range(40):
+            y = self.oam[index * 4] - 16
+            if y <= self.ly < y + height:
+                objects += 1
+                if objects == 10:
+                    break
+        return 3 if self.ppu_dots < 80 + 172 + 6 * objects else 0
 
     def _tick(self, cycles: int) -> None:
         # extra_cycles is only ever a DMA stall. Charge it to dma_cycles at

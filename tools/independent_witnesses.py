@@ -23,7 +23,10 @@ def main():
     p.add_argument('--sameboy',type=Path,default=br.BUILD/'sameboy_smoke')
     p.add_argument('--mgba',type=Path,default=br.BUILD/'mgba_smoke')
     p.add_argument('--output-dir',type=Path,default=br.BUILD/'independent-witnesses')
-    p.add_argument('--scene',action='append');args=p.parse_args()
+    p.add_argument('--scene',action='append')
+    p.add_argument('--snapshot-mode',choices=('check','record','none'),default='check',
+                   help='compare the host images with the witnesses goldens (a partial --scene run only records)')
+    args=p.parse_args()
     provenance={}
     for core,executable,pinned in (("SameBoy",args.sameboy,"213a12ce93d66b105a113debd9396306066a7cfc"),
                                    ("mGBA",args.mgba,"507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6")):
@@ -33,6 +36,11 @@ def main():
         provenance[core]=entry
     out=args.output_dir;out.mkdir(parents=True,exist_ok=True)
     rom,asm,manifest=br.make_rom();rom_path=out/'candidate.gb';rom_path.write_bytes(rom)
+    snapshots=None
+    if args.snapshot_mode!='none':
+        from snapshot import Suite
+        snapshots=Suite('witnesses',mode='record' if args.scene else args.snapshot_mode,
+                        rom_sha256=manifest['sha256'],configuration_id=manifest['configuration_id'])
     rows=[]
     for scene in scene_corpus():
         if args.scene and scene.name not in args.scene:continue
@@ -56,6 +64,7 @@ def main():
         patch=out/(scene.name+'.bin');patch.write_bytes(payload)
         _,expected,_=capture(rom,asm.labels,scene);expected.save(out/(scene.name+'-host.png'))
         row=dict(scene=scene.name,patch_sha256=sha(payload),expected_rgb_sha256=sha(expected.tobytes()),cores={})
+        if snapshots is not None:row['snapshot']=snapshots.observe(scene.name,expected)
         for name,command in (('sameboy-cgb0',[str(args.sameboy.resolve()),str(rom_path.resolve()),str((out/(scene.name+'-cgb0')).resolve()),'200',str(patch.resolve())]),
                              ('sameboy-cgbe',[str(args.sameboy.resolve()),str(rom_path.resolve()),str((out/(scene.name+'-cgbe')).resolve()),'205',str(patch.resolve())]),
                              ('mgba',[str(args.mgba.resolve()),str(rom_path.resolve()),str((out/(scene.name+'-mgba')).resolve()),str(patch.resolve())])):
@@ -73,6 +82,9 @@ def main():
         print(scene.name,all(v['passed'] for v in row['cores'].values()),flush=True)
     if not rows:p.error('No selected scenes')
     if not report['passed']:raise SystemExit('Independent scene differences; review captures')
+    # Core agreement is the hard gate above; the host images are also the
+    # `witnesses` snapshot suite, so an intentional change is reviewable.
+    if snapshots is not None:snapshots.finish()
 
 
 if __name__=='__main__':main()

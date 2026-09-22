@@ -8,9 +8,27 @@ from sm83emu import CGB, run_to_world
 from playtest import validate_frame,apply_diagnostic_camera,oam_budget
 from lupine3d_v4.sprite_assets import evidence,compile_sheet,compile_frame,frames
 
-def check(output):
+FIXTURES=Path(__file__).resolve().parents[1]/'playtests'/'fixtures'
+
+def hud_fixture():
+    """The HUD art contract for this profile: selection tables and pinned pixels.
+
+    Slim carries the full steel-HUD fixture (chassis rows, points, spans and
+    the divider); the compact profile keeps only the selection tables, since
+    its HUD art was never pinned pixel by pixel.
+    """
+    if b.SLIM_DISPLAY:
+        fixture=json.loads((FIXTURES/'steel_hud_v10.json').read_text())
+        assert fixture['schema']=='lupine3d.hud-fixture.v1',fixture['schema']
+        return fixture
+    return {'portraits':{'cases':[[99,0,8,0],[99,0,0,1],[65,1,8,2],[0,0,8,3]]},
+            'status':{'cases':[[99,0,0,'LOCK'],[99,0,1,'OPEN'],[0,0,1,'DEAD'],[99,1,1,'DONE']]}}
+
+def check(output,snapshot_mode='check'):
     assert b.COMPACT_DISPLAY and b.SABLE_ART
     rom,a,meta=b.make_rom(); checks={}; captures=[]
+    from snapshot import Suite
+    snapshots=None if snapshot_mode is None else Suite('sable',mode=snapshot_mode,rom_sha256=hashlib.sha256(rom).hexdigest(),configuration_id=meta['configuration_id'])
     def boot():
         c=CGB(rom,a.labels);run_to_world(c);return c
     c=boot();assert c.raster_lcdc=={b.VIEW_HEIGHT:(16,16,0)}
@@ -135,6 +153,7 @@ def check(output):
         c=boot();c.write8(b.SIM_READY,0);apply_diagnostic_camera(c,{'pose':pose});c.run(until_presentations=2)
         validate_frame(c);im=c.render_screen();path=output/f'pose-{index}.png';im.save(path);im.resize((640,576),resample=0).save(output/f'pose-{index}-4x.png')
         captures.append({'file':path.name,'pose':pose,'pixels_sha256':hashlib.sha256(im.tobytes()).hexdigest()})
+        if snapshots is not None:captures[-1]['snapshot']=snapshots.observe(f'pose-{index}',im)
     checks['geometry_and_all_published_rows']=True
     from quality_witnesses import scene_corpus,setup,plane_hit
     near=next(scene for scene in scene_corpus() if scene.name=='close_clipped_wall')
@@ -170,7 +189,11 @@ def check(output):
             c.write16(b.FRAME_TICK,(65530+age)&65535);c.call_subroutine('select_actor_animation');assert c.read8(b.SENTINEL_ANIM)==cel
     c.write16(b.SIM_TICK,30);c.call_subroutine('expire_actor_reaction');assert c.read8(b.ACTOR_REACTION)==0
     checks['reaction_and_death_clock_wrap']=True
-    for health,hurt,tick,portrait in ((99,0,8,0),(99,0,62 if b.SLIM_DISPLAY else 0,1),(65,1,8,2),(0,0,8,3)):
+    # The HUD's art contract is data: which portrait and status each state
+    # selects, and which HUD pixels every state must leave alone. The
+    # packet/publication mechanics below stay code because they are invariants.
+    fixture=hud_fixture()
+    for health,hurt,tick,portrait in fixture['portraits']['cases']:
         c.write8(b.PLAYER_HEALTH,health);c.write8(b.HURT_ACTIVE,hurt);c.write16(b.FRAME_TICK,tick)
         c.write8(b.HUD_PACKET+b.HUD_PACKET_BYTES,0xA5);c.call_subroutine('prepare_hud_tiles')
         packet=bytes(c.read8(b.HUD_PACKET+i) for i in range(b.HUD_PACKET_BYTES))
@@ -202,8 +225,7 @@ def check(output):
     # Exercise the live-to-cleared objective transition and terminal priority.
     # Verify the immutable packet and both published map copies, not only
     # the caption: the main status must change coherently with it.
-    for health,done,exit_active,status in ((99,0,0,'LOCK'),(99,0,1,'OPEN'),
-                                           (0,0,1,'DEAD'),(99,1,1,'DONE')):
+    for health,done,exit_active,status in fixture['status']['cases']:
         c.write8(b.PLAYER_HEALTH,health);c.write8(b.LEVEL_COMPLETE,done);c.write8(b.EXIT_ACTIVE,exit_active)
         c.call_subroutine('prepare_hud_tiles')
         expected=bytes(b.hud_assets()[3]['caption_'+status]+b.hud_assets()[3][status])
@@ -218,47 +240,33 @@ def check(output):
                 lower=bytes(c.vram[0][page+(b.HUD_STATUS_ROW+1)*32+16+i] for i in range(3))
                 assert lower==bytes(tile+1 for tile in expected[2:]),(status,page)
     checks['objective_transition_and_terminal_publication']=True
-    if b.SLIM_DISPLAY:
+    if 'chassis_rows' in fixture:
         # Read published VRAM, including both pages and every digit, portrait
-        # and terminal caption. Dynamic tiles must retain the static divider.
-        for health,hurt,tick,done in ((n*11,0,8,0) for n in range(10)):
-            c.write8(b.PLAYER_HEALTH,health);c.write8(b.HURT_ACTIVE,hurt)
-            c.write16(b.FRAME_TICK,tick);c.write8(b.LEVEL_COMPLETE,done)
-            c.call_subroutine('prepare_hud_tiles');c.call_subroutine('update_hud_tiles')
-            for page in (0x1800,0x1C00):
-                for column in range(20):
-                    tile=c.vram[0][page+b.VIEW_ROWS*32+column]
-                    assert bytes(c.vram[0][tile*16:tile*16+2])==b'\xff\x00',(health,page,column)
-        for hurt,tick,done in ((0,0,0),(1,8,0),(0,8,1)):
-            c.write8(b.PLAYER_HEALTH,99);c.write8(b.HURT_ACTIVE,hurt)
-            c.write16(b.FRAME_TICK,tick);c.write8(b.LEVEL_COMPLETE,done)
-            c.call_subroutine('prepare_hud_tiles');c.call_subroutine('update_hud_tiles')
-            for page in (0x1800,0x1C00):
-                for column in range(20):
-                    tile=c.vram[0][page+b.VIEW_ROWS*32+column]
-                    assert bytes(c.vram[0][tile*16:tile*16+2])==b'\xff\x00',(hurt,tick,done,page,column)
-        checks['continuous_divider_all_dynamic_states_and_both_maps']=True
+        # and terminal caption, across every state the fixture lists: the
+        # dynamic tiles under the HUD row must retain the static divider, and
+        # every chassis pixel, point and clear span the fixture pins must hold.
+        divider=bytes.fromhex(fixture['divider']['first_row_bytes'])
         def hud_pixel(page,x,y):
             tile=c.vram[0][page+(b.VIEW_ROWS+y//8)*32+x//8]
             address=tile*16+(y%8)*2;bit=7-x%8
             return ((c.vram[0][address]>>bit)&1)|(((c.vram[0][address+1]>>bit)&1)<<1)
-        # Full chassis rails, not only the divider, survive every replacement.
-        # The four corner highlights and three vent notches are intentional.
-        for health,hurt,tick,done in ([(n*11,0,8,0) for n in range(10)]+
-                                     [(99,0,62,0),(99,1,8,0),(99,0,8,1)]):
+        for health,hurt,tick,done in fixture['states']['health_ladder']+fixture['states']['expressions']:
             c.write8(b.PLAYER_HEALTH,health);c.write8(b.HURT_ACTIVE,hurt)
             c.write16(b.FRAME_TICK,tick);c.write8(b.LEVEL_COMPLETE,done)
             c.call_subroutine('prepare_hud_tiles');c.call_subroutine('update_hud_tiles')
+            state=(health,hurt,tick,done)
             for page in (0x1800,0x1C00):
-                for y in (0,1,2,21,22):
-                    for x in range(160):
-                        expected=1 if y<2 or 3<=x<157 else 0
-                        if y==1 and x in (4,5,154,155):expected=2
-                        if y==21 and x in (8,12,16):expected=0
-                        assert hud_pixel(page,x,y)==expected,(health,hurt,tick,done,x,y)
-                assert hud_pixel(page,80,6)==2, 'helmet highlight lost during expression'
-                assert all(hud_pixel(page,x,3)==0 for x in range(128,152)), 'objective touches upper bevel'
-                assert all(hud_pixel(page,x,9)==0 for x in range(128,152)), 'objective lines lack separation'
+                for column in range(20):
+                    tile=c.vram[0][page+b.VIEW_ROWS*32+column]
+                    assert bytes(c.vram[0][tile*16:tile*16+2])==divider,(state,page,column,fixture['divider']['why'])
+                for y,row in fixture['chassis_rows'].items():
+                    actual=''.join(str(hud_pixel(page,x,int(y))) for x in range(160))
+                    assert actual==row,(state,page,'HUD row',y,actual,row)
+                for point in fixture['points']:
+                    assert hud_pixel(page,point['x'],point['y'])==point['expected'],(state,page,point['why'])
+                for span in fixture['clear_spans']:
+                    assert all(hud_pixel(page,x,span['y'])==span['expected'] for x in range(*span['x'])),(state,page,span['why'])
+        checks['continuous_divider_all_dynamic_states_and_both_maps']=True
         checks['steel_chassis_and_portrait_highlights_all_states']=True
     checks['hud_icon_exit_and_all_actor_counts']=True
     for used in range(13,17):
@@ -285,9 +293,13 @@ def check(output):
         assert c.read8(b.FLASH)==9
     checks['terminal_state_wrap_cannot_replay_cosmetics']=True
     result={'schema':'sable.qualification.v1','rom_sha256':hashlib.sha256(rom).hexdigest(),'configuration':b.RENDER_CONFIG,'checks':checks,'assets':evidence(),'publication_windows':windows,'captures':captures,'physical_hardware_tested':False,'passed':all(checks.values())}
+    if snapshots is not None:result['snapshot']=snapshots.report()
     (output/'checks.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+    if snapshots is not None:result['snapshot']=snapshots.finish()  # raises in check mode when a pose differs
     return result
 
 if __name__=='__main__':
     import argparse
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output-dir',type=Path,default=b.BUILD/'sable-v2/checks');args=p.parse_args();check(args.output_dir)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output-dir',type=Path,default=b.BUILD/'sable-v2/checks')
+    p.add_argument('--snapshot-mode',choices=('check','record','none'),default='check');args=p.parse_args()
+    check(args.output_dir,None if args.snapshot_mode=='none' else args.snapshot_mode)
