@@ -57,9 +57,12 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
                     health=live8(br.PLAYER_HEALTH))
         if data["health"] <= 0:
             capture("death")
+            recent = sorted(replay)[-90:]
             raise AssertionError(
                 f"player died during controller-only route at pose={pose()} after {len(records)} updates: "
-                f"actors={actors()} weapon={live8(br.WEAPON_INDEX)} keys={[r['keys'] for r in records[-6:]]}")
+                f"actors={actors()} weapon={live8(br.WEAPON_INDEX)} "
+                f"last frames (lcd frame, keys)={[(f, replay[f]) for f in recent]} "
+                f"last updates (pose, health)={[((r['pose']['x_q8'], r['pose']['y_q8'], r['pose']['angle']), r['health']) for r in records[-30:]]}")
         assert data["max_oam_per_scanline"] <= 10
         assert cgb.commit_events[-1]["vblank_safe"]
         records.append(data)
@@ -231,8 +234,13 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False):
         if target is None:
             return True
         px, py, _ = pose()
-        return max(abs(target["x"] - px), abs(target["y"] - py)) <= ENGAGEMENT_Q8 \
-            and has_sight(target)
+        dx, dy = abs(target["x"] - px), abs(target["y"] - py)
+        # An actor already at contact range is fought where it stands, whatever
+        # the sampled sight test says about a corner: aiming backs away from it
+        # while firing, and walking towards it is how the route dies.
+        if dx < 512 and dy < 512:
+            return True
+        return max(dx, dy) <= ENGAGEMENT_Q8 and has_sight(target)
 
     def aiming():
         # Re-pick the nearest survivor every interval: whoever closed to

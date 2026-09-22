@@ -61,8 +61,17 @@ class StripExperiments(unittest.TestCase):
                             patterns += 1
         self.assertEqual((cases, patterns), (282, 6768))
         self.assertEqual(metadata["microstrip_format"]["table_bytes_saved"], 3840)
-        self.assertEqual(metadata["memory_budget"]["resident_free_bytes"],
-                         self.legacy[2]["memory_budget"]["resident_free_bytes"] + 3840)
+        # The 3,840 table bytes are the whole saving once the two layout
+        # effects are accounted for exactly: the general selector's extra
+        # fixed-code bytes, and the page alignment of the movement tables,
+        # which can put the two variants on different sides of a boundary.
+        compact_budget, legacy_budget = (v[2]["memory_budget"] for v in (self.compact, self.legacy))
+        padding = [b["resident_alignment_padding_bytes"] for b in (compact_budget, legacy_budget)]
+        self.assertTrue(all(0 <= p < 256 for p in padding), padding)
+        selector_bytes = legacy_budget["fixed_code_end"] - compact_budget["fixed_code_end"]
+        self.assertGreater(selector_bytes, 0)
+        self.assertEqual(compact_budget["resident_free_bytes"] - legacy_budget["resident_free_bytes"],
+                         3840 + selector_bytes + padding[1] - padding[0])
 
     def test_entire_banked_oracle_and_unfolded_selector_domain(self):
         c = CGB(self.general[0], self.general[1])

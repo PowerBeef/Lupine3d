@@ -381,6 +381,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                                        (5, 6, rgb15(10, 14, 12), rgb15(4, 8, 7))):
         bg_palette_values[upper * 4:upper * 4 + 4] = [bg_palette_values[0], bg_palette_values[1], light, dark]
         bg_palette_values[lower * 4:lower * 4 + 4] = [bg_palette_values[1], bg_palette_values[1], light, dark]
+    # The padding this alignment costs depends on every byte emitted before
+    # it, so the manifest reports it: a variant whose fixed code is a few
+    # bytes longer can cross a page boundary here and pay up to 255 bytes
+    # more, which is layout, not a change in what the variant stores.
+    movement_alignment_padding = (-a.pc) & 0xFF
     a.align(256, text="legacy movement table alignment")
     for name in ("step_dx", "step_dy", "move_dx", "move_dy"):
         a.label(name); a.bytes(tables[name], name)
@@ -442,6 +447,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "cold_assets_bank": BOOT_ASSETS_ROM_BANK,
             "cold_assets_bytes": cold_address - 0x4000,
             "resident_free_bytes": 0x8000 - (a.origin + len(code)),
+            "resident_alignment_padding_bytes": movement_alignment_padding,
             "stack_top": STACK_TOP,
             "stack_reserved_bytes": 0x200,
             "hram_state_bytes": HRAM_BYTES_USED,
