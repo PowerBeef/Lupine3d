@@ -29,7 +29,7 @@ subcommands spawn the right process for you.
    queued packets per service. Movement, doors, combat, actor AI and pickups
    live here; positions are Q8.8 and doors, rays, hitscan and line of sight
    share one finite door geometry (`door_geometry.py`).
-3. **Snapshot**. 457 bytes of world state are copied into bank 1. Rendering,
+3. **Snapshot**. 456 bytes of world state are copied into bank 1. Rendering,
    animation and the HUD read only the snapshot, so simulation can keep going
    while a frame is composed.
 4. **Wall key** (`wall_cache.py`). A 290-byte key (camera, map, door state,

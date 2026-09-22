@@ -115,7 +115,7 @@ def run_case(rom, labels, name, frames=144, *, observe=True):
         assert len({row["door_fraction"] for row in rows if row["door_state"] == 1})>=2
     if name == "two_actor_corner":
         assert c.wramx[2][br.PLAYER_HEALTH-0xD000]>0, "contention trial ended in player death"
-        assert c.wramx[2][br.ACTOR_COUNT-0xD000]==2
+        assert c.read8(br.ACTOR_COUNT)==2
         assert all(c.wramx[2][br.ENTITY_SLOTS+i*16+4-0xD000]!=br.SENTINEL_DEAD for i in range(2))
         if observer:
             assert any(len(row["actor_candidates"]) == 2 for row in rows), "both actors must compete in one frame"

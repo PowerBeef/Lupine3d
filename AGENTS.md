@@ -160,7 +160,10 @@ regression contract.
   a full-screen mode owns the whole background, so composition is idle for
   exactly as long as that state exists, and `enter_world` refills the buffer.
   Campaign state that must ride the render snapshot goes in the slack at the
-  top of the copied world window; it never grows the 457-byte copy.
+  top of the copied world window; it never grows the copy (`WORLD_COPY_BYTES`:
+  the map, the camera, the 128-byte world window and the actor slots). Per-level
+  constants (`ACTOR_COUNT`, the palette set, weapons owned, the level page) are
+  fixed-WRAM campaign scalars written by `load_level` with the LCD off.
 - Level selection is runtime, not an assembled immediate. Each campaign level
   owns one ROM bank from `LEVEL_ROM_BANK_BASE` at the fixed offsets in
   `levels.py`; `LEVEL_INDEX`/`LEVEL_BANK` live in fixed WRAM outside the

@@ -221,8 +221,7 @@ MASK_SCAN_COUNT = 0xD8D8
 ENTITY_SLOT = 0xD8D9
 LOD_HISTORY = 0xD8E0           # four actor histories + generic beacon
 WORLD_SCANLINES = 0xD900      # 144 selected-object counters
-ENTITY_SLOTS = 0xD990         # four fixed 16-byte actor slots
-ACTOR_COUNT = 0xD9D0
+ENTITY_SLOTS = 0xD990         # four fixed 16-byte actor slots (ACTOR_COUNT is fixed WRAM)
 ACTOR_DEPTHS = 0xD9D1
 ACTOR_BEST = 0xD9D5
 ACTOR_BEST_DEPTH = 0xD9D6
@@ -330,6 +329,19 @@ WEAPON_INDEX = MUSIC_STATE_END + 3
 WEAPON_RELOAD = WEAPON_INDEX + 1
 WEAPON_COOLDOWN = WEAPON_RELOAD + 1
 WORLD_STATE_END = WEAPON_COOLDOWN + 1
+# Campaign scalars that cannot change while a frame is in flight live in fixed
+# WRAM, readable under any bank: load_level writes them with the LCD off, like
+# LEVEL_FIXTURE_COUNT. The actor count used to ride the snapshot copy; it is a
+# per-level constant, so it belongs here with the palette set, the weapons in
+# the player's possession, and the level's ROM page and texture directory.
+ACTOR_COUNT = WORLD_STATE_END           # actors the level fields, 1..MAX_ACTORS
+PALETTE_SET = ACTOR_COUNT + 1           # BG/OBJ palette set, from the level header
+WEAPONS_OWNED = PALETTE_SET + 1         # bit per weapon
+LEVEL_PAGE = WEAPONS_OWNED + 1          # high byte of the level's slot in its bank
+TEX_DIRECTORY_L = LEVEL_PAGE + 1        # u16: the level's texture block directory
+TEX_DIRECTORY_H = TEX_DIRECTORY_L + 1
+CAMPAIGN_SCALARS_END = TEX_DIRECTORY_H + 1
+assert CAMPAIGN_SCALARS_END <= 0xC800, "campaign scalars overrun the OAM shadow"
 WEAPON_COUNT = 2
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
@@ -985,8 +997,10 @@ ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"
 REPROJECT_LIMIT = 4
 REPROJECT_GDMA_THRESHOLD = 72
 
-# Shared by snapshot emission and the allocation/lifetime validator.
-WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, 65))
+# Shared by snapshot emission and the allocation/lifetime validator. The
+# actor slots are copied whole; the count beside them is a fixed-WRAM scalar.
+WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, MAX_ACTORS * 16))
+WORLD_COPY_BYTES = sum(count for _, count in WORLD_COPY_RANGES)
 
 RETICLE_TILE = 112 if SABLE_ART else 80
 MUZZLE_TILE = RETICLE_TILE + 2
@@ -1003,7 +1017,7 @@ ACTOR_REACTION=0xD785
 SENTINEL_KIND=0xD786          # per-actor stat/palette selector, inside the snapshot
 ART_STATE_END=0xD787
 # Campaign state in the slack at the top of the copied world window. It rides
-# the existing 457-byte snapshot copy rather than growing it, so the renderer
+# the existing snapshot copy rather than growing it, so the renderer
 # and the screens read it as coherently as the world itself, and the simulation
 # writes the live copy in WRAM bank 2 like every other world field.
 GAME_STATE = ART_STATE_END

@@ -44,13 +44,16 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM0", l.STRIP_SCRATCH, l.STRIP_SCRATCH + 16, "diagnostic strip scratch", "one strip lookup"),
         A("WRAM0", l.MUSIC_STATE, l.MUSIC_STATE_END, "music sequencer state"),
         A("WRAM0", l.MUSIC_STATE_END, l.WORLD_STATE_END, "skill and per-actor stat scratch"),
+        A("WRAM0", l.WORLD_STATE_END, l.CAMPAIGN_SCALARS_END,
+          "campaign scalars: actor count, palette set, weapons owned, level page, texture directory"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", l.DYN_STREAMED, l.DYN_STREAMED + 1, "dynamic patterns already streamed by HBlank DMA", "composition through publication"),
         A("WRAM0", 0xC8CF, 0xC8D0, "presentation mode"),
         A("WRAM0", 0xC8D0, 0xC8DE, "simulation/input clocks"),
         A("WRAM0", 0xC8F0, 0xC900, "screen composition and level selection"),
-        A("WRAM0", 0xC900, 0xCAC9, "snapshot copy / later fixture visibility", "exclusive sequential reuse"),
+        A("WRAM0", l.WORLD_COPY_BUFFER, l.WORLD_COPY_BUFFER + l.WORLD_COPY_BYTES,
+          "snapshot copy / later fixture visibility", "exclusive sequential reuse"),
         A("WRAM0", l.COLUMN_ROWS, l.COLUMN_ROWS + l.FOLDED_ROWS, "folded column tile IDs", "one composed column"),
         A("WRAM0", 0xCB00, 0xCB6F, "saved render HRAM", "simulation service"),
         A("WRAM0", 0xCB70, 0xCB80, "dynamic cache key staging and pointer", "one tile lookup/composition"),
@@ -130,8 +133,11 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert l.WEAPON_TILE_BASE >= 32
     assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128
     assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*4 + 64 <= 256
-    assert sum(count for _, count in l.WORLD_COPY_RANGES) == 457
-    assert l.WORLD_COPY_BUFFER + 457 <= l.RENDER_HRAM_SAVE
+    # The copy is a contract: the map, the camera, the world window and every
+    # actor slot, and nothing else. A change here changes what the renderer
+    # can see of the simulation.
+    assert l.WORLD_COPY_BYTES == 256 + 8 + 128 + l.MAX_ACTORS * 16
+    assert l.WORLD_COPY_BUFFER + l.WORLD_COPY_BYTES <= l.COLUMN_ROWS
     # The sequencer state sits above the BG map in every display profile and
     # never overlaps the diagnostic strip scratch. Screen state borrows the
     # bottom of the map buffer, which composition refills on every enter_world,

@@ -14,7 +14,7 @@ It owns WRAM bank 2. Queue debt and button edges survive slow rendering.
 The narrow production yield contexts preserve live registers/state; the generic
 full-HRAM ABI remains a diagnostic reference.
 
-At snapshot creation, 457 bytes of map/player/world/actor state pass through
+At snapshot creation, 456 bytes of map/player/world/actor state pass through
 fixed WRAM into bank 1. Geometry, animation, HUD and OAM all use that immutable
 snapshot while simulation continues in bank 2. Animation uses accepted ticks,
 not host time or the number of rendered frames.

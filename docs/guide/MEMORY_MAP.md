@@ -12,7 +12,7 @@ free for that owner's neighbour in the same sequence.
 | Free below `$4000` (fixed ROM half) | 2352 |
 | Resident reserve (must stay >= 3,000) | 5083 |
 | Free WRAM banks | 6, 7 |
-| Render snapshot copy | 457 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+128, `$D990`+65 |
+| Render snapshot copy | 456 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+128, `$D990`+64 |
 | Prepared ray record | 16 bytes; packet records 241-250 |
 
 ## ROM (4 MiB MBC5, 256 banks of 16 KiB; addresses are absolute ROM offsets)
@@ -40,6 +40,7 @@ free for that owner's neighbour in the same sequence.
 | `$C600-$C7E0` | 480 | BG map / screen digits and code entry while a full-screen mode is up | exclusive sequential reuse |
 | `$C7E0-$C7EC` | 12 | music sequencer state | persistent |
 | `$C7EC-$C7F2` | 6 | skill and per-actor stat scratch | persistent |
+| `$C7F2-$C7F8` | 6 | campaign scalars: actor count, palette set, weapons owned, level page, texture directory | persistent |
 | `$C800-$C8BA` | 186 | OAM, publication and world epoch state | persistent |
 | `$C8BA-$C8CE` | 20 | foreground queue and publication ownership | persistent |
 | `$C8CE-$C8CF` | 1 | dynamic patterns already streamed by HBlank DMA | composition through publication |
@@ -47,7 +48,7 @@ free for that owner's neighbour in the same sequence.
 | `$C8D0-$C8DE` | 14 | simulation/input clocks | persistent |
 | `$C8E0-$C8F0` | 16 | diagnostic strip scratch | one strip lookup |
 | `$C8F0-$C900` | 16 | screen composition and level selection | persistent |
-| `$C900-$CAC9` | 457 | snapshot copy / later fixture visibility | exclusive sequential reuse |
+| `$C900-$CAC8` | 456 | snapshot copy / later fixture visibility | exclusive sequential reuse |
 | `$CAD0-$CAD8` | 8 | folded column tile IDs | one composed column |
 | `$CB00-$CB6F` | 111 | saved render HRAM | simulation service |
 | `$CB70-$CB80` | 16 | dynamic cache key staging and pointer | one tile lookup/composition |

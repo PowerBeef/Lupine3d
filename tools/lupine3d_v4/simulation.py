@@ -24,8 +24,8 @@ def emit_copy_bulk(a: Assembler) -> None:
     non-reentrant by design, independent of the selected world WRAM bank.
     """
     a.label("copy_bc")
-    # Eight bytes per iteration: the two 457-byte snapshot copies and the
-    # 290-byte wall-key capture are the bulk of every update's copying, and
+    # Eight bytes per iteration: the two snapshot copies (WORLD_COPY_BYTES) and
+    # the wall-key capture are the bulk of every update's copying, and
     # the counter/branch tax is paid once per eight bytes instead of four.
     a.ld_r_r("a", "c"); a.and_n(7); a.ld_abs_a(COPY_REMAINDER)
     for _ in range(3): a.cb("srl", "b"); a.cb("rr", "c")
