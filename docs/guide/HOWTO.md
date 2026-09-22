@@ -46,9 +46,11 @@ Kinds share the Sentinel's cels; a kind is stats plus an OBJ palette.
 Two weapons share one eighty-pattern window at `$8200` in VRAM bank 1; SELECT
 swaps them with the LCD off.
 
-1. Art: a native 32×32 five-cel indexed PNG (`assets/sable_v2/`) or an
-   authored pixel table like `make_slug_tiles` in `resources.py`. It must
-   compile to exactly `WEAPON_TILE_BYTES` in the 8×16 pair order.
+1. Art: an SVG illustration in `assets/sable_v2/vector/` drawn in cel units
+   with the three weapon tones and the `action`/`flare`/`gun` groups, reduced
+   into `assets/sable_v2/native/` with `python tools/draw_weapons.py --write`
+   (`docs/ART_PIPELINE.md`, "Weapons are vector illustrations, reduced").
+   It must compile to exactly `WEAPON_TILE_BYTES` in the 8×16 pair order.
 2. `weapon_stats` in `build_rom.py`: damage and recovery ticks. The shotgun's
    record is the engine's original behaviour and every measurement's
    baseline, so change the new record only.

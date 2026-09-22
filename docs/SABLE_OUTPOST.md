@@ -1,6 +1,6 @@
 # Sable Outpost: v0.8 art and animation
 
-The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. The game keeps its safe start, four sliding doors, combat partition, healing pickup and marked exit. Sixteen wall fixtures add landmarks without changing collision geometry.
+The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. (The weapon cels were later replaced by reductions of vector illustrations, `docs/ART_PIPELINE.md`; the generated shotgun master is retained as a design source.) The game keeps its safe start, four sliding doors, combat partition, healing pickup and marked exit. Sixteen wall fixtures add landmarks without changing collision geometry.
 
 ## Visual language
 

@@ -38,8 +38,7 @@ bit-planes per row, most significant bit on the left. Objects are 8×16 pairs
 | Enemy, near | `assets/sable_v2/native/sentinel_near.png` | 16×32 | 12 | ROM cel dictionary (242 source patterns); masked into 32 OBJ patterns per bank at runtime |
 | Enemy, mid | `sentinel_mid.png` | 16×16 | 12 | same |
 | Enemy, far | `sentinel_far.png` | 8×16 | 12 | same |
-| Weapon (shotgun) | `shotgun.png` | 32×32 | 5 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1 |
-| Weapon (slug rifle) | authored pixel code, `resources.py:make_slug_tiles` | 32×32 | 5 | the same window; SELECT swaps them with the LCD off |
+| Weapons | `shotgun.png`, `slug_rifle.png`, `arc_lance.png`, `pulse_carbine.png`, reduced by `tools/draw_weapons.py` from the SVGs in `vector/` | 32×32 | 5 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1; one weapon resident, SELECT swaps with the LCD off |
 | Muzzle flash | `flash.png` | 8×16 | 2 | preloaded OBJ patterns |
 | Reticle | `reticle.png` | 8×16 | 1 | preloaded OBJ pattern, palette 4 |
 | Helmet portrait | `helmet_steel.png` | 16×16 | 4 (normal, blink, hurt, dead) | HUD packet portrait, six tile IDs |
@@ -55,9 +54,44 @@ the manifest. All three size levels carry the same twelve cels; the runtime
 chooses a level from projected height. Kinds (Sentinel, skirmisher, warden)
 share these cels and differ by OBJ palette and stats.
 
-Both weapons must compile to exactly `WEAPON_TILE_BYTES` (1,280 bytes, eighty
+Every weapon must compile to exactly `WEAPON_TILE_BYTES` (1,280 bytes, eighty
 patterns) in the 8×16 pair order the weapon window expects; pattern IDs never
 change between weapons, only their contents.
+
+## Weapons are vector illustrations, reduced
+
+A first-person weapon has to read as a solid object seen from the shooter's
+eye, and pixels placed by hand at 32×32 did not. Each weapon is therefore
+an SVG illustration under `assets/sable_v2/vector/`, drawn in cel units
+(`viewBox="0 0 32 32"`, one unit per pixel) with as much detail as the
+drawing wants, using only the weapon palette's three tones as fills
+(`#1e2328` dark, `#6f8489` mid, `#eee5c5` light) so every shape already
+says which tone it is: lit tops and bevels, mid bodies, dark flanks,
+grooves, undersides and a contour. The perspective is drawn, not
+computed: the eye is above and behind the gun, the barrel converges on the
+reticle thirty units above the frame, the forend or housing is the nearest
+thing in view and the receiver sits under it, mostly out of frame.
+
+`tools/draw_weapons.py` rasterises each cel at sixteen times the cel size
+with cairosvg and reduces it block by block: a pixel is opaque when half
+its block is covered, dark when dark ink reaches a quarter of it, mid when
+mid ink reaches a third, otherwise the majority tone. So a line drawn 0.5
+units wide survives as a one-pixel line and a highlight has to be at least
+half a unit wide to show; draw with that in mind and check the reduction,
+not only the illustration. The cels are posed from named groups: `action`
+(the pump, charging handle, capacitor ring or vent shutter, translated by
+`data-travel` units), `flare` (shown in the kick cel only) and `gun`
+(everything, kicked down and toward the eye on recoil).
+
+The tool is offline authoring: `--write` reduces the four sheets into
+`assets/sable_v2/native/` and updates their hashes in `assets.json`, and
+`tests/test_weapon_art.py` refuses a committed sheet that is not the
+reduction of its SVG, so a weapon is changed in the drawing and
+regenerated, never touched up by hand. The bottom corner objects of the
+weapon grid use OBJ palette 5 (leather), so the gloves are drawn there and
+everything steel stays in the middle columns; the muzzle sits under the
+flash object at the top centre. The legacy art profile keeps its original
+drawn cels.
 
 ## Palettes
 

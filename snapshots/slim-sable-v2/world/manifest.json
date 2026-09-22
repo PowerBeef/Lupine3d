@@ -2,116 +2,116 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "01_safe_start": {
-      "rgb_sha256": "cab205a63842ac78655dafc0840011c61e101a4cae409d1ed3bd13a5462b636b",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "daf89fba828bf9f48735e3018c42df736c928bf951913a42e4e10827d70b8c76",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "02_start_airlock_opening": {
-      "rgb_sha256": "1c81ab1b3a7409be0f8feb468114f6c2da1777acd22d42fa5b0bbc531d488622",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "ab35ff6b1e0d178122702604392354ed24e83568cdef1af745b0b2ba85e074c8",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "03_start_airlock_open": {
-      "rgb_sha256": "36aea0f67eec10bdf8515a91f0f391b161efe1581988b2c2baf87df4170ff697",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "11c01971ee0f22a742c7a4e0db79860dde51cf2307677dd68b88ff33911b1e32",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "04_critical_turn": {
-      "rgb_sha256": "371b74ee251817773aaf985c76c6dc0213caa92c50d5bc4804a556c1ab4708b8",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "46d786826c6763696f8be0942cab4a5b2dd3cf4aa393fd579232548bb1e71662",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "05_zigzag_opening": {
-      "rgb_sha256": "f5c6790caa74129f6bfceba9aae4506eace94ef95e55dc447fe4895d127234bb",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "775e9f78a5d67ce13ccff22582a1993b825e801b5770eb96373699cf3f8e4ed5",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "06_exit_approach_locked": {
-      "rgb_sha256": "3143ccf8ad8866a6b21711504eddb671a0233299fbdc85eba68fec5e022fcba6",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "c3f7bd75618a77fd2d3480e8efe5273ee73774030b4a87b4c4bcff2c64b3cdf0",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "07_sentinel_encounter": {
-      "rgb_sha256": "58405a5a769405ec1d6f36105f0fef6156280eae8922b4a070eec93acc0fed9c",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "4cea314d720db5b9519a386bacdcfae08278a0feeb2fffbb2f95c637859daa8b",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "f3f49cc1d56800c45aea735fc8c9fffb7577f4293acc20db6fcf64df9fdde609",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "b4d9ffb780faa639a71a4b80ff2fa686cef2e0f011a3e935e011c27e5ea4db8e",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "f3f49cc1d56800c45aea735fc8c9fffb7577f4293acc20db6fcf64df9fdde609",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "b4d9ffb780faa639a71a4b80ff2fa686cef2e0f011a3e935e011c27e5ea4db8e",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "6d0ed8cb558759367cd6ef7a3692a08ddf6e2b2d24e0ec75258e979e95c80efb",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "d1c5322c6584d5362cdf1285118569daf0ba4a55a3e9940c59a0a714341e60a0",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "11_pickup_collected": {
-      "rgb_sha256": "b7534605e3ec692b7185a437c4ea4ead25b881d3a82e451052dbfb57c2edaa78",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "8569de61ac3dd05512a28d5b7eb5f96702a4831010b931fbcfc9a1b1a2b124b2",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "12_exit_unlocking": {
-      "rgb_sha256": "eeed85a9f3fb3ebd247c7e0a4a9015ff73d16f4b510bcf516d795a9272a22eac",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "0798cae68cb4e9e7853af2e722649ea8d54c6497928ac18c2682100c576c7b84",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "deb2e138803c2c2aad93bdf47e3a30ea059ef85a3452f536038b3e94ed33556c",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "f50a0d717143ed1aa4b6a437dfa2cb002f313a641d97f94cda24f90553031c7f",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "14_level_complete": {
-      "rgb_sha256": "c46915dab388f21a865d418fa542320d275224df4e6f355a152250946320d4f7",
-      "rom_sha256": "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c",
-      "configuration_id": "5609def159b8a803cfb7fc828a8006095d000863d971e3d1c3051042e25f6d50",
-      "accepted_at": "2026-09-22T01:41:00+00:00",
+      "rgb_sha256": "be0af9c4e21aabbe239ab3bd95087e6f8031cebedb36b65b3cecf5ed4d3e0e00",
+      "rom_sha256": "fce869ece189314ebb8dfeb6acbf67307db3052ceeb91aacd7e1336a7b7f3c85",
+      "configuration_id": "10a447515e872375b3f0fde4366571f4962b05f1b99012691e4f7ac412bda954",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "v0.10 baseline (ROM 76bc716f): the frames the retired sable_v10 hash oracle and the v0.10 evidence bound"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     }
   }
 }

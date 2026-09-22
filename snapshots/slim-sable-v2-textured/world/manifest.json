@@ -2,116 +2,116 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "01_safe_start": {
-      "rgb_sha256": "706dfe03370bec97abd4512a251cf2912a8790afd76cbc48ff6f6e8a80b919b8",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "9a21071a41d0c1a99c26e551cdc7019a02dc7c25938668d230882a35334101f8",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "02_start_airlock_opening": {
-      "rgb_sha256": "e46430e8fc865b54e966a2773036b5a4df7de12325c154214dba47ceb0805bd1",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "3ca6d7d3f30970c14a0834967bb1beb837527b7662802cd14922c4832143027b",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "03_start_airlock_open": {
-      "rgb_sha256": "fa6dad57b11b0e8a22ec62607c1e3c0d21d96fa02df39edb626936d186dbecbe",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "aed71c92582c2ad7ab3e23722bab578d96783b6b64b36dc354a678d94a5e4009",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "04_critical_turn": {
-      "rgb_sha256": "c6e4db03015233a511d6b6ecc9ecc80a8a1a7aba33743c0a9553abff5dddcf73",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "0e5ac73abc7cdcb18fe97849a9ad19f64046f775935a52f1bb6f134b09d6782a",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "05_zigzag_opening": {
-      "rgb_sha256": "d0a4b5fd6b619184dd37adc03181b7d79be8109cad30405338b8b031bde80116",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "b32f2c08f45d13d3072a29567f344a34ac63aa0300309f288c68428448159ebd",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "06_exit_approach_locked": {
-      "rgb_sha256": "ad79311f2e27fa27d620154e4fb743b53a4da86ed957ed9b8efb4f181b3f73e6",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "4cb2ca855dde467e45d6ddc5a58cbce209a060b6c9a65a745ae66b120b20a265",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "07_sentinel_encounter": {
-      "rgb_sha256": "8973996f380555aaacdf1fe67697f2a70673d44365a217c736a670e9c18ed694",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "299364306ea0fac515fe8574c96e90fcd7e87802abe2906286adc20aed2bf124",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "10cc036c12afad646c947fa871f4046ab4d45525caa392b196b43128da94d9af",
-      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
+      "rgb_sha256": "e0be93e6cf9dea4daa1233a4eeda07842e755878c457844114c12cf7e0a8ff08",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:06:35+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "10cc036c12afad646c947fa871f4046ab4d45525caa392b196b43128da94d9af",
-      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
+      "rgb_sha256": "e0be93e6cf9dea4daa1233a4eeda07842e755878c457844114c12cf7e0a8ff08",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:06:35+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "caf364d1363d54353299e1791468cab210199289678dc57242fcdf0fe7959fd1",
-      "rom_sha256": "82a30fd97d7cc5ca8f63042c8ef7eb076ba64d160d1cf0ebb7adb853d904a9fc",
+      "rgb_sha256": "ea2543e158902e2a8a76fbffe669f1ff0d81dfadf55b41244715fdfdfa813b80",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:06:35+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Six actor slots and per-episode palette sets change per-update timing under the textured kernel, so these captures land on other accepted snapshot ticks: the reticle's hit marker (world 08-10) and a Sentinel walk cel (art 06). Every frame check and the flat goldens are unchanged."
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "11_pickup_collected": {
-      "rgb_sha256": "440fa7b4287ebca97b16b3c648dbdb81e9037e5db17978399976bfdecc30a766",
-      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
+      "rgb_sha256": "6b0277fce83e813e7e964b4efd9425a1a930606fa2a374e6659e3d45845a4805",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T05:03:53+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "12_exit_unlocking": {
-      "rgb_sha256": "ad6cb909fe2b3a5d057ad9b7d8bd265cb43d375252007b8eb7aca47d2e3aedd5",
-      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
+      "rgb_sha256": "57bdc8b0ea8547e06c34f48f0dc88126b9437c8462e3385983563bd28a3fdf63",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T05:03:53+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "1fefbdf5654e7dfd8df3b6cd42ca7eb6129816217d79a069ecbe827b3926b69b",
-      "rom_sha256": "ce1fe245fce224392870ca749e1240ee1c9cd50e36c86d6f02db64bd92346bcd",
+      "rgb_sha256": "b836c776ff7fba61891a2164d9bff1c7b43dcf7e14ae0b65ed7eeae1a38670b9",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T05:03:53+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Textured profile after the kernel performance round (ROM ce1fe245): the register-resident one-face columns and cheaper setup finish these updates in fewer LCD intervals, so the weapon pump cel (11), the helmet blink phase (12) and a fixture cel (13) land on different accepted snapshot ticks; every frame check, the world and door expectations and the VRAM readback against texture_reference passed unchanged"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     },
     "14_level_complete": {
-      "rgb_sha256": "81d4277ec0e4eddb066c04d6bd1193825bbf4e8a9495a07b65538c65edddce5e",
-      "rom_sha256": "048b5477dca8133c56bf18bc355200a7543b82d27f81376d0b2ae1abcb7719a4",
+      "rgb_sha256": "9b2cfafa3870d06be84e7a652723467d4b9fff1d915dd905f1794be7ef7eae7c",
+      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T03:16:41+00:00",
+      "accepted_at": "2026-09-22T18:33:55+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "First goldens of the textured profile (LUPINE3D_TEXTURED_WALLS=1): the emitted row-window kernel with depth shading, exact against texture_reference.compose_kernel on every validated update; see docs/TEXTURED_WALLS.md"
+      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
     }
   }
 }

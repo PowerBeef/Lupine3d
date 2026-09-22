@@ -196,8 +196,8 @@
       "frames": [
         "idle",
         "recoil",
-        "pump_back",
-        "pump_forward",
+        "action_back",
+        "action_forward",
         "recovery"
       ],
       "ticks": [
@@ -233,7 +233,7 @@
           197
         ]
       ],
-      "sha256": "5aadb2e7f6845e2f4cb11a9685516a1ffec9f5d468ea98e7c64ba4adda6cea00"
+      "sha256": "81ecce3136ec86a59c99c159fb2d40e4b07b2bc828d8140b21987d796636e0fb"
     },
     "helmet": {
       "file": "native/helmet.png",
@@ -528,6 +528,150 @@
         ]
       ],
       "sha256": "c9e595bbc583df33c95dbeae9970c98a9b1fd4fa50a9eeb444ea64c3d59bc362"
+    },
+    "slug_rifle": {
+      "file": "native/slug_rifle.png",
+      "size": [
+        32,
+        32
+      ],
+      "frames": [
+        "idle",
+        "recoil",
+        "action_back",
+        "action_forward",
+        "recovery"
+      ],
+      "ticks": [
+        0,
+        4,
+        6,
+        6,
+        8
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "f2f3138fc7c30cd70b2a6ebc7bf68fd0fb6521885e24fc4f81adff7ddf5f33c5"
+    },
+    "arc_lance": {
+      "file": "native/arc_lance.png",
+      "size": [
+        32,
+        32
+      ],
+      "frames": [
+        "idle",
+        "recoil",
+        "action_back",
+        "action_forward",
+        "recovery"
+      ],
+      "ticks": [
+        0,
+        4,
+        6,
+        6,
+        8
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "fdd2248fb83572491d5bd659fda6f2a1304ce47937eff47c98b3589d66abd0df"
+    },
+    "pulse_carbine": {
+      "file": "native/pulse_carbine.png",
+      "size": [
+        32,
+        32
+      ],
+      "frames": [
+        "idle",
+        "recoil",
+        "action_back",
+        "action_forward",
+        "recovery"
+      ],
+      "ticks": [
+        0,
+        4,
+        6,
+        6,
+        8
+      ],
+      "anchor": [
+        16,
+        32
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "b0ee0d3aa1b43902acb77871500d5ee2e965b4c785b5f52e7fa92a626560abc1"
     }
   },
   "preview_note": "Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence."

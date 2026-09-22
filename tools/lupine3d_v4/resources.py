@@ -285,9 +285,15 @@ SLUG_CELS = (dict(), dict(recoil=3, flare=True), dict(recoil=2, bolt=5),
 
 
 def make_slug_tiles() -> bytes:
-    """The second weapon, in the 8x16 pair order the weapon window expects."""
+    """The second weapon, in the 8x16 pair order the weapon window expects.
+
+    Under the Sable profile every weapon is a native sheet rendered by
+    `tools/draw_weapons.py`; the legacy profile keeps its single drawn cel."""
+    if SABLE_ART:
+        from .sprite_assets import compile_sheet
+        return compile_sheet('slug_rifle', paired=True)
     out = bytearray()
-    for cel in SLUG_CELS[:5 if SABLE_ART else 1]:
+    for cel in SLUG_CELS[:1]:
         px = [[0] * 32 for _ in range(32)]
         _slug_frame(px, **cel)
         tiles = _split_pixels(px, 32, 32)
