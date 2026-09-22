@@ -26,13 +26,14 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | banks 146-153 (`$4000` in 146 to `$8000` in 153) | 131,072 | product table | persistent |
 | bank 154 `$4000-$8000` | 16,384 | inactive atlas | persistent |
 | bank 155 `$4000-$8000` | 16,384 | reserved (levels now carry their own segment/surface records) | persistent |
-| bank 156 `$4000-$760A` | 13,834 | boot art and authored state | persistent |
+| bank 156 `$4000-$6C0A` | 11,274 | boot art and authored state | persistent |
 | banks 157-172 (`$4000` in 157 to `$8000` in 172) | 262,144 | Q14 directions | persistent |
 | banks 173-236 (`$4000` in 173 to `$8000` in 236) | 1,048,576 | prepared rays and packet padding | persistent |
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
 | bank 238 `$4000-$52D0` | 4,816 | cold raw vectors and camera-plane tables | persistent |
 | bank 240 `$4000-$8000` | 16,384 | songs and note periods | persistent |
 | banks 241-242 (`$4000` in 241 to `$4AB0` in 242) | 19,120 | campaign levels, 5 per bank in 2816-byte slots | persistent |
+| bank 245 `$4000-$5400` | 5,120 | weapon cel sheets, streamed into the OBJ window one at a time | persistent |
 
 ## Fixed WRAM (`$C000-$CFFF`)
 

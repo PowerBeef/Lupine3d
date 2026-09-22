@@ -1,4 +1,5 @@
-"""Two weapons in an eighty-pattern window, and what the trade between them is."""
+"""Four weapons in an eighty-pattern window, what the trade between them is, and
+which of them a sector puts in the player's hands."""
 import sys
 import unittest
 from pathlib import Path
@@ -32,12 +33,22 @@ class WeaponTableTests(unittest.TestCase):
         # Two damage has to be able to kill something the campaign fields.
         self.assertLessEqual(slug[DAMAGE], min(e.health for l in br.CAMPAIGN for e in l.entities))
 
-    def test_both_weapons_fill_the_same_pattern_window_exactly(self):
-        first, second = br.make_weapon_tiles(), br.make_slug_tiles()
-        self.assertEqual(len(first), br.WEAPON_TILE_BYTES)
-        self.assertEqual(len(second), br.WEAPON_TILE_BYTES)
+    def test_every_weapon_fills_the_same_pattern_window_exactly(self):
+        sheets = [payload for _, payload in br.make_weapon_assets()]
+        self.assertEqual(len(sheets), br.WEAPON_COUNT)
+        for sheet in sheets:
+            self.assertEqual(len(sheet), br.WEAPON_TILE_BYTES)
         self.assertEqual(br.WEAPON_PATTERNS, br.WEAPON_TILE_BYTES // 16)
-        self.assertNotEqual(first, second, "the two weapons must look different")
+        self.assertEqual(len(set(sheets)), br.WEAPON_COUNT, "every weapon must look different")
+        first, second = br.make_weapon_tiles(), br.make_slug_tiles()
+        # The sheets live in their own bank, in weapon order, and the source
+        # table the swap reads points at each one.
+        start = br.WEAPON_ROM_BANK * 0x4000
+        for index, sheet in enumerate(sheets):
+            offset = start + index * br.WEAPON_TILE_BYTES
+            self.assertEqual(self.rom[offset:offset + br.WEAPON_TILE_BYTES], sheet, index)
+            table = self.asm.labels["weapon_sources"] + index * 2
+            self.assertEqual(self.rom[table] | self.rom[table + 1] << 8, 0x4000 + index * br.WEAPON_TILE_BYTES)
         # Streaming is the only option: the window is one weapon's cels, and
         # the rest of bank 1's OBJ space is spoken for.
         self.assertEqual(br.WEAPON_TILE_BASE * 16 + br.WEAPON_TILE_BYTES,
@@ -59,7 +70,7 @@ class WeaponTableTests(unittest.TestCase):
 class WeaponSwapTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.rom, cls.asm, _ = br.make_rom()
+        cls.rom, cls.asm, cls.manifest = br.make_rom()
 
     @staticmethod
     def _window(cgb):
@@ -116,6 +127,43 @@ class WeaponSwapTests(unittest.TestCase):
         self.assertGreater(recovery, 0, "the slug rifle fired with no recovery at all")
         self.assertLessEqual(recovery, self.rom[self.asm.labels["weapon_stats"]
                                                 + br.WEAPON_STAT_BYTES + COOLDOWN])
+
+    def test_the_arsenal_follows_the_sector_and_select_skips_what_is_not_owned(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        # Sector 1 owns the first two weapons: SELECT cycles between them.
+        self.assertEqual(cgb.read8(br.WEAPONS_OWNED), 0b0011)
+        seen = []
+        for _ in range(3):
+            self._press(cgb, 0x40)
+            seen.append(cgb.read8(br.WEAPON_INDEX))
+        self.assertEqual(seen, [1, 0, 1])
+        # With the whole arsenal owned SELECT walks all four, each streaming
+        # its own sheet into the same window. WEAPONS_OWNED is a fixed-WRAM
+        # campaign scalar, so the test may set it directly.
+        cgb.write8(br.WEAPONS_OWNED, (1 << br.WEAPON_COUNT) - 1)
+        sheets = [payload for _, payload in br.make_weapon_assets()]
+        for expected in (2, 3, 0, 1):
+            self._press(cgb, 0x40)
+            self.assertEqual(cgb.read8(br.WEAPON_INDEX), expected)
+            self.assertEqual(cgb.read8(br.WEAPON_RELOAD), 0, "the swap was never serviced")
+            self.assertEqual(self._window(cgb), sheets[expected], expected)
+        # Only the weapon in hand owned: SELECT gives up without a swap.
+        cgb.write8(br.WEAPONS_OWNED, 1 << 1)
+        self._press(cgb, 0x40)
+        self.assertEqual(cgb.read8(br.WEAPON_INDEX), 1)
+        self.assertEqual(cgb.read8(br.WEAPON_RELOAD), 0)
+
+    def test_a_weapon_no_longer_owned_drops_to_the_first_on_load(self):
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.write8(br.WEAPONS_OWNED, 0xFF)
+        cgb.write8(br.WEAPON_INDEX, 3)
+        cgb.rom_bank = 1
+        cgb.call_subroutine("load_level", max_steps=4_000_000)
+        # Sector 1 owns two weapons, so the arsenal is rebuilt from the sector
+        # and the fourth weapon in hand is put down.
+        self.assertEqual(cgb.read8(br.WEAPONS_OWNED), 0b0011)
+        self.assertEqual(cgb.read8(br.WEAPON_INDEX), 0)
+        self.assertEqual(br.WEAPON_UNLOCK_SECTORS, (0, 0, 6, 12))
 
     def test_the_weapon_stays_in_hand_across_a_level_load(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))

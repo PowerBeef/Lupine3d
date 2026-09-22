@@ -240,15 +240,26 @@ regression contract.
 
 ## Weapons
 
-- Two weapons share one eighty-pattern window at `$8200` in VRAM bank 1, so
-  only one is resident. SELECT swaps them and `service_weapon_swap` streams the
-  other's cels in as a single GDMA **with the LCD off**, from the main loop
-  once the frame is published. A transfer with the LCD on is part of a frame's
-  publication to the console and to the harness; this is a VRAM re-upload, and
-  the controller route refuses the frame if it is done the other way.
+- Four weapons (`WEAPON_COUNT`, a power of two: the index is masked) share
+  one eighty-pattern window at `$8200` in VRAM bank 1, so only one is
+  resident. Their cel sheets live in `WEAPON_ROM_BANK` (245) in weapon order
+  and `weapon_source` reads a resident pointer table; `init_vram` and
+  `service_weapon_swap` map that bank only for the copy and put the boot
+  bank or bank 1 back. SELECT walks to the next **owned** weapon
+  (`swap_weapon` tries the other three and gives up without a swap when
+  none is owned) and `service_weapon_swap` streams its cels in as a single
+  GDMA **with the LCD off**, from the main loop once the frame is
+  published. A transfer with the LCD on is part of a frame's publication to
+  the console and to the harness; this is a VRAM re-upload, and the
+  controller route refuses the frame if it is done the other way.
+- `WEAPONS_OWNED` is a bit per weapon that `load_level` derives from
+  `LEVEL_INDEX` and `WEAPON_UNLOCK_SECTORS` (0, 0, 6, 12), so a continue
+  code restores the arsenal for free and one that moves backwards takes a
+  weapon away; a weapon in hand that is no longer owned drops to the first.
 - Pattern IDs never change, only their contents, so no OAM is rewritten and the
-  animation code is weapon-agnostic. Both weapons must compile to exactly
-  `WEAPON_TILE_BYTES`.
+  animation code is weapon-agnostic. Every weapon must compile to exactly
+  `WEAPON_TILE_BYTES`; the sheets are reductions of the SVG illustrations in
+  `assets/sable_v2/vector/` (`docs/ART_PIPELINE.md`).
 - `weapon_stats` gives each weapon damage and recovery in simulation ticks. The
   shotgun's record is the engine's original behaviour exactly — one damage, no
   recovery — so a change there is a change to every existing measurement.

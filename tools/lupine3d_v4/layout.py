@@ -350,10 +350,19 @@ TEX_DIRECTORY_L = LEVEL_PAGE + 1        # u16: the level's texture block directo
 TEX_DIRECTORY_H = TEX_DIRECTORY_L + 1
 CAMPAIGN_SCALARS_END = TEX_DIRECTORY_H + 1
 assert CAMPAIGN_SCALARS_END <= 0xC800, "campaign scalars overrun the OAM shadow"
-WEAPON_COUNT = 2
+WEAPON_COUNT = 4                        # a power of two: the index is masked
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
 WEAPON_PATTERNS = WEAPON_TILE_BYTES // 16
+# The four cel sheets share one ROM bank of their own; weapon_source hands
+# the swap and init_vram a pointer into it, and both map it only for the copy.
+WEAPON_ROM_BANK = 245
+WEAPON_SHEET_LABELS = ("weapon_tiles", "slug_tiles", "arc_tiles", "pulse_tiles")
+# The sector (LEVEL_INDEX) from which each weapon is owned: load_level derives
+# WEAPONS_OWNED from the index, so a continue code restores the arsenal for
+# free and a code that moves backwards can take a weapon away.
+WEAPON_UNLOCK_SECTORS = (0, 0, 6, 12)
+assert len(WEAPON_UNLOCK_SECTORS) == WEAPON_COUNT == len(WEAPON_SHEET_LABELS) and WEAPON_COUNT & (WEAPON_COUNT - 1) == 0
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.
 #

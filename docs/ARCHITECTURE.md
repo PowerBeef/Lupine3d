@@ -258,7 +258,12 @@ damage only: half, as authored, or one and a half.
 The weapon window is eighty OBJ patterns at `$8200` in VRAM bank 1, and that is
 one weapon's five cels exactly — the reticle and muzzle take the next four and
 the masked pool owns the thirty-two below. Two weapons cannot both be resident,
-so SELECT streams the other one's cels in as a single GDMA of eighty blocks.
+so SELECT streams the next owned one's cels in as a single GDMA of eighty
+blocks. The four cel sheets share ROM bank `WEAPON_ROM_BANK` in weapon order
+and `weapon_source` reads a resident pointer table; ownership is a bit per
+weapon that `load_level` derives from the sector (`WEAPON_UNLOCK_SECTORS`),
+so a continue code carries the arsenal and a weapon no longer owned is put
+down on load.
 
 The pattern IDs never change, only their contents, so no OAM is rewritten and
 the animation code is weapon-agnostic. The transfer runs from the main loop

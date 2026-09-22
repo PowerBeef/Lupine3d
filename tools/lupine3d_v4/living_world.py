@@ -55,6 +55,17 @@ def emit_level_loader(a: Assembler) -> None:
     # in fixed WRAM and so readable under any bank.
     a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
     a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
+    # The arsenal follows the sector (WEAPON_UNLOCK_SECTORS), so a continue
+    # code restores it for free and one that moves backwards takes a weapon
+    # away; a weapon in hand that is no longer owned drops to the first.
+    a.ld_a_abs(LEVEL_INDEX); a.ld_r_n("b", 0b0011)
+    for index in range(2, WEAPON_COUNT):
+        a.cp_n(WEAPON_UNLOCK_SECTORS[index]); a.jr("weapons_owned_ready", "c"); a.ld_r_n("b", (2 << index) - 1)
+    a.label("weapons_owned_ready"); a.ld_r_r("a", "b"); a.ld_abs_a(WEAPONS_OWNED)
+    a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "weapon_bit_masks"); a.add_hl_rr("de"); a.ld_a_hl(); a.and_r("b"); a.jr("weapon_in_hand_owned", "nz")
+    a.xor_r("a"); a.ld_abs_a(WEAPON_INDEX)
+    a.label("weapon_in_hand_owned")
     # The first sector is the start of a run: a death retries a sector and
     # keeps the totals, a continue code starts them from where it drops you.
     a.ld_a_abs(LEVEL_INDEX); a.or_r("a"); a.jr("load_level_totals_kept", "nz")

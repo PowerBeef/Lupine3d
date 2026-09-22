@@ -43,8 +43,9 @@ Kinds share the Sentinel's cels; a kind is stats plus an OBJ palette.
 
 ## Add a weapon
 
-Two weapons share one eighty-pattern window at `$8200` in VRAM bank 1; SELECT
-swaps them with the LCD off.
+Four weapons share one eighty-pattern window at `$8200` in VRAM bank 1; SELECT
+walks to the next owned one with the LCD off. The count is a power of two
+(the index is masked), so a fifth weapon means eight slots.
 
 1. Art: an SVG illustration in `assets/sable_v2/vector/` drawn in cel units
    with the three weapon tones and the `action`/`flare`/`gun` groups, reduced
@@ -54,9 +55,11 @@ swaps them with the LCD off.
 2. `weapon_stats` in `build_rom.py`: damage and recovery ticks. The shotgun's
    record is the engine's original behaviour and every measurement's
    baseline, so change the new record only.
-3. `WEAPON_COUNT` in `layout.py` and the tile source selection next to
-   `service_weapon_swap` in `emitter.py` (the swap is one GDMA of the cel
-   sheet, from the main loop, with the LCD off).
+3. `WEAPON_COUNT`, `WEAPON_SHEET_LABELS` and `WEAPON_UNLOCK_SECTORS` in
+   `layout.py`, the sheet maker in `make_weapon_assets` (`build_rom.py`, the
+   sheets share `WEAPON_ROM_BANK`) and the manifest entry in
+   `assets/sable_v2/assets.json`. The swap itself is weapon-agnostic: one GDMA
+   of the cel sheet, from the main loop, with the LCD off.
 4. `make test playtest-art`, `python tools/check_sable.py`, both cores
    (`make sameboy mgba`) because the swap is an LCD-off VRAM upload, and
    accept the new goldens with a note.

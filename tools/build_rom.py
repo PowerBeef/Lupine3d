@@ -18,7 +18,7 @@ from lupine3d_v4.living_world import *  # noqa: F401,F403
 # living_world re-exports the compatibility layout namespace. Reassert the
 # current art generators after that import so the frozen v0.1 helpers cannot
 # shadow the active industrial-gothic UI and weapon assets.
-from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles, make_slug_tiles  # noqa: E402
+from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles, make_slug_tiles, make_arc_tiles, make_pulse_tiles  # noqa: E402
 from lupine3d_v4.bank_safety import check_bank_safety
 from lupine3d_v4.precision import make_q14_directions, emit_precision
 from lupine3d_v4.actor_precision import emit_actor_precision
@@ -94,10 +94,20 @@ def make_palette_sets(bg_values: list[int], obj_values: list[int]) -> list[tuple
     return sets
 
 
+def make_weapon_assets() -> list[tuple[str, bytes]]:
+    """The four weapon cel sheets, in WEAPON_ROM_BANK in weapon order; every
+    sheet is exactly the streamed window."""
+    sheets = [(name, maker()) for name, maker in zip(
+        WEAPON_SHEET_LABELS, (make_weapon_tiles, make_slug_tiles, make_arc_tiles, make_pulse_tiles))]
+    for name, payload in sheets:
+        assert len(payload) == WEAPON_TILE_BYTES, f"{name}: a weapon sheet is exactly the pattern window"
+    return sheets
+
+
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
     return [
-        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("weapon_tiles", make_weapon_tiles()), ("slug_tiles", make_slug_tiles()), ("obj_ui_tiles", make_obj_ui_tiles()),
+        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("obj_ui_tiles", make_obj_ui_tiles()),
         ("static_view_tiles", make_static_view_tiles()),
         ("active_atlas_tiles", ACTIVE_ATLAS_TILES),
         ("entity_tiles", make_entity_tiles()), ("oam_initial", make_oam_shadow()),
@@ -378,7 +388,13 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # before it can fire again. The shotgun keeps the engine's original
     # behaviour exactly - one damage, no wait - so the trade is the slug
     # rifle's alone: twice the damage for a long enough pause to feel it.
-    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15)), "damage and cooldown per weapon")
+    # The shotgun (1, 0) is the engine's original behaviour and every
+    # measurement's baseline; the slug rifle trades time for damage; the arc
+    # lance is the heavy, slow discharge; the pulse carbine a quick double hit.
+    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15, 4, 40, 2, 6)), "damage and cooldown per weapon")
+    a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
+    a.label("weapon_sources")
+    for name in WEAPON_SHEET_LABELS: a.dw_label(name)
     a.label("password_codes"); a.bytes(bytes(
         digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),
         "four-digit continue code per sector and skill")
@@ -389,6 +405,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         a.labels[name] = cold_address; bank_bound_labels[name] = BOOT_ASSETS_ROM_BANK
         cold_address += len(payload)
     assert cold_address <= 0x8000, "cold boot assets exceed one MBC5 bank"
+    weapon_address = 0x4000
+    for name, payload in make_weapon_assets():
+        a.labels[name] = weapon_address; bank_bound_labels[name] = WEAPON_ROM_BANK
+        weapon_address += len(payload)
+    assert weapon_address <= 0x8000, "weapon sheets exceed their MBC5 bank"
 
     wall_light, wall_dark = rgb15(14, 17, 18), rgb15(6, 9, 11)
     bg_palette_values = [
@@ -521,6 +542,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "engine_size": len(code),
         "memory_budget": {
             "fixed_code_end": a.labels["resident_data"],
+            "weapon_bank": WEAPON_ROM_BANK,
+            "weapon_count": WEAPON_COUNT,
+            "weapon_unlock_sectors": list(WEAPON_UNLOCK_SECTORS),
             "cold_assets_bank": BOOT_ASSETS_ROM_BANK,
             "cold_assets_bytes": cold_address - 0x4000,
             "resident_free_bytes": 0x8000 - (a.origin + len(code)),
@@ -815,6 +839,9 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     boot_payload = b"".join(payload for _, payload in make_boot_assets())
     boot_start = BOOT_ASSETS_ROM_BANK * 0x4000
     rom[boot_start:boot_start + len(boot_payload)] = boot_payload
+    weapon_payload = b"".join(payload for _, payload in make_weapon_assets())
+    weapon_start = WEAPON_ROM_BANK * 0x4000
+    rom[weapon_start:weapon_start + len(weapon_payload)] = weapon_payload
     raw_ray_payload = b"".join(payload for _, payload in make_raw_ray_assets(make_tables()))
     raw_ray_start = RAW_RAY_ROM_BANK * 0x4000
     rom[raw_ray_start:raw_ray_start + len(raw_ray_payload)] = raw_ray_payload

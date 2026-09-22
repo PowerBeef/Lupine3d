@@ -180,14 +180,25 @@ def emit_vram_init(a: Assembler) -> None:
     a.label("weapon_damage")     # A = what one hit takes off
     a.call("weapon_record"); a.ld_a_hl(); a.ret()
 
-    a.label("weapon_source")     # HL -> this weapon's cels in the boot bank
-    a.ld_a_abs(WEAPON_INDEX); a.or_r("a")
-    a.ld_rr_label("hl", "weapon_tiles"); a.ret("z")
-    a.ld_rr_label("hl", "slug_tiles"); a.ret()
+    a.label("weapon_source")     # HL -> this weapon's cels in WEAPON_ROM_BANK (clobbers A, DE)
+    a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1); a.add_a_r("a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "weapon_sources"); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("h", "a"); a.ld_r_r("l", "e"); a.ret()
 
-    a.label("swap_weapon")       # the patterns follow at the next free VBlank
-    a.ld_a_abs(WEAPON_INDEX); a.inc_r("a"); a.and_n(WEAPON_COUNT - 1)
-    a.ld_abs_a(WEAPON_INDEX)
+    a.label("swap_weapon")       # to the next owned weapon; the patterns follow from the main loop
+    # WEAPONS_OWNED is a bit per weapon (load_level derives it from the
+    # sector). The walk tries the other three in order and gives up without
+    # a swap when none is owned, so a stray ownership byte cannot spin.
+    a.ld_a_abs(WEAPON_INDEX); a.ld_r_r("c", "a"); a.ld_r_n("b", WEAPON_COUNT - 1)
+    a.label("swap_weapon_next")
+    a.inc_r("c"); a.ld_r_r("a", "c"); a.and_n(WEAPON_COUNT - 1); a.ld_r_r("c", "a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "weapon_bit_masks"); a.add_hl_rr("de")
+    a.ld_a_abs(WEAPONS_OWNED); a.ld_r_r("d", "a"); a.ld_a_hl(); a.and_r("d"); a.jr("swap_weapon_found", "nz")
+    a.dec_r("b"); a.jr("swap_weapon_next", "nz")
+    a.ret()
+    a.label("swap_weapon_found")
+    a.ld_r_r("a", "c"); a.ld_abs_a(WEAPON_INDEX)
     a.ld_r_n("a", 1); a.ld_abs_a(WEAPON_RELOAD)
     a.xor_r("a"); a.ld_abs_a(WEAPON_COOLDOWN)
     a.jp("sound_swap")
@@ -215,7 +226,7 @@ def emit_vram_init(a: Assembler) -> None:
     a.call("lcd_off")
     a.pop("bc"); a.pop("hl")
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
-    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
+    a.ld_r_n("a", WEAPON_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_r_r("a", "h"); a.ldh_n_a(HDMA1); a.ld_r_r("a", "l"); a.ldh_n_a(HDMA2)
     a.ld_r_n("a", ((0x8000 + WEAPON_TILE_BASE * 16) >> 8) & 0x1F); a.ldh_n_a(HDMA3)
     a.ld_r_n("a", (WEAPON_TILE_BASE * 16) & 0xF0); a.ldh_n_a(HDMA4)
@@ -258,7 +269,11 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     if not TEXTURED_WALLS: a.call("upload_profile_tiles")
+    # The weapon in hand comes from the weapon bank; the boot bank comes back
+    # for the UI objects that follow.
+    a.ld_r_n("a", WEAPON_ROM_BANK); a.ld_abs_a(0x2000)
     a.call("weapon_source"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
+    a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")

@@ -284,10 +284,23 @@ SLUG_CELS = (dict(), dict(recoil=3, flare=True), dict(recoil=2, bolt=5),
              dict(recoil=1, bolt=2), dict())
 
 
+def make_arc_tiles() -> bytes:
+    """The third weapon, the arc lance: the reduction of its illustration;
+    the legacy profile carries its first cel alone."""
+    from .sprite_assets import compile_sheet, compile_frame
+    return compile_sheet('arc_lance', paired=True) if SABLE_ART else compile_frame('arc_lance', 0, paired=True)
+
+
+def make_pulse_tiles() -> bytes:
+    """The fourth weapon, the pulse carbine, likewise."""
+    from .sprite_assets import compile_sheet, compile_frame
+    return compile_sheet('pulse_carbine', paired=True) if SABLE_ART else compile_frame('pulse_carbine', 0, paired=True)
+
+
 def make_slug_tiles() -> bytes:
     """The second weapon, in the 8x16 pair order the weapon window expects.
 
-    Under the Sable profile every weapon is a native sheet rendered by
+    Under the Sable profile every weapon is a native sheet reduced by
     `tools/draw_weapons.py`; the legacy profile keeps its single drawn cel."""
     if SABLE_ART:
         from .sprite_assets import compile_sheet

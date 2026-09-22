@@ -29,6 +29,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("ROM", l.BANKED_ATLAS_ROM_BANK * 0x4000, (l.BANKED_ATLAS_ROM_BANK + 1) * 0x4000, "inactive atlas"),
         A("ROM", l.SEGMENT_TABLE_ROM_BANK * 0x4000, (l.SEGMENT_TABLE_ROM_BANK + 1) * 0x4000, "reserved (levels now carry their own segment/surface records)"),
         A("ROM", l.BOOT_ASSETS_ROM_BANK * 0x4000, l.BOOT_ASSETS_ROM_BANK * 0x4000 + boot_bytes, "boot art and authored state"),
+        A("ROM", l.WEAPON_ROM_BANK * 0x4000, l.WEAPON_ROM_BANK * 0x4000 + l.WEAPON_COUNT * l.WEAPON_TILE_BYTES,
+          "weapon cel sheets, streamed into the OBJ window one at a time"),
         A("ROM", l.Q14_ROM_BANK * 0x4000, l.Q14_ROM_BANK * 0x4000 + l.Q14_ROM_BYTES, "Q14 directions"),
         A("ROM", l.RAY_SETUP_ROM_BANK * 0x4000, l.RAY_SETUP_ROM_BANK * 0x4000 + l.RAY_SETUP_ROM_BYTES, "prepared rays and packet padding"),
         A("ROM", 237 * 0x4000, 237 * 0x4000 + l.MICRO_STATE_COUNT*384, "unfolded diagnostic strips (reserved)"),
