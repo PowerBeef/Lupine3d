@@ -730,22 +730,29 @@ def make_projection_top_lut() -> bytes:
     Each record contains (top, saturated perpendicular Q5 depth). Sixteen
     1024-byte slices fit each MBC5 bank. Live components are only 0..127, so
     retaining depth costs no additional ROM compared with the old table.
-    Component zero is populated defensively even though an axial hit always
-    selects the other non-zero vector component.
+
+    Component zero is reachable: the Q8 direction of an exactly axial ray
+    (angle index 256 or 768, 0 or 512) has a zero component, but the Q14
+    crossing order the traversal follows can still carry it across the plane
+    that component is perpendicular to, and the hit then selects it. A ray
+    parallel to a face cannot measure its distance, so those slices saturate
+    to the far clamp exactly as `reference._reference_cast_hit` does; before
+    they were filled as if the component were one, which projected a
+    full-height column (top 0, depth 0) in the middle of a far wall. The
+    eighteen-sector route found it in Reactor Heart.
     """
     projection = make_tables()["projection_half"]
     out = bytearray(PROJECTION_LUT_BYTES)
     cursor = 0
     for component in range(PROJECTION_LUT_COMPONENTS):
-        safe_component = max(1, component)
         for correction in range(
             PROJECTION_LUT_CORRECTION_MIN,
             PROJECTION_LUT_CORRECTION_MIN + PROJECTION_LUT_CORRECTION_COUNT,
         ):
             for distance in range(PROJECTION_LUT_DISTANCES):
-                perpendicular = min(
+                perpendicular = 511 if component == 0 else min(
                     511,
-                    (distance * correction + safe_component // 2) // safe_component,
+                    (distance * correction + component // 2) // component,
                 )
                 out[cursor] = HORIZON - projection[perpendicular]
                 out[cursor + 1] = min(255, perpendicular)

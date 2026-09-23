@@ -93,8 +93,14 @@ def level_rom_offset(index: int) -> int:
     return bank * 0x4000 + (page << 8)
 # The campaign, in order. LUPINE3D_LEVEL still selects a single level for
 # diagnostic and research builds; that build is a one-level campaign.
+# Three episodes of six sectors: Sable Outpost, Reactor Deep, Signal Spire.
+# The order is the campaign, the continue-code table and the level directory.
 CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json",
-                  "vent_stacks.json", "signal_deck.json", "cryo_vault.json")
+                  "vent_stacks.json", "signal_deck.json", "cryo_vault.json",
+                  "coolant_intake.json", "pump_gallery.json", "turbine_hall.json",
+                  "coolant_dark.json", "control_gallery.json", "reactor_heart.json",
+                  "antenna_base.json", "relay_deck.json", "hull_walk.json",
+                  "signal_vault.json", "transmitter_ring.json", "spire_crown.json")
 
 
 @dataclass(frozen=True)
@@ -449,13 +455,25 @@ def _validate_keycard_gates(
     unauthored = declared - dropped
     if unauthored:
         raise ValueError(f"declared drops no actor leaves: {sorted(unauthored)}")
+    passable = _passable_cells(grid, width, height)
+    # Every actor stands on a walkable cell the player can walk to with the
+    # Sentinel-locked doors shut, whether or not the level has a card door:
+    # those doors open only once every actor is dead, so an actor behind one
+    # (or inside a wall) can never be engaged and the route would deadlock.
+    locked = {(door.x, door.y) for door in doors if door.flags & DOOR_FLAG_LOCK_SENTINEL}
+    engageable = _reachable_cells(passable - locked, start)
+    for entity in entities:
+        cell = (entity.x_q8 >> 8, entity.y_q8 >> 8)
+        if grid[cell[1] * width + cell[0]] != 0:
+            raise ValueError(f"actor at cell {cell} is not on a walkable cell")
+        if cell not in engageable:
+            raise ValueError(f"actor at cell {cell} is behind a Sentinel-locked door or unreachable")
     if not keyed:
         if "keycard" in declared:
             raise ValueError("a declared keycard drop opens nothing in this level")
         return
     if "keycard" not in declared:
         raise ValueError("a keycard door needs the level to declare its card drop")
-    passable = _passable_cells(grid, width, height)
     # Every keycard door is a wall until the card is in hand.
     without_cards = passable - {(door.x, door.y) for door in keyed}
     before = _reachable_cells(without_cards, start)
@@ -466,10 +484,6 @@ def _validate_keycard_gates(
     ]
     if not carriers:
         raise ValueError("no card-dropping actor is reachable with the keycard doors shut")
-    everywhere = _reachable_cells(passable, start)
-    for entity in entities:
-        if (entity.x_q8 >> 8, entity.y_q8 >> 8) not in everywhere:
-            raise ValueError("every actor must be reachable once the doors are open")
 
 
 def analyze_level_readability(

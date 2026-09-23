@@ -96,11 +96,10 @@ class EnemyKindTests(unittest.TestCase):
                                  ENTITY_KIND_IDS[entity.kind], (level.name, slot))
             bank = br.level_rom_offset(index) + br.LEVEL_ACTOR_OFFSET - 0x4000
             self.assertEqual(self.rom[bank:bank + len(records)], records, level.name)
-        # The campaign actually uses the variety it can express; the boss
-        # arrives with the episode-closing sectors.
+        # The campaign actually uses the variety it can express, the boss
+        # included (the episode-closing sectors field one).
         kinds = {entity.kind for level in br.CAMPAIGN for entity in level.entities}
-        self.assertLessEqual({"sentinel", "skirmisher", "warden"}, kinds)
-        self.assertLessEqual(kinds, set(ENTITY_KIND_IDS))
+        self.assertEqual(kinds, set(ENTITY_KIND_IDS))
 
     def test_a_level_may_field_a_boss_and_it_leaves_a_medkit(self):
         source = json.loads((ROOT / "levels" / "cryo_vault.json").read_text())

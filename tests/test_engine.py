@@ -453,10 +453,12 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(len(lut), br.PROJECTION_LUT_BYTES)
         start = br.PROJECTION_LUT_BASE_BANK * 0x4000
         self.assertEqual(self.rom[start:start + len(lut)], lut)
-        for component in (1, 2, 63, 127):
+        for component in (0, 1, 2, 63, 127):
             for correction in (110, 118, 127):
                 for distance in (0, 1, 31, 255, 256, 511):
-                    perpendicular = min(511, (distance * correction + component // 2) // component)
+                    # A zero component is a ray parallel to the face it hit:
+                    # no distance can be measured, so the slice saturates.
+                    perpendicular = 511 if component == 0 else min(511, (distance * correction + component // 2) // component)
                     expected = 48 - projection[perpendicular]
                     index = (
                         (component * br.PROJECTION_LUT_CORRECTION_COUNT
@@ -526,6 +528,26 @@ class Lupine3DTests(unittest.TestCase):
                 self.assertEqual(cgb.read8(br.STYLE_RESULT), expected.style)
                 self.assertEqual(cgb.read8(br.FACE_RESULT), expected.face_key)
                 self.assertEqual(cgb.read8(br.ALONG_RESULT), expected.along)
+
+    def test_axial_ray_carried_across_the_perpendicular_plane_projects_far(self) -> None:
+        """A ray whose Q8 direction is exactly axial can still cross the
+        plane its zero component is perpendicular to, because the traversal
+        follows the finer Q14 crossing order. The projection then reads the
+        component-zero slice, which must saturate like the host model: the
+        old table filled it as if the component were one and drew a
+        full-height column in the middle of a far wall (Reactor Heart,
+        sector 12 of the eighteen-sector route)."""
+        cgb = self.boot_to_main()
+        for x_q8, y_q8, angle, ray_index in ((640, 1023, 1, 38), (2176, 1791, 1, 38)):
+            with self.subTest(pose=(x_q8, y_q8, angle), ray=ray_index):
+                expected = br.reference_cast_hit(x_q8, y_q8, angle, ray_index)
+                self.assertEqual(expected.dx if expected.axis == 0 else expected.dy, 0)
+                self.assertEqual(expected.depth_q5, 255)
+                self.set_pose(cgb, x_q8, y_q8, angle)
+                cgb.write8(br.CAST_INDEX, ray_index)
+                cgb.call_subroutine("cast_indexed")
+                self.assertEqual((cgb.read8(br.TOP_RESULT), cgb.read8(br.DEPTH_RESULT), cgb.read8(br.STYLE_RESULT)),
+                                 (expected.top, expected.depth_q5, expected.style))
 
     def test_rom_adaptive_and_compositor_match_host_pose_corpus(self) -> None:
         cgb = self.boot_to_main()

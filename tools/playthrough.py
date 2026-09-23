@@ -5,6 +5,8 @@ This is an automated route/combat test, not a blind human legibility study.
 Every completed image is checked against the geometry/compositor host models.
 The route plays the whole campaign: every sector is cleared, every drop is
 collected and every intermission is crossed on controller input alone.
+`LUPINE3D_ROUTE_DEBUG=1` traces every combat exchange; a death report names
+the sector, and `--sectors N-N` replays that sector alone from its code.
 """
 from __future__ import annotations
 import argparse
@@ -12,6 +14,7 @@ from collections import deque
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 
 import build_rom as br
@@ -87,7 +90,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
     if first > 1:
         enter_sector(cgb, first - 1)
     run_to_world(cgb)
-    watchdog = 1200 * (last - first + 1)
+    # A budget, not a gate: the later episodes are three-by-three room grids
+    # with up to six actors and six doors, and their measured sectors run to
+    # about 3,900 updates against episode one's 350-1,300. A chunk of three
+    # spends its budget as a whole, so one long sector borrows from short ones.
+    watchdog = 3500 * (last - first + 1)
     records, captures, sectors = [], [], []
     # The route's captures are reviewable snapshots (suite `route`), recorded
     # rather than checked by default: where a capture lands depends on the
@@ -335,7 +342,9 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             return has_sight(target) or target["state"] in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK)
         return max(dx, dy) <= ENGAGEMENT_Q8 and has_sight(target)
 
+    DEBUG = bool(os.environ.get("LUPINE3D_ROUTE_DEBUG"))   # trace every exchange
     hold_aim = [False]  # set while an exchange has proved that kiting settles nothing
+    fired = [0]         # shots the current exchange has actually taken
 
     kind_stats = cgb.symbols.get("actor_kind_stats")
 
@@ -370,9 +379,15 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         # off a corner the actor may be pressed against.
         # Contact is cell adjacency: the ROM attacks when both cell deltas
         # are below two, whatever the fraction, so kite from inside two cells.
+        # Kite along the line of fire only: backing away while still turning
+        # towards the actor moves the route wherever it happens to face, and
+        # in Signal Deck that was into a doorway around a wall corner, where
+        # the line was lost before a shot went out, every exchange over.
         contact = abs(dx) < 512 and abs(dy) < 512 and not hold_aim[0]
-        return ((1 if delta > 0 else 2) if delta else 0) | (8 if contact else 0) | \
-               (16 if abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2 else 0)
+        retreat = contact and abs(delta) <= 16
+        shoot = abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2
+        fired[0] += shoot
+        return ((1 if delta > 0 else 2) if delta else 0) | (8 if retreat else 0) | (16 if shoot else 0)
 
     def firing_cell(actor):
         """The nearest reachable cell two to five cells from the actor with a
@@ -482,24 +497,37 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             hold_aim[0] = (fruitless.get(target["slot"], 0) >= 2 and survives_contact(target)
                            and target["state"] not in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK))
             start_health = live8(br.PLAYER_HEALTH)
+            fired[0] = 0
             record = {"update": len(records), "target": target["slot"], "kind": target["kind"],
                       "state": target["state"], "at": (target["x"], target["y"]), "from": (px, py),
                       "health": start_health, "target_health": target["health"],
                       "contact": contact, "hold": hold_aim[0]}
             while living() and engageable() and cgb.frame_count - exchange < (120 if contact else 300):
                 step(aiming)
+                if DEBUG:
+                    t = next((a for a in actors() if a["slot"] == target["slot"]), None)
+                    print("  exchange", len(records), "pose", pose(), "hp", live8(br.PLAYER_HEALTH), "target", t,
+                          "sight", t and has_sight(t), "walkable", t and path_to((t["x"] >> 8, t["y"] >> 8), reachable_only=True) is not None,
+                          "engageable", engageable(), "fired", fired[0], flush=True)
                 # Two contacts taken and nothing dealt: this line does not
                 # reach it, and every further frame here only costs health.
-                if (live8(br.PLAYER_HEALTH) <= start_health - 2 * contact_damage(target)
+                # Only once a shot has actually gone out, though: an exchange
+                # that was still turning to face a chaser has proved nothing,
+                # and leaving it turns the route away again, so the aim is
+                # never reached and every re-decision costs another contact.
+                # Signal Deck's last skirmisher killed the route that way.
+                if (fired[0] and live8(br.PLAYER_HEALTH) <= start_health - 2 * contact_damage(target)
                         and next((a["health"] for a in actors() if a["slot"] == target["slot"]), 0) == target["health"]):
                     record["decision"] = "cut short"
                     break
             hold_aim[0] = False
             survivor = nearest_living(walkable=True)
             after = next((a for a in actors() if a["slot"] == target["slot"]), target)
-            record.update(frames=cgb.frame_count - exchange, target_health_after=after["health"],
+            record.update(frames=cgb.frame_count - exchange, shots=fired[0], target_health_after=after["health"],
                           target_state_after=after["state"], health_after=live8(br.PLAYER_HEALTH))
             exchanges.append(record)
+            if DEBUG:
+                print(" record", record, flush=True)
             px, py, _ = pose()
             adjacent = abs((px >> 8) - (after["x"] >> 8)) <= 1 and abs((py >> 8) - (after["y"] >> 8)) <= 1
             if after["state"] != br.SENTINEL_DEAD and after["health"] == target["health"] and adjacent:

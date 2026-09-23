@@ -156,7 +156,17 @@ def main() -> None:
     world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
     art_playtest = json.loads((v2.BUILD / "playtest/sable_art_tour/report.json").read_text())
     current_sha = hashlib.sha256(v2_rom).hexdigest()
-    completion = json.loads((v2.BUILD / "playthrough/report.json").read_text())
+    # The route plays the campaign in episodes (CI's matrix); every report for
+    # the current ROM contributes its sectors, and together they must cover
+    # the campaign in order.
+    completion_sectors = {}
+    for report_path in sorted(v2.BUILD.glob("playthrough*/report.json")):
+        completion = json.loads(report_path.read_text())
+        if completion.get("rom_sha256") != hashlib.sha256(v2_rom).hexdigest():
+            continue
+        for sector in completion["sectors"]:
+            completion_sectors.setdefault(sector["index"], sector)
+    completion = {"sectors": [completion_sectors[index] for index in sorted(completion_sectors)]}
     folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
     reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
@@ -286,8 +296,8 @@ def main() -> None:
         ),
         "campaign_route_completed_every_sector": (
             len(completion["sectors"]) == int(v2_manifest["campaign_levels"])
-            and all(sector["name"] == level["name"]
-                    for sector, level in zip(completion["sectors"], v2_manifest["campaign"]))
+            and all(sector["index"] == index and sector["name"] == level["name"]
+                    for index, (sector, level) in enumerate(zip(completion["sectors"], v2_manifest["campaign"])))
         ),
         "signed_bg_allocation": bool(v2_manifest["signed_bg_tile_addressing"]),
         "folded_compositor_enabled": bool(v2_manifest["folded_compositor"]),

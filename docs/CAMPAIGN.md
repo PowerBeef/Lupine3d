@@ -193,3 +193,29 @@ Neither fault was reachable in the host harness, which zeroes WRAM and models
 the page flip from the same state the ROM does. That is what those lanes are
 for, and it is the first time in this work they have caught something the
 project's own model could not.
+
+## Three episodes
+
+The campaign is three episodes of six sectors, each with its own palette set
+(`docs/ART_PIPELINE.md`) and its own opening and closing screens
+(`AGENTS.md`, "Campaign, modes and screens"). Levels are packed five to a
+ROM bank from 241; the arsenal grows by episode (`WEAPON_UNLOCK_SECTORS`:
+the arc lance from sector 7, the pulse carbine from sector 13) and the
+continue codes carry it. The episode-closing sectors of Reactor Deep and
+Signal Spire field the boss kind.
+
+| Episode | Palette set | Sectors |
+|---|---|---|
+| 1 Sable Outpost | `outpost` | Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks, Signal Deck, Cryo Vault |
+| 2 Reactor Deep | `reactor` | Coolant Intake, Pump Gallery, Turbine Hall (keycard), Coolant Dark, Control Gallery, Reactor Heart (boss) |
+| 3 Signal Spire | `spire` | Antenna Base, Relay Deck (keycard), Hull Walk, Signal Vault (keycard), Transmitter Ring, Spire Crown (boss) |
+
+Every sector carries the same compiler certificate as the first six
+(`docs/LEVEL_CERTIFICATE.md`; `tests/test_campaign.py` pins it for all
+eighteen), and the controller route plays all of them: CI's slow lane plays
+episode one and a `campaign` matrix plays episodes two and three from their
+continue codes in three-sector chunks (`make playthrough SECTORS=7-9
+ROUTE_DIR=build/playthrough-ep2a`), the last chunk restarting the campaign
+from the ending. `release_check.py`
+unions the reports for the current ROM. Regenerating the continue-code table
+for eighteen sectors changed every code.

@@ -66,8 +66,11 @@ playtest-world:
 	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
 
 .PHONY: playthrough sameboy mgba variants wall-reuse motion snapshot snapshot-diff snapshot-accept
+# The whole campaign by default; SECTORS=A-B plays one range (an episode in
+# CI's matrix, one sector to reproduce a failure) into ROUTE_DIR.
+ROUTE_DIR ?= build/playthrough
 playthrough: build
-	$(PYTHON) tools/playthrough.py
+	$(PYTHON) tools/playthrough.py --output-dir $(ROUTE_DIR) $(if $(SECTORS),--sectors $(SECTORS)) $(if $(RESTART),--restart)
 
 # Golden-image snapshots (tools/snapshot.py). `snapshot` runs the fast suites
 # in check mode; `snapshot-diff` summarises the last run; `snapshot-accept`

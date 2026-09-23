@@ -229,8 +229,15 @@ class ModeMachineTests(unittest.TestCase):
         self.assertEqual(cgb.read8(br.GAME_MODE), expected_mode)
         self.assertTrue(self._advance(cgb, lambda: cgb.io[0x40] == 0x81), "no screen appeared")
         self.assertEqual(cgb.read8(0xFFFF), 1)
-        # START loads the selected level and returns to the world.
-        cgb.button_provider = lambda *_: 0x80
+        # START loads the selected level and returns to the world. Pressed
+        # as rising edges, not held: an intermission that crosses into the
+        # next episode shows that episode's closing and opening screens on
+        # the way, and each of them waits for a START of its own.
+        counter = {"n": 0}
+        def start_edges(*_):
+            counter["n"] += 1
+            return 0x80 if (counter["n"] // 4) % 2 else 0
+        cgb.button_provider = start_edges
         world = self.asm.labels["main_loop"]
         self.assertTrue(self._advance(
             cgb, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING and cgb.pc == world),

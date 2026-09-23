@@ -26,6 +26,7 @@ the first level's numbers (`walkable_level_cells`, `critical_path_steps`, ...).
 | Every material-3 cell has one door record and vice versa | door geometry is finite and shared by rays, hitscan, line of sight and collision |
 | Spawn cell walkable with `0x38` Q8 clearance at all four corners | the player must not start inside a wall |
 | Every actor at least `safe_radius_cells` walking steps from the spawn with doors closed, or unreachable | no contact damage before the first frame |
+| Every actor on a walkable cell the spawn reaches with the Sentinel-locked doors shut | those doors open only once every actor is dead, so an actor behind one, or inside a wall, could never be engaged and the route would deadlock |
 | Exit reachable from the spawn with doors open | the level can be finished |
 | Declared drops are ones the level's actors leave; a keycard door has a card an actor drops on the player's side of every keycard door | the route clears every actor and takes every drop before it walks to the exit, so an unreachable card would deadlock it |
 | One to six actors of known kinds, one to six doors, at most sixteen fixtures | actor slots, the wall key and the world OBJ budget are fixed engine limits; the renderer admits four actors per frame, so at most four share a sightline |

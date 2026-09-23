@@ -1,3 +1,23 @@
+# Unreleased
+
+- **Three episodes of six sectors.** Reactor Deep (sectors 7-12) and Signal
+  Spire (13-18) join Sable Outpost, each with its own palette set, opening and
+  closing screens, and a boss in its last sector; the arsenal grows to four
+  weapons by episode. The continue-code table now holds fifty-four codes,
+  which changes every code (`docs/CAMPAIGN.md`, "Three episodes").
+- **Weapon art** is drawn as vector illustrations and reduced
+  (`docs/ART_PIPELINE.md`).
+- **Engine fixes the eighteen-sector route found.** The projection table's
+  component-zero slice now saturates to the far clamp like the host model:
+  an exactly axial ray that the Q14 crossing order carried across the
+  perpendicular plane used to project a full-height column in the middle of
+  a far wall (every profile's ROM changes in banks 2-3; no accepted golden
+  shows the case). A medkit tops health up to 99 and no further (it
+  saturated at 255 and the HUD showed 141 as "41"). An actor strikes across
+  a diagonal only when the corner is clean, the same rule the player's shot
+  obeys. The compiler refuses an actor inside a wall or behind a
+  Sentinel-locked door, whether or not the level has a card door.
+
 # Lupine 3D v0.10 — The renderer streams
 
 v0.9 spent a whole LCD interval idle inside every full geometry update: the

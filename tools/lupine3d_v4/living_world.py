@@ -508,6 +508,17 @@ def emit_world_update(a: Assembler) -> None:
     a.label("ai_not_dormant")
     a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jr("ai_patrol", "z")
     a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
+    # Contact across a diagonal counts only when the corner is clean: both
+    # cells the two share a side with must be open. A wall corner between
+    # them blocks the player's shot, so it blocks the actor's reach as well;
+    # the actor keeps chasing and takes its swing from beside the player.
+    a.ld_a_abs(LOS_DX); a.or_r("a"); a.jr("ai_contact", "z")
+    a.ld_a_abs(LOS_DY); a.or_r("a"); a.jr("ai_contact", "z")
+    a.ld_a_abs(SENTINEL_XH); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_YH); a.ld_r_r("c", "a")
+    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.ld_r_r("c", "a")
+    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.label("ai_contact")
     a.ld_r_n("a", SENTINEL_ATTACK); a.ld_abs_a(SENTINEL_STATE)
     a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
     if SABLE_ART:
@@ -619,8 +630,12 @@ def emit_world_update(a: Assembler) -> None:
     # A drop does not carry a kind byte of its own: it is whatever the actor
     # that left it was, which is already in the slot and already snapshotted.
     a.call("actor_kind_drop"); a.cp_n(DROP_KIND_IDS["keycard"]); a.jr("pickup_keycard", "z")
+    # Health is two digits on the HUD and 99 is full: a medkit tops it up and
+    # never past that (the old byte saturation showed 141 as "41").
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
+    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_cap", "c")
+    a.cp_n(100); a.jr("pickup_health_store", "c")
+    a.label("pickup_health_cap"); a.ld_r_n("a", 99)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
     a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")

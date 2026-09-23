@@ -102,7 +102,9 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 
 - One to six actors, all of a known kind: `sentinel`, `skirmisher`, `warden`,
   `boss` (the Sentinel's look with the heaviest contact damage; give it the
-  health the fight deserves, and field one in an episode's last sector).
+  health the fight deserves, and field one in an episode's last sector). Each
+  stands on a walkable cell the spawn can reach with the Sentinel-locked
+  doors shut; an actor in a wall or in the exit room is refused.
   Kinds share the Sentinel's cels and differ by stats and OBJ palette
   (`AGENTS.md`, "Enemies and skill"). Six are simulated, but the renderer
   admits at most four per frame (sixteen world objects, four per scanline,

@@ -40,7 +40,11 @@ world's lower edge. The STAT handler changes BG tile addressing at the HUD
 boundary. Legacy plus legacy art/animation-off reproduces the beta.6 ROM.
 
 Positions use Q8.8. Prepared directions and crossing certificates use Q14 and
-the existing tie convention; terminal distance/projection use Q5. Forty even
+the existing tie convention; terminal distance/projection use Q5. A ray whose
+Q8 direction is exactly axial can still cross the plane its zero component is
+perpendicular to, because the traversal follows the finer Q14 order; the
+projection table's component-zero slice saturates to the far clamp for it, as
+the host model does. Forty even
 anchors plus anchor 79 feed adaptive pair reconstruction, physical edge recasts
 and conservative interpolation over 160 columns. Surface identity is independent
 of material colour. A shot lands when the actor's Q5 depth is below the centre

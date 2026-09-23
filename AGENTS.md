@@ -246,6 +246,11 @@ regression contract.
   slot is exactly full: new per-actor state goes beside it, not in it.
 - A dormant actor wakes inside the level's authored `activation_radius_q4`,
   folded to whole cells once at load. It is not a phase count.
+- Contact is cell adjacency with line of sight, and across a diagonal only
+  when the corner is clean (both cells the two share a side with are open):
+  a wall corner that blocks the player's shot blocks the actor's reach too,
+  so it keeps chasing and swings from beside the player instead.
+  `tests/test_campaign.py` pins it; the eighteen-sector route found it.
 
 ## Weapons
 
@@ -415,10 +420,14 @@ point for build, run, snapshot, level, profile and verification commands.
 
 ## Documentation and release hygiene
 
-Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names. The
-full controller route plays every sector, so it grows with the campaign -
-budget minutes, not seconds, and keep it out of the short lanes if it stops
-fitting. retain
+Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names:
+three episodes of six sectors (`docs/CAMPAIGN.md`, "Three episodes"). The
+full controller route plays every sector, so it is run by episode: CI's slow
+lane plays `SECTORS=1-6` and the `campaign` matrix plays 7-18 in three-sector
+chunks from their continue codes (`make playthrough SECTORS=A-B ROUTE_DIR=…`,
+`RESTART=1` for the last); `release_check.py` unions every report for the
+current ROM.
+Budget minutes, not seconds. Retain the
 two-sentinel acceptance and renderer-benchmark levels. Preserve compiler checks
 for clearance, reachability, door gates, sightlines and room sizes: every
 campaign level carries the same certificate, and `release_check.py` gates all of
