@@ -2,116 +2,116 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "01_safe_start": {
-      "rgb_sha256": "e48e73e8cc27514d23f3516521e2d75654ffefeec953b01cf1b89df0fcb23387",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "8d0c8713984aa1340be0896d15f4e2988a591e0c0310284ce676ba3384d9140c",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "02_start_airlock_opening": {
-      "rgb_sha256": "4de24af5ed3a79ff9f28bb2f9c7ecaac40b73eb016c9f0ae1fd4f5b51e87cbf5",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "0bbf66ee127b889ab665ca12dabdd078528ab004c07446ccb24449326e4a62ca",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "03_start_airlock_open": {
-      "rgb_sha256": "c7a11c169f9a738426e9403eceda74fe7b2a17b0bcf5536ec7af9eb122fce110",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "3a1bb70631077172a1d4aea780c5161fd98ab23a177902fad8907915b351d6b4",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "04_critical_turn": {
-      "rgb_sha256": "f17fffd2118fb71947d6cd5a3629239d118ac657943c1e9f20dee1eaac070586",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "b0a919f92756618c963f49b7f54c9264a999a4da054d78c46939123eecbc6503",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "05_zigzag_opening": {
-      "rgb_sha256": "f1e23137049d060894bea2b7b1ac1863660a94f05df6dd90baa8d49ac8dc7557",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "2df478b20e8da1f4fa8b48d1fc5eb300448748825a0f85170cbbc7f07d45b507",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "06_exit_approach_locked": {
-      "rgb_sha256": "bcd797bb33aad38674b130c71fc4f84979922fe3c056fa36cbc3d5450e3bb710",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "c55f1d4f158f1bec139fe4d31f5a438f01879a65b9a4d7a15ff46a41062defbf",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "07_sentinel_encounter": {
-      "rgb_sha256": "24fedc1d0fc2288024fbe379ec18c9469d112b17db5b81dadc430f0ff1c1439d",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "c05ad9a61b63e61f895ba1221fbb917b3e53d39a53ae150f2815d0c6b3bdea9d",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "57c4de20491b2ca1d112e9124c9ecaf800909f1842d5a877fa67260103ad9713",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "4d5facd6054822e1a6ae15629fa6dbead425d2c5f54c3b1cda0778531d8d63b2",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "57c4de20491b2ca1d112e9124c9ecaf800909f1842d5a877fa67260103ad9713",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "4d5facd6054822e1a6ae15629fa6dbead425d2c5f54c3b1cda0778531d8d63b2",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "6ccb379cb7f4fb5681a9d7ffa5070274ee5efbc170fd15aac611740e046e0f0a",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "8b6d85cd91694558c5bfceceef2c3dc0fdc5f84e05c768cbff8f3a3435e940f9",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "11_pickup_collected": {
-      "rgb_sha256": "7edb803a68199c3ca73f966fc1460c92bb4e09d430ffb098f62d5e00e330ad13",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "e84852e4723d42be47fdd64d8647070c09c7e1dd346835660cb8e33204dab8f1",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "12_exit_unlocking": {
-      "rgb_sha256": "50918b204985dd68b3a61b8516e9b8af445f9a2e9e7a6c510519ef2d4510ac9d",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "980d2b1fa7bd46e36399aba3a1382a0ce7707531f30fb15703337308352b9317",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "9c3487d19e42d0bf1270ce4df67743672a84a83b82e48002c6e24c98118b0ebd",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "4ca565074f75c0cb25c6990b2985d9c396e28596f211bf92c8d1391a843fa313",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "14_level_complete": {
-      "rgb_sha256": "7ffb34a7da7856d3d5ab8cf871700ab1698c54bc389accdff550d5eee8f794cc",
-      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
+      "rgb_sha256": "67ddcbabd93fad19b642b7cb1709d768246bc1ccdf748e7662a5e092602d509a",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T04:20:31+00:00",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     }
   }
 }

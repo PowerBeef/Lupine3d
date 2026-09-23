@@ -11,7 +11,12 @@
   cels (`tools/render_weapons.py`, `docs/ART_PIPELINE.md`).
 - **Texture sets per episode** (textured profile). Reactor Deep and Signal
   Spire wall their sectors in their own structure and machinery textures;
-  the level's palette set selects the set (`docs/TEXTURED_WALLS.md`).
+  the level's palette set selects the set (`docs/TEXTURED_WALLS.md`). All
+  seven wall and door textures were redesigned as one set (bolted steel
+  panels, louvred vents, sliding doors with a hazard band, riveted reactor
+  plates, coolant pipes, recessed hull panels, relay racks), and doors now
+  darken along their own palette order instead of turning bright at a
+  distance.
 - **Engine fixes the eighteen-sector route found.** The projection table's
   component-zero slice now saturates to the far clamp like the host model:
   an exactly axial ray that the Q14 crossing order carried across the

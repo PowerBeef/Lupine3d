@@ -48,7 +48,23 @@ shares the class.
 side uses near, mid or far by half height (≥ 24, ≥ 10, else). A shade set
 is a tone remap applied to texels, so depth shading costs no CPU and no
 palette, and its banding follows wall geometry column by column rather than
-screen rows (the screen-space palette ladder v0.8 rejected).
+screen rows (the screen-space palette ladder v0.8 rejected). The ladder
+follows each palette's brightness: structure and machinery palettes run
+colour 1 darkest, 3 mid, 2 light, and far or dark-side texels step 2 -> 3
+-> 1; the door palettes run 1, 2, 3 (mint on teal, yellow on orange, lilac
+on purple), so a door's light tone falls to its base colour and the base
+stays (`SHADE_REMAP_LIGHT_THREE`), where the shared ladder used to make far
+doors brighter and invert them.
+
+**Texture design.** A texture is the upper half of a 16×16 face, mirrored
+at the horizon, and the view samples it at 1/8 to 2 texels per pixel, so
+what reads is large: panels, seams and bands at least two texels across,
+never single dots alone. The set shares one grammar: a dark trim along the
+top (and, mirrored, the bottom) of every face, panels whose seams meet
+the neighbouring face's to make a two-texel joint, and a centre feature the
+mirror doubles at eye height (the outpost's panel seam, the door's and the
+reactor plate's hazard chevrons, the spire's rib). The PNGs under
+`assets/textures/` are the source of record, drawn with indices 1..3 only.
 
 **Two compositions, one result.** `compose_pixels` is the semantics: for
 every wall pixel, which texel, which shade. `compose_windows` is what the

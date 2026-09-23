@@ -68,6 +68,23 @@ SHADE_REMAP: tuple[dict[int, int], ...] = (
     {1: 1, 2: 3, 3: 1},
     {1: 1, 2: 3, 3: 1},
 )
+# The door palettes run the other way round: colour 3 is their light tone
+# (mint on teal, yellow on orange, lilac on purple), so the ladder above made
+# far doors brighter and inverted them. Far and on the dark side a door
+# loses its light tone to its base colour and keeps the base, so it still
+# reads as a coloured leaf with dark marks rather than a black cell.
+SHADE_REMAP_LIGHT_THREE: tuple[dict[int, int], ...] = (
+    {1: 1, 2: 2, 3: 3},
+    {1: 1, 2: 2, 3: 3},
+    {1: 1, 2: 2, 3: 2},
+    {1: 1, 2: 2, 3: 2},
+)
+LIGHT_THREE_TEXTURES = frozenset({"door_plate"})
+
+
+def shade_remap(texture: "Texture") -> tuple[dict[int, int], ...]:
+    """The distance ladder for this texture's palette."""
+    return SHADE_REMAP_LIGHT_THREE if texture.name in LIGHT_THREE_TEXTURES else SHADE_REMAP
 
 
 def shade_set(style: int, half: int) -> int:
@@ -329,8 +346,9 @@ def wall_pixel(textures: Sequence[Texture], column: TexturedColumn, y: int, *, o
     if outline and y in (column.top, VIEW_HEIGHT - 1 - column.top):
         return 3
     v = texel_row(column.half, y) if y < HORIZON else texel_row(column.half, VIEW_HEIGHT - 1 - y)
-    texel = textures[column.texture].texel(int(column.u) & (TEXELS - 1), v)
-    return SHADE_REMAP[shade_set(column.style, column.half)][texel]
+    texture = textures[column.texture]
+    texel = texture.texel(int(column.u) & (TEXELS - 1), v)
+    return shade_remap(texture)[shade_set(column.style, column.half)][texel]
 
 
 def compose_pixels(textures: Sequence[Texture], columns: Sequence[TexturedColumn], *, outline: bool = True,
@@ -390,13 +408,14 @@ def make_row_windows(textures: Sequence[Texture]) -> dict[tuple[int, int, int, i
     """Every row window: eight texels for (texture, shade, delta class, phase, v)."""
     windows = {}
     for t, texture in enumerate(textures):
+        remap = shade_remap(texture)
         for shade in range(SHADE_SETS):
             for k, delta in enumerate(DELTA_CLASSES):
                 for phase in range(TEXELS * PHASE_STEPS):
                     u0 = Fraction(phase, PHASE_STEPS)
                     for v in range(TEXEL_ROWS):
                         windows[t, shade, k, phase, v] = tuple(
-                            SHADE_REMAP[shade][texture.texel(int(u0 + i * delta) & (TEXELS - 1), v)] for i in range(8))
+                            remap[shade][texture.texel(int(u0 + i * delta) & (TEXELS - 1), v)] for i in range(8))
     return windows
 
 

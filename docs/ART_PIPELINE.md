@@ -44,7 +44,7 @@ bit-planes per row, most significant bit on the left. Objects are 8×16 pairs
 | Helmet portrait | `helmet_steel.png` | 16×16 | 4 (normal, blink, hurt, dead) | HUD packet portrait, six tile IDs |
 | HUD chassis | `hud_steel.png` | 160×24 | 1 | 94 of 96 HUD patterns, bank 0 `$8200-$87DF` |
 | Wall fixtures | authored in `world_decor.py` | 8×16 | per kind and size level | masked OBJ patterns |
-| Wall textures | `assets/textures/*.png` (a structure and a machinery texture per episode, one shared door plate) | 16×8 (upper half) | 1 | row-window tables in `TEXTURE_WINDOW_BANKS` under the textured profile; a level's palette set picks its texture set |
+| Wall textures | `assets/textures/*.png` (a structure and a machinery texture per episode, one shared door plate; design rules in `docs/TEXTURED_WALLS.md`, "Texture design") | 16×8 (upper half) | 1 | row-window tables in `TEXTURE_WINDOW_BANKS` under the textured profile; a level's palette set picks its texture set |
 | Screens | authored in `screens.py` | 160×144 | 1 per mode | the idle 96-pattern window at `$9000` |
 
 The twelve enemy cels are, in order: `idle_a`, `idle_b`, `walk_left`,
