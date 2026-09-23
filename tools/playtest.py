@@ -58,7 +58,9 @@ def set_test_world_byte(cgb: CGB, address: int, value: int) -> None:
 
     Used only by pose-based diagnostics, never by the controller playthrough.
     Do not copy the whole stale snapshot back over a newer simulated world.
+    Under overlapped publication the write waits for the next frame boundary.
     """
+    cgb.diagnostic_barrier()
     cgb.write8(address, value)
     if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000:
         cgb.wramx[2][address - 0xD000] = value
@@ -107,6 +109,13 @@ def published_dynamic_patterns(cgb, count: int) -> bytes:
 
 
 def validate_frame(cgb: CGB) -> dict[str, Any]:
+    """Every frame check, against the render state the presented packet was
+    built from (the hand-off capture under overlapped publication)."""
+    with cgb.presented_view():
+        return _validate_frame(cgb)
+
+
+def _validate_frame(cgb: CGB) -> dict[str, Any]:
     physical = "refine_full_snapshot" in cgb.symbols
     x_q8 = cgb.read16(br.PLAYER_XL)
     y_q8 = cgb.read16(br.PLAYER_YL)

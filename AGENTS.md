@@ -356,6 +356,14 @@ regression contract.
   two VBlanks, 96-block first stage, 192 CPU-copied hidden-map bytes on the
   compact profiles only when streaming is off. Slim map/attribute buffers are
   480 bytes.
+- Overlapped publication (`LUPINE3D_OVERLAP_PUBLICATION=1`, opt-in, streamed
+  profiles): the VBlank interrupt publishes the tail (`vblank_tail`, fixed
+  half, saves SVBK/VBK, never switches the ROM bank) after
+  `publication_handoff` sets `TAIL_PENDING`; the main loop settles anything
+  the tail would read from the snapshot before the hand-off and calls
+  `wait_tail` before it touches a publication buffer or turns the LCD off.
+  Validators read the hand-off capture (`presented_view`) and diagnostic
+  writes pass `diagnostic_barrier` (`docs/VERIFICATION.md`).
 - Physical depth validity means an actual query at that column and wall key.
   Same-key appearance refinement must promote a coherent full wall packet.
   Never relabel duplicated or height-class depths as physical measurements.

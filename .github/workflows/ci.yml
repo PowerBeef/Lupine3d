@@ -217,6 +217,9 @@ jobs:
         if: always()
         run: make snapshot-diff-flat || true
 
+      - name: Verify the opt-in overlapped publication on the tour and a walking replay
+        run: make playtest-overlap
+
       - name: Restore the pinned emulator cores
         id: cores
         uses: actions/cache@v4

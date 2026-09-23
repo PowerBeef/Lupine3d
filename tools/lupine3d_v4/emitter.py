@@ -136,6 +136,12 @@ def emit_hud_system(a: Assembler) -> None:
         a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + HUD_STATUS_OFFSET + i)
     if COMPACT_DISPLAY: a.jp("prepare_compact_hud")
     a.ret()
+    if not OVERLAP_PUBLICATION: emit_update_hud_tiles(a)
+
+
+def emit_update_hud_tiles(a: Assembler) -> None:
+    """HUD packet -> both maps' HUD cells. Under overlapped publication the
+    VBlank interrupt runs it, so that profile emits it resident."""
     a.label("update_hud_tiles")
     a.ld_rr_nn("hl", HUD_PACKET)
     a.xor_r("a"); a.ldh_n_a(VBK)
@@ -218,6 +224,7 @@ def emit_vram_init(a: Assembler) -> None:
     # this is not one: it is a VRAM re-upload, like loading a level. The cost
     # is the frame it blanks, once per swap.
     a.ld_a_abs(WEAPON_RELOAD); a.or_r("a"); a.ret("z")
+    if OVERLAP_PUBLICATION: a.call("wait_tail")   # the swap turns the LCD off
     a.xor_r("a"); a.ld_abs_a(WEAPON_RELOAD)
     a.call("weapon_source")
     # Put back the LCDC that was there, not a constant: its background-map bit
@@ -477,6 +484,16 @@ def emit_streamed_publication(a: Assembler) -> None:
     # displayed untouched; the tail below is one VBlank of banked GDMA and
     # the coherent HUD/OAM/flip.
     a.label("upload_packet_ready")
+    if OVERLAP_PUBLICATION:
+        # Hand the tail to the VBlank interrupt and start the next update
+        # while it waits. Everything the tail used to read from the render
+        # snapshot is settled here first: the next snapshot copy overwrites
+        # FLASH, and the wall key is valid for the page that will be shown.
+        a.call("update_muzzle_oam")
+        a.xor_r("a"); a.ld_abs_a(OAM_DIRTY)
+        a.ld_r_n("a", 1); a.ld_abs_a(WALL_CACHE_VALID)
+        a.label("publication_handoff")
+        a.ld_abs_a(TAIL_PENDING); a.ret()
     a.call("wait_vblank")
     a.call("upload_masked_tiles"); a.call("upload_surface_attributes")
     a.xor_r("a"); a.ldh_n_a(VBK)
@@ -523,6 +540,8 @@ def emit_input_system(a: Assembler) -> None:
     if FOREGROUND_PUBLICATION: a.push("de")
     if HUD_UNSIGNED:
         a.ldh_a_n(LCDC); a.and_n(0xEF); a.ldh_n_a(LCDC)
+    if OVERLAP_PUBLICATION:
+        a.ld_a_abs(TAIL_PENDING); a.or_r("a"); a.call("vblank_tail", "nz")
     # This is a VBlank clock, not a count of arbitrary joypad polls.
     a.ld_a_abs(INPUT_SAMPLE_COUNT); a.inc_r("a"); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     if FIXED_SIMULATION:
@@ -1457,3 +1476,36 @@ def emit_tile_compositor(a: Assembler) -> None:
     load_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H); a.ld_rr_nn("de", 8); a.add_hl_rr("de"); store_hl_abs(a, SCAN_STYLE_PTR_L, SCAN_STYLE_PTR_H)
     load_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H); a.inc_rr("hl"); store_hl_abs(a, COLUMN_MAP_L, COLUMN_MAP_H)
     a.ld_a_abs(COLUMN_COUNT); a.dec_r("a"); a.ld_abs_a(COLUMN_COUNT); a.jp("render_column_loop", "nz"); a.ret()
+
+
+def emit_overlap_tail(a: Assembler) -> None:
+    """Resident: the streamed VBlank tail, run by the VBlank interrupt.
+
+    The main loop hands a complete packet over at `publication_handoff` and
+    goes on to cast the next update; it waits for TAIL_PENDING to clear
+    before it touches a publication buffer again (`wait_tail`). The
+    interrupt can land with any ROM bank mapped, so everything here is below
+    $4000 and never writes the bank register; it saves SVBK (the sources
+    are WRAM bank 1, and a render yield may have bank 2 mapped) and VBK.
+    """
+    from .surfaces import emit_upload_surface_attributes
+    emit_upload_surface_attributes(a)
+    emit_update_hud_tiles(a)
+    a.label("vblank_tail")
+    a.push("de")
+    a.ldh_a_n(SVBK); a.push("af"); a.ldh_a_n(VBK); a.push("af")
+    a.ld_r_n("a", 1); a.ldh_n_a(SVBK)
+    a.call("upload_masked_tiles"); a.call("upload_surface_attributes")
+    a.xor_r("a"); a.ldh_n_a(VBK)
+    a.call("update_hud_tiles")
+    a.call_abs(OAM_DMA_HRAM)
+    a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.ld_abs_a(CURRENT_PAGE)
+    a.or_r("a"); a.ld_r_n("a", BG_LCDC); a.jr("tail_page_ready", "z"); a.ld_r_n("a", BG_LCDC | 8)
+    a.label("tail_page_ready"); a.ldh_n_a(LCDC)
+    a.ld_a_abs(OBJ_PAGE); a.xor_n(1); a.ld_abs_a(OBJ_PAGE)
+    a.ld_rr_nn("hl", PRESENT_SERIAL); a.inc_r("(hl)")
+    a.xor_r("a"); a.ld_abs_a(TAIL_PENDING)
+    a.pop("af"); a.ldh_n_a(VBK); a.pop("af"); a.ldh_n_a(SVBK)
+    a.pop("de"); a.ret()
+    a.label("wait_tail")
+    a.ld_a_abs(TAIL_PENDING); a.or_r("a"); a.jr("wait_tail", "nz"); a.ret()

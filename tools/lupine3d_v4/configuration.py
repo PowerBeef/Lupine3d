@@ -25,8 +25,9 @@ FLAGS = {
     "foreground_publication": "FOREGROUND_PUBLICATION",
     "hdma_streaming": "HDMA_STREAMING",
     "textured_walls": "TEXTURED_WALLS",
+    "overlap_publication": "OVERLAP_PUBLICATION",
 }
-IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication", "hdma_streaming", "textured_walls"}
+IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dynamic_tile_cache", "cache_key_mix", "attribute_padding", "narrow_yields", "anchor_packets", "packet_bounds_reuse", "physical_depth", "actor_precision", "scanline_admission", "door_identity", "projection_storage", "near_field", "foreground_publication", "hdma_streaming", "textured_walls", "overlap_publication"}
 DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"}
 # HBlank-streamed publication follows the display profile: it is the compact
 # and slim production path, and the legacy profile keeps its staged VBlank
@@ -101,6 +102,10 @@ def resolve(environ=None):
         raise ValueError("Textured walls require HBlank-streamed publication")
     if result["textured_walls"] and (result["physical_depth"] or result["anchor_packets"] or env.get("LUPINE3D_FOLDED", "1") == "0"):
         raise ValueError("Textured walls exclude physical depth, anchor packets and the unfolded diagnostic")
+    # Overlapped publication hands the streamed VBlank tail to the VBlank
+    # interrupt so the next update casts while it waits (docs/PERFORMANCE_PHASE5.md).
+    if result["overlap_publication"] and not result["hdma_streaming"]:
+        raise ValueError("Overlapped publication hands off the streamed tail; it requires HBlank streaming")
     if result["compact_strips"] and env.get("LUPINE3D_FOLDED", "1") == "0":
         raise ValueError("Compact strips require folded rendering; disable COMPACT_STRIPS for the unfolded oracle")
     if result["anchor_packets"] and (env.get("LUPINE3D_Q14", "1") == "0" or env.get("LUPINE3D_PREPARED_RAYS", "1") == "0"):

@@ -1,5 +1,9 @@
 # Unreleased — after v0.11
 
+- **Overlapped publication** (opt-in, `LUPINE3D_OVERLAP_PUBLICATION=1`): the
+  VBlank interrupt publishes the streamed tail while the next update casts.
+  Textured walking 6.85 to 7.45/s, turning 9.08 to 9.89/s, two-actor 6.65
+  to 7.12/s (`docs/PERFORMANCE_PHASE5.md`).
 - **Textured walls are the slim default.** The slim Sable build composes
   every wall from its episode's textures; `LUPINE3D_TEXTURED_WALLS=0`
   (`make flat`) builds the flat compositor, which legacy and compact keep.

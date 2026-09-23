@@ -171,6 +171,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     a.ld_abs_a(SIM_READY)
+    # Power-on WRAM is random: a stray hand-off flag would have the VBlank
+    # interrupt publish a packet that does not exist (SameBoy found it).
+    if OVERLAP_PUBLICATION: a.ld_abs_a(TAIL_PENDING)
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
     a.call("init_palettes"); a.call("init_audio"); a.call("init_music")
     # The title runs before any world VRAM exists. Only VBlank is enabled: a
@@ -234,6 +237,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("cast_all")
     if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
     a.label("compose_full_snapshot")
+    # Overlapped publication: the last packet may still be waiting for its
+    # VBlank; nothing below may touch a publication buffer before it goes.
+    if OVERLAP_PUBLICATION: a.call("wait_tail")
     if HDMA_STREAMING:
         # Entities first: their masks are banked and go by GDMA in the tail
         # anyway, while render_view's patterns stream by HBlank DMA as each
@@ -245,6 +251,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("reuse_wall_view")
     if PHYSICAL_DEPTH:
         a.call("refine_reused_snapshot"); a.or_r("a"); a.jp("compose_full_snapshot","nz")
+    if OVERLAP_PUBLICATION: a.call("wait_tail")
     a.call("render_entities"); a.call("upload_entities_hud")
 
     # The frame is published. Decide whether the world keeps the next one.
@@ -275,6 +282,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.jp("main_loop")
 
     a.label("present_mode")
+    if OVERLAP_PUBLICATION: a.call("wait_tail")   # the screen turns the LCD off
     a.ld_a_abs(PENDING_MODE); a.ld_abs_a(GAME_MODE)
     # Death retries the sector that was lost, so only the two completion modes
     # move LEVEL_INDEX. The screen is chosen from the mode that got us here.
@@ -344,6 +352,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("masked_entities", emit_masked_entities), ("reprojection", emit_reprojection),
     ]
     if TEXTURED_WALLS: resident_sections.append(("textured", emit_textured_kernel))
+    if OVERLAP_PUBLICATION:
+        from lupine3d_v4.emitter import emit_overlap_tail
+        resident_sections.append(("overlap_tail", emit_overlap_tail))
     for name, emit in resident_sections:
         a.section(name); emit(a)
 
@@ -360,6 +371,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("snapshot", emit_snapshot),
     ]
     if TEXTURED_WALLS: cold_sections.append(("textured_compositor", emit_textured_compositor))
+    if OVERLAP_PUBLICATION:
+        from lupine3d_v4.precision import emit_shift_reference
+        cold_sections.append(("shift_reference", emit_shift_reference))
 
     # Data section.
     a.align(16, text="data alignment")

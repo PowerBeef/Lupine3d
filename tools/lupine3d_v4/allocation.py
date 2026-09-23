@@ -51,6 +51,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM0", l.WORLD_STATE_END, l.CAMPAIGN_SCALARS_END,
           "campaign scalars: actor count, palette set, weapons owned, level page, texture directory"),
         A("WRAM0", l.LIVE_MAP_GEN, l.MAP_GENERATION_END, "live and snapshot map generations"),
+        A("WRAM0", l.TAIL_PENDING, l.TAIL_PENDING_END, "overlapped publication hand-off"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", l.DYN_STREAMED, l.DYN_STREAMED + 1, "dynamic patterns already streamed by HBlank DMA", "composition through publication"),
@@ -126,7 +127,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     # every routine that writes the bank register, can run inside another
     # section's bank window, or is reachable from an interrupt vector - are
     # emitted before the data and so must all fit under the boundary.
-    assert code_end < 0x4000, "the fixed half no longer holds the resident sections"
+    assert code_end < 0x4000, f"the fixed half no longer holds the resident sections (end {code_end:#06x})"
     assert 0x8000 - resident_end >= 3000, "resident reserve below 3,000 bytes"
     # Copy spans are shared with the emitter; new render-only allocations must
     # never enter the live-world copy in either direction.

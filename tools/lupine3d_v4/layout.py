@@ -134,6 +134,7 @@ ATTRIBUTE_PADDING = RENDER_CONFIG["attribute_padding"]
 # in the VBlank tail. DYN_STREAMED counts the dynamic patterns already handed
 # to the transfer; render_view resets it and chains at column boundaries.
 HDMA_STREAMING = RENDER_CONFIG["hdma_streaming"]
+OVERLAP_PUBLICATION = RENDER_CONFIG["overlap_publication"]
 DYN_STREAMED = 0xC8CE
 # The folded compositor's column of tile IDs, written once per row and
 # copied into the map (both halves) once per column, after the snapshot copy
@@ -375,7 +376,11 @@ CAMPAIGN_SCALARS_END = TEX_DIRECTORY_H + 1
 LIVE_MAP_GEN = CAMPAIGN_SCALARS_END
 SNAP_MAP_GEN = LIVE_MAP_GEN + 1
 MAP_GENERATION_END = SNAP_MAP_GEN + 1
-assert MAP_GENERATION_END <= 0xC800, "campaign scalars overrun the OAM shadow"
+# Overlapped publication: nonzero while a completed packet waits for the
+# VBlank interrupt to publish it (set by the main loop, cleared by the ISR).
+TAIL_PENDING = MAP_GENERATION_END
+TAIL_PENDING_END = TAIL_PENDING + 1
+assert TAIL_PENDING_END <= 0xC800, "campaign scalars overrun the OAM shadow"
 WEAPON_COUNT = 4                        # a power of two: the index is masked
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256

@@ -7,6 +7,7 @@ the engine, performs General Purpose VRAM DMA, advances LY, scans joypad input,
 and renders BG/OBJ output to PNG. Its purpose is repeatable CI smoke testing.
 """
 from __future__ import annotations
+import contextlib
 
 import argparse
 import json
@@ -95,6 +96,23 @@ class CGB:
         self.frame_count = 0
         self.page_swaps = 0
         self.explicit_presentations = "presentation_serial" in self.symbols
+        # Overlapped publication: the VBlank interrupt publishes a packet
+        # after the main loop has already taken the next snapshot, so the
+        # render state a presentation was built from is captured where the
+        # packet is handed off, and presented_view() shows it to validators.
+        self.handoff_pc = self.symbols.get("publication_handoff")
+        self._handoff_state = None
+        self.presented_state = None
+        # Diagnostic writes (poses, world bytes) must land between frames: a
+        # packet whose snapshot predates the write is stale. It is still
+        # published and still checked for publication safety, but it is not
+        # the presentation a diagnostic waits for (stale_commit_events).
+        self.main_loop_pc = self.symbols.get("main_loop")
+        self.snapshot_pc = self.symbols.get("begin_frame_snapshot")
+        self.snapshot_serial = 0
+        self.stale_snapshot = -1
+        self.stale_commit_events: list[dict[str, object]] = []
+        self._barrier_ready = False
         self.main_iterations = 0
         self.buttons = 0  # active-high standard bit layout
         self.button_provider: Callable[[int, int], int] | None = None
@@ -324,13 +342,16 @@ class CGB:
         # HBlank transfers legitimately span frames: they stream hidden
         # resources while the previous frame is displayed. Only the general
         # purpose transfers of the VBlank tail have to share the flip's frame.
+        handoff = self._handoff_state
+        packet_snapshot = handoff[3] if handoff is not None else self.snapshot_serial
+        stale = self.handoff_pc is not None and packet_snapshot <= self.stale_snapshot
         vblank_events = [event for event in events if event.get("kind") != "hdma"]
         hblank_events = [event for event in events if event.get("kind") == "hdma"]
         same_frame = not vblank_events or all(event["frame"] == vblank_events[0]["frame"] for event in vblank_events)
         safe = all(event["vblank_safe_complete"] for event in events) and 144 <= self.ly < 153
         safe = safe and (not vblank_events or self.frame_count == vblank_events[-1]["frame"])
         safe = safe and not self.hdma_active
-        self.commit_events.append(dict(
+        (self.stale_commit_events if stale else self.commit_events).append(dict(
             swap=self.page_swaps, presentation=self.presentations + 1,
             displayed_map=bool(self.io[LCDC & 0x7F] & 8), frame=self.frame_count,
             ly=self.ly, cycles=self.cycles, blocks=sum(event["blocks"] for event in events),
@@ -338,10 +359,52 @@ class CGB:
             hblank_blocks=sum(event["blocks"] for event in hblank_events),
             event_count=len(events), vblank_safe=safe,
             staged=not same_frame or bool(hblank_events), events=tuple(events),
-            reused=bool(self.read8(0xC8B5)) if self.explicit_presentations else False,
+            reused=(bool(handoff[0][0xC8B5 - 0xC000]) if handoff is not None else bool(self.read8(0xC8B5))) if self.explicit_presentations else False,
             object_page=self.read8(0xC8B3) if self.explicit_presentations else None,
         ))
         self._pending_commit_event_indexes.clear()
+        self.presented_state = None if stale or handoff is None else handoff[:3]
+        self._handoff_state = None
+
+    def diagnostic_barrier(self) -> None:
+        """Bring an overlapped-publication machine to the top of main_loop,
+        where the packet in flight is already composed and the next snapshot
+        not yet taken, and mark every packet so far stale. A no-op on a ROM
+        without the hand-off, and when nothing has run since the last one."""
+        if self.handoff_pc is None or self._barrier_ready or self.main_loop_pc is None:
+            return
+        if self.pc != self.main_loop_pc:
+            self.run(until_pc=self.main_loop_pc, max_steps=20_000_000)
+        self.stale_snapshot = self.snapshot_serial
+        self._barrier_ready = True
+
+    # Variables the interrupt tail itself writes when it publishes: the view
+    # keeps their live (published) values.
+    PUBLISHED_LIVE = {0xD148: 1, 0xC8B3: 0, 0xC8B6: 0}   # CURRENT_PAGE, OBJ_PAGE, PRESENT_SERIAL
+
+    @contextlib.contextmanager
+    def presented_view(self):
+        """WRAM and HRAM as they were when the presented packet was handed
+        off (overlapped publication); the live state otherwise. VRAM, OAM,
+        palettes and I/O are always live."""
+        if self.presented_state is None:
+            yield self
+            return
+        live = (self.wram0, self.wramx, self.hram)
+        wram0, wramx, hram = self.presented_state
+        self.wram0, self.wramx, self.hram = bytearray(wram0), [bytearray(b) for b in wramx], bytearray(hram)
+        for address, bank in self.PUBLISHED_LIVE.items():
+            if address >= 0xD000:
+                self.wramx[bank][address - 0xD000] = live[1][bank][address - 0xD000]
+            else:
+                self.wram0[address - 0xC000] = live[0][address - 0xC000]
+        svbk = self.io[0x70]
+        self.io[0x70] = 1
+        try:
+            yield self
+        finally:
+            self.wram0, self.wramx, self.hram = live
+            self.io[0x70] = svbk
 
     def read16(self, addr: int) -> int:
         return self.read8(addr) | (self.read8((addr + 1) & 0xFFFF) << 8)
@@ -604,6 +667,12 @@ class CGB:
 
     # ----- instruction execution ----------------------------------------
     def step(self) -> int:
+        self._barrier_ready = False
+        if self.pc == self.snapshot_pc:
+            self.snapshot_serial += 1
+        if self.pc == self.handoff_pc:
+            self._handoff_state = (bytes(self.wram0), [bytes(bank) for bank in self.wramx], bytes(self.hram),
+                                   self.snapshot_serial)
         pending = self.ie & self.io[IF & 0x7F] & 0x1F
         if self.halted:
             if pending:

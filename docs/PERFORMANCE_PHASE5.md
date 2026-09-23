@@ -78,14 +78,11 @@ were accepted with notes after review.
 Updates are quantized to LCD intervals (140,448 T): a full update ends in
 VBlank, where the tail is published, so a saving shows only when it moves an
 update across an interval boundary. The textured trials spent 53-78k T per
-presentation in publication waits before this round. The candidates, none of which this round took:
+presentation in publication waits before this round. The candidates:
 
 1. **Overlap the next update with the wait.** Publish the tail from the
-   VBlank interrupt and start casting the next frame while it waits. It
-   removes the average half-interval loss but needs a second attribute and
-   mask buffer, and the VBlank budget is already nearly spent
-   (`AGENTS.md`, "Sound contracts"). It changes which simulation ticks are
-   rendered, so it is an owner decision with a snapshot acceptance.
+   VBlank interrupt and start casting the next frame while it waits. The
+   owner approved a prototype; it is below ("Overlapped publication").
 2. **Cheaper door panels.** A door test still costs several thousand T per
    ray that reaches a door cell (4.6k before this round); deciding hit or
    miss from bounds before the product would skip most of it, but must stay
@@ -99,3 +96,46 @@ presentation in publication waits before this round. The candidates, none of whi
 The quality-budget gate (`tools/sable_quality_budget.py`) is unchanged and
 still records its original failure; its B/P inputs were measured on the old
 first sector, so it is not a like-for-like comparison.
+
+## Overlapped publication (opt-in prototype)
+
+`LUPINE3D_OVERLAP_PUBLICATION=1` (streamed profiles only; `make overlap
+playtest-overlap`) hands the streamed VBlank tail to the VBlank interrupt.
+The main loop completes the hidden page as before, settles what the tail
+used to read from the render snapshot (the muzzle flash, which the next
+snapshot copy overwrites, and the wall cache's validity), sets
+`TAIL_PENDING` at `publication_handoff` and goes straight on to the next
+snapshot and its casts. The interrupt (`vblank_tail`) uploads the masks and
+attributes by GDMA, writes the HUD cells, runs the OAM DMA and flips the
+page, saving SVBK and VBK. The main loop waits for the flag to clear
+(`wait_tail`) before it touches a publication buffer again: before it
+renders entities or composes, before a weapon swap or a full-screen mode
+turns the LCD off.
+
+No second buffer is needed. Casting and the simulation touch only rays,
+pixels and the live world; every buffer the tail reads is written after
+`wait_tail`. The interrupt can land with any ROM bank mapped, so the tail
+lives in the fixed half and never writes the bank register; `bank_safety`
+proves both. To fit, the shift-add reference multiply (called by nothing)
+moves to a cold section under this flag.
+
+Results, 60-second trials on the textured slim ROM with every frame checked:
+
+| Scenario | Textured default | Overlapped | Target |
+| --- | ---: | ---: | ---: |
+| walking | 6.85 | **7.45** (1124k) | 9.0 |
+| turning | 9.08 | **9.89** (848k) | 11.0 |
+| two actor corner | 6.65 | **7.12** (1178k) | 7.5 |
+
+Publication waits fall from 53-78k T to about 0.1k T per presentation: an
+update is now bound by its own work. The targets are still not met.
+
+The harness had to learn two things (`docs/VERIFICATION.md`, "Overlapped
+publication"): a presented packet is validated against the state captured
+at its hand-off, not the live state the next update has already changed,
+and a diagnostic write waits for a frame boundary so no packet mixes old
+and new state. With those, the coherence tour matches eight of nine
+textured goldens exactly (the ninth differs by the helmet blink's 6 pixels).
+Timing moves which simulation ticks are rendered, so making it the default
+means accepting the timing-shifted goldens and adapting the remaining
+diagnostic producers; that is the owner's decision.

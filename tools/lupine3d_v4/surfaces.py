@@ -63,6 +63,12 @@ def emit_surfaces(a: Assembler) -> None:
             a.ld_a_abs(VIEW_ATTRIBUTES + row * 32 + 19); a.ld_abs_a(VIEW_ATTRIBUTES + row * 32 + 20)
     a.ret()
 
+    if not OVERLAP_PUBLICATION: emit_upload_surface_attributes(a)
+
+
+def emit_upload_surface_attributes(a: Assembler) -> None:
+    """Bank-neutral, but an interrupt reaches it under overlapped publication,
+    so that profile emits it in the resident tail section instead."""
     a.label("upload_surface_attributes")
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_r_n("a", VIEW_ATTRIBUTES >> 8); a.ldh_n_a(HDMA1)

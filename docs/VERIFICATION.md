@@ -90,6 +90,22 @@ not a defect.
   release qualification, never short CI).
 - `python tools/release_check.py` — the aggregate gate over all of the above.
 
+## Overlapped publication
+
+With `LUPINE3D_OVERLAP_PUBLICATION=1` a packet is published by the VBlank
+interrupt after the main loop has already taken the next render snapshot.
+The harness (`tools/sm83emu.py`) therefore captures WRAM and HRAM when the
+main loop reaches `publication_handoff`, and `presented_view()` shows that
+capture to anything that checks a presented frame (`validate_frame`,
+`benchmark_motion`), with VRAM, OAM, palettes, I/O and the variables the
+tail itself writes kept live. A diagnostic write (`set_test_world_byte`,
+`apply_diagnostic_camera`) first calls `diagnostic_barrier()`, which runs
+to the top of `main_loop`, where the packet in flight is fully composed and
+the next snapshot not yet taken; packets from earlier snapshots are stale,
+still published and recorded in `stale_commit_events`, but not the
+presentation a diagnostic waits for. On a ROM without the hand-off every
+one of these is a no-op.
+
 ## The host harness and hardware conformance
 
 `tools/sm83emu.py` is a deterministic model, not a cycle-accurate emulator:

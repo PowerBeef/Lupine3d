@@ -141,6 +141,11 @@ class ObservationContracts(unittest.TestCase):
         self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["textured_walls"])
         self.assertFalse(resolve({"LUPINE3D_TEXTURED_WALLS": "0"})["textured_walls"])
         self.assertFalse(resolve({"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"})["textured_walls"])
+        # Overlapped publication is opt-in and hands off the streamed tail.
+        self.assertFalse(resolve({})["overlap_publication"])
+        self.assertTrue(resolve({"LUPINE3D_OVERLAP_PUBLICATION": "1"})["overlap_publication"])
+        with self.assertRaises(ValueError):
+            resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy", "LUPINE3D_OVERLAP_PUBLICATION": "1"})
         for conflict in ({"LUPINE3D_DISPLAY": "compact"}, {"LUPINE3D_HDMA_STREAMING": "0"},
                          {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"}):
             with self.assertRaises(ValueError):

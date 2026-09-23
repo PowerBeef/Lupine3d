@@ -200,26 +200,7 @@ def emit_precision(a: Assembler) -> None:
     a.ld_r_r("a", "l"); a.add_a_r("e"); a.ld_abs_a(Q14_PRODUCT + 2)
     a.ld_r_r("a", "h"); a.adc_a_r("d"); a.ld_abs_a(Q14_PRODUCT + 3)
     a.ret()
-    a.label("q14_multiply_u16_shift_reference")
-    store_hl_abs(a, Q14_MULTIPLICAND, Q14_MULTIPLICAND + 1)
-    a.ld_r_r("a", "e"); a.ld_abs_a(Q14_MULTIPLIER)
-    a.ld_r_r("a", "d"); a.ld_abs_a(Q14_MULTIPLIER + 1)
-    a.xor_r("a")
-    for address in (*range(Q14_PRODUCT, Q14_PRODUCT + 4), Q14_MULTIPLICAND + 2, Q14_MULTIPLICAND + 3):
-        a.ld_abs_a(address)
-    a.ld_r_n("c", 16)
-    a.label("q14_multiply_loop")
-    a.ld_rr_nn("hl", Q14_MULTIPLIER + 1); a.cb("srl", "(hl)"); a.dec_rr("hl"); a.cb("rr", "(hl)")
-    a.jr("q14_multiply_shift", "nc")
-    for byte in range(4):
-        a.ld_a_abs(Q14_MULTIPLICAND + byte); a.ld_r_r("b", "a")
-        a.ld_a_abs(Q14_PRODUCT + byte)
-        (a.add_a_r if byte == 0 else a.adc_a_r)("b"); a.ld_abs_a(Q14_PRODUCT + byte)
-    a.label("q14_multiply_shift")
-    a.ld_rr_nn("hl", Q14_MULTIPLICAND); a.cb("sla", "(hl)")
-    for _ in range(3):
-        a.inc_rr("hl"); a.cb("rl", "(hl)")
-    a.dec_r("c"); a.jp("q14_multiply_loop", "nz"); a.ret()
+    if not OVERLAP_PUBLICATION: emit_shift_reference(a)
 
     a.label("divide_u32_u16")  # Q14_PRODUCT / DE; quotient in Q14_PRODUCT
     # Restoring division. The 17th remainder bit is the carry from ADC HL.
@@ -270,3 +251,29 @@ def emit_precision(a: Assembler) -> None:
     a.pop("af"); a.dec_r("a"); a.jp("divide16_group", "nz")
     a.ld_r_r("a", "c"); a.ld_abs_a(Q14_PRODUCT)
     a.ld_r_r("a", "b"); a.ld_abs_a(Q14_PRODUCT + 1); a.ret()
+
+
+def emit_shift_reference(a) -> None:
+    """The shift-add 16x16 multiply the table products replaced. Nothing
+    calls it and it is bank-neutral, so the overlapped-publication profile,
+    whose interrupt tail needs the fixed half, keeps it in a cold section."""
+    a.label("q14_multiply_u16_shift_reference")
+    store_hl_abs(a, Q14_MULTIPLICAND, Q14_MULTIPLICAND + 1)
+    a.ld_r_r("a", "e"); a.ld_abs_a(Q14_MULTIPLIER)
+    a.ld_r_r("a", "d"); a.ld_abs_a(Q14_MULTIPLIER + 1)
+    a.xor_r("a")
+    for address in (*range(Q14_PRODUCT, Q14_PRODUCT + 4), Q14_MULTIPLICAND + 2, Q14_MULTIPLICAND + 3):
+        a.ld_abs_a(address)
+    a.ld_r_n("c", 16)
+    a.label("q14_multiply_loop")
+    a.ld_rr_nn("hl", Q14_MULTIPLIER + 1); a.cb("srl", "(hl)"); a.dec_rr("hl"); a.cb("rr", "(hl)")
+    a.jr("q14_multiply_shift", "nc")
+    for byte in range(4):
+        a.ld_a_abs(Q14_MULTIPLICAND + byte); a.ld_r_r("b", "a")
+        a.ld_a_abs(Q14_PRODUCT + byte)
+        (a.add_a_r if byte == 0 else a.adc_a_r)("b"); a.ld_abs_a(Q14_PRODUCT + byte)
+    a.label("q14_multiply_shift")
+    a.ld_rr_nn("hl", Q14_MULTIPLICAND); a.cb("sla", "(hl)")
+    for _ in range(3):
+        a.inc_rr("hl"); a.cb("rl", "(hl)")
+    a.dec_r("c"); a.jp("q14_multiply_loop", "nz"); a.ret()
