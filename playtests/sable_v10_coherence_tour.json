@@ -30,7 +30,7 @@
     },
     {
       "pose": [
-        896,
+        384,
         2432,
         192
       ],
@@ -39,28 +39,28 @@
     },
     {
       "pose": [
-        1728,
-        1920,
-        0
+        1664,
+        1600,
+        192
       ],
       "updates": 1,
-      "capture": "zigzag_gate"
+      "capture": "mess_hatch"
     },
     {
       "buttons": [
         "b"
       ],
       "updates": 2,
-      "capture": "zigzag_open"
+      "capture": "mess_open"
     },
     {
       "pose": [
         2176,
-        1920,
+        1408,
         64
       ],
       "updates": 1,
-      "capture": "combat_partition"
+      "capture": "comms_entry"
     },
     {
       "pose": [
@@ -69,7 +69,7 @@
         0
       ],
       "updates": 1,
-      "capture": "machinery_chamber"
+      "capture": "comms_room"
     },
     {
       "pose": [

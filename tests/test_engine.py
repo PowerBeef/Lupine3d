@@ -381,12 +381,13 @@ class Lupine3DTests(unittest.TestCase):
         self.assertIsNotNone(report)
         self.assertEqual(report.unreachable_cells, 0)
         self.assertEqual(report.maximum_sightline, 6)
-        self.assertEqual(report.maximum_open_rectangle, (4, 3))
+        self.assertEqual(report.maximum_open_rectangle, (4, 4))
         self.assertGreaterEqual(report.minimum_door_separation, 8)
         self.assertGreaterEqual(report.critical_path_turns, 3)
-        # Two paint seams on latent jamb faces become visible as doors open.
+        # The lift door stands in a machinery frame: two paint seams on its
+        # latent jamb faces, one each side, become visible as it opens.
         self.assertEqual(report.material_seams, 2)
-        self.assertEqual(report.material_singleton_runs, 2)
+        self.assertEqual(report.material_singleton_runs, 4)
 
     def test_level_v2_rejects_unsafe_spawns_bad_door_frames_and_missing_exit_lock(self) -> None:
         source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
@@ -414,18 +415,20 @@ class Lupine3DTests(unittest.TestCase):
         cases = []
 
         sealed_void = json.loads(json.dumps(source))
-        row = list(sealed_void["rows"][1]); row[8] = "0"
-        sealed_void["rows"][1] = "".join(row)
+        row = list(sealed_void["rows"][2]); row[13] = "0"
+        sealed_void["rows"][2] = "".join(row)
         cases.append((sealed_void, "unreachable"))
 
         bypass = json.loads(json.dumps(source))
-        for x, y in ((1, 6), (1, 7), (2, 7)):
+        # Round the bunk-room door through its west jamb.
+        for x, y in ((2, 5), (2, 6)):
             row = list(bypass["rows"][y]); row[x] = "0"; bypass["rows"][y] = "".join(row)
         cases.append((bypass, "door"))
 
         long_view = json.loads(json.dumps(source))
-        row = list(long_view["rows"][7]); row[9] = "0"
-        long_view["rows"][7] = "".join(row)
+        # A nub above the decon passage lines the airlock column up to seven.
+        row = list(long_view["rows"][8]); row[4] = "0"
+        long_view["rows"][8] = "".join(row)
         cases.append((long_view, "readability"))
 
         with tempfile.TemporaryDirectory() as directory:
@@ -487,6 +490,7 @@ class Lupine3DTests(unittest.TestCase):
             (0x0880, 0x0680, 0, 0),
             (0x0880, 0x0680, 0, 39),
             (0x0480, 0x0C80, 192, 39),
+            (0x0280, 0x0180, 64, 59),
         ]
         observed_styles = set()
         for x_q8, y_q8, angle, ray_index in probes:
@@ -538,7 +542,7 @@ class Lupine3DTests(unittest.TestCase):
         full-height column in the middle of a far wall (Reactor Heart,
         sector 12 of the eighteen-sector route)."""
         cgb = self.boot_to_main()
-        for x_q8, y_q8, angle, ray_index in ((640, 1023, 1, 38), (2176, 1791, 1, 38)):
+        for x_q8, y_q8, angle, ray_index in ((640, 767, 1, 38), (2176, 2303, 1, 38)):
             with self.subTest(pose=(x_q8, y_q8, angle), ray=ray_index):
                 expected = br.reference_cast_hit(x_q8, y_q8, angle, ray_index)
                 self.assertEqual(expected.dx if expected.axis == 0 else expected.dy, 0)
@@ -825,8 +829,8 @@ class Lupine3DTests(unittest.TestCase):
         # lookup, but mutates only its own record.
         interactions = (
             (0, (0x0480, 0x0C40, 192), False),  # start airlock, from south
-            (1, (0x0380, 0x0740, 192), False),  # courtyard access, from south
-            (2, (0x06C0, 0x0780, 0), False),    # zig-zag entry, from west
+            (1, (0x0180, 0x0640, 192), False),  # bunk room, from the decon passage
+            (2, (0x0680, 0x0640, 192), False),  # mess hatch, from the decon passage
             (3, (0x0980, 0x0A80, 64), True),    # exit lock, from north
         )
         for target_index, pose, unlock_exit in interactions:

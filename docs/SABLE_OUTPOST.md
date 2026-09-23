@@ -1,6 +1,6 @@
 # Sable Outpost: v0.8 art and animation
 
-The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. (The weapon cels were later replaced by reductions of vector illustrations, `docs/ART_PIPELINE.md`; the generated shotgun master is retained as a design source.) The game keeps its safe start, four sliding doors, combat partition, healing pickup and marked exit. Sixteen wall fixtures add landmarks without changing collision geometry.
+The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. (The weapon cels were later replaced by renders of 3D models, `docs/ART_PIPELINE.md`; the generated shotgun master is retained as a design source.) The first sector is the outpost itself: a safe start in the landing airlock, a decon passage, the bunk room, the mess hall and the comms room where the Sentinel guards the lift, behind four sliding doors, with a healing pickup and a marked exit (`docs/CAMPAIGN.md`, "Named places"). Sixteen wall fixtures add landmarks without changing collision geometry.
 
 ## Visual language
 

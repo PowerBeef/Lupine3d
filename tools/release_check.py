@@ -273,7 +273,7 @@ def main() -> None:
         "level_critical_path_has_three_turns": int(v2_manifest["critical_path_turns"]) >= 3,
         "every_level_door_is_meaningful": int(v2_manifest["minimum_door_separation"]) >= 8,
         "level_material_seams_include_latent_jambs": int(v2_manifest["material_surface_seams"]) == 2,
-        "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 2,
+        "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 4,
         # Every campaign level carries the same certificate the first one does,
         # and each owns a distinct ROM bank the loader can select at runtime.
         "campaign_levels_each_certified": all(

@@ -2,12 +2,12 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "actor_covered_discontinuity": {
-      "rgb_sha256": "3b7d7235cb4a103c3a05a34e5e584546fec950e9671705255edcda0ac5c590cc",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "05706643680d5ea3faf26b05da7b9be78d16beeb2f1e86e32cb59d4248ef9d95",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "close_clipped_wall": {
       "rgb_sha256": "1f5d597100227f8990b491ec898569fa7cd59d9020fb9f2c19c227679e4a64a2",
@@ -18,684 +18,684 @@
       "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
     },
     "finite_door_0": {
-      "rgb_sha256": "5fc7ba8865b8338088f6fe1bf2847e801125b3963a39e9b70b3a60be844cd7ac",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f7cc4dd03b85a3714d9b85569ca461c516f164d4950dcae12acd876a55428373",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_128": {
-      "rgb_sha256": "5f114ba53f5e6ca47668c4691707b49d90a901fa31d1d1abd4e5d1e3ae825900",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f95831b668874a6272a9512a46133d5ea888a34808f864264cddeed02232a4bc",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_192": {
-      "rgb_sha256": "bd0d2cad1a06aaee9198a648e0fecf22d1a431b5878eb862eb6ab2bea20d169a",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "a116460b671820e5155fd9a37585c059436ef140a38fef39c6c17ed470111053",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_224": {
-      "rgb_sha256": "67237903d1bf6754eb74d5c25ce3535752c5ac74e841d25c6bf27a98ae2d8788",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "8ca82f9abcad2aa2aa0070b790e4ac6e7c2c09d5ba3043a783dd9feef92c8b80",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_64": {
-      "rgb_sha256": "f19d62538cfaad43e628b35a757b945e18edfbefcb76a5abfb8688df500e9c1f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "73ebef4a9b08a5e290be5868e89ecc529784df6d5360f3095e0ec139b29fe8ad",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "four_actor_coverage": {
-      "rgb_sha256": "574fa6ca2308a9b71c8d488396dca486ebed6b4afdc119a395009ced75e3de2a",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "3d7a52bd21e4c4671bae88436a1acb39043fb992b19fafd1ae57d11da7d16fb7",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_00": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_01": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_02": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_03": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_04": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_05": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_06": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_07": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_08": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_09": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_10": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_11": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_12": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_13": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_14": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_15": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "height_class_occlusion": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0064": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0079": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0080": {
-      "rgb_sha256": "ee25aca215e95098504555ea86968743e6775b155eb605ef1c6aced6346b13ba",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0081": {
-      "rgb_sha256": "ee25aca215e95098504555ea86968743e6775b155eb605ef1c6aced6346b13ba",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0095": {
-      "rgb_sha256": "ee25aca215e95098504555ea86968743e6775b155eb605ef1c6aced6346b13ba",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0096": {
-      "rgb_sha256": "ee25aca215e95098504555ea86968743e6775b155eb605ef1c6aced6346b13ba",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0447": {
-      "rgb_sha256": "0dfce05cdf627294b76eab9e5d6f4db954e65bac8579f3e6156ffc63e69915b8",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0448": {
-      "rgb_sha256": "0dfce05cdf627294b76eab9e5d6f4db954e65bac8579f3e6156ffc63e69915b8",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0449": {
-      "rgb_sha256": "0dfce05cdf627294b76eab9e5d6f4db954e65bac8579f3e6156ffc63e69915b8",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0575": {
-      "rgb_sha256": "da944713cf81775dd09e988de3c15814425c23a8afa8e1e0363e7321a20aa530",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "bb73dae95d6d3b7eb2d24b436ce7d84016757bd67156f353b2ad4cdee8de5d10",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0576": {
-      "rgb_sha256": "dc489a67d8fc4a64b6642a047ff53c8da220ba93c2104d3f115b9f4c35a32313",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "4205dd889048ea8daa2d987b77bb2523d20cea97c7fc0e645044e7d85cc04f78",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0959": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0960": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_1087": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_1088": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_1089": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_00": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_01": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_02": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_03": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_04": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_05": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_06": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_07": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_08": {
-      "rgb_sha256": "17ab2ee83952bb6fbc653b8a0806d931fce18af5c54f938ff9061b82f6efb9b2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_09": {
-      "rgb_sha256": "7a5a896e4b5ae1efabd517a1e8792488e94a51f59bf9f7a82d0c9899b3581c8f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f93d0ebbb2cff549e5042a8cd38001290e94bd65e0428682c5a4a80224692a19",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_10": {
-      "rgb_sha256": "7a5a896e4b5ae1efabd517a1e8792488e94a51f59bf9f7a82d0c9899b3581c8f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f93d0ebbb2cff549e5042a8cd38001290e94bd65e0428682c5a4a80224692a19",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_far_11": {
-      "rgb_sha256": "7a5a896e4b5ae1efabd517a1e8792488e94a51f59bf9f7a82d0c9899b3581c8f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f93d0ebbb2cff549e5042a8cd38001290e94bd65e0428682c5a4a80224692a19",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_00": {
-      "rgb_sha256": "5cdd8ab43ca6de704c93324c56facc1cf731c84c5c3374cab3f3e5f32314e894",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "41b794b54ace62ec890686e049c4f57610d341ba6b551b708c6859b1d7c7869e",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_01": {
-      "rgb_sha256": "6a3d880f8baaaf51f02f519d513bfd1bdf22ff3a6ce809ebf57893b85c88e402",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "0bc4a8627fe2df7601a73d993be156e4fca0fd4dc54c146ee150d758e18941d6",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_02": {
-      "rgb_sha256": "b022be0c0084c0a8f1eb820eba209da026b5f3b83e63e40c81e2acabd1d1d6d2",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "ba7e97438ff9d6cdbc15beb3007a31f86490142b2b2c00cc7d6d5a6c17c8464d",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_03": {
-      "rgb_sha256": "355632adde2d8b64e97890ecd06ab143ebcb1d7c4f63773433a00ba7721ec1c6",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "03e5cedc9118cf1d809f1ab56be87990a8d02764595ee1925c1fc38f393a0a3d",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_04": {
-      "rgb_sha256": "eb3776d2831aa8123f67ba79b387fd63015d91e7333e26fc7e368d85f2bd8b4f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "28d098dccfdb4b1751413a681e8418949a4a6e7a786cd0f3914cd3ae46e407d7",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_05": {
-      "rgb_sha256": "da929a6c3c78f136004336284ad26c4712f3f31606abc717817b2e20417c8ec9",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "63610c019570828bd08f420b2af10d4a1b9dee5ec6e6ef12b193b5bb9b621968",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_06": {
-      "rgb_sha256": "a317d32c50a048b7fff9c87693d9d60d9cbbab541e6412855f00c40f7b660830",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "a32a2297d2089b847e97619c0234e2e9ecb1275bbdb654278666a8483a595120",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_07": {
-      "rgb_sha256": "c6d02c2bd0b85f79fac2f2c522bcba615609181a0c1dad928d64da311ca5909b",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "55cff91d29b5cd75fde481bd5c5a9415aa827562ba6387cc6ea8cb41b4f993e5",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_08": {
-      "rgb_sha256": "c8fce3d61cb1faf8e6e1f5d4bbe60c9348ca1868235f92c9a12d21494c9ff714",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "2e3b51b306ee22bd11fdd484cdcb0528f33cc64f8a6f5f95fed33cb90d32ff42",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_09": {
-      "rgb_sha256": "a05eec2124f2fbd7c53c2ba26f33858a70e5c32b707ac26a4c796a75531a100e",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "b563e1103c14321b8c7bf1162d80febc8eb8d37caf42b9951b4832122b6720b1",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_10": {
-      "rgb_sha256": "def8c9adeec6fd9d987acee988a3b0f203b4bbb837b3e0807c8264418c8be47e",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "fe751ef986ae220b43b6b437fc8df9c70176fce23c119dfaf61cd5036600526b",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_11": {
-      "rgb_sha256": "596307abba3863ef9c1a035738a5bd9aecde3d207160be52012639f569bc7335",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "afd339d47f35a738a10aa13faf9d55ba20d495b1dd1c18e12bd1ba989c53fb0b",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_00": {
-      "rgb_sha256": "8559a68dc9ad91dfab8552abbdc523ecf637f145aa9612dce4d0fab2c348d6fc",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "f4e6da5f543c0bdd012199adbd9d457cb5160017def7702f880fbef36327b644",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_01": {
-      "rgb_sha256": "cf8fd8a731682aaed819f1b6ca28924e2fb7b84bfd14a231391137d9027f634d",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "d5d1a73669a8a44f171ff800b03a96bdc95938766c0ad43cbc83ef7e13f03f8e",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_02": {
-      "rgb_sha256": "591ff34f0ace234fc92d4097a9fbb3330508afc830f5d2f30b3168ca4dd4fd11",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "902ff31c486834f513e3ddd95c11d230adfcc6687d824335aa6d399b37e72118",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_03": {
-      "rgb_sha256": "a71e469dab47ca825ee5bf027fdf3031650ebf6211d3ceb8c49a7667505ec466",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "96c3bc9b4bd2bec696f732c4919fcb315ed29d749026c0c4c28ecb0c51fb3afb",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_04": {
-      "rgb_sha256": "1ccbbb3dbd0ee1c4c05856457bfbef563d6d336f0d1d32f3e82491fe0577aa51",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "c95195cd96aac88df79c7420f5fc3795973770cb51a601e08c704777fb2decdc",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_05": {
-      "rgb_sha256": "4c33a8fb3c381891f2d42f8df79f5858eb68b53552ef84ea500459ccc58de320",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "b962fd2d9274babc95385b96ce5e1befd5fd1acc6c02eb63924775f0b28a05bd",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_06": {
-      "rgb_sha256": "b083904e161f8d9577695d56537bf052aef9d21907e94c59fe8869d22590b703",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "380f78cb6b5325ba85db91e4ba461d12e839c7c46960fc1e6433a5faf3cb2dfd",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_07": {
-      "rgb_sha256": "36aeaa0d6d15fcfe7b31c13dbd2c36cefc37091f0690978472b4a7a35b6d375a",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "7160a2a19842b1a87a5a9856b7e8657ccb919c0143c3a2b2aee5377315d7ac85",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_08": {
-      "rgb_sha256": "f47b15f551d1387c95a0ab5d635d028f6d71630d7b73d4af131b511829e7c111",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "7b8b5cfdc882bdc5af406a80d837279a86bc590f69f8c6d0e48ec2dd662dc4dd",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_09": {
-      "rgb_sha256": "a6230359eb854db89c3022e55da737dbd04dd952c2d5808437c656fa5419686d",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "70ff6452d5710a60b7cc5d9c8c7da714331324936f75b8f5ec702ab30d551e58",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_10": {
-      "rgb_sha256": "a4fe184e37a9ba86a2565bd01f3a88e581fd26e8171b3d733ae1f9246d961621",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "1912eb881ab833279b83bf5aeff2563066fb8133ec44b827289437c6a2759a5a",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_11": {
-      "rgb_sha256": "affdeeac0ad4e1320a7d533b593e039afe4f87d984ca90ea2bcec6fbe06a6ba4",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "e47ca11cce81a3323fa68141e48bead87417bc6b3c8740175b17c2e5dc77caca",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "shallow_angle": {
-      "rgb_sha256": "9eb4d58cd4a32eed7bb91acd8fbe319ffc174dbca8da850b9567d4af9734c8f6",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "d605476bd8c6ad9885c2a34c4149e5f3107cb675b98049759ebd44c24de3870f",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "thin_occluder": {
-      "rgb_sha256": "74e6b0bf7ff6514161c7afdaabf7785c37666e258ace9cf4d1754b4aa0bad954",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "e9e72dceea8613a510b26e8d523bda7f6db575d33396c55e11be91443bb803a6",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "touching_doors_axis_0": {
-      "rgb_sha256": "8915c0547182ed244dfee85e7e7ad2af0786220b8fe6b5b45f9883b3010b8308",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "a329eee73b41518b87d423741b2c4e5f96043cd0513ddf247e9623951caecc7c",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "touching_doors_axis_1": {
-      "rgb_sha256": "4658cee923139cbe5baade28ee3de28fc536639dfde9e876d31aabc92b5def78",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "63af698fb82df1594fa91026dc8663ae42940a8f9e06060632adf00979b0c4b3",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "two_actor_corner": {
-      "rgb_sha256": "ea571f3ef290d7203e6de3ff928ba32257380ce800af0db7e8242bc2f6f5fc86",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "0905759c17b41dbf9dc9509c3a60fbd41c4e720b22f81bc6a8fe1c58af66aed8",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "yaw_wrap_000": {
-      "rgb_sha256": "64a691ea3f218165d3d25b221f9c57b4aa7ddf5c371c84e84aea90a462c10361",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "yaw_wrap_001": {
-      "rgb_sha256": "789095ecf9ff0c874b27582acd73174c7faf7488b0e4ab1aa1cbb037b565d42f",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "0095bbffbc5a554ebf7ed34f07dd1bcbee2b909249163cb155b2720c755b8160",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "yaw_wrap_002": {
-      "rgb_sha256": "df7be68f59525b6fdb164f74214dc9ebb2c1f510768b115f8cea98d63852f828",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "8141c6425dd36f68569a56ec9e24def68f717b077eeeda4fe040abe19e4af90c",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "yaw_wrap_254": {
-      "rgb_sha256": "2d196b52c80a792173d68d076912c65edfe8188d2faa5a94550d5331eb6cba4d",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "5189559c2da5228ed62fa1fdd9e1217e8e444fcc86c5527faa235fce5c2bdebd",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "yaw_wrap_255": {
-      "rgb_sha256": "2dd2fbb165bac9c19be34da41d7ad6b666cafe15f3ee77622a8ec1d63e12d4d3",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:33:47+00:00",
+      "rgb_sha256": "4af20808334403cba5f4f08362fb2a4a0de4c2da0fc9e3c0f6968c3f63bb21f5",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:28:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     }
   }
 }

@@ -10,9 +10,9 @@ gates every campaign level on it, not only the first.
 `python tools/lupine.py level check levels/<file>.json` prints it:
 
 ```
-levels/living_world.json: ok - Sable Outpost: 16x16, 4 doors, 1 actors, 1 drops, 16 fixtures, 52 segments
-  certificate: 70 walkable, 0 unreachable, critical path 15 steps/5 turns, sightline 6, room 4x3,
-  door separation 11, seams 2, singleton runs 2
+levels/living_world.json: ok - Sable Outpost: 16x16, 4 doors, 1 actors, 1 drops, 16 fixtures, 70 segments
+  certificate: 94 walkable, 0 unreachable, critical path 19 steps/6 turns, sightline 6, room 5x3,
+  door separation 11, seams 0, singleton runs 0
 ```
 
 `lupine level info` prints the same as JSON, and the build manifest carries

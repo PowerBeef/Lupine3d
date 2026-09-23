@@ -227,6 +227,7 @@ follows how the place would be used rather than a grid of rooms:
 
 | Sector | Place |
 |---|---|
+| 1 Sable Outpost | the landing airlock, a U-shaped decon passage, the bunk room and the mess hall off it, the comms room where the Sentinel guards the lift |
 | 2 Coolant Spine | a pump house, then a pipe-lined spine climbing to the valve head and the lift, with the coolant shaft off to one side |
 | 3 Reactor Gate | a security checkpoint: a lobby, a ring corridor round the guard block, the cell block and turbine stair off it, the Warden at the reactor gate |
 | 4 Vent Stacks | two shafts from the stack base: west to the fan room and the card, east to the carded upper walk and the exhaust hall |
