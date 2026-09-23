@@ -30,8 +30,9 @@ IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dyn
 DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"}
 # HBlank-streamed publication follows the display profile: it is the compact
 # and slim production path, and the legacy profile keeps its staged VBlank
-# packets byte for byte. Resolved after the display, below.
-PROFILE_DEFAULTS = {"hdma_streaming"}
+# packets byte for byte. Textured walls are the slim Sable default wherever
+# they can run. Both are resolved after the display, below.
+PROFILE_DEFAULTS = {"hdma_streaming", "textured_walls"}
 
 
 def resolve(environ=None):
@@ -83,6 +84,19 @@ def resolve(environ=None):
     # Textured walls (docs/TEXTURED_WALLS.md) compose every wall tile into a
     # ring the HBlank stream drains, so they need streaming; their texture
     # coordinates borrow the physical-depth window, so the two exclude each other.
+    # They are the slim Sable default; the diagnostics they cannot run with
+    # (the unfolded oracle, physical depth, anchor packets, no streaming)
+    # adapt the implicit default to flat walls, and LUPINE3D_TEXTURED_WALLS=0
+    # builds the flat slim profile. An explicit request that cannot run fails.
+    textured_default = (display == "slim" and art == "sable-v2" and result["hdma_streaming"]
+                        and not result["physical_depth"] and not result["anchor_packets"]
+                        and env.get("LUPINE3D_FOLDED", "1") != "0")
+    textured = env.get("LUPINE3D_TEXTURED_WALLS", "1" if textured_default else "0")
+    if textured not in ("0", "1"):
+        raise ValueError("LUPINE3D_TEXTURED_WALLS must be 0 or 1")
+    result["textured_walls"] = textured == "1"
+    if result["textured_walls"] and (display != "slim" or art != "sable-v2"):
+        raise ValueError("Textured walls require the slim display and Sable art")
     if result["textured_walls"] and not result["hdma_streaming"]:
         raise ValueError("Textured walls require HBlank-streamed publication")
     if result["textured_walls"] and (result["physical_depth"] or result["anchor_packets"] or env.get("LUPINE3D_FOLDED", "1") == "0"):

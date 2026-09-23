@@ -44,5 +44,5 @@ gate; pictures are golden snapshots with an explicit acceptance path. The
 
 - [Level format](../LEVEL_FORMAT.md) and [certificate](../LEVEL_CERTIFICATE.md)
 - [Art pipeline](../ART_PIPELINE.md)
-- [Textured walls](../TEXTURED_WALLS.md), the opt-in profile
+- [Textured walls](../TEXTURED_WALLS.md), the slim default
 - [Development](../DEVELOPMENT.md): commands, cores, releases

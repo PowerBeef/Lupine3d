@@ -77,10 +77,10 @@ walks to the next owned one with the LCD off. The count is a power of two
    per-face profiles with `surfaces`. Each texture is four 5 KiB shade
    blocks, three blocks to a bank, in the order `TEXTURE_WINDOW_BANKS`
    gives; the build refuses more blocks than those banks hold.
-3. `make textured playtest-textured sable-check-textured`; the reference in
-   `texture_reference.py` predicts every tile byte, so a mismatch is a bug in
-   one of them, never something to accept. Accept the textured goldens with a
-   note.
+3. `make build playtest playtest-world playtest-art sable-check` (textured
+   walls are the slim default); the reference in `texture_reference.py`
+   predicts every tile byte, so a mismatch is a bug in one of them, never
+   something to accept. Accept the changed goldens with a note.
 
 ## Add a full-screen mode
 

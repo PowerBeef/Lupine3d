@@ -16,7 +16,7 @@ build writes `build/lupine3d.gb`, a listing, RGBDS-form symbols
 version, budget and hash (`docs/DEVELOPMENT.md`, "Debugger exports").
 
 Every build flag is read at import time, so one process builds one
-configuration. `python tools/lupine.py build --textured` and the other CLI
+configuration. `python tools/lupine.py build --flat` and the other CLI
 subcommands spawn the right process for you.
 
 ## One frame

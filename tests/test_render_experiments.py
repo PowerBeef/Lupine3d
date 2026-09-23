@@ -132,7 +132,19 @@ class ObservationContracts(unittest.TestCase):
 
     def test_production_defaults_preserve_historical_diagnostic_commands(self):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
-                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming"})
+                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming",
+                          "textured_walls"})
+        # Textured walls are the slim Sable default; legacy and compact stay
+        # flat, the unfolded oracle adapts the implicit default, 0 opts out,
+        # and an explicit request that cannot run fails.
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "legacy"})["textured_walls"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["textured_walls"])
+        self.assertFalse(resolve({"LUPINE3D_TEXTURED_WALLS": "0"})["textured_walls"])
+        self.assertFalse(resolve({"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"})["textured_walls"])
+        for conflict in ({"LUPINE3D_DISPLAY": "compact"}, {"LUPINE3D_HDMA_STREAMING": "0"},
+                         {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"}):
+            with self.assertRaises(ValueError):
+                resolve({**conflict, "LUPINE3D_TEXTURED_WALLS": "1"})
         # HBlank-streamed publication follows the display profile: on for the
         # compact/slim production paths, off for the byte-exact legacy ROM,
         # and never alongside the legacy-only experimental lanes.

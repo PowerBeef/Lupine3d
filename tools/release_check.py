@@ -134,6 +134,7 @@ def main() -> None:
     if not current_geometry_path.is_file():
         raise SystemExit("missing current static geometry comparison; run `make research-v3`")
     current_geometry = json.loads(current_geometry_path.read_text())
+    textured = bool(v2_manifest.get("textured_walls", {}).get("enabled"))
     atlas_research_path = ROOT / "research" / "results" / "tile_atlas_v4.json"
     if not atlas_research_path.exists():
         raise SystemExit("missing v0.4 atlas research; run `make research-atlas`")
@@ -204,11 +205,13 @@ def main() -> None:
         "engine_fits_rom": int(v2_manifest["engine_end"]) <= 0x8000,
         # Staged: at most 176 GDMA blocks over two or three VBlanks. Streamed:
         # patterns and map by HBlank DMA (at most 126 blocks over visible
-        # lines), then one VBlank of at most 62 banked GDMA blocks.
+        # lines on the flat compositor; the textured ring streams up to its
+        # 238 pattern ids plus the 30-block map, docs/TEXTURED_WALLS.md), then
+        # one VBlank of at most 62 banked GDMA blocks.
         "maximum_commit_176_blocks": (int(v2_manifest["maximum_commit_blocks"]) <= 176 if not v2_manifest["hblank_streaming"]["enabled"]
                                       else v2_manifest["hblank_streaming"]["maximum_vblank_gdma_blocks"] <= 62
-                                      and v2_manifest["hblank_streaming"]["maximum_hblank_blocks"] <= 126
-                                      and int(v2_manifest["maximum_commit_blocks"]) <= 188),
+                                      and v2_manifest["hblank_streaming"]["maximum_hblank_blocks"] <= (268 if textured else 126)
+                                      and int(v2_manifest["maximum_commit_blocks"]) <= (330 if textured else 188)),
         "bounded_publication_stages": (v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80) if not v2_manifest["hblank_streaming"]["enabled"]
                                       else v2_manifest["maximum_final_stage_blocks"] <= 62 and v2_manifest["maximum_publication_vblanks"] == 1,
         "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == current_sha,

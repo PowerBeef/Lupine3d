@@ -133,9 +133,10 @@ consequences are in "Cost, measured on the emitted ROM" below.
 
 ## What was emitted (Phase 2b)
 
-The textured profile is built with `LUPINE3D_TEXTURED_WALLS=1` (slim, Sable
-art and HBlank streaming only; `make textured`). It is opt-in: the default
-ROM is byte-identical. The contact sheet below is the coherence tour captured
+Textured walls need the slim display, Sable art and HBlank streaming, and
+since the Phase 5 round they are that profile's default
+(`LUPINE3D_TEXTURED_WALLS=0`, `make flat`, builds the flat slim ROM; the
+legacy and compact profiles are always flat). The contact sheet below is the coherence tour captured
 from the emitted ROM by the harness, not a host rendering.
 
 ![The coherence tour on the textured ROM](images/textured_walls_rom_tour.png)
@@ -258,7 +259,8 @@ walking 6.2/s and two-actor corner 5.6/s against v0.10's 10.27, 7.77 and
 6.80 (`research/results/textured_walls_lab_v2.json`). The prototype gate's
 estimates (700/1,300 T per tile, no column cost) were optimistic by about
 3x; the gate - +70k T mean, rates within 10% - is **not met**, and the
-profile stays opt-in. Exactness, publication safety and the pinned cores are
+profile stayed opt-in until the owner made it the slim default after the
+Phase 5 round (`docs/PERFORMANCE_PHASE5.md`). Exactness, publication safety and the pinned cores are
 green, so the rate is the whole tradeoff: textured walls at about three
 quarters of the flat frame rate. Closing that gap needs a structural change
 rather than trims - fewer composed rows (grouping screen rows that share a

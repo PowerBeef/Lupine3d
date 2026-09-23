@@ -28,7 +28,9 @@ for flags in ({'LUPINE3D_REPROJECTION':'1','LUPINE3D_DISPLAY':'compact'},
 
     def test_emitted_compact_art_contracts(self):
         env={k:v for k,v in os.environ.items() if not k.startswith('LUPINE3D_')}
-        env.update(LUPINE3D_DISPLAY='slim',LUPINE3D_ART='sable-v2')
+        # The flat compositor's art contracts; the textured default runs its
+        # own Sable checks in test_textured_walls.
+        env.update(LUPINE3D_DISPLAY='slim',LUPINE3D_ART='sable-v2',LUPINE3D_TEXTURED_WALLS='0')
         with tempfile.TemporaryDirectory() as directory:
             result=subprocess.run([sys.executable,str(ROOT/'tools/check_sable.py'),'--output-dir',directory],env=env,capture_output=True,text=True,timeout=120)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)

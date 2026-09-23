@@ -262,7 +262,7 @@ def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str
     A scenario names its suite with `snapshot_suite`; every capture is then
     compared with the golden of the same name (see tools/snapshot.py). The
     configuration id comes from the manifest beside the ROM under test, so a
-    profile built into its own directory (build/textured) is identified too.
+    profile built into its own directory (build/flat) is identified too.
     """
     suite_name = scenario.get("snapshot_suite")
     if not suite_name or snapshot_mode is None:

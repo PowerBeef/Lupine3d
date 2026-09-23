@@ -113,14 +113,18 @@ regression contract.
 - Preserve prepared scalar records 0–240 and raw-query sentinel semantics.
   Packet experiments own records 241–250 only.
 
-## Textured walls (opt-in profile)
+## Textured walls (the slim default)
 
-- `LUPINE3D_TEXTURED_WALLS=1` (slim + Sable + streaming only) replaces the
-  microstrip compositor and the trained atlas with the row-window kernel in
-  `textured.py`; `texture_reference.compose_kernel` is its byte-exact model
-  and `docs/TEXTURED_WALLS.md` the contract. The default ROM is unchanged;
-  `make textured playtest-textured sable-check-textured` verify the profile
-  and its goldens live under `snapshots/slim-sable-v2-textured/`.
+- Textured walls are the slim Sable default (slim + Sable + streaming only):
+  the row-window kernel in `textured.py` replaces the microstrip compositor
+  and the trained atlas; `texture_reference.compose_kernel` is its
+  byte-exact model and `docs/TEXTURED_WALLS.md` the contract, and the
+  default goldens live under `snapshots/slim-sable-v2-textured/`.
+  `LUPINE3D_TEXTURED_WALLS=0` builds the flat slim profile (`make flat
+  playtest-flat sable-check-flat`, goldens under `snapshots/slim-sable-v2/`);
+  legacy and compact are always flat, and diagnostics textured walls cannot
+  run with (unfolded, physical depth, anchor packets) adapt the implicit
+  default to flat. An explicit incompatible request fails.
 - Every cast records its along-face coordinate (`RAY_U`, `PIXEL_U`), oriented
   so texture columns never decrease across the view: the console negates the
   east and north faces. Textures are authored 16x8 indexed PNGs under
@@ -144,8 +148,8 @@ regression contract.
   resident half (`tex_column_runs`); the row kernel is cold.
 - Measured over every code region of the coherence tour, the kernel costs
   about 270k T per full update against the flat compositor's 60k (tour mean
-  917k T against 675k), so the profile is not the default: the numbers, the
-  missed gate and what each part costs are in `docs/TEXTURED_WALLS.md` and
+  917k T against 675k) before Phase 5; the owner made it the default after
+  that round anyway. The numbers, the missed gate and what each part costs are in `docs/TEXTURED_WALLS.md` and
   `research/results/textured_walls_lab_v2.json`. One-face columns run
   `tex_column_single` with the accumulator, step and slot in registers
   across the column; seam columns run `tex_compose_tile` per tile. A run

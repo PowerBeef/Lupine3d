@@ -1,5 +1,8 @@
 # Unreleased — after v0.11
 
+- **Textured walls are the slim default.** The slim Sable build composes
+  every wall from its episode's textures; `LUPINE3D_TEXTURED_WALLS=0`
+  (`make flat`) builds the flat compositor, which legacy and compact keep.
 - **Exact performance round** (`docs/PERFORMANCE_PHASE5.md`). The textured
   kernel composes rows under one texel row in 76 T instead of 104 and drops
   its per-tile bookkeeping on one-face columns; every profile gets a leaner
@@ -13,7 +16,9 @@
 - **The render snapshot copies its map** only when a door or a load changed
   it.
 - **The route** stops a close-in walk that is costing health once a step has
-  put it beside the actor with a line, instead of walking on past it.
+  put it beside the actor with a line, instead of walking on past it, and
+  counts an exchange's contacts from its first shot, so hits taken turning
+  to face a chaser no longer send it away to a firing position.
 
 # Lupine 3D v0.11 — Three episodes
 

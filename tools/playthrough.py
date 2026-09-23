@@ -502,8 +502,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                       "state": target["state"], "at": (target["x"], target["y"]), "from": (px, py),
                       "health": start_health, "target_health": target["health"],
                       "contact": contact, "hold": hold_aim[0]}
+            aimed_health = None   # health when the first shot went out
             while living() and engageable() and cgb.frame_count - exchange < (120 if contact else 300):
                 step(aiming)
+                if fired[0] and aimed_health is None:
+                    aimed_health = live8(br.PLAYER_HEALTH)
                 if DEBUG:
                     t = next((a for a in actors() if a["slot"] == target["slot"]), None)
                     print("  exchange", len(records), "pose", pose(), "hp", live8(br.PLAYER_HEALTH), "target", t,
@@ -515,8 +518,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 # that was still turning to face a chaser has proved nothing,
                 # and leaving it turns the route away again, so the aim is
                 # never reached and every re-decision costs another contact.
-                # Signal Deck's last skirmisher killed the route that way.
-                if (fired[0] and live8(br.PLAYER_HEALTH) <= start_health - 2 * contact_damage(target)
+                # Signal Deck's last skirmisher killed the route that way. So
+                # the two contacts are counted from the first shot: the hits
+                # taken turning to face it say nothing about the line, and
+                # leaving on them walked Cryo Vault's route into its warden.
+                if (aimed_health is not None and live8(br.PLAYER_HEALTH) <= aimed_health - 2 * contact_damage(target)
                         and next((a["health"] for a in actors() if a["slot"] == target["slot"]), 0) == target["health"]):
                     record["decision"] = "cut short"
                     break
