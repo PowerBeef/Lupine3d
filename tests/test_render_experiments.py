@@ -61,8 +61,17 @@ class StripExperiments(unittest.TestCase):
                             patterns += 1
         self.assertEqual((cases, patterns), (282, 6768))
         self.assertEqual(metadata["microstrip_format"]["table_bytes_saved"], 3840)
-        self.assertEqual(metadata["memory_budget"]["resident_free_bytes"],
-                         self.legacy[2]["memory_budget"]["resident_free_bytes"] + 3840)
+        # The 3,840 table bytes are the whole saving once the two layout
+        # effects are accounted for exactly: the general selector's extra
+        # fixed-code bytes, and the page alignment of the movement tables,
+        # which can put the two variants on different sides of a boundary.
+        compact_budget, legacy_budget = (v[2]["memory_budget"] for v in (self.compact, self.legacy))
+        padding = [b["resident_alignment_padding_bytes"] for b in (compact_budget, legacy_budget)]
+        self.assertTrue(all(0 <= p < 256 for p in padding), padding)
+        selector_bytes = legacy_budget["fixed_code_end"] - compact_budget["fixed_code_end"]
+        self.assertGreater(selector_bytes, 0)
+        self.assertEqual(compact_budget["resident_free_bytes"] - legacy_budget["resident_free_bytes"],
+                         3840 + selector_bytes + padding[1] - padding[0])
 
     def test_entire_banked_oracle_and_unfolded_selector_domain(self):
         c = CGB(self.general[0], self.general[1])
@@ -123,12 +132,49 @@ class ObservationContracts(unittest.TestCase):
 
     def test_production_defaults_preserve_historical_diagnostic_commands(self):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
-                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation"})
+                         {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming",
+                          "textured_walls", "overlap_publication"})
+        # Textured walls are the slim Sable renderer: the flat slim profile
+        # was removed, so asking for it, or for a lane textured walls cannot
+        # run with, is refused; legacy and compact stay flat.
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "legacy"})["textured_walls"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["textured_walls"])
+        for removed in ({"LUPINE3D_TEXTURED_WALLS": "0"}, {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"},
+                        {"LUPINE3D_PHYSICAL_DEPTH": "1"}, {"LUPINE3D_HDMA_STREAMING": "0"}):
+            with self.assertRaises(ValueError):
+                resolve(removed)
+        # Overlapped publication is the slim default and hands off the
+        # streamed tail: compact keeps the synchronous tail unless asked, 0
+        # opts out, and it cannot run without streaming or with the
+        # experiments that republish from their own paths.
+        self.assertTrue(resolve({})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_OVERLAP_PUBLICATION": "0"})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["overlap_publication"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "compact", "LUPINE3D_OVERLAP_PUBLICATION": "1"})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact", "LUPINE3D_PHYSICAL_DEPTH": "1"})["overlap_publication"])
+        for conflict in ({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy"}, {"LUPINE3D_HDMA_STREAMING": "0"},
+                         {"LUPINE3D_PHYSICAL_DEPTH": "1"}):
+            with self.assertRaises(ValueError):
+                resolve({**conflict, "LUPINE3D_OVERLAP_PUBLICATION": "1"})
+        for conflict in ({"LUPINE3D_DISPLAY": "compact"}, {"LUPINE3D_HDMA_STREAMING": "0"},
+                         {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"}):
+            with self.assertRaises(ValueError):
+                resolve({**conflict, "LUPINE3D_TEXTURED_WALLS": "1"})
+        # HBlank-streamed publication follows the display profile: on for the
+        # compact/slim production paths, off for the byte-exact legacy ROM,
+        # and never alongside the legacy-only experimental lanes.
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "legacy"})["hdma_streaming"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "compact"})["hdma_streaming"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_HDMA_STREAMING": "1"})["hdma_streaming"])
+        with self.assertRaises(ValueError):
+            resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_HDMA_STREAMING": "1", "LUPINE3D_FOREGROUND_PUBLICATION": "1", "LUPINE3D_SCANLINE_ADMISSION": "1"})
         for legacy, experiment in (("FOLDED", "COMPACT_STRIPS"),
                                    ("PREPARED_RAYS", "CAMERA_SETUP"),
                                    ("REPROJECTION", "NARROW_YIELDS")):
             value = "1" if legacy == "REPROJECTION" else "0"
-            self.assertFalse(resolve({"LUPINE3D_"+legacy:value})[experiment.lower()])
+            # The unfolded oracle is a flat-compositor lane: compact carries it.
+            base = {"LUPINE3D_DISPLAY": "compact"} if legacy == "FOLDED" else {}
+            self.assertFalse(resolve({**base, "LUPINE3D_"+legacy:value})[experiment.lower()])
             with self.assertRaises(ValueError):
                 resolve({"LUPINE3D_"+legacy:value, "LUPINE3D_"+experiment:"1"})
 

@@ -82,7 +82,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     for _ in range(3): a.inc_rr("hl")
     a.ld_a_hl(); a.ld_abs_a(ACTOR_PALETTE)
     if SABLE_ART: a.call("select_actor_animation")
-    a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
+    a.call("project_sentinel_cached"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     if SCANLINE_ADMISSION or SABLE_ART: a.jp("render_actor_atomic")
     a.label("render_actor_selected_lod")
     a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jp("render_far_pair", "z")
@@ -116,7 +116,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
 
     a.label("render_dropped_pickup")
     a.ld_a_abs(PICKUP_ACTIVE); a.or_r("a"); a.ret("z")
-    a.call("project_sentinel"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
+    a.call("project_sentinel_cached"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(MASK_BITS)
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(8); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
@@ -127,7 +127,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
 
     a.label("render_exit_beacon")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
-    a.ld_r_n("a", 4); a.ld_abs_a(ENTITY_SLOT)
+    a.ld_r_n("a", MAX_ACTORS); a.ld_abs_a(ENTITY_SLOT)   # the beacon's own LOD history slot
     a.ld_r_n("a", 128); a.ld_abs_a(ENTITY_WORLD_XL); a.ld_abs_a(ENTITY_WORLD_YL)
     a.ld_a_abs(EXIT_CELL_X); a.ld_abs_a(ENTITY_WORLD_XH)
     a.ld_a_abs(EXIT_CELL_Y); a.ld_abs_a(ENTITY_WORLD_YH)

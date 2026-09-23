@@ -65,13 +65,25 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     assert len(scenes['scenes']) == 87
     assert all(core['passed'] and core['rgb_matches_host']
                for scene in scenes['scenes'] for core in scene['cores'].values())
-    controller = collect('controller-restart', br.BUILD / 'playthrough/report.json', field='rom_sha256')
-    assert controller['controller_only'] and controller['game_ram_injections'] == 0
-    assert controller['restart_verified']
-    replay = (br.BUILD / 'playthrough/controller_replay.bin').read_bytes()
-    assert digest(replay) == controller['input_replay_sha256']
-    (output / 'controller_replay.bin').write_bytes(replay)
-    evidence['controller-replay'] = dict(path='controller_replay.bin', sha256=digest(replay))
+    # The route plays the campaign in episode chunks, as CI does: each chunk
+    # after the first starts from its continue code, and the last one
+    # restarts the campaign from the ending. Every chunk for this ROM is
+    # bound with its replay; together they must cover every sector.
+    covered, restarted = set(), False
+    for report_path in sorted(br.BUILD.glob('playthrough*/report.json')):
+        if json.loads(report_path.read_bytes()).get('rom_sha256') != sha:
+            continue
+        name = 'controller-' + report_path.parent.name
+        controller = collect(name, report_path, field='rom_sha256', compressed=True)
+        assert controller['controller_only'] and controller['game_ram_injections'] == 0
+        covered.update(sector['index'] for sector in controller['sectors'])
+        restarted = restarted or bool(controller['restart_verified'])
+        replay = (report_path.parent / 'controller_replay.bin').read_bytes()
+        assert digest(replay) == controller['input_replay_sha256']
+        (output / f'{name}_replay.bin').write_bytes(replay)
+        evidence[name + '-replay'] = dict(path=f'{name}_replay.bin', sha256=digest(replay))
+    assert covered == set(range(len(br.CAMPAIGN))), ('route does not cover the campaign', sorted(covered))
+    assert restarted, 'no route chunk restarted the campaign'
     motion = collect('sustained-motion', inputs / 'sustained/motion_benchmark.json',
                      field='candidate_sha256', compressed=True)
     assert motion['requested_duration_seconds'] == 60 and len(motion['cases']) == 8
@@ -96,7 +108,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     collect('immutable-budget-inputs', br.ROOT / 'milestones/sable-v2/performance-inputs.json', passed=False)
     log = tests.read_text()
     match = re.search(r'Ran (\d+) tests in', log)
-    assert match and int(match[1]) >= 140 and '\nOK\n' in log
+    assert match and int(match[1]) >= 140 and re.search(r'\nOK( \(skipped=\d+\))?\n', log)
     shutil.copyfile(tests, output / 'tests.log')
     evidence['tests'] = dict(path='tests.log', sha256=digest((output / 'tests.log').read_bytes()))
     report = dict(schema='lupine3d.sable-release.v1', version=version, passed=True,

@@ -4,7 +4,7 @@ Lupine generates a CGB-only, 4 MiB MBC5 cartridge with no cartridge RAM.
 Python emits SM83 machine code, fixed-point tables and native 2bpp assets.
 The console runs in double-speed mode using tiles and 8×16 hardware sprites;
 there is no framebuffer. This document describes the default slim/Sable build.
-Historical beta.6 measurements are retained in [its test report](TEST_REPORT_BETA6.md).
+Historical beta.6 measurements are retained in [its test report](archive/TEST_REPORT_BETA6.md).
 
 ## Frame, input and simulation ownership
 
@@ -14,17 +14,21 @@ It owns WRAM bank 2. Queue debt and button edges survive slow rendering.
 The narrow production yield contexts preserve live registers/state; the generic
 full-HRAM ABI remains a diagnostic reference.
 
-At snapshot creation, 457 bytes of map/player/world/actor state pass through
-fixed WRAM into bank 1. Geometry, animation, HUD and OAM all use that immutable
+At snapshot creation, 496 bytes of map/player/world/actor state pass through
+fixed WRAM into bank 1 (`WORLD_COPY_BYTES`). The 256-byte map among them is
+copied only when it changed: every live map writer (a door finishing its
+opening, the empty world's instant door, `load_level`) increments
+`LIVE_MAP_GEN`, and `begin_frame_snapshot` skips the map while the generation
+it last copied, `SNAP_MAP_GEN`, still matches (`tests/test_snapshot_map.py`). Geometry, animation, HUD and OAM all use that immutable
 snapshot while simulation continues in bank 2. Animation uses accepted ticks,
 not host time or the number of rendered frames.
 
-An exact 290-byte wall-key comparison covers camera, map, door state,
+An exact 302-byte wall-key comparison covers camera, map, six door records,
 configuration and reload generation. A miss casts/reconstructs the view,
 composes tiles, prepares masks/entities and builds a complete publication packet.
 A hit retains matching walls/depth and refreshes entities/HUD only. Bank ownership
 for the published BG and OBJ patterns can consequently differ. See
-[wall reuse](WALL_REUSE.md).
+[wall reuse](archive/WALL_REUSE.md).
 
 ## Display and geometry
 
@@ -40,10 +44,17 @@ world's lower edge. The STAT handler changes BG tile addressing at the HUD
 boundary. Legacy plus legacy art/animation-off reproduces the beta.6 ROM.
 
 Positions use Q8.8. Prepared directions and crossing certificates use Q14 and
-the existing tie convention; terminal distance/projection use Q5. Forty even
+the existing tie convention; terminal distance/projection use Q5. A ray whose
+Q8 direction is exactly axial can still cross the plane its zero component is
+perpendicular to, because the traversal follows the finer Q14 order; the
+projection table's component-zero slice saturates to the far clamp for it, as
+the host model does. Forty even
 anchors plus anchor 79 feed adaptive pair reconstruction, physical edge recasts
 and conservative interpolation over 160 columns. Surface identity is independent
-of material colour. Collision, wall rays, LOS and hitscan share finite door
+of material colour. A shot lands when the actor's Q5 depth is below the centre
+ray's wall depth plus a quarter-cell slack (`HITSCAN_DEPTH_SLACK`), so an actor
+pressed flush against a wall stays hittable while one behind a wall or a closed
+panel, at least half a cell further, is not. Collision, wall rays, LOS and hitscan share finite door
 geometry. Physical-depth and higher-precision actor experiments remain disabled;
 production height-derived mask depth is not labelled a continuous geometric query.
 
@@ -73,16 +84,19 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 173–236 | Prepared ray metadata: 1,048,576 bytes |
 | 237 | Unfolded diagnostic strip allocation: 8,064 bytes |
 | 238 | Cold raw ray vectors and camera-plane offset/correction tables |
-| 239 | Authored full-screen presentation (title, results, intermission) |
+| 239 | Authored full-screen presentation (title, results, intermission, episode openings and closings) |
 | 240 | Songs and the sequencer's note periods |
-| 241+ | Campaign levels, one per bank |
+| 241+ | Campaign levels, five per bank in page-aligned slots |
 | … –255 | Unallocated cartridge capacity |
 
 ### Campaign levels
 
-Level selection is a runtime value, not an assembled immediate. Each compiled
-level occupies one bank from `LEVEL_ROM_BANK_BASE` (241) at fixed offsets, so
-the loader needs only a bank number and no directory:
+Level selection is a runtime value, not an assembled immediate. Compiled
+levels are packed five to a bank from `LEVEL_ROM_BANK_BASE` (241) in
+page-aligned slots of `LEVEL_SLOT_PITCH` (2,816) bytes, at fixed offsets
+inside the slot; the resident `level_directory` gives `select_level` each
+level's bank and slot page, and every reader adds the page to the high byte of
+its offset (`add_level_page`). The first slot's offsets are:
 
 | Offset | Contents |
 | --- | --- |
@@ -90,21 +104,28 @@ the loader needs only a bank number and no directory:
 | `$4400` | Oriented-face surface profiles, same index |
 | `$4800` | The 16×16 world map |
 | `$4900` | 24-byte header: dimensions, profiles, spawn, primary actor, exit, and the door/actor/fixture counts and pickup value the loader reads |
-| `$4920` | Four fixed-capacity door records |
-| `$4940` | Four bounded actor slots |
-| `$4980` | Up to sixteen wall-mounted fixture records |
+| `$4920` | Six fixed-capacity door records |
+| `$4950` | Six bounded actor slots |
+| `$49B0` | Up to sixteen wall-mounted fixture records |
 
 `lookup_segment_id` reads the segment and its surface profile through one
 pointer, so the surface table must stay exactly 1,024 bytes above the segment
-table. `LEVEL_INDEX` and the derived `LEVEL_BANK` live in fixed WRAM: they are
-written with the LCD off during a transition and read by the renderer under the
-bank-1 snapshot, and they are deliberately outside the snapshot copy because
-they cannot change while a frame is in flight. The hot geometry path pays one
-extra fixed-WRAM load per wall hit for this.
+table. `LEVEL_INDEX` and the derived `LEVEL_BANK` and `LEVEL_PAGE` live in
+fixed WRAM: they are written with the LCD off during a transition and read by
+the renderer under the bank-1 snapshot, and they are deliberately outside the
+snapshot copy because they cannot change while a frame is in flight. The hot
+geometry path pays two fixed-WRAM loads per wall hit for this.
 
-The resident wall atlas and palette set are still chosen once, at build time,
-from the first level's `vram_profile`/`palette_profile`; `layout.py` rejects a
-campaign whose levels disagree.
+The resident wall atlas is still chosen once, at build time, from the first
+level's `vram_profile`; `layout.py` rejects a campaign whose levels disagree.
+The palette set is not resident: `load_level` keeps header byte 3 in the
+fixed-WRAM `PALETTE_SET`, and `enter_world` calls `init_palettes` with the LCD
+off, which uploads that set's 128 bytes (eight BG then eight OBJ palettes)
+from the `bg_palettes` table; a set past the table reads set 0. Sets differ
+only in what the world owns (ceiling, floor, structure, door and machinery
+tones, the three enemy kinds); BG palette 1 (the HUD, which the screens use),
+BG 7, the weapon, drops, muzzle flash, decor and reticle are the same bytes in
+every set, so a screen never has to restore anything.
 
 For the qualified v0.8 ROM, fixed code ended at `$3910` (1,776 bytes below
 `$4000`); resident data ended at `$73CD`, leaving **3,123 bytes** below `$8000`.
@@ -213,14 +234,15 @@ An actor slot's byte 15 holds its kind, so the kind rides the per-slot save and
 load and the bank-1 snapshot like every other actor field. A four-record table
 gives each kind contact damage, attack recovery in AI ticks, Q8 move per tick,
 an OBJ palette and what it drops when it dies; records are a power of two wide
-so the lookup still indexes by shifting. The kind byte is masked to two bits
-and the spare record repeats the Sentinel, so a corrupt byte still reads a
-playable actor.
+so the lookup still indexes by shifting. The kind byte is masked to two bits;
+the fourth record is the boss, the Sentinel's cels and palette with the
+heaviest contact damage in the game, so a corrupt byte still reads a playable
+actor, only a dangerous one.
 
 Kinds share the Sentinel's cels, so variety costs ROM bytes rather than VRAM
 patterns. A distinct *look*, though, costs an OBJ palette, and all eight are
 now spoken for: 0 the weapon, 1 the Sentinel, 2 drops, 3 the muzzle and decor,
-4 decor and the reticle, 5 the weapon's lit corners, 6 the warden and 7 the
+4 decor and the reticle, 5 the weapon's second palette, 6 the warden and 7 the
 skirmisher. Palette 6 came free only because the reticle is a single-colour
 crosshair whose colour was already within three parts in thirty-one of
 palette 4's, and moving it still changed eight shipped pixels a frame. A
@@ -243,9 +265,15 @@ damage only: half, as authored, or one and a half.
 ## Weapons
 
 The weapon window is eighty OBJ patterns at `$8200` in VRAM bank 1, and that is
-one weapon's five cels exactly — the reticle and muzzle take the next four and
+one weapon's four 40×32 cels exactly (ten objects, twenty patterns a cel;
+`docs/ART_PIPELINE.md`) — the reticle and muzzle take the next four and
 the masked pool owns the thirty-two below. Two weapons cannot both be resident,
-so SELECT streams the other one's cels in as a single GDMA of eighty blocks.
+so SELECT streams the next owned one's cels in as a single GDMA of eighty
+blocks. The four cel sheets share ROM bank `WEAPON_ROM_BANK` in weapon order
+and `weapon_source` reads a resident pointer table; ownership is a bit per
+weapon that `load_level` derives from the sector (`WEAPON_UNLOCK_SECTORS`),
+so a continue code carries the arsenal and a weapon no longer owned is put
+down on load.
 
 The pattern IDs never change, only their contents, so no OAM is rewritten and
 the animation code is weapon-agnostic. The transfer runs from the main loop
@@ -290,17 +318,32 @@ the same share of a full geometry update.
 
 ## Publication and timing
 
-A full packet contains at most 176 GDMA blocks: 96 BG, 32 OBJ, 24 map and 24
-attribute blocks. The retained bulk map transfers cover twelve rows. Slim's
-three additional rows require **192 bounded CPU-copy bytes** into hidden maps:
-96 map + 32 attribute bytes during the pattern stage, then 64 attribute bytes
-in the final commit. HUD and OAM are committed with matching bank/map state.
+On the compact and slim profiles a full packet is **streamed**: the hidden
+dynamic patterns (at most 96 blocks) and the complete hidden tile-number map
+(30 blocks on slim) travel by HBlank DMA while `render_view` is still
+composing, one block at the HBlank of each visible line, into the bank and
+map the displayed page never reads. `render_view` hands each column's
+patterns over as it finishes them; `upload_hidden_page` streams the remainder
+and the map, builds the attribute packet underneath the transfer, then uses
+**one VBlank** for the banked tail: masked OBJ patterns and the attribute
+packet by GDMA (at most 62 blocks), the HUD map cells, OAM DMA and the flip.
+On slim that tail is run by the VBlank interrupt (**overlapped
+publication**): the main loop hands the packet over at `publication_handoff`
+and goes straight on to the next snapshot and its casts, and waits for the
+tail (`wait_tail`) only before it touches a publication buffer again
+([performance after textures](PERFORMANCE_PHASE5.md)).
+HBlank sources are fixed WRAM because a block reads through SVBK and a
+simulation yield may have bank 2 mapped; VBK belongs to the transfer for its
+whole life; nothing streams with the LCD off. See
+[streamed publication](STREAMED_PUBLICATION.md).
 
-The first stage remains bounded to 96 blocks. Above 48 dynamic+mask patterns,
-an additional VBlank precedes the pattern stage. Full packets therefore use
-two or three VBlanks; cached packets use one. Writes must finish before line
-153. No partially prepared row or mask bank becomes visible. GDMA and OAM DMA
-halt CPU execution and are counted as work, not background transfers.
+The legacy profile keeps the staged packet: at most 176 GDMA blocks (96 BG,
+32 OBJ, 24 map, 24 attribute) over two VBlanks, the pattern stage bounded to
+96 blocks, with the experimental foreground/reprojection lanes built on it.
+Cached packets use one VBlank on every profile. Writes must finish before line
+153. No partially prepared row or mask bank becomes visible. GDMA, HBlank
+blocks and OAM DMA halt CPU execution and are counted as work, not background
+transfers.
 
 The steel HUD retains a 16-byte packet: four health IDs, one enemy count,
 two caption IDs, three status IDs and six portrait IDs. Text starts at HUD y=4
@@ -342,6 +385,6 @@ Dynamic caching, packet traversal, physical depth, actor precision, scanline
 admission, paged projection, near-field precision and foreground publication
 remain experiments. Reprojection is disabled. Build flags and format versions
 are recorded in the manifest; unsupported explicit combinations fail.
-[Rendering milestone evidence](RENDERING_IMPLEMENTATION.md) describes the earlier
+[Rendering milestone evidence](archive/RENDERING_IMPLEMENTATION.md) describes the earlier
 performance work, while [development guidance](DEVELOPMENT.md) explains how to
 build references and qualify changes without overwriting historical evidence.

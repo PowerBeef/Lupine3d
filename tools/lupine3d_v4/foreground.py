@@ -101,7 +101,7 @@ def emit_foreground(a: Assembler):
     a.ld_a_abs(FG_CHANGED);a.or_r("a");a.jr("foreground_vblank_restore","z")
     a.ld_rr_nn("hl",FG_PUBLISHED_OAM);a.ld_rr_nn("de",FG_COMPOSITE_OAM);a.call("foreground_copy_oam")
     a.ld_a_abs(FG_ACTIVE);a.or_r("a");a.ld_r_n("a",0);a.jr("foreground_composite_y","z");a.ld_r_n("a",72)
-    a.label("foreground_composite_y");a.ld_abs_a(FG_COMPOSITE_OAM+9*4)
+    a.label("foreground_composite_y");a.ld_abs_a(FG_COMPOSITE_OAM+MUZZLE_OAM*4)
     # Patch only the source immediate, outside the running HRAM transfer.
     a.ld_r_n("a",FG_COMPOSITE_OAM>>8);a.ldh_n_a((OAM_DMA_HRAM+1)&255);a.call_abs(OAM_DMA_HRAM)
     a.ld_r_n("a",OAM_SHADOW>>8);a.ldh_n_a((OAM_DMA_HRAM+1)&255)

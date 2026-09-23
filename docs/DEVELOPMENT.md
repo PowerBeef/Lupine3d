@@ -1,6 +1,6 @@
 # Development and releases
 
-Lupine 3D v0.8 builds a deterministic Game Boy Color ROM from Python. Work directly on the existing `main` checkout; do not create development branches or worktrees. Temporary clean-room source copies are allowed. Hardware is unavailable, so qualification uses the project harness and pinned independent cores.
+Lupine 3D builds a deterministic Game Boy Color ROM from Python (`VERSION` names the release). Work directly on the existing `main` checkout; do not create development branches or worktrees. Temporary clean-room source copies are allowed. Hardware is unavailable, so qualification uses the project harness and pinned independent cores.
 
 ## Setup and everyday work
 
@@ -17,6 +17,8 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+
 | Profile | World / HUD | Default art |
 |---|---|---|
 | `slim` | 160×120 / 160×24 | Sable animated |
@@ -28,7 +30,17 @@ LUPINE3D_DISPLAY=legacy make build
 make build  # Restore the default after the comparison.
 ```
 
-Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](RENDERING_IMPLEMENTATION.md).
+Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](archive/RENDERING_IMPLEMENTATION.md).
+
+### Debugger exports
+
+Every build writes `build/lupine3d.sym` in the bank-prefixed `BB:AAAA name`
+form that RGBDS emits and BGB, Emulicious and SameBoy's debugger load: every
+code and data label, and every named RAM variable of the layout with its
+WRAM bank, under a comment naming the ROM's SHA-256. `build/lupine3d.map`
+lists the assembler's sections with sizes and kinds and then the allocation
+ledger. `build_manifest.json` records both files' hashes under `exports`.
+The host tools read either form (`sm83emu.parse_symbols`).
 
 ## Pinned independent cores
 
@@ -50,32 +62,72 @@ cmake -G "Unix Makefiles" -S /your/path/mgba -B /your/path/mgba/build \
 cmake --build /your/path/mgba/build -j2
 make mgba MGBA_DIR=/your/path/mgba
 python tools/independent_witnesses.py
+make conformance SAMEBOY_DIR=/your/path/SameBoy   # harness CPU model vs SameBoy, every emitted instruction form
 ```
 
 Both adapters press START before anything else: the campaign holds the world behind a title screen, and an adapter that does not reach `MODE_PLAYING` exits 3 rather than reporting a pass. mGBA's adapter consumes `flags.make` to match the library ABI, hence the explicit Makefiles generator. SameBoy uses an original synthetic bootstrap; mGBA uses skip-BIOS. Only SameBoy instruments GDMA/page-flip writes. Neither proves physical CGB or Nintendo boot-ROM behaviour.
+
+### Power-on RAM in the core adapters
+
+SameBoy randomises power-on RAM from a time seed. Both adapters therefore
+treat world entry as an event, not a value: SameBoy's waits for the ROM's
+own write of `MODE_PLAYING` through its memory hook, mGBA's for the title to
+be seen before the mode reads playing. Before this rule a random image that
+happened to hold the playing value at `GAME_MODE` made an adapter release
+START on the title screen and time out (about one run in 150). For
+reproduction, `LUPINE3D_SAMEBOY_SEED=<n>` fixes the seed and
+`LUPINE3D_DUMP_RAM=<path>` writes the power-on image (WRAM, HRAM, VRAM,
+OAM) that the host harness can replay; every adapter failure reports its seed.
 
 ## Content and diagnostics
 
 Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
 
-`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. The active nine-image oracle is `sable_v09_capture_pixels.json`; retain earlier oracles, including `sable_objective_spaced_capture_pixels.json`, as historical evidence.
+`tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. Its captures are checked against the golden snapshots under `snapshots/` (suites `tour`, `world`, `art`); a changed frame fails naming the scene and writes `build/snapshots/<profile>/<suite>/report.html` for review. Accept a deliberate change with a note:
+
+```sh
+python tools/snapshot.py diff --suite tour
+python tools/snapshot.py accept --suite tour --scene 09_exit_approach --note "why the frame changed"
+```
+
+See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `playtests/archive/oracles/`.
 
 ```sh
 make playthrough variants wall-reuse motion
 python tools/playthrough.py --restart
-python tools/check_sable.py --output-dir build/v09/art-checks
-python tools/check_display.py --output-dir build/v09/display
+python tools/playthrough.py --sectors 3-3 --output-dir build/playthrough_s3  # one sector, entered by its continue code
+python tools/check_sable.py --output-dir build/v011/art-checks
+python tools/check_display.py --output-dir build/v011/display
 make preview
-python tools/preview_sable.py --scene combat --output-dir build/v09/motion-preview
+python tools/preview_sable.py --scene combat --output-dir build/v011/motion-preview
 ```
 
 Controller completion uses no game-RAM writes, but reads live state to steer; it is functional verification, not blind human navigation. Variants cover two actors, folded/unfolded, wall reuse, prepared rays and reprojection diagnostics. Wall-reuse testing includes 53 frozen comparisons. Current capture previews are emulator output; generated masters are design references only.
+
+### Textured walls
+
+The engine and its showcase are textured: every slim Sable build composes its
+walls with the row-window kernel of `docs/TEXTURED_WALLS.md`, and its goldens
+live under `snapshots/slim-sable-v2-textured/`. The flat slim profile was
+removed; the flat microstrip compositor is kept only as the renderer of the
+historical legacy and compact profiles, whose research lanes (the unfolded
+oracle, physical depth, anchor packets) run there. `tests/test_textured_walls.py`
+runs the Sable checks in a fresh process.
+
+The slim build also publishes each frame's tail from the VBlank interrupt
+(overlapped publication, `docs/PERFORMANCE_PHASE5.md`).
+`LUPINE3D_OVERLAP_PUBLICATION=0` builds the synchronous tail:
+
+```sh
+make sync                  # build/sync/lupine3d.gb, .sym, manifest
+make playtest-sync         # the coherence tour's frame checks and a motion replay
+```
 
 ## Measurement
 
 ```sh
 make sustained
-python tools/sable_sustained.py --workers 4 --output-dir build/v09/sustained
+python tools/sable_sustained.py --workers 4 --output-dir build/v011/sustained
 make research-v3 research-tail
 make atlas-check
 ```
@@ -90,16 +142,16 @@ The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8'
 
 ## Releasing
 
-Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.9 for this release). Evidence directories follow `VERSION` too, so `build/v09` here and `build/v10` next time; the tooling derives them rather than pinning one. Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
+Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.11 for this release). Evidence directories follow `VERSION` too, so `build/v011` here and `build/v012` next time; the tooling derives them rather than pinning one. Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
 
 ```sh
-python tools/run_tests.py > build/v09/tests.log 2>&1
+python tools/run_tests.py > build/v011/tests.log 2>&1
 python tools/release_check.py
-python tools/qualify_sable_release.py --inputs build/v09 --tests build/v09/tests.log
+python tools/qualify_sable_release.py --inputs build/v011 --tests build/v011/tests.log
 python tools/package_release.py --output-dir dist --reuse-verified-working-tree
 ```
 
-Run the art/display checks into `build/v09/art-checks` and `build/v09/display`, sustained scenarios into `build/v09/sustained`, and the budget into `build/v09/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
+Run the art/display checks into `build/v011/art-checks` and `build/v011/display`, sustained scenarios into `build/v011/sustained`, and the budget into `build/v011/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
 
 Archive the resulting `build/rendering_qualification/` under `milestones/v<VERSION>/qualification/`. Release CI reruns short gates and clean-room tests, and may reuse that sustained/core evidence only after verifying the exact ROM/version and every evidence hash. Compressed motion JSON retains all raw samples; its uncompressed hash binds the budget. A changed ROM requires fresh qualification.
 

@@ -1,0 +1,221 @@
+{
+  "format": "lupine-level-v2",
+  "name": "Coolant Dark",
+  "width": 16,
+  "height": 16,
+  "rows": [
+    "1111111111111111",
+    "1000000200000011",
+    "1022202220222011",
+    "1022202220222011",
+    "1000200000200011",
+    "1220222022202211",
+    "1220222022202211",
+    "1200000020000011",
+    "1131111111113111",
+    "1000000110000011",
+    "1000000110000011",
+    "1000200110200011",
+    "1113111111131111",
+    "1000000110000111",
+    "1000000110000111",
+    "1111111111111111"
+  ],
+  "player_spawn": {
+    "x_q8": 640,
+    "y_q8": 2688,
+    "angle": 192,
+    "safe_radius_cells": 5
+  },
+  "doors": [
+    {
+      "id": "sump_hatch",
+      "x": 2,
+      "y": 8,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "dark_stair",
+      "x": 12,
+      "y": 8,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "gallery_west",
+      "x": 3,
+      "y": 12,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "dark_lock",
+      "x": 11,
+      "y": 12,
+      "orientation": "horizontal",
+      "kind": "exit",
+      "unlock": "sentinel_dead"
+    }
+  ],
+  "entities": [
+    {
+      "kind": "sentinel",
+      "x_q8": 3456,
+      "y_q8": 384,
+      "health": 3,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 1408,
+      "y_q8": 640,
+      "health": 2,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2176,
+      "y_q8": 1152,
+      "health": 5,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 640,
+      "y_q8": 1920,
+      "health": 3,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 2432,
+      "y_q8": 2944,
+      "health": 3,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 640,
+      "y_q8": 3712,
+      "health": 2,
+      "activation_radius_q4": 96
+    }
+  ],
+  "pickups": [
+    {
+      "kind": "medkit",
+      "source": "sentinel_drop",
+      "value": 25
+    }
+  ],
+  "triggers": [
+    {
+      "kind": "activate_exit",
+      "condition": "sentinel_dead"
+    }
+  ],
+  "exit": {
+    "x": 11,
+    "y": 14,
+    "marker": "beacon"
+  },
+  "readability": {
+    "maximum_sightline": 6,
+    "minimum_door_separation": 8,
+    "minimum_critical_path_steps": 12,
+    "minimum_critical_path_turns": 3,
+    "maximum_material_singletons": 16
+  },
+  "fixtures": [
+    {
+      "x": 2,
+      "y": 8,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 12,
+      "y": 8,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 3,
+      "y": 12,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 11,
+      "y": 12,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 7,
+      "y": 1,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 14,
+      "y": 1,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "side": "west",
+      "kind": "sector"
+    },
+    {
+      "x": 10,
+      "y": 2,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "side": "north",
+      "kind": "light"
+    },
+    {
+      "x": 8,
+      "y": 5,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 12,
+      "y": 5,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 14,
+      "y": 7,
+      "side": "west",
+      "kind": "sector"
+    },
+    {
+      "x": 3,
+      "y": 8,
+      "side": "north",
+      "kind": "light"
+    }
+  ],
+  "palette_profile": "reactor",
+  "vram_profile": "entity-heavy"
+}

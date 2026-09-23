@@ -1,0 +1,82 @@
+{
+  "schema": "lupine3d.textured-lab.v1",
+  "textures": [
+    "steel_panel",
+    "machinery_grille",
+    "door_plate"
+  ],
+  "corpus": 700,
+  "errors": 0,
+  "patterns": {
+    "unique_p50": 45,
+    "unique_p95": 63,
+    "unique_max": 85,
+    "raw_p95": 160,
+    "raw_max": 160
+  },
+  "model_delta": {
+    "mean": 2039.7085714285715,
+    "p95": 105312,
+    "max": 135488
+  },
+  "intervals": {
+    "with_base": 601,
+    "unchanged": 315,
+    "before_total": 4114,
+    "after_total": 4128,
+    "net_change_pct": 0.34
+  },
+  "rom_bytes": 81984,
+  "window_table_bytes_per_texture": 20480,
+  "kernel_model": {
+    "interior": 700,
+    "boundary": 1300,
+    "seam": 600,
+    "u_per_ray": 70,
+    "u_per_pixel": 12,
+    "hblank_block": 64,
+    "flat_dynamic": 6700,
+    "flat_atlas_hit": 300
+  },
+  "projected_sustained": {
+    "turning": {
+      "measured_hz": 10.26844878502343,
+      "projected_hz": 10.27
+    },
+    "walking": {
+      "measured_hz": 7.768014889376713,
+      "projected_hz": 7.77
+    },
+    "two_actor_corner": {
+      "measured_hz": 6.801177120489518,
+      "projected_hz": 6.8
+    },
+    "walking_turning": {
+      "measured_hz": 9.868379351840698,
+      "projected_hz": 9.87
+    },
+    "moving_fire": {
+      "measured_hz": 9.885048911556646,
+      "projected_hz": 9.89
+    }
+  },
+  "criteria": {
+    "windows_equal_pixels_everywhere": true,
+    "mean_delta_under_70k": true,
+    "delta_p95_under_one_interval": true,
+    "intervals_net_increase_under_2pct": true,
+    "patterns_p95_under_114": true,
+    "patterns_max_under_224": true,
+    "rom_under_160k": true,
+    "no_overflow": true
+  },
+  "go": true,
+  "rows_summary": {
+    "scenes": 700,
+    "wall_tiles_mean": 79.66571428571429,
+    "boundary_tiles_mean": 21.88714285714286,
+    "seam_tiles_mean": 5.694285714285714,
+    "flat_dynamic_mean": 11.555714285714286,
+    "flat_atlas_hits_mean": 8.222857142857142
+  }
+}

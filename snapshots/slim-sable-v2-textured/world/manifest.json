@@ -1,0 +1,117 @@
+{
+  "schema": "lupine3d.snapshots.v1",
+  "scenes": {
+    "01_safe_start": {
+      "rgb_sha256": "8d0c8713984aa1340be0896d15f4e2988a591e0c0310284ce676ba3384d9140c",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+    },
+    "02_start_airlock_opening": {
+      "rgb_sha256": "4d5bcb25970a759fe4890dd0013ffd7b26b8acd27d345114ae8fab2484cd2637",
+      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+    },
+    "03_start_airlock_open": {
+      "rgb_sha256": "a0328ee4b49e1043b2f11635e8c54877735e0c127f793f7a1876de8d17529e6c",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:15:50+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+    },
+    "04_critical_turn": {
+      "rgb_sha256": "2779d28279378a7bbf8d2eede1407f6efc4325ff2d4db2738398fbd7ba006c13",
+      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T07:15:50+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+    },
+    "05_mess_hatch_opening": {
+      "rgb_sha256": "4d5bcb25970a759fe4890dd0013ffd7b26b8acd27d345114ae8fab2484cd2637",
+      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+    },
+    "06_exit_approach_locked": {
+      "rgb_sha256": "c55f1d4f158f1bec139fe4d31f5a438f01879a65b9a4d7a15ff46a41062defbf",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+    },
+    "07_sentinel_encounter": {
+      "rgb_sha256": "23d84b37947dbe3d182465bc982f705dde5a49dae5e6ba7baf5beabd698f2032",
+      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+    },
+    "08_sentinel_hit_one": {
+      "rgb_sha256": "5fb2d820ce1dd6d8c20509be8b949200cfbf49ad292c9277b4e21ab454ad81c9",
+      "rom_sha256": "394c2d82860c18c6a093ed6d7d6f3ec9e4bb8b70797b7287f1556a67aa401e8d",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T11:59:33+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Exact savings: the 16x16 multiply accumulates its four table products through the stack, a door panel's displacement divides only its last twelve quotient bits, the per-crossing certificate is fused into the DDA loop, and the textured kernel composes rows whose step is under one texel row in 76 T instead of 104. Updates finish earlier, so living-world captures land on other accepted simulation ticks (helmet blink, animation frames). Every frame check passes."
+    },
+    "09_sentinel_hit_two": {
+      "rgb_sha256": "17ebdcefb974caf442d258b752f8f8e89822da5947b6f42c4bd6a16136cbb412",
+      "rom_sha256": "394c2d82860c18c6a093ed6d7d6f3ec9e4bb8b70797b7287f1556a67aa401e8d",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T11:59:33+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Exact savings: the 16x16 multiply accumulates its four table products through the stack, a door panel's displacement divides only its last twelve quotient bits, the per-crossing certificate is fused into the DDA loop, and the textured kernel composes rows whose step is under one texel row in 76 T instead of 104. Updates finish earlier, so living-world captures land on other accepted simulation ticks (helmet blink, animation frames). Every frame check passes."
+    },
+    "10_sentinel_dead": {
+      "rgb_sha256": "dfb1f75a295834cd77353e7acfea594eca9f29faee6c5a4347165ecffd8b0db7",
+      "rom_sha256": "394c2d82860c18c6a093ed6d7d6f3ec9e4bb8b70797b7287f1556a67aa401e8d",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T11:59:33+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Exact savings: the 16x16 multiply accumulates its four table products through the stack, a door panel's displacement divides only its last twelve quotient bits, the per-crossing certificate is fused into the DDA loop, and the textured kernel composes rows whose step is under one texel row in 76 T instead of 104. Updates finish earlier, so living-world captures land on other accepted simulation ticks (helmet blink, animation frames). Every frame check passes."
+    },
+    "11_pickup_collected": {
+      "rgb_sha256": "76e47aac8aca5cb17fb83a1c14d9677f0d2484f71a2e86da5c674971026326bb",
+      "rom_sha256": "69bb1e782dce78af0974ab73026e8458909f5eb8a62bd8865e31c7e04b00fe72",
+      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
+      "accepted_at": "2026-09-23T10:20:08+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
+    },
+    "12_exit_unlocking": {
+      "rgb_sha256": "79a157c3860096b8b7e105b44f172a1288da19b91a521f047ea37fe3345e2290",
+      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+    },
+    "13_exit_beacon": {
+      "rgb_sha256": "e53e03f3a19c92cab1632aca2d476b4480b43619ce3900edfb6d080ddf9d72dc",
+      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+    },
+    "14_level_complete": {
+      "rgb_sha256": "67ddcbabd93fad19b642b7cb1709d768246bc1ccdf748e7662a5e092602d509a",
+      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
+      "accepted_at": "2026-09-23T05:23:28+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+    }
+  }
+}

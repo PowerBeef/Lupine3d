@@ -18,7 +18,7 @@ from lupine3d_v4.living_world import *  # noqa: F401,F403
 # living_world re-exports the compatibility layout namespace. Reassert the
 # current art generators after that import so the frozen v0.1 helpers cannot
 # shadow the active industrial-gothic UI and weapon assets.
-from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles, make_slug_tiles  # noqa: E402
+from lupine3d_v4.resources import make_ui_tiles, make_weapon_tiles, make_obj_ui_tiles, make_slug_tiles, make_arc_tiles, make_pulse_tiles  # noqa: E402
 from lupine3d_v4.bank_safety import check_bank_safety
 from lupine3d_v4.precision import make_q14_directions, emit_precision
 from lupine3d_v4.actor_precision import emit_actor_precision
@@ -27,7 +27,7 @@ from lupine3d_v4.projection_storage import pack_projection, emit_projection_stor
 from lupine3d_v4.near_field import near_corrections, emit_near_field
 from lupine3d_v4.foreground import emit_foreground
 from lupine3d_v4.door_geometry import emit_door_geometry
-from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk
+from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk, emit_snapshot
 from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_renderer_v7
 from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
@@ -44,13 +44,70 @@ from lupine3d_v4 import layout as active_layout
 from lupine3d_v4.allocation import memory_ledger
 from lupine3d_v4.configuration import identity
 from lupine3d_v4.tile_cache import emit_tile_cache
+from lupine3d_v4.textured import emit_textured_compositor, emit_textured_kernel
+from lupine3d_v4.texture_reference import reference_compose_textured_view  # noqa: F401
 from lupine3d_v4.packets import emit_packets
 from lupine3d_v4.physical_depth import emit_physical_depth
+
+def make_palette_sets(bg_values: list[int], obj_values: list[int]) -> list[tuple[list[int], list[int]]]:
+    """The per-episode palette sets, derived from the outpost set.
+
+    Set 0 is the outpost set exactly as given. The others recolour only what
+    an episode owns: the ceiling and floor, the structure, door and machinery
+    tones (BG 0, 2..6) and the three enemy kinds (OBJ 1, 6, 7). BG palette 1
+    (the steel HUD, which the screens also use) and BG 7, the weapon, the
+    drops, the muzzle flash, the decor and the reticle are the same bytes in
+    every set, so nothing outside the world changes colour between episodes.
+    """
+    def derive(ceiling, floor, wall, door, machinery, sentinel, warden, skirmisher):
+        bg = list(bg_values)
+        bg[0:4] = [ceiling, floor, *wall]
+        bg[8:12] = [floor, floor, *wall]
+        for upper, lower, tones in ((3, 4, door), (5, 6, machinery)):
+            bg[upper * 4:upper * 4 + 4] = [ceiling, floor, *tones]
+            bg[lower * 4:lower * 4 + 4] = [floor, floor, *tones]
+        obj = list(obj_values)
+        obj[4:8] = [0, *sentinel]
+        obj[24:28] = [0, *warden]
+        obj[28:32] = [0, *skirmisher]
+        return bg, obj
+
+    sets = [(list(bg_values), list(obj_values))]
+    # Reactor Deep: warmer, darker steel lit by amber doors, with coolant
+    # teal on the machinery; rust, acid and violet armour.
+    sets.append(derive(rgb15(1, 1, 2), rgb15(4, 3, 3), (rgb15(13, 11, 10), rgb15(5, 4, 5)),
+                       (rgb15(14, 8, 2), rgb15(28, 20, 6)), (rgb15(4, 13, 15), rgb15(2, 6, 8)),
+                       (rgb15(3, 2, 2), rgb15(22, 10, 3), rgb15(30, 22, 12)),
+                       (rgb15(2, 3, 2), rgb15(8, 16, 6), rgb15(22, 28, 12)),
+                       (rgb15(3, 1, 3), rgb15(17, 6, 20), rgb15(29, 20, 31))))
+    # Signal Spire: cold, brighter hull under a blue sky ceiling, violet doors
+    # and signal-amber machinery; pale, crimson and teal armour.
+    sets.append(derive(rgb15(2, 3, 7), rgb15(5, 6, 9), (rgb15(16, 18, 23), rgb15(7, 9, 14)),
+                       (rgb15(12, 5, 18), rgb15(26, 19, 31)), (rgb15(17, 12, 4), rgb15(8, 5, 2)),
+                       (rgb15(2, 2, 4), rgb15(9, 12, 22), rgb15(24, 26, 31)),
+                       (rgb15(4, 1, 1), rgb15(26, 6, 4), rgb15(31, 22, 18)),
+                       (rgb15(1, 3, 3), rgb15(5, 20, 18), rgb15(20, 31, 28))))
+    assert len(sets) == PALETTE_SET_COUNT
+    for bg, obj in sets[1:]:
+        assert bg[4:8] == bg_values[4:8] and bg[28:32] == bg_values[28:32]
+        assert obj[0:4] == obj_values[0:4] and obj[8:24] == obj_values[8:24]
+    return sets
+
+
+def make_weapon_assets() -> list[tuple[str, bytes]]:
+    """The four weapon cel sheets, in WEAPON_ROM_BANK in weapon order; every
+    sheet is exactly the streamed window."""
+    sheets = [(name, maker()) for name, maker in zip(
+        WEAPON_SHEET_LABELS, (make_weapon_tiles, make_slug_tiles, make_arc_tiles, make_pulse_tiles))]
+    for name, payload in sheets:
+        assert len(payload) == WEAPON_TILE_BYTES, f"{name}: a weapon sheet is exactly the pattern window"
+    return sheets
+
 
 def make_boot_assets() -> list[tuple[str, bytes]]:
     """Cold assets share one ROM bank; no runtime arithmetic bank owns them."""
     return [
-        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("weapon_tiles", make_weapon_tiles()), ("slug_tiles", make_slug_tiles()), ("obj_ui_tiles", make_obj_ui_tiles()),
+        ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("obj_ui_tiles", make_obj_ui_tiles()),
         ("static_view_tiles", make_static_view_tiles()),
         ("active_atlas_tiles", ACTIVE_ATLAS_TILES),
         ("entity_tiles", make_entity_tiles()), ("oam_initial", make_oam_shadow()),
@@ -114,6 +171,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
     a.ld_abs_a(SIM_READY)
+    # Power-on WRAM is random: a stray hand-off flag would have the VBlank
+    # interrupt publish a packet that does not exist (SameBoy found it).
+    if OVERLAP_PUBLICATION: a.ld_abs_a(TAIL_PENDING)
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
     a.call("init_palettes"); a.call("init_audio"); a.call("init_music")
     # The title runs before any world VRAM exists. Only VBlank is enabled: a
@@ -138,6 +198,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # SELECT opens code entry; a rejected or cancelled code returns here.
     a.call("password_entry"); a.or_r("a"); a.jr("title_screen", "z")
     a.label("title_start")
+    # A continue code into a later episode opens it first; the title is
+    # episode one's opening. Still in the title mode, so nothing is queued.
+    a.call("show_episode_opening")
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
     a.call("load_level")
 
@@ -145,6 +208,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # snapshot and its publication. Entered from boot and from any screen.
     a.label("enter_world")
     a.call("lcd_off")
+    # The level's palette set, with the LCD off: a screen never rewrites the
+    # palettes (it owns only BG palette 1), so the world's own set is the one
+    # thing a transition has to put back, and load_level has already chosen it.
+    a.call("init_palettes")
     a.ld_r_n("a", SONG_WORLD); a.call("music_start")
     a.call("init_vram"); a.call("prepare_hud_tiles"); a.call("update_hud_tiles"); a.call("init_oam")
     if FOREGROUND_PUBLICATION:
@@ -170,10 +237,21 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.call("cast_all")
     if PHYSICAL_DEPTH: a.call("refine_full_snapshot")
     a.label("compose_full_snapshot")
-    a.call("render_view"); a.call("render_entities"); a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("frame_done")
+    # Overlapped publication: the last packet may still be waiting for its
+    # VBlank; nothing below may touch a publication buffer before it goes.
+    if OVERLAP_PUBLICATION: a.call("wait_tail")
+    if HDMA_STREAMING:
+        # Entities first: their masks are banked and go by GDMA in the tail
+        # anyway, while render_view's patterns stream by HBlank DMA as each
+        # column is composed. Neither pass reads what the other writes.
+        a.call("render_entities"); a.call("render_view")
+    else:
+        a.call("render_view"); a.call("render_entities")
+    a.call("populate_reprojection_guards"); a.call("upload_hidden_page"); a.jp("frame_done")
     a.label("reuse_wall_view")
     if PHYSICAL_DEPTH:
         a.call("refine_reused_snapshot"); a.or_r("a"); a.jp("compose_full_snapshot","nz")
+    if OVERLAP_PUBLICATION: a.call("wait_tail")
     a.call("render_entities"); a.call("upload_entities_hud")
 
     # The frame is published. Decide whether the world keeps the next one.
@@ -204,6 +282,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.jp("main_loop")
 
     a.label("present_mode")
+    if OVERLAP_PUBLICATION: a.call("wait_tail")   # the screen turns the LCD off
     a.ld_a_abs(PENDING_MODE); a.ld_abs_a(GAME_MODE)
     # Death retries the sector that was lost, so only the two completion modes
     # move LEVEL_INDEX. The screen is chosen from the mode that got us here.
@@ -233,6 +312,9 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Edges latched while the world was frozen are not an answer to this screen.
     a.di(); a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
     a.call("screen_wait_start")
+    # An intermission that crossed into the next episode closes the one just
+    # finished and opens the next before its first sector loads.
+    a.call("show_episode_closing")
     a.xor_r("a"); a.ld_abs_a(MODE_DELAY)
     a.ld_r_n("a", MODE_PLAYING); a.ld_abs_a(GAME_MODE)
     a.call("load_level")
@@ -269,6 +351,10 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("world_decor", emit_world_decor), ("entity_projection", emit_entity_projection),
         ("masked_entities", emit_masked_entities), ("reprojection", emit_reprojection),
     ]
+    if TEXTURED_WALLS: resident_sections.append(("textured", emit_textured_kernel))
+    if OVERLAP_PUBLICATION:
+        from lupine3d_v4.emitter import emit_overlap_tail
+        resident_sections.append(("overlap_tail", emit_overlap_tail))
     for name, emit in resident_sections:
         a.section(name); emit(a)
 
@@ -282,7 +368,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("wall_cache", emit_wall_cache), ("surfaces", emit_surfaces),
         ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
         ("entity_renderer_v7", emit_entity_renderer_v7), ("movement_v6", emit_movement_v6),
+        ("snapshot", emit_snapshot),
     ]
+    if TEXTURED_WALLS: cold_sections.append(("textured_compositor", emit_textured_compositor))
+    if OVERLAP_PUBLICATION:
+        from lupine3d_v4.precision import emit_shift_reference
+        cold_sections.append(("shift_reference", emit_shift_reference))
 
     # Data section.
     a.align(16, text="data alignment")
@@ -295,6 +386,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # rather than VRAM patterns - but a distinct look costs an OBJ palette,
     # and exactly one was free. The record is a power of two so
     # actor_kind_record still indexes it by shifting.
+    # Two bytes per campaign level: the ROM bank and the page of its slot in
+    # that bank. select_level reads them by LEVEL_INDEX; a corrupt index past
+    # the campaign reads whatever follows, which is why the loader bounds it.
+    a.label("level_directory"); a.bytes(bytes(
+        byte for index in range(LEVEL_COUNT) for byte in level_location(index)),
+        "level bank and slot page per index")
     a.label("actor_kind_stats"); a.bytes(bytes((
         # damage, recovery, step, palette, drop, spare...
         8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # sentinel: Sable armour
@@ -304,24 +401,45 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         14, 12, 5, 6, DROP_KIND_IDS["medkit"], 0, 0, 0,   # warden: slow and
                            # heavy, and the only thing in the outpost that
                            # takes a third of your health on contact
-        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # the spare repeats the
-                           # Sentinel, so a corrupt kind byte still reads a
-                           # playable actor
+        20, 10, 6, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,   # boss: the Sentinel's
+                           # cels and palette with the heaviest contact damage
+                           # in the game, slow, and the health its level gives
+                           # it; a corrupt kind byte still reads a playable
+                           # actor, only a dangerous one
     )), "enemy kind stats")
     # Two bytes per weapon: damage a hit takes off, and the simulation ticks
     # before it can fire again. The shotgun keeps the engine's original
     # behaviour exactly - one damage, no wait - so the trade is the slug
     # rifle's alone: twice the damage for a long enough pause to feel it.
-    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15)), "damage and cooldown per weapon")
+    # The shotgun (1, 0) is the engine's original behaviour and every
+    # measurement's baseline; the slug rifle trades time for damage; the arc
+    # lance is the heavy, slow discharge; the pulse carbine a quick double hit.
+    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15, 4, 40, 2, 6)), "damage and cooldown per weapon")
+    a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
+    # Per weapon, the attribute byte of each of its objects (VRAM bank 1,
+    # OBJ palette 0 or 5), as tools/render_weapons.py fitted them.
+    a.label("weapon_object_attributes")
+    if SABLE_ART:
+        from lupine3d_v4.resources import weapon_object_palettes
+        a.bytes(bytes(0x08 | palette for table in weapon_object_palettes() for palette in table),
+                "OAM attribute per weapon object")
+    a.label("weapon_sources")
+    for name in WEAPON_SHEET_LABELS: a.dw_label(name)
     a.label("password_codes"); a.bytes(bytes(
         digit for code in continue_codes(LEVEL_COUNT, DIFFICULTY_LEVELS) for digit in code),
         "four-digit continue code per sector and skill")
     a.label("hud_status_records"); a.bytes(bytes(i for label in ("LOCK", "OPEN", "DEAD", "DONE") for i in ((hud_assets()[3]["caption_"+label] if COMPACT_DISPLAY else []) + hud_assets()[3][label])), "LOCK OPEN DEAD DONE")
     cold_address = 0x4000
+    bank_bound_labels: dict[str, int] = {}
     for name, payload in make_boot_assets():
-        a.labels[name] = cold_address
+        a.labels[name] = cold_address; bank_bound_labels[name] = BOOT_ASSETS_ROM_BANK
         cold_address += len(payload)
     assert cold_address <= 0x8000, "cold boot assets exceed one MBC5 bank"
+    weapon_address = 0x4000
+    for name, payload in make_weapon_assets():
+        a.labels[name] = weapon_address; bank_bound_labels[name] = WEAPON_ROM_BANK
+        weapon_address += len(payload)
+    assert weapon_address <= 0x8000, "weapon sheets exceed their MBC5 bank"
 
     wall_light, wall_dark = rgb15(14, 17, 18), rgb15(6, 9, 11)
     bg_palette_values = [
@@ -350,7 +468,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             colours=sprite_manifest()['assets'][name]['palette']
             obj_palette_values[index*4:index*4+4]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in colours]
     # OBJ palettes after the re-plan: 0 weapon, 1 Sentinel, 2 drops, 3
-    # muzzle/decor, 4 decor and the reticle, 5 the weapon's lit corners,
+    # muzzle/decor, 4 decor and the reticle, 5 the weapon's second palette,
     # 6 warden, 7 skirmisher. Palette 7 was the only free slot until the
     # reticle - a single-colour crosshair - moved onto palette 4, whose
     # index 3 it very nearly already was. That freed palette 6 for a third
@@ -374,6 +492,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                                        (5, 6, rgb15(10, 14, 12), rgb15(4, 8, 7))):
         bg_palette_values[upper * 4:upper * 4 + 4] = [bg_palette_values[0], bg_palette_values[1], light, dark]
         bg_palette_values[lower * 4:lower * 4 + 4] = [bg_palette_values[1], bg_palette_values[1], light, dark]
+    palette_sets = make_palette_sets(bg_palette_values, obj_palette_values)
+    # The padding this alignment costs depends on every byte emitted before
+    # it, so the manifest reports it: a variant whose fixed code is a few
+    # bytes longer can cross a page boundary here and pay up to 255 bytes
+    # more, which is layout, not a change in what the variant stores.
+    movement_alignment_padding = (-a.pc) & 0xFF
     a.align(256, text="legacy movement table alignment")
     for name in ("step_dx", "step_dy", "move_dx", "move_dy"):
         a.label(name); a.bytes(tables[name], name)
@@ -382,41 +506,56 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # spending resident bytes; the readers below select RAW_RAY_ROM_BANK.
     raw_address = RAW_RAY_ROM_ADDRESS
     for name, payload in make_raw_ray_assets(tables):
-        a.labels[name] = raw_address
+        a.labels[name] = raw_address; bank_bound_labels[name] = RAW_RAY_ROM_BANK
         raw_address += len(payload)
     assert raw_address <= 0x8000, "raw ray tables exceed one MBC5 bank"
     a.label("top_depth_lut"); a.bytes(make_top_depth_lut(), "projected-top to conservative corrected Q5 depth")
-    a.label("seam_tile_lookup"); a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
-    a.label("active_atlas_bucket_start"); a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
-    a.label("active_atlas_bucket_count"); a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
-    a.label("active_atlas_entries"); a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
-    microstrips = make_microstrips(STORED_STRIP_STATES)
+    # The textured profile composes every wall tile from row windows in the
+    # texture banks: the seam lookup, the trained atlas and the microstrips
+    # are never read, so their labels bind to empty tables and the resident
+    # bytes go to the kernel instead. The flat profiles keep them verbatim.
+    flat_tables = not TEXTURED_WALLS
+    a.label("seam_tile_lookup")
+    if flat_tables: a.bytes(make_seam_tile_lookup(), "dark-mask to static seam tile lookup")
+    a.label("active_atlas_bucket_start")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_BUCKET_START, "active-profile signature-hash bucket starts")
+    a.label("active_atlas_bucket_count")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_BUCKET_COUNT, "active-profile signature-hash bucket counts")
+    a.label("active_atlas_entries")
+    if flat_tables: a.bytes(ACTIVE_ATLAS_ENTRIES, "active-profile exact signatures and tile IDs")
+    microstrips = make_microstrips(STORED_STRIP_STATES) if flat_tables else b""
     style_block = STORED_STRIP_COUNT * 8 * 16
     a.label("microstrip_style_bases")
     for style in range(2): a.dw_label(f"microstrips_style_{style}")
     for style in range(2):
         if FOLDED_COMPOSITOR:
             a.label(f"microstrips_style_{style}")
-            a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
+            if flat_tables: a.bytes(microstrips[style * style_block:(style + 1) * style_block], f"style {style} edge microstrips")
         else:
-            a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block
-    pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES)
+            a.labels[f"microstrips_style_{style}"] = 0x4000 + style * style_block; bank_bound_labels[f"microstrips_style_{style}"] = UNFOLDED_STRIP_ROM_BANK
+    pair_microstrips = make_pair_microstrips(STORED_STRIP_STATES) if flat_tables else b""
     pair_style_block = STORED_STRIP_COUNT * 4 * 16
     a.label("pair_microstrip_style_bases")
     for style in range(2): a.dw_label(f"pair_microstrips_style_{style}")
     for style in range(2):
         if FOLDED_COMPOSITOR:
             a.label(f"pair_microstrips_style_{style}")
-            a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
+            if flat_tables: a.bytes(pair_microstrips[style * pair_style_block:(style + 1) * pair_style_block], f"style {style} pair microstrips")
         else:
-            a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block
+            a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block; bank_bound_labels[f"pair_microstrips_style_{style}"] = UNFOLDED_STRIP_ROM_BANK
     if NEAR_FIELD:
         a.label("near_correction_q14"); a.bytes(words_le(near_corrections()), "241 Q14 camera-plane cosine corrections")
     # Palettes are cold startup data. Keeping them after the aligned hot tables
     # avoids wasting a complete 1 KiB alignment page as the resident art/UI
     # vocabulary grows.
-    a.label("bg_palettes"); a.bytes(words_le(bg_palette_values), "eight CGB BG palettes")
-    a.label("obj_palettes"); a.bytes(words_le(obj_palette_values), "two CGB OBJ palettes")
+    # One 128-byte set per episode, BG then OBJ, so init_palettes uploads a
+    # set as one run; set 0 is byte-identical to the single table it replaced
+    # and `obj_palettes` still names its OBJ half.
+    for index, (bg_values, obj_values) in enumerate(palette_sets):
+        a.label("bg_palettes" if index == 0 else f"bg_palettes_{index}")
+        a.bytes(words_le(bg_values), f"eight CGB BG palettes, set {index}")
+        a.label("obj_palettes" if index == 0 else f"obj_palettes_{index}")
+        a.bytes(words_le(obj_values), f"eight CGB OBJ palettes, set {index}")
 
     # Cold code, above $4000 in ROM bank 1. Nothing here switches a bank, runs
     # inside another section's bank window, or is reachable from an interrupt
@@ -427,14 +566,19 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
 
     code = a.resolve()
     metadata = {
+        "bank_bound_labels": bank_bound_labels,
         "engine_origin": a.origin,
         "engine_end": a.origin + len(code),
         "engine_size": len(code),
         "memory_budget": {
             "fixed_code_end": a.labels["resident_data"],
+            "weapon_bank": WEAPON_ROM_BANK,
+            "weapon_count": WEAPON_COUNT,
+            "weapon_unlock_sectors": list(WEAPON_UNLOCK_SECTORS),
             "cold_assets_bank": BOOT_ASSETS_ROM_BANK,
             "cold_assets_bytes": cold_address - 0x4000,
             "resident_free_bytes": 0x8000 - (a.origin + len(code)),
+            "resident_alignment_padding_bytes": movement_alignment_padding,
             "stack_top": STACK_TOP,
             "stack_reserved_bytes": 0x200,
             "hram_state_bytes": HRAM_BYTES_USED,
@@ -467,7 +611,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             "signature_offset": 4, "pattern_offset": 14,
             "staging_range": [DYNAMIC_CACHE_STAGE, DYNAMIC_CACHE_POINTER+2],
         },
-        "publication": "atomic BG/HUD/OAM; compact high-pressure packets use three VBlanks" if COMPACT_DISPLAY else "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks",
+        "publication": ("atomic BG/HUD/OAM; hidden patterns and map stream by HBlank DMA during composition, banked masks/attributes and HUD/OAM commit in one VBlank" if HDMA_STREAMING
+                        else "atomic BG/HUD/OAM; compact high-pressure packets use three VBlanks" if COMPACT_DISPLAY else "atomic BG/HUD/OAM; large hidden-pattern packets staged across two VBlanks"),
+        "hblank_streaming": {
+            "enabled": HDMA_STREAMING,
+            "hblank_sources": ["dynamic patterns (fixed WRAM $C000)", "hidden tile-number map (fixed WRAM $C600)"] if HDMA_STREAMING else [],
+            "vblank_sources": ["masked OBJ patterns", "hidden attributes", "HUD map cells", "OAM"] if HDMA_STREAMING else [],
+            "maximum_hblank_blocks": DYNAMIC_TILE_CAPACITY + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else 0,
+            "maximum_vblank_gdma_blocks": ENTITY_OAM_COUNT * 2 + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else None,
+            "chained_at": "render_view column boundaries and the publication prologue" if HDMA_STREAMING else None,
+            "streamed_counter_address": DYN_STREAMED if HDMA_STREAMING else None,
+        },
         "framebuffer_bytes": 0,
         "signed_bg_tile_addressing": True,
         "folded_compositor": FOLDED_COMPOSITOR,
@@ -477,7 +631,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "display_configuration": {"name": RENDER_CONFIG["display"], "viewport": list(VIEWPORT),
                                   "horizon": HORIZON, "hud_height": HUD_HEIGHT, "map_bytes": VIEW_MAP_BYTES,
                                   "hud_theme": "steel-objective-spaced-v1" if SLIM_DISPLAY else "sable-strip" if COMPACT_DISPLAY else "legacy",
-                                  "extra_cpu_bytes_per_full_packet": (VIEW_MAP_BYTES-384)*2},
+                                  "extra_cpu_bytes_per_full_packet": 0 if HDMA_STREAMING else (VIEW_MAP_BYTES-384)*2},
         "native_art": __import__('lupine3d_v4.sprite_assets', fromlist=['evidence']).evidence() if SABLE_ART or COMPACT_DISPLAY else None,
         "art_animation": ART_ANIMATION,
         "foreground_obj_allocation": {"first":WEAPON_TILE_BASE,"patterns":86 if SABLE_ART else 20,
@@ -509,15 +663,20 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "dynamic_tile_buffer_bytes": DYNAMIC_TILE_CAPACITY * 16,
         "view_map_buffer_bytes": VIEW_MAP_BYTES,
         "maximum_commit_bytes": DYNAMIC_TILE_CAPACITY * 16 + 768 + ENTITY_OAM_COUNT * 32,
-        "maximum_commit_blocks": DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
-        "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY,
-        "maximum_final_stage_blocks": 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
+        # Streamed: HBlank blocks (patterns + map) plus the VBlank GDMA tail
+        # (masks + attributes). Staged: the historical 96/32/24/24 packet.
+        "maximum_commit_blocks": (DYNAMIC_TILE_CAPACITY + ENTITY_OAM_COUNT * 2 + 2 * (VIEW_MAP_BYTES // 16)) if HDMA_STREAMING
+                                 else DYNAMIC_TILE_CAPACITY + 48 + ENTITY_OAM_COUNT * 2,
+        "maximum_first_stage_blocks": DYNAMIC_TILE_CAPACITY + VIEW_MAP_BYTES // 16 if HDMA_STREAMING else DYNAMIC_TILE_CAPACITY,
+        "maximum_final_stage_blocks": (ENTITY_OAM_COUNT * 2 + VIEW_MAP_BYTES // 16) if HDMA_STREAMING
+                                      else 72 if FOREGROUND_PUBLICATION else 48 + ENTITY_OAM_COUNT * 2,
         # Slim adds a pattern-stage VBlank above 48 dynamic+mask patterns, so its
-        # worst case is three even without the experimental lanes.
-        "maximum_publication_vblanks": 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
+        # worst case is three even without the experimental lanes. Streaming
+        # leaves one VBlank of banked GDMA and the HUD/OAM/flip.
+        "maximum_publication_vblanks": 1 if HDMA_STREAMING else 3 if FOREGROUND_PUBLICATION or ENABLE_MICRO_REPROJECTION or COMPACT_DISPLAY else 2,
         "fixed_tick_simulation": FIXED_SIMULATION,
         "exact_wall_reuse": WALL_REUSE_ENABLED,
-        "wall_cache_key_bytes": 290,
+        "wall_cache_key_bytes": WALL_KEY_BYTES,
         "independent_obj_page": True,
         "presentation_serial_address": PRESENT_SERIAL,
         "simulation_tick_hz": 4194304 / 70224,
@@ -527,6 +686,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "render_snapshot_wram_bank": 1,
         "sliding_door_geometry": "Q8 centre-plane finite segment, shared by rays/LOS/hitscan/radius collision",
         "actor_slot_capacity": MAX_ACTORS,
+        "palette_sets": PALETTE_SET_COUNT,
+        "palette_set_names": list(PALETTE_SET_NAMES),
         "active_actor_count": len(ACTIVE_LEVEL.entities),
         "entity_size_lods": [[16, 32], [16, 16], [8, 16]],
         "masked_obj_patterns": ENTITY_OAM_COUNT * 2,
@@ -592,9 +753,12 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "maximum_level_doors": MAX_DOORS,
         "campaign_levels": len(CAMPAIGN),
         "campaign_level_bank_base": LEVEL_ROM_BANK_BASE,
+        "campaign_levels_per_bank": LEVELS_PER_BANK,
+        "campaign_level_slot_pitch": LEVEL_SLOT_PITCH,
         "campaign_level_payload_bytes": LEVEL_PAYLOAD_END - 0x4000,
         "campaign": [
-            {"index": index, "name": level.name, "rom_bank": LEVEL_ROM_BANK_BASE + index,
+            {"index": index, "name": level.name, "rom_bank": level_location(index)[0],
+             "rom_page": level_location(index)[1],
              "doors": len(level.doors), "actors": len(level.entities),
              "fixtures": len(level.fixtures), "pickup_value": level.pickups[0].value,
              "walkable_cells": level.readability.walkable_cells,
@@ -696,14 +860,18 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     ))
     banked_atlas_start = BANKED_ATLAS_ROM_BANK * 0x4000
     rom[banked_atlas_start:banked_atlas_start + len(banked_atlas_payload)] = banked_atlas_payload
-    # Each campaign level owns a bank; the loader derives it from LEVEL_INDEX.
+    # Five campaign levels share a bank in page-aligned slots; the resident
+    # level_directory gives the loader each level's bank and slot page.
     for index, level in enumerate(CAMPAIGN):
         payload = make_level_payload(level)
-        start = (LEVEL_ROM_BANK_BASE + index) * 0x4000
+        start = level_rom_offset(index)
         rom[start:start + len(payload)] = payload
     boot_payload = b"".join(payload for _, payload in make_boot_assets())
     boot_start = BOOT_ASSETS_ROM_BANK * 0x4000
     rom[boot_start:boot_start + len(boot_payload)] = boot_payload
+    weapon_payload = b"".join(payload for _, payload in make_weapon_assets())
+    weapon_start = WEAPON_ROM_BANK * 0x4000
+    rom[weapon_start:weapon_start + len(weapon_payload)] = weapon_payload
     raw_ray_payload = b"".join(payload for _, payload in make_raw_ray_assets(make_tables()))
     raw_ray_start = RAW_RAY_ROM_BANK * 0x4000
     rom[raw_ray_start:raw_ray_start + len(raw_ray_payload)] = raw_ray_payload
@@ -715,6 +883,22 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom[song_start:song_start + len(song_payload)] = song_payload
     q14_start = Q14_ROM_BANK * 0x4000
     rom[q14_start:q14_start + Q14_ROM_BYTES] = make_q14_directions()
+    if TEXTURED_WALLS:
+        from lupine3d_v4.texture_reference import make_slope_table, make_v_lut, make_stride_class_lut, make_step_lut
+        from lupine3d_v4 import texture_assets
+        lut_bank = TEXTURE_LUT_ROM_BANK * 0x4000
+        for offset, payload in ((TEXTURE_SLOPES_OFFSET, make_slope_table()), (TEXTURE_V_LUT_OFFSET, make_v_lut()),
+                                (TEXTURE_STRIDE_LUT_OFFSET, make_stride_class_lut()), (TEXTURE_STEP_OFFSET, make_step_lut())):
+            assert offset + len(payload) <= 0x8000, "texture lookup tables exceed their bank"
+            rom[lut_bank + offset - 0x4000:lut_bank + offset - 0x4000 + len(payload)] = payload
+        for bank, offset, payload in texture_assets.window_payloads(TEXTURE_WINDOW_BANKS):
+            assert bank < ROM_BANKS and offset + len(payload) <= 0x4000
+            rom[bank * 0x4000 + offset:bank * 0x4000 + offset + len(payload)] = payload
+        metadata["textured_walls"] = {"enabled": True, "lut_rom_bank": TEXTURE_LUT_ROM_BANK,
+                                      "window_rom_banks": list(TEXTURE_WINDOW_BANKS),
+                                      "ray_u": RAY_U, "pixel_u": PIXEL_U, **texture_assets.evidence()}
+    else:
+        metadata["textured_walls"] = {"enabled": False}
     if PREPARED_RAYS:
         setup_start = RAY_SETUP_ROM_BANK * 0x4000
         assert setup_start >= q14_start + Q14_ROM_BYTES
@@ -738,16 +922,38 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     return bytes(rom), assembler, metadata
 
 
+def write_outputs(output: Path, rom: bytes, assembler, metadata: dict) -> Path:
+    """The ROM, its listing, the bank-prefixed symbols, the map and the manifest.
+
+    The symbol and map files are debugger exports (lupine3d_v4/symbols.py):
+    every label and every named RAM variable, in the `BB:AAAA name` form
+    RGBDS, BGB, Emulicious and SameBoy read. The manifest records their
+    hashes, so a package can prove which symbols belong to which ROM.
+    """
+    from lupine3d_v4 import symbols as sym
+    output.mkdir(parents=True, exist_ok=True)
+    rom_path = output / "lupine3d.gb"; rom_path.write_bytes(rom)
+    assembler.write_listing(output / "lupine3d.lst")
+    ledger = metadata.get("allocation_ledger", {})
+    table = sym.symbol_table(assembler, bank_bound=metadata.get("bank_bound_labels", {}),
+                             ram_names=sym.ram_names_from_layout(active_layout),
+                             wram_bank_of_name=getattr(active_layout, "WRAM_BANK_OF_NAME", {}))
+    sym.write_symbols(output / "lupine3d.sym", table, rom_sha256=metadata["sha256"], configuration_id=metadata["configuration_id"])
+    sym.write_map(output / "lupine3d.map", assembler, ledger, rom_sha256=metadata["sha256"])
+    metadata["exports"] = {"format": "rgbds-sym-v1", "symbols": len(table),
+                           "code": sum(s.kind == "code" for s in table), "data": sum(s.kind == "data" for s in table),
+                           "ram": sum(s.kind in ("ram", "hram") for s in table),
+                           "sym_sha256": sym.file_sha256(output / "lupine3d.sym"), "map_sha256": sym.file_sha256(output / "lupine3d.map")}
+    (output / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return rom_path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=BUILD)
     output = parser.parse_args().output_dir
-    output.mkdir(parents=True, exist_ok=True)
     rom, assembler, metadata = make_rom()
-    rom_path = output / "lupine3d.gb"; rom_path.write_bytes(rom)
-    assembler.write_listing(output / "lupine3d.lst")
-    (output / "lupine3d.sym").write_text("\n".join(f"{addr:04X} {name}" for name, addr in sorted(assembler.labels.items(), key=lambda item: item[1])) + "\n", encoding="utf-8")
-    (output / "build_manifest.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    rom_path = write_outputs(output, rom, assembler, metadata)
     print(f"Built {rom_path} ({len(rom)} bytes)")
     print(f"Engine: {metadata['engine_size']} bytes, end={metadata['engine_end']:#06x}")
     print(f"Header checksum: {metadata['header_checksum']:#04x}; global: {metadata['global_checksum']:#06x}")

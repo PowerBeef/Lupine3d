@@ -1,0 +1,480 @@
+{
+  "schema": "sable.qualification.v1",
+  "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "textured_walls": false,
+    "projection_storage": "direct",
+    "display": "slim",
+    "art": "sable-v2",
+    "art_animation": true,
+    "hdma_streaming": true
+  },
+  "checks": {
+    "cold_art_and_raster_boundary": true,
+    "every_translated_atlas_pattern": true,
+    "centre_tile_two_boundary_coverage": true,
+    "complete_legal_strip_selector_domain": true,
+    "publication_cpu_and_dma_windows": true,
+    "hblank_streaming_bank_isolation_and_chaining": true,
+    "geometry_and_all_published_rows": true,
+    "independent_near_plane_clipping": true,
+    "all_36_emitted_enemy_cels": true,
+    "weapon_phases_rapid_restarts_wrap_pending_flash": true,
+    "reaction_and_death_clock_wrap": true,
+    "hud_portraits_snapshot_packet_and_bounds": true,
+    "objective_transition_and_terminal_publication": true,
+    "continuous_divider_all_dynamic_states_and_both_maps": true,
+    "steel_chassis_and_portrait_highlights_all_states": true,
+    "hud_icon_exit_and_all_actor_counts": true,
+    "atomic_capacity_fallback_no_partial_actor": true,
+    "snapshot_and_reload_clock_ownership": true,
+    "terminal_state_wrap_cannot_replay_cosmetics": true
+  },
+  "assets": {
+    "schema": "sable.native.v1",
+    "sha256": "f8be088d85e51a3ed0bad3a18277a6facd33499f8bb4c98140df916062c4d568",
+    "assets": {
+      "sentinel_near": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360",
+      "sentinel_mid": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914",
+      "sentinel_far": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64",
+      "shotgun": "e263117b95af0cb3b45624486811b5b3efd16037e6aa93eb3492a0d1f207c020",
+      "helmet": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c",
+      "flash": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448",
+      "reticle": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9",
+      "hud": "9cde69004789a336a1ddc05beeebc63590498668f18a57952071d6260d816218",
+      "hud_slim": "a44b1d2552c0f661cfd5f215ffbb6445a6359dc317b23d13a67df27e4370e7e4",
+      "hud_steel": "9e2541d386d69b5eb0f3c3450d4babceb315f7dd1663e6fd491c5ae5eb700d96",
+      "helmet_steel": "c9e595bbc583df33c95dbeae9970c98a9b1fd4fa50a9eeb444ea64c3d59bc362",
+      "slug_rifle": "ebd87122448e38c82563c8ec8583ef8776f66d836280e3107b6f1942d8c3ac7c",
+      "arc_lance": "1cfb02f5b0ea61113e6f488c1ace942abd491394d06bace910385586f622a92a",
+      "pulse_carbine": "18eebce9deef56030a96da05377905b75decbff2918d5eb03b1515a6c38f13ff"
+    }
+  },
+  "publication_windows": [
+    {
+      "dynamic": 0,
+      "mask": 0,
+      "blocks": 60,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 0,
+      "blocks": 68,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 0,
+      "blocks": 69,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 16,
+      "blocks": 76,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 18,
+      "blocks": 78,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 32,
+      "blocks": 92,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 16,
+      "blocks": 84,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 16,
+      "blocks": 85,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 24,
+      "mask": 0,
+      "blocks": 84,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 25,
+      "mask": 0,
+      "blocks": 85,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 48,
+      "mask": 0,
+      "blocks": 108,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 49,
+      "mask": 0,
+      "blocks": 109,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 16,
+      "mask": 32,
+      "blocks": 108,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 17,
+      "mask": 32,
+      "blocks": 109,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 71,
+      "mask": 0,
+      "blocks": 131,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 72,
+      "mask": 0,
+      "blocks": 132,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 73,
+      "mask": 0,
+      "blocks": 133,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 40,
+      "mask": 32,
+      "blocks": 132,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 41,
+      "mask": 32,
+      "blocks": 133,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 0,
+      "blocks": 156,
+      "commit_ly": 149,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 16,
+      "blocks": 172,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 32,
+      "blocks": 188,
+      "commit_ly": 151,
+      "staged": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "pose-0.png",
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "pixels_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+      "snapshot": {
+        "actual_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+        "status": "match",
+        "scene": "pose-0",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    },
+    {
+      "file": "pose-1.png",
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "pixels_sha256": "61b4b67076a082a2441c24f8ec6ff82d1b47d99873c73418853f97bb332df16b",
+      "snapshot": {
+        "actual_sha256": "61b4b67076a082a2441c24f8ec6ff82d1b47d99873c73418853f97bb332df16b",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "61b4b67076a082a2441c24f8ec6ff82d1b47d99873c73418853f97bb332df16b",
+        "status": "match",
+        "scene": "pose-1",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    },
+    {
+      "file": "pose-2.png",
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "pixels_sha256": "67cebef91178261dd7e0798b7b0cbdd6bea0c41fb03fe798000b45c360a0d5cf",
+      "snapshot": {
+        "actual_sha256": "67cebef91178261dd7e0798b7b0cbdd6bea0c41fb03fe798000b45c360a0d5cf",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "67cebef91178261dd7e0798b7b0cbdd6bea0c41fb03fe798000b45c360a0d5cf",
+        "status": "match",
+        "scene": "pose-2",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    },
+    {
+      "file": "pose-3.png",
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "pixels_sha256": "9d09bc8bf89e148ad7f37337ec6bfdf3bfba002022b7941ef37614bd02b2ed9d",
+      "snapshot": {
+        "actual_sha256": "9d09bc8bf89e148ad7f37337ec6bfdf3bfba002022b7941ef37614bd02b2ed9d",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "9d09bc8bf89e148ad7f37337ec6bfdf3bfba002022b7941ef37614bd02b2ed9d",
+        "status": "match",
+        "scene": "pose-3",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    },
+    {
+      "file": "pose-4.png",
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "pixels_sha256": "6e80f5a9e0f79d8e5c26d4ceb5ddc666cb54a07e3b817502d623153ca8f39fe9",
+      "snapshot": {
+        "actual_sha256": "6e80f5a9e0f79d8e5c26d4ceb5ddc666cb54a07e3b817502d623153ca8f39fe9",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "6e80f5a9e0f79d8e5c26d4ceb5ddc666cb54a07e3b817502d623153ca8f39fe9",
+        "status": "match",
+        "scene": "pose-4",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    },
+    {
+      "file": "pose-5.png",
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "pixels_sha256": "66be27c2acdad7cc252c1729f14c0abf66126298fd4d2ac456302f381b6a4882",
+      "snapshot": {
+        "actual_sha256": "66be27c2acdad7cc252c1729f14c0abf66126298fd4d2ac456302f381b6a4882",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "66be27c2acdad7cc252c1729f14c0abf66126298fd4d2ac456302f381b6a4882",
+        "status": "match",
+        "scene": "pose-5",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    }
+  ],
+  "physical_hardware_tested": false,
+  "passed": true,
+  "snapshot": {
+    "schema": "lupine3d.snapshots.v1",
+    "suite": "sable",
+    "profile": "slim-sable-v2",
+    "mode": "check",
+    "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+    "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
+    "golden_dir": "snapshots/slim-sable-v2/sable",
+    "counts": {
+      "match": 6,
+      "changed": 0,
+      "new": 0,
+      "missing": 0
+    },
+    "passed": true,
+    "scenes": [
+      {
+        "actual_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+        "status": "match",
+        "scene": "pose-0",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      },
+      {
+        "actual_sha256": "61b4b67076a082a2441c24f8ec6ff82d1b47d99873c73418853f97bb332df16b",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "61b4b67076a082a2441c24f8ec6ff82d1b47d99873c73418853f97bb332df16b",
+        "status": "match",
+        "scene": "pose-1",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      },
+      {
+        "actual_sha256": "67cebef91178261dd7e0798b7b0cbdd6bea0c41fb03fe798000b45c360a0d5cf",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "67cebef91178261dd7e0798b7b0cbdd6bea0c41fb03fe798000b45c360a0d5cf",
+        "status": "match",
+        "scene": "pose-2",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      },
+      {
+        "actual_sha256": "9d09bc8bf89e148ad7f37337ec6bfdf3bfba002022b7941ef37614bd02b2ed9d",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "9d09bc8bf89e148ad7f37337ec6bfdf3bfba002022b7941ef37614bd02b2ed9d",
+        "status": "match",
+        "scene": "pose-3",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      },
+      {
+        "actual_sha256": "6e80f5a9e0f79d8e5c26d4ceb5ddc666cb54a07e3b817502d623153ca8f39fe9",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "6e80f5a9e0f79d8e5c26d4ceb5ddc666cb54a07e3b817502d623153ca8f39fe9",
+        "status": "match",
+        "scene": "pose-4",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      },
+      {
+        "actual_sha256": "66be27c2acdad7cc252c1729f14c0abf66126298fd4d2ac456302f381b6a4882",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "66be27c2acdad7cc252c1729f14c0abf66126298fd4d2ac456302f381b6a4882",
+        "status": "match",
+        "scene": "pose-5",
+        "accepted": {
+          "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+          "accepted_at": "2026-09-23T04:19:36+00:00",
+          "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+        }
+      }
+    ]
+  }
+}

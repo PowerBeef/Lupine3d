@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/level-v2.schema.json",
+  "title": "Lupine 3D level (lupine-level-v2)",
+  "description": "Shape of an authored level. tools/lupine3d_v4/levels.py is the validator of record: it also checks the geometry (solid boundary, door frames, reachability, keycard gates, spawn clearance) and the readability certificate, which a schema cannot express. See docs/LEVEL_FORMAT.md.",
+  "type": "object",
+  "required": ["format", "name", "width", "height", "rows", "player_spawn", "doors", "entities", "pickups", "exit", "palette_profile", "vram_profile"],
+  "properties": {
+    "format": {"enum": ["lupine-level-v2", "lupine-level-v1"]},
+    "name": {"type": "string", "minLength": 1},
+    "width": {"const": 16},
+    "height": {"const": 16},
+    "rows": {
+      "type": "array", "minItems": 16, "maxItems": 16,
+      "items": {"type": "string", "pattern": "^[0-3]{16}$"},
+      "description": "rows[y][x]: 0 walkable, 1 structure, 2 machinery, 3 door cell. The outer ring must be solid."
+    },
+    "player_spawn": {
+      "type": "object", "required": ["x_q8", "y_q8", "angle"],
+      "properties": {
+        "x_q8": {"$ref": "#/$defs/q8"}, "y_q8": {"$ref": "#/$defs/q8"},
+        "angle": {"type": "integer", "minimum": 0, "maximum": 255, "description": "0 east, 64 south, 128 west, 192 north"},
+        "safe_radius_cells": {"type": "integer", "minimum": 0, "maximum": 15}
+      }
+    },
+    "doors": {
+      "type": "array", "minItems": 1, "maxItems": 6,
+      "items": {
+        "type": "object", "required": ["x", "y", "orientation"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
+          "orientation": {"enum": ["horizontal", "vertical"]},
+          "kind": {"enum": ["standard", "exit"], "default": "standard"},
+          "unlock": {"enum": ["none", "sentinel_dead", "keycard"], "default": "none"}
+        }
+      }
+    },
+    "entities": {
+      "type": "array", "minItems": 1, "maxItems": 6,
+      "items": {
+        "type": "object", "required": ["kind", "x_q8", "y_q8", "health", "activation_radius_q4"],
+        "properties": {
+          "kind": {"enum": ["sentinel", "skirmisher", "warden", "boss"]},
+          "x_q8": {"$ref": "#/$defs/q8"}, "y_q8": {"$ref": "#/$defs/q8"},
+          "health": {"type": "integer", "minimum": 1, "maximum": 255},
+          "activation_radius_q4": {"type": "integer", "minimum": 1, "maximum": 127}
+        }
+      }
+    },
+    "pickups": {
+      "type": "array", "minItems": 1, "maxItems": 2,
+      "items": {
+        "type": "object", "required": ["kind", "source", "value"],
+        "properties": {
+          "kind": {"enum": ["medkit", "keycard"]},
+          "source": {"const": "sentinel_drop"},
+          "value": {"type": "integer", "minimum": 1, "maximum": 255}
+        }
+      },
+      "description": "One record per drop kind the level fields; the medkit is mandatory and its value is the only per-level number."
+    },
+    "exit": {
+      "type": "object", "required": ["x", "y"],
+      "properties": {"x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"}, "marker": {"type": "string"}}
+    },
+    "palette_profile": {"enum": ["outpost", "reactor", "spire"]},
+    "vram_profile": {"enum": ["renderer-heavy", "entity-heavy"]},
+    "readability": {
+      "type": "object",
+      "properties": {
+        "maximum_sightline": {"type": "integer", "minimum": 1},
+        "minimum_door_separation": {"type": "integer", "minimum": 0},
+        "minimum_critical_path_steps": {"type": "integer", "minimum": 0},
+        "minimum_critical_path_turns": {"type": "integer", "minimum": 0},
+        "maximum_material_singletons": {"type": "integer", "minimum": 0}
+      }
+    },
+    "fixtures": {
+      "type": "array", "maxItems": 16,
+      "items": {
+        "type": "object", "required": ["x", "y", "side", "kind"],
+        "properties": {
+          "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
+          "side": {"$ref": "#/$defs/side"},
+          "kind": {"enum": ["vent", "light", "access", "sector"]}
+        }
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["x", "y", "side", "profile"],
+        "properties": {
+          "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
+          "side": {"$ref": "#/$defs/side"},
+          "profile": {"enum": ["structure", "machinery", "door"]}
+        }
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "items": {"type": "object", "properties": {"kind": {"type": "string"}, "condition": {"type": "string"}}},
+      "description": "Retained authoring intent; the compiler enforces the v2 rule (one Sentinel-locked exit door) directly."
+    }
+  },
+  "$defs": {
+    "cell": {"type": "integer", "minimum": 0, "maximum": 15},
+    "q8": {"type": "integer", "minimum": 0, "maximum": 4095, "description": "cell coordinate x 256"},
+    "side": {"enum": ["west", "east", "north", "south"]}
+  }
+}

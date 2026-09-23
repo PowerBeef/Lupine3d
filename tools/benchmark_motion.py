@@ -59,6 +59,7 @@ def run_case(rom, labels, name, frames=144, *, observe=True):
         for offset,value in enumerate(bytes((128,7,128,8,br.SENTINEL_DORMANT,255))):
             set_test_world_byte(c, br.SENTINEL_XL + offset, value)
     c.run(until_presentations=1); validate_frame(c)
+    c.diagnostic_barrier()
     for address in (br.INPUT_QUEUE_HEAD,br.INPUT_QUEUE_TAIL,br.INPUT_QUEUE_OVERFLOW,
                     br.SIM_CLOCK,br.SIM_CLOCK+1,br.SIM_TICK,br.SIM_TICK+1): c.write8(address,0)
     c.write8(br.SIM_READY,1)
@@ -78,8 +79,9 @@ def run_case(rom, labels, name, frames=144, *, observe=True):
         c.step()
         if c.presentations == previous_count: continue
         check = validate_frame(c); event = c.commit_events[-1]
-        key = wall_key(); reused = bool(c.read8(br.FRAME_REUSED))
-        promoted = physical and bool(c.read8(br.REFINEMENT_DIRTY)) and not c.read8(br.GEOMETRY_BACKBONE_RAN)
+        with c.presented_view():
+            key = wall_key(); reused = bool(c.read8(br.FRAME_REUSED))
+            promoted = physical and bool(c.read8(br.REFINEMENT_DIRTY)) and not c.read8(br.GEOMETRY_BACKBONE_RAN)
         assert reused == (key == previous_key and not promoted), (name,"wall invalidation",event)
         assert c.page_swaps-previous_page == int(not reused)
         assert event["vblank_safe"] and oam_budget(c)["max_oam_per_scanline"] <= 10
@@ -115,7 +117,7 @@ def run_case(rom, labels, name, frames=144, *, observe=True):
         assert len({row["door_fraction"] for row in rows if row["door_state"] == 1})>=2
     if name == "two_actor_corner":
         assert c.wramx[2][br.PLAYER_HEALTH-0xD000]>0, "contention trial ended in player death"
-        assert c.wramx[2][br.ACTOR_COUNT-0xD000]==2
+        assert c.read8(br.ACTOR_COUNT)==2
         assert all(c.wramx[2][br.ENTITY_SLOTS+i*16+4-0xD000]!=br.SENTINEL_DEAD for i in range(2))
         if observer:
             assert any(len(row["actor_candidates"]) == 2 for row in rows), "both actors must compete in one frame"

@@ -284,10 +284,29 @@ SLUG_CELS = (dict(), dict(recoil=3, flare=True), dict(recoil=2, bolt=5),
              dict(recoil=1, bolt=2), dict())
 
 
+def make_arc_tiles() -> bytes:
+    """The third weapon, the arc lance: its rendered sheet; the legacy
+    profile carries the centre of its first cel alone."""
+    from .sprite_assets import compile_sheet, compile_frame
+    return compile_sheet('arc_lance', paired=True) if SABLE_ART else legacy_weapon_cel('arc_lance')
+
+
+def make_pulse_tiles() -> bytes:
+    """The fourth weapon, the pulse carbine, likewise."""
+    from .sprite_assets import compile_sheet, compile_frame
+    return compile_sheet('pulse_carbine', paired=True) if SABLE_ART else legacy_weapon_cel('pulse_carbine')
+
+
 def make_slug_tiles() -> bytes:
-    """The second weapon, in the 8x16 pair order the weapon window expects."""
+    """The second weapon, in the 8x16 pair order the weapon window expects.
+
+    Under the Sable profile every weapon is a native sheet rendered by
+    `tools/render_weapons.py`; the legacy profile keeps its single drawn cel."""
+    if SABLE_ART:
+        from .sprite_assets import compile_sheet
+        return compile_sheet('slug_rifle', paired=True)
     out = bytearray()
-    for cel in SLUG_CELS[:5 if SABLE_ART else 1]:
+    for cel in SLUG_CELS[:1]:
         px = [[0] * 32 for _ in range(32)]
         _slug_frame(px, **cel)
         tiles = _split_pixels(px, 32, 32)
@@ -440,16 +459,50 @@ def make_entity_tiles() -> bytes:
     return bytes(out)
 
 
+WEAPON_SHEETS = ("shotgun", "slug_rifle", "arc_lance", "pulse_carbine")
+
+
+def weapon_object_palettes() -> list[list[int]]:
+    """Per weapon, the OBJ palette (0 or 5) of each of its objects, in OAM
+    order, as `tools/render_weapons.py` fitted them."""
+    from .sprite_assets import manifest
+    tables = [list(manifest()["assets"][name]["object_palettes"]) for name in WEAPON_SHEETS]
+    for table in tables:
+        if len(table) != WEAPON_OBJECTS or set(table) - {0, 5}:
+            raise ValueError("a weapon needs an OBJ palette (0 or 5) for each of its objects")
+    return tables
+
+
+def legacy_weapon_cel(name: str) -> bytes:
+    """The legacy art profile's single 32x32 cel: the centre of the idle
+    cel, in the pair order of its eight-object window."""
+    from .sprite_assets import frames
+    px = frames(name)[0]
+    left = (len(px[0]) - 32) // 2
+    out = bytearray()
+    for y in range(0, 32, 16):
+        for x in range(left, left + 32, 8):
+            for row in px[y:y + 16]:
+                for bit in (0, 1):
+                    out.append(sum(((row[x + i] >> bit) & 1) << (7 - i) for i in range(8)))
+    return bytes(out)
+
+
 def make_oam_shadow() -> bytes:
     """Initial 40-entry OAM image with UI capacity permanently reserved."""
     data = bytearray(OAM_BYTES)
-    # Existing 4x4 weapon grid keeps OAM indices 0..15 and guaranteed priority.
+    # The weapon's objects come first, so they keep OAM priority. Sable
+    # weapons pick OBJ palette 0 or 5 per object (the attribute table of the
+    # weapon in hand is re-applied by `animate_weapon`); the legacy window
+    # keeps its leather bottom corners.
+    palettes = weapon_object_palettes()[0] if SABLE_ART else None
     for row in range(2):
-        for col in range(4):
-            index = row * 4 + col
+        for col in range(WEAPON_COLUMNS):
+            index = row * WEAPON_COLUMNS + col
+            attribute = (0x08 | palettes[index]) if SABLE_ART else (0x0D if row == 1 and col in (0, 3) else 0x08)
             data[index * 4:index * 4 + 4] = bytes((
-                VIEW_HEIGHT - 32 + row * 16 + 16, 64 + col * 8 + 8,
-                WEAPON_TILE_BASE + (row * 4 + col) * 2, 0x0D if row == 1 and col in (0,3) else 0x08,
+                VIEW_HEIGHT - 32 + row * 16 + 16, WEAPON_SCREEN_X + col * 8 + 8,
+                WEAPON_TILE_BASE + index * 2, attribute,
             ))
     # The reticle moves from OBJ palette 6 to palette 4 so palette 6 can
     # carry a third enemy kind. Its art uses colour index 3 alone, and the
@@ -457,8 +510,8 @@ def make_oam_shadow() -> bytes:
     # parts in thirty-one on red, one on green and blue. That is a
     # deliberate change to shipped pixels, and it is why v0.9 carries its
     # own capture oracle rather than the v0.8 one.
-    data[8 * 4:8 * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0C))
-    data[9 * 4:9 * 4 + 4] = bytes((0, 76 + 8, MUZZLE_TILE, 0x0B))
+    data[RETICLE_OAM * 4:RETICLE_OAM * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0C))
+    data[MUZZLE_OAM * 4:MUZZLE_OAM * 4 + 4] = bytes((0, 76 + 8, MUZZLE_TILE, 0x0B))
     return bytes(data)
 
 
@@ -469,7 +522,7 @@ def make_obj_ui_tiles() -> bytes:
 
 def make_static_view_tiles() -> bytes:
     tiles = [solid_tile(0), solid_tile(1)]
-    for dark_mask in STATIC_WALL_MASKS:
+    for dark_mask in (() if TEXTURED_WALLS else STATIC_WALL_MASKS):
         pixels = [[3 if dark_mask & (0x80 >> x) else 2 for x in range(8)] for _ in range(8)]
         tiles.append(tile_from_pixels(pixels))
     # The legacy rail variants are intentionally absent in Spatial Clarity.
@@ -547,7 +600,7 @@ def make_pair_microstrips(states=None) -> bytes:
 def make_seam_tile_lookup() -> bytes:
     lookup = bytearray(256)
     for index, mask in enumerate(STATIC_WALL_MASKS):
-        lookup[mask] = WALL_TILE_BASE + index
+        lookup[mask] = FLAT_WALL_TILE_BASE + index
     return bytes(lookup)
 
 
@@ -711,22 +764,29 @@ def make_projection_top_lut() -> bytes:
     Each record contains (top, saturated perpendicular Q5 depth). Sixteen
     1024-byte slices fit each MBC5 bank. Live components are only 0..127, so
     retaining depth costs no additional ROM compared with the old table.
-    Component zero is populated defensively even though an axial hit always
-    selects the other non-zero vector component.
+
+    Component zero is reachable: the Q8 direction of an exactly axial ray
+    (angle index 256 or 768, 0 or 512) has a zero component, but the Q14
+    crossing order the traversal follows can still carry it across the plane
+    that component is perpendicular to, and the hit then selects it. A ray
+    parallel to a face cannot measure its distance, so those slices saturate
+    to the far clamp exactly as `reference._reference_cast_hit` does; before
+    they were filled as if the component were one, which projected a
+    full-height column (top 0, depth 0) in the middle of a far wall. The
+    eighteen-sector route found it in Reactor Heart.
     """
     projection = make_tables()["projection_half"]
     out = bytearray(PROJECTION_LUT_BYTES)
     cursor = 0
     for component in range(PROJECTION_LUT_COMPONENTS):
-        safe_component = max(1, component)
         for correction in range(
             PROJECTION_LUT_CORRECTION_MIN,
             PROJECTION_LUT_CORRECTION_MIN + PROJECTION_LUT_CORRECTION_COUNT,
         ):
             for distance in range(PROJECTION_LUT_DISTANCES):
-                perpendicular = min(
+                perpendicular = 511 if component == 0 else min(
                     511,
-                    (distance * correction + safe_component // 2) // safe_component,
+                    (distance * correction + component // 2) // component,
                 )
                 out[cursor] = HORIZON - projection[perpendicular]
                 out[cursor + 1] = min(255, perpendicular)

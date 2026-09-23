@@ -100,7 +100,8 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(self.manifest["oam_entity_capacity"], 16)
         self.assertEqual(self.manifest["level_format"], "lupine-level-v2")
         self.assertEqual(self.manifest["active_level_doors"], 4)
-        self.assertEqual(self.manifest["maximum_level_doors"], 4)
+        self.assertEqual(self.manifest["maximum_level_doors"], br.MAX_DOORS)
+        self.assertEqual(br.MAX_DOORS, 6)
         self.assertEqual(self.manifest["safe_spawn_radius_cells"], 5)
         self.assertTrue(self.manifest["exit_beacon"])
         self.assertTrue(self.manifest["animated_door"])
@@ -300,12 +301,19 @@ class Lupine3DTests(unittest.TestCase):
     def test_campaign_levels_share_the_resident_profile_and_own_a_bank_each(self) -> None:
         self.assertGreaterEqual(len(br.CAMPAIGN), 1)
         self.assertIs(br.CAMPAIGN[0], br.ACTIVE_LEVEL)
-        self.assertLessEqual(br.LEVEL_ROM_BANK_BASE + len(br.CAMPAIGN), 256)
-        self.assertLessEqual(br.LEVEL_PAYLOAD_END, 0x8000)
+        self.assertLessEqual(br.LEVEL_ROM_BANK_BASE + br.LEVEL_BANK_COUNT, 256)
+        self.assertLessEqual(br.LEVEL_PAYLOAD_END - 0x4000, br.LEVEL_SLOT_PITCH)
+        self.assertLessEqual(br.LEVELS_PER_BANK * br.LEVEL_SLOT_PITCH, 0x4000)
+        # The directory the loader reads is the placement the build used.
+        directory = self.rom[self.symbols["level_directory"]:self.symbols["level_directory"] + 2 * len(br.CAMPAIGN)]
+        self.assertEqual(list(directory), [byte for i in range(len(br.CAMPAIGN)) for byte in br.level_location(i)])
+        self.assertEqual(br.level_location(0), (br.LEVEL_ROM_BANK_BASE, 0))
+        self.assertEqual(len({br.level_location(i) for i in range(len(br.CAMPAIGN))}), len(br.CAMPAIGN))
         for index, level in enumerate(br.CAMPAIGN):
-            # One resident atlas and palette set serves the whole run.
+            # One resident atlas serves the whole run; the palette set is
+            # per level and every named set exists in the ROM.
             self.assertEqual(level.vram_profile, br.ACTIVE_LEVEL.vram_profile, level.name)
-            self.assertEqual(level.palette_profile, br.ACTIVE_LEVEL.palette_profile, level.name)
+            self.assertLess(level.palette_profile, br.PALETTE_SET_COUNT, level.name)
             # Every level carries the same certificate the shipped one does.
             self.assertEqual(level.readability.unreachable_cells, 0, level.name)
             self.assertLessEqual(level.readability.maximum_sightline, 6, level.name)
@@ -318,7 +326,7 @@ class Lupine3DTests(unittest.TestCase):
             self.assertEqual(header[20], level.pickups[0].value, level.name)
             self.assertLessEqual(len(level.entities), br.MAX_ACTORS, level.name)
             self.assertLessEqual(len(level.fixtures), br.MAX_FIXTURES, level.name)
-            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            bank = br.level_rom_offset(index)
             self.assertEqual(self.rom[bank + br.LEVEL_GRID_OFFSET - 0x4000:
                                       bank + br.LEVEL_GRID_OFFSET - 0x4000 + 256], level.grid)
             self.assertEqual(self.rom[bank + br.LEVEL_HEADER_OFFSET - 0x4000:
@@ -342,9 +350,9 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(level.pickups[0].source, "sentinel_drop")
         self.assertEqual(len(level.segment_table), 16 * 16 * 4)
         # Every campaign level carries its own payload at fixed offsets in its
-        # own bank; the loader derives the bank from LEVEL_INDEX alone.
+        # own slot; the loader finds the slot through the resident directory.
         for index, entry in enumerate(br.CAMPAIGN):
-            bank = (br.LEVEL_ROM_BANK_BASE + index) * 0x4000
+            bank = br.level_rom_offset(index)
             self.assertEqual(self.rom[bank:bank + br.LEVEL_PAYLOAD_END - 0x4000],
                              br.make_level_payload(entry))
             start = bank + br.LEVEL_SEGMENT_OFFSET - 0x4000
@@ -373,12 +381,13 @@ class Lupine3DTests(unittest.TestCase):
         self.assertIsNotNone(report)
         self.assertEqual(report.unreachable_cells, 0)
         self.assertEqual(report.maximum_sightline, 6)
-        self.assertEqual(report.maximum_open_rectangle, (4, 3))
+        self.assertEqual(report.maximum_open_rectangle, (4, 4))
         self.assertGreaterEqual(report.minimum_door_separation, 8)
         self.assertGreaterEqual(report.critical_path_turns, 3)
-        # Two paint seams on latent jamb faces become visible as doors open.
+        # The lift door stands in a machinery frame: two paint seams on its
+        # latent jamb faces, one each side, become visible as it opens.
         self.assertEqual(report.material_seams, 2)
-        self.assertEqual(report.material_singleton_runs, 2)
+        self.assertEqual(report.material_singleton_runs, 4)
 
     def test_level_v2_rejects_unsafe_spawns_bad_door_frames_and_missing_exit_lock(self) -> None:
         source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
@@ -406,18 +415,20 @@ class Lupine3DTests(unittest.TestCase):
         cases = []
 
         sealed_void = json.loads(json.dumps(source))
-        row = list(sealed_void["rows"][1]); row[8] = "0"
-        sealed_void["rows"][1] = "".join(row)
+        row = list(sealed_void["rows"][2]); row[13] = "0"
+        sealed_void["rows"][2] = "".join(row)
         cases.append((sealed_void, "unreachable"))
 
         bypass = json.loads(json.dumps(source))
-        for x, y in ((1, 6), (1, 7), (2, 7)):
+        # Round the bunk-room door through its west jamb.
+        for x, y in ((2, 5), (2, 6)):
             row = list(bypass["rows"][y]); row[x] = "0"; bypass["rows"][y] = "".join(row)
         cases.append((bypass, "door"))
 
         long_view = json.loads(json.dumps(source))
-        row = list(long_view["rows"][7]); row[9] = "0"
-        long_view["rows"][7] = "".join(row)
+        # A nub above the decon passage lines the airlock column up to seven.
+        row = list(long_view["rows"][8]); row[4] = "0"
+        long_view["rows"][8] = "".join(row)
         cases.append((long_view, "readability"))
 
         with tempfile.TemporaryDirectory() as directory:
@@ -445,10 +456,12 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(len(lut), br.PROJECTION_LUT_BYTES)
         start = br.PROJECTION_LUT_BASE_BANK * 0x4000
         self.assertEqual(self.rom[start:start + len(lut)], lut)
-        for component in (1, 2, 63, 127):
+        for component in (0, 1, 2, 63, 127):
             for correction in (110, 118, 127):
                 for distance in (0, 1, 31, 255, 256, 511):
-                    perpendicular = min(511, (distance * correction + component // 2) // component)
+                    # A zero component is a ray parallel to the face it hit:
+                    # no distance can be measured, so the slice saturates.
+                    perpendicular = 511 if component == 0 else min(511, (distance * correction + component // 2) // component)
                     expected = 48 - projection[perpendicular]
                     index = (
                         (component * br.PROJECTION_LUT_CORRECTION_COUNT
@@ -477,6 +490,7 @@ class Lupine3DTests(unittest.TestCase):
             (0x0880, 0x0680, 0, 0),
             (0x0880, 0x0680, 0, 39),
             (0x0480, 0x0C80, 192, 39),
+            (0x0280, 0x0180, 64, 59),
         ]
         observed_styles = set()
         for x_q8, y_q8, angle, ray_index in probes:
@@ -518,6 +532,26 @@ class Lupine3DTests(unittest.TestCase):
                 self.assertEqual(cgb.read8(br.STYLE_RESULT), expected.style)
                 self.assertEqual(cgb.read8(br.FACE_RESULT), expected.face_key)
                 self.assertEqual(cgb.read8(br.ALONG_RESULT), expected.along)
+
+    def test_axial_ray_carried_across_the_perpendicular_plane_projects_far(self) -> None:
+        """A ray whose Q8 direction is exactly axial can still cross the
+        plane its zero component is perpendicular to, because the traversal
+        follows the finer Q14 crossing order. The projection then reads the
+        component-zero slice, which must saturate like the host model: the
+        old table filled it as if the component were one and drew a
+        full-height column in the middle of a far wall (Reactor Heart,
+        sector 12 of the eighteen-sector route)."""
+        cgb = self.boot_to_main()
+        for x_q8, y_q8, angle, ray_index in ((640, 767, 1, 38), (2176, 2303, 1, 38)):
+            with self.subTest(pose=(x_q8, y_q8, angle), ray=ray_index):
+                expected = br.reference_cast_hit(x_q8, y_q8, angle, ray_index)
+                self.assertEqual(expected.dx if expected.axis == 0 else expected.dy, 0)
+                self.assertEqual(expected.depth_q5, 255)
+                self.set_pose(cgb, x_q8, y_q8, angle)
+                cgb.write8(br.CAST_INDEX, ray_index)
+                cgb.call_subroutine("cast_indexed")
+                self.assertEqual((cgb.read8(br.TOP_RESULT), cgb.read8(br.DEPTH_RESULT), cgb.read8(br.STYLE_RESULT)),
+                                 (expected.top, expected.depth_q5, expected.style))
 
     def test_rom_adaptive_and_compositor_match_host_pose_corpus(self) -> None:
         cgb = self.boot_to_main()
@@ -795,8 +829,8 @@ class Lupine3DTests(unittest.TestCase):
         # lookup, but mutates only its own record.
         interactions = (
             (0, (0x0480, 0x0C40, 192), False),  # start airlock, from south
-            (1, (0x0380, 0x0740, 192), False),  # courtyard access, from south
-            (2, (0x06C0, 0x0780, 0), False),    # zig-zag entry, from west
+            (1, (0x0180, 0x0640, 192), False),  # bunk room, from the decon passage
+            (2, (0x0680, 0x0640, 192), False),  # mess hatch, from the decon passage
             (3, (0x0980, 0x0A80, 64), True),    # exit lock, from north
         )
         for target_index, pose, unlock_exit in interactions:

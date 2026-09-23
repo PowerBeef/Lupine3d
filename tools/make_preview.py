@@ -57,7 +57,7 @@ def main() -> None:
     # current engine: wall composition, the 16x32 Sentinel and foreground UI.
     hero = CGB(v2_rom, v2_assembler.labels)
     run_to_world(hero)
-    # Face the Sentinel across the machinery hall so the repository hero
+    # Face the Sentinel across the comms room so the repository hero
     # image communicates the complete current slice, not an empty start wall.
     for address, value in ((v2.PLAYER_XL, 128), (v2.PLAYER_XH, 8),
                            (v2.PLAYER_YL, 128), (v2.PLAYER_YH, 8), (v2.ANGLE, 240)):

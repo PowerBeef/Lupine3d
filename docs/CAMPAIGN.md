@@ -30,11 +30,14 @@ with the run's totals.
 
 **Levels became data, not opcodes.** Selection used to be assembled into
 immediate operands — entity counts, fixture counts, the pickup value, the
-segment-table bank. Each campaign level now owns one ROM bank from 241 at fixed
-offsets, and the loader derives that bank from `LEVEL_INDEX` alone. The hot
-geometry path pays one fixed-WRAM load per wall hit for it. The resident wall
+segment-table bank. Each campaign level now owns a page-aligned slot in a ROM
+bank from 241 (five levels per bank) at fixed offsets inside the slot, and the
+loader reads the bank and slot page from a resident directory by `LEVEL_INDEX`.
+The hot geometry path pays two fixed-WRAM loads per wall hit for it. The resident wall
 atlas is still chosen at build time, so every campaign level must declare the
-same VRAM and palette profile; `layout.py` rejects a campaign that disagrees.
+same VRAM profile; `layout.py` rejects a campaign that disagrees. The palette
+set is per level: the header byte the loader keeps in `PALETTE_SET` picks one
+of the three 128-byte sets that `enter_world` uploads with the LCD off.
 
 **Screens borrow the renderer's own scratch.** A full-screen mode owns the
 whole background with LCDC `$81` and VBlank only, and its patterns go into the
@@ -89,6 +92,19 @@ itself against the emitted image, so sections that never switch a bank, never
 run inside another section's window and are unreachable from an interrupt are
 emitted after the data and land above `$4000` in bank 1. Of 16.5 KB of
 instructions, 1.6 KB are genuinely pinned below the boundary.
+
+## The sixth sector
+
+v0.10 adds **Cryo Vault**, sector six, in ROM bank 246: a vault of four
+rooms above a keycard hatch, with a warden and a card-carrying skirmisher
+upstairs and a Sentinel and a second skirmisher in the sump below, and the
+exit behind the Sentinel-locked door of a fourth room. It carries the same
+compiler certificate as the other five (no unreachable cell, sightlines of at
+most six cells, doors that each separate at least eight walkable cells, a
+critical path of twenty steps and seven turns, no open room beyond the 4×4
+envelope, and a card that can be reached with the hatch shut), and the
+controller route plays it like the others. The continue-code table grew from
+fifteen codes to eighteen, which changes every code: they are content.
 
 ## What the last five cost
 
@@ -177,3 +193,66 @@ Neither fault was reachable in the host harness, which zeroes WRAM and models
 the page flip from the same state the ROM does. That is what those lanes are
 for, and it is the first time in this work they have caught something the
 project's own model could not.
+
+## Three episodes
+
+The campaign is three episodes of six sectors, each with its own palette set
+(`docs/ART_PIPELINE.md`) and its own opening and closing screens
+(`AGENTS.md`, "Campaign, modes and screens"). Levels are packed five to a
+ROM bank from 241; the arsenal grows by episode (`WEAPON_UNLOCK_SECTORS`:
+the arc lance from sector 7, the pulse carbine from sector 13) and the
+continue codes carry it. The episode-closing sectors of Reactor Deep and
+Signal Spire field the boss kind.
+
+| Episode | Palette set | Sectors |
+|---|---|---|
+| 1 Sable Outpost | `outpost` | Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks, Signal Deck, Cryo Vault |
+| 2 Reactor Deep | `reactor` | Coolant Intake, Pump Gallery, Turbine Hall (keycard), Coolant Dark, Control Gallery, Reactor Heart (boss) |
+| 3 Signal Spire | `spire` | Antenna Base, Relay Deck (keycard), Hull Walk, Signal Vault (keycard), Transmitter Ring, Spire Crown (boss) |
+
+Every sector carries the same compiler certificate as the first six
+(`docs/LEVEL_CERTIFICATE.md`; `tests/test_campaign.py` pins it for all
+eighteen), and the controller route plays all of them: CI's slow lane plays
+episode one and a `campaign` matrix plays episodes two and three from their
+continue codes in three-sector chunks (`make playthrough SECTORS=7-9
+ROUTE_DIR=build/playthrough-ep2a`), the last chunk restarting the campaign
+from the ending. `release_check.py`
+unions the reports for the current ROM. Regenerating the continue-code table
+for eighteen sectors changed every code.
+
+### Named places
+
+Every sector is laid out as one place with a purpose, so the way through it
+follows how the place would be used rather than a grid of rooms:
+
+| Sector | Place |
+|---|---|
+| 1 Sable Outpost | the landing airlock, a U-shaped decon passage, the bunk room and the mess hall off it, the comms room where the Sentinel guards the lift |
+| 2 Coolant Spine | a pump house, then a pipe-lined spine climbing to the valve head and the lift, with the coolant shaft off to one side |
+| 3 Reactor Gate | a security checkpoint: a lobby, a ring corridor round the guard block, the cell block and turbine stair off it, the Warden at the reactor gate |
+| 4 Vent Stacks | two shafts from the stack base: west to the fan room and the card, east to the carded upper walk and the exhaust hall |
+| 5 Signal Deck | a ring walk round the antenna mast, with the mast shaft, radio room and deck gate off it and the carded throat down to the lower deck |
+| 6 Cryo Vault | the cold throat up to the pod hall, the control room with the card, the carded sump below the pods |
+| 7 Coolant Intake | a pump stair into a cistern held up by four pump columns, with the settling tank, intake valve and grate gallery off it |
+| 8 Pump Gallery | a U of pump bays wrapped round the pump room, the valve room at the head of the U |
+| 9 Turbine Hall | two turbine rooms, each walked round its turbine, with the stair and condenser below and the carded control room above |
+| 10 Coolant Dark | unlit tunnels threading a staggered lattice of pipe blocks; the tunnels loop, so anything in them can come from two sides |
+| 11 Control Gallery | an observation gallery opening by two arches onto a field of console pedestals, the offices and lock behind it |
+| 12 Reactor Heart | a two-wide ring walk round the core, where the boss circles, with the coolant loops either side |
+| 13 Antenna Base | a four-flight switchback stair up the base, the relay room at its head, the base hall and lift below |
+| 14 Relay Deck | a deck of relay racks in staggered pairs, the operations room and the lock behind the carded door |
+| 15 Hull Walk | a walk that circles the whole hull, jogging along the plating, with the four hull rooms off it |
+| 16 Signal Vault | archive stacks either side of the vault; the west stacks hold the card, the vault holds two Wardens and the data core |
+| 17 Transmitter Ring | a diamond ring round the transmitter, with a door at each point: arrival, two emitter rooms, the lock |
+| 18 Spire Crown | the crown chamber, eight pillars round the boss, with bays either side and the uplink lock above |
+
+The certificate shapes every plan (`docs/LEVEL_CERTIFICATE.md`): a door
+counts as open floor in the six-cell sightline, so a door sits where the
+corridor turns, and every door must cut off at least eight cells, so doors
+lead into wings and never sit on a loop; the loops are open corridors.
+The controller route added three rules of its own. A boss fight needs room to
+back away: a one-wide ring corner trapped the route against the boss, so
+Reactor Heart's ring is two cells wide. A door should not open between two
+enemies that wake together. And a lone pillar in a small room can hide an
+actor from every firing position; Relay Deck's Warden walks the deck instead
+of the operations room.

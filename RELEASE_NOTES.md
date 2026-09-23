@@ -1,3 +1,160 @@
+# Unreleased — after v0.11
+
+- **Overlapped publication is the slim default.** The VBlank interrupt
+  publishes the streamed tail while the next update casts, so an update is
+  bound by its own work instead of waiting for VBlank: textured walking
+  6.85 to 7.45/s, turning 9.08 to 9.89/s, two-actor 6.65 to 7.12/s
+  (`docs/PERFORMANCE_PHASE5.md`). `LUPINE3D_OVERLAP_PUBLICATION=0` (`make
+  sync`) builds the synchronous tail. The harness validates a presented
+  frame against the state it was handed off with (`docs/VERIFICATION.md`).
+- **The engine is textured.** Every slim Sable build composes every wall
+  from its episode's textures; the flat slim profile, its goldens, make
+  targets and CLI flag were removed. The flat compositor remains only as the
+  renderer of the historical legacy and compact profiles, and the fold
+  identity in `make variants` now runs on compact.
+- **Exact performance round** (`docs/PERFORMANCE_PHASE5.md`). The textured
+  kernel composes rows under one texel row in 76 T instead of 104 and drops
+  its per-tile bookkeeping on one-face columns; every profile gets a leaner
+  16x16 multiply, a twelve-step door-panel divide and the crossing
+  certificate fused into the DDA loop. Textured walking 6.47 to 6.85/s,
+  turning 8.40 to 9.08/s; default walking 7.77 to 8.08/s, turning 10.25 to
+  10.84/s. The Phase 5 targets are not met.
+- **Textured texture coordinates.** A neighbour difference of 126 or 127
+  pulled a pixel's U the wrong way; `check_sable.py` now runs the expansion
+  over every difference.
+- **The render snapshot copies its map** only when a door or a load changed
+  it.
+- **The route** stops a close-in walk that is costing health once a step has
+  put it beside the actor with a line, instead of walking on past it, and
+  counts an exchange's contacts from its first shot, so hits taken turning
+  to face a chaser no longer send it away to a firing position. It gives up
+  a walk to a firing position after two contacts, steers by the live world
+  rather than the presented frame, and shoots a target all but on its own
+  row or column straight down the axis while that keeps it near the
+  crosshair, so a one-step-off heading no longer grazes the next row's wall.
+
+# Lupine 3D v0.11 — Three episodes
+
+v0.10 streamed the renderer; v0.11 turns the six-sector demo into a
+campaign of three episodes and eighteen sectors, each a named place, and
+gives the engine what a campaign and other developers need: golden-image
+verification, an opt-in textured-wall profile, and an SDK.
+
+- **Golden-image verification.** Visual evidence is reviewable snapshots
+  (`tools/snapshot.py`, `docs/VERIFICATION.md`): goldens per profile and
+  suite, a diff report as a CI artifact, and an explicit `accept --note`
+  as the only way to change one. Engine invariants stay hard gates. CI is
+  split into fast, slow and campaign lanes, and a CPU conformance lane runs
+  every emitted instruction form in the harness and in pinned SameBoy.
+- **Textured walls** (opt-in, `LUPINE3D_TEXTURED_WALLS=1`). A row-window
+  kernel textures every wall from authored 16×8 PNGs with depth shading,
+  byte-exact against its host model (`docs/TEXTURED_WALLS.md`). It costs
+  more than the flat compositor and misses its performance gate, so the
+  default ROM is unchanged.
+- **An SDK for other games.** RGBDS-form `.sym` and `.map` exports, one
+  `tools/lupine.py` command line, the level format with a JSON schema and a
+  certificate reference, a lossless Tiled (TMX) round trip, an art pipeline
+  guide with a palette planner, and a developer guide with a generated
+  memory map (`docs/guide/`).
+- **Engine limits lifted for the campaign.** Levels are packed five to a
+  ROM bank behind a resident directory; a level holds six doors and six
+  actors; each episode has its own palette set; four weapons are owned by
+  episode; a boss kind closes an episode; and episodes open and close with
+  their own screens.
+- **Three episodes of six sectors.** Reactor Deep (sectors 7-12) and Signal
+  Spire (13-18) join Sable Outpost, each with its own palette set, opening and
+  closing screens, and a boss in its last sector; the arsenal grows to four
+  weapons by episode. The continue-code table now holds fifty-four codes,
+  which changes every code (`docs/CAMPAIGN.md`, "Three episodes").
+- **Every sector is a named place.** All eighteen sectors are redrawn as places with
+  a purpose (a pump house and spine, a security checkpoint, a turbine hall, a
+  flooded tunnel lattice, a hull walk round the whole map, a diamond ring
+  round the transmitter), each with the same certificate and enemy mix, and
+  each played through by the controller route (`docs/CAMPAIGN.md`, "Named
+  places"). Sable Outpost keeps the cells the engine's evidence stands on (the
+  spawn, the airlock door ahead of it, the Sentinel, the exit door and lift),
+  so its tours and tests move only where a room changed, and every golden
+  image of the first sector is re-accepted.
+- **Weapons rendered from 3D models.** Each weapon is a small 3D model
+  rendered straight at the console's resolution with banded shading, part
+  outlines, in a larger 40×32 window right of centre with four animation
+  cels (`tools/render_weapons.py`, `docs/ART_PIPELINE.md`).
+- **Texture sets per episode** (textured profile). Reactor Deep and Signal
+  Spire wall their sectors in their own structure and machinery textures;
+  the level's palette set selects the set (`docs/TEXTURED_WALLS.md`). All
+  seven wall and door textures were redesigned as one set (bolted steel
+  panels, louvred vents, sliding doors with a hazard band, riveted reactor
+  plates, coolant pipes, recessed hull panels, relay racks), and doors now
+  darken along their own palette order instead of turning bright at a
+  distance.
+- **Engine fixes the eighteen-sector route found.** The projection table's
+  component-zero slice now saturates to the far clamp like the host model:
+  an exactly axial ray that the Q14 crossing order carried across the
+  perpendicular plane used to project a full-height column in the middle of
+  a far wall (every profile's ROM changes in banks 2-3; no accepted golden
+  shows the case). A medkit tops health up to 99 and no further (it
+  saturated at 255 and the HUD showed 141 as "41"). An actor strikes across
+  a diagonal only when the corner is clean, the same rule the player's shot
+  obeys. The compiler refuses an actor inside a wall or behind a
+  Sentinel-locked door, whether or not the level has a card door.
+  `init_vram` read the weapon pointer table with the weapon bank already
+  mapped; the table is resident data that the textured build places above
+  `$4000`, so the first weapon loaded as blank patterns there. It is now read
+  with bank 1 mapped, as the swap already did.
+
+# Lupine 3D v0.10 — The renderer streams
+
+v0.9 spent a whole LCD interval idle inside every full geometry update: the
+hidden patterns went up in one VBlank, and the CPU then spun until the next
+one to send the map, the attributes, the HUD and OAM. v0.10 removes that
+interval without moving a pixel.
+
+- **HBlank-streamed publication.** The hidden dynamic patterns and the whole
+  hidden tile-number map now travel by HBlank DMA while `render_view` is
+  still composing, one block per visible line into the bank and map the
+  displayed page never reads. `render_view` hands each column's patterns
+  over as it finishes them; the tail is one VBlank of banked GDMA (masks and
+  attributes, at most 62 blocks) plus the HUD, OAM and the flip. The 192
+  bytes of CPU map/attribute copying are gone. Every descriptor, packet and
+  VRAM byte is unchanged; only the presentation time moves. The legacy
+  profile keeps the staged packet byte for byte, and `LUPINE3D_HDMA_STREAMING=0`
+  builds it on any profile. See `docs/STREAMED_PUBLICATION.md`.
+- **Exact engine savings.** The folded compositor's rows are unrolled and
+  each column writes its fifteen map cells from one pointer; the column scan
+  keeps its extremes in registers and the row classification folds the row
+  origin into immediates; the depth pass keeps every actor's projection so
+  the draw pass restores it instead of projecting the same inputs again; the
+  wall-key compare, the snapshot copies and the actor slot copies run eight
+  or ten bytes per counter step; the midpoint descriptors and cast results
+  are stored without a result-byte round trip. No pixel, packet or dynamic
+  allocation order moves.
+- **A sixth sector.** Cryo Vault, in ROM bank 246, with the same compiler
+  certificate as the other five. The continue-code table grew to eighteen
+  codes, which changes every code.
+- **The harness models HBlank DMA** (`tools/sm83emu.py`): a block per visible
+  line, read through SVBK and written to the bank VBK selects, with the CPU
+  stall charged where it lands; a commit reports HBlank and VBlank blocks
+  separately and is safe only if no transfer is still active at the flip.
+
+**Measured** on the host harness against the v0.9 ROM: the nine-image tour
+falls from 866,119 to 674,644 T-cycles per full update (−22.1%) and the
+living-world route from 719,567 to 632,973 (−12.0%). Sustained sixty-second
+trials deliver 6.80–10.27 full geometry updates/s against v0.9's 5.53–8.15 on
+the same replays; turning reaches the ten-updates/s target for the first
+time. The table is in `docs/TEST_REPORT.md`.
+
+**Changed pixels:** six, in one capture of the nine-image tour — the helmet
+portrait's blink in `09_exit_approach`, because that update now completes one
+LCD interval earlier and the accepted tick lands differently on the 62–63
+blink window. v0.10 carries its own oracle, `playtests/sable_v10_capture_pixels.json`,
+with the other eight hashes identical to v0.9's, which is retained.
+
+**Route:** the controller route died once on the faster ROM, standing in a
+doorway firing at a Sentinel pressed against a wall corner that its sampled
+sight test cleared and the ROM's exact centre ray did not. It now kites from
+contact range and moves one cell when an exchange settles nothing; the
+gameplay it exercises is unchanged.
+
 # Lupine 3D v0.9 — The campaign
 
 v0.8 was one level, one enemy and no way to stop playing but turning the
@@ -109,8 +266,8 @@ Download `Lupine3D_v0.8.gb` to play or the `_complete.zip` for source, assets an
 - Document development directly on `main`. Physical CGB and flash-cartridge access are unavailable; this is an emulator-qualified prerelease.
 
 Production ROM SHA-256: `48c80fcd588365a38eb08c7ce1cc4ce2439c432127e4f389651b8e0bdafe2e99`.
-See [implementation and evidence](docs/RENDERING_IMPLEMENTATION.md) and the
-[beta.6 test report](docs/TEST_REPORT_BETA6.md). The version update changes release
+See [implementation and evidence](docs/archive/RENDERING_IMPLEMENTATION.md) and the
+[beta.6 test report](docs/archive/TEST_REPORT_BETA6.md). The version update changes release
 metadata; the production ROM is byte-identical to the qualified performance
 milestone.
 
@@ -125,7 +282,7 @@ milestone.
 - 84 tests, nine unchanged reviewed RGB captures, arithmetic/prepared variants, 252-presentation controller-only completion and independent SameBoy CGB-0/CGB-E plus mGBA checks pass.
 - Uses 1 MiB of formerly unused cartridge capacity and four banked WRAM bytes; leaves 304 KiB of cartridge capacity and 3,123 resident bytes free. No additional HRAM or VRAM; publication budgets unchanged.
 
-All four planned steps are complete. These are emulator measurements; original CGB and flash-cartridge acceptance remains pending. See [implementation and evidence](docs/COLUMN_PERFORMANCE.md).
+All four planned steps are complete. These are emulator measurements; original CGB and flash-cartridge acceptance remains pending. See [implementation and evidence](docs/archive/COLUMN_PERFORMANCE.md).
 
 ---
 
@@ -139,7 +296,7 @@ All four planned steps are complete. These are emulator measurements; original C
 - 80 tests, 53 exact cached/full scenes, nine unchanged reviewed captures, reuse on/off and folding variants, 233-update controller-only completion, and SameBoy CGB-0/CGB-E plus mGBA checks pass.
 - Adds 297 WRAM bytes; no new HRAM or VRAM. Cold-map relocation preserves 3,123 free resident bytes and the full stack reservation.
 
-All four planned steps are complete. Original CGB/flash-cartridge validation remains pending. See [implementation and evidence](docs/WALL_REUSE.md).
+All four planned steps are complete. Original CGB/flash-cartridge validation remains pending. See [implementation and evidence](docs/archive/WALL_REUSE.md).
 
 ---
 
@@ -152,7 +309,7 @@ All four planned steps are complete. Original CGB/flash-cartridge validation rem
 - The live combat diagnostic averages 1,218,677 cycles; its slowest update costs 1,685,836 cycles (4.98 visual updates/s). Fixed-tick simulation means live actor poses vary with rendering speed.
 - 75 automated tests, nine unchanged reviewed captures, controller-only completion in 236 updates, and independent SameBoy CGB-0/CGB-E and mGBA checks pass.
 
-The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptance is still pending. See the [step-by-step implementation and evidence](docs/RUNTIME_PERFORMANCE.md).
+The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptance is still pending. See the [step-by-step implementation and evidence](docs/archive/RUNTIME_PERFORMANCE.md).
 
 ---
 
@@ -182,7 +339,7 @@ Implements the software items deferred by the foundation alpha:
 - Optional turning reprojection shifts published world objects with the BG while retaining fixed UI; remains disabled by default.
 - Pinned SameBoy CGB-0/CGB-E and mGBA lanes, two-Sentinel acceptance scene, folded/unfolded RGB equivalence and controller-only level completion.
 
-This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
+This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
 
 ---
 
@@ -202,7 +359,7 @@ First implemented milestone of the overhaul, not completion of the full roadmap.
 
 The opened-airlock RGB fixture intentionally removes 50 false-crease pixels after inspection. The other eight legacy captures are unchanged; all nine folded/unfolded captures match each other.
 
-High-precision tail fallback, fully fixed-rate simulation, masked multi-entity rendering, real sliding apertures and original-hardware validation remain unfinished. See [implementation status](docs/OVERHAUL_IMPLEMENTATION.md).
+High-precision tail fallback, fully fixed-rate simulation, masked multi-entity rendering, real sliding apertures and original-hardware validation remain unfinished. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md).
 
 ---
 
@@ -394,6 +551,6 @@ reducing the driven tour's mean update cost by 18.61%.
 
 The VBlank ISR/staging and residual signature-cache ideas were investigated
 but not retained because the measured workload did not benefit. Details and
-checkpoint data are in `docs/PERFORMANCE_V4.md`.
+checkpoint data are in `docs/archive/PERFORMANCE_V4.md`.
 
 Original Game Boy Color and independent-emulator certification remain pending.

@@ -52,16 +52,33 @@ def emit_door_geometry(a: Assembler) -> None:
         a.ld_a_abs(parallel); a.ld_r_r("e", "a"); a.ld_a_abs(parallel + 1); a.ld_r_r("d", "a")
         a.call("q14_multiply_u16")
         a.ld_a_abs(DOOR_DIVISOR); a.ld_r_r("e", "a"); a.ld_a_abs(DOOR_DIVISOR + 1); a.ld_r_r("d", "a")
-        a.call("divide_u32_u16_bounded")
-        a.ld_a_abs(Q14_PRODUCT + 3); a.ld_r_r("b", "a"); a.ld_a_abs(Q14_PRODUCT + 2); a.or_r("b"); a.jp("door_ray_clear", "nz")
-        a.ld_a_abs(Q14_PRODUCT + 1); a.cp_n(16); a.jp("door_ray_clear", "nc")
-        load_hl_abs(a, Q14_PRODUCT, Q14_PRODUCT + 1)
+        a.call("door_quotient"); a.jp("door_ray_clear", "c")
+        a.ld_r_r("h", "b"); a.ld_r_r("l", "c")
         a.ld_a_abs(parallel_step); a.cp_n(255); a.jr(f"door_parallel_{name}_positive", "nz"); a.call("negate_hl")
         a.label(f"door_parallel_{name}_positive")
         a.ld_a_abs(parallel_origin); a.ld_r_r("e", "a"); a.ld_a_abs(parallel_origin + 1); a.ld_r_r("d", "a"); a.add_hl_rr("de")
         a.ld_a_abs(parallel_cell); a.cp_r("h"); a.jp("door_ray_clear", "nz")
         a.ld_a_abs(DOOR_ACTIVE_FRACTION); a.cp_r("l"); a.jp("door_ray_plane_solid", "z"); a.jp("door_ray_clear", "nc")
         a.jp("door_ray_plane_solid")
+    # door_quotient: the panel displacement Q14_PRODUCT / DE, which only
+    # matters below 4096 (sixteen cells). Carry set when the quotient is
+    # 4096 or more; otherwise BC = the quotient. floor(p / d) >= 4096 exactly
+    # when floor(p / 4096) >= d, so the top of the product is the remainder
+    # that the last twelve steps of the 32/16 divide start from.
+    a.label("door_quotient")
+    a.ld_a_abs(Q14_PRODUCT + 3); a.cp_n(16); a.ccf(); a.ret("c")
+    a.cb("swap", "a"); a.ld_r_r("h", "a")
+    a.ld_a_abs(Q14_PRODUCT + 2); a.cb("swap", "a"); a.ld_r_r("l", "a"); a.and_n(0x0F); a.or_r("h"); a.ld_r_r("h", "a")
+    a.ld_r_r("a", "l"); a.and_n(0xF0); a.ld_r_r("l", "a")
+    a.ld_a_abs(Q14_PRODUCT + 1); a.cb("swap", "a"); a.ld_r_r("b", "a"); a.and_n(0x0F); a.or_r("l"); a.ld_r_r("l", "a")
+    a.ld_r_r("a", "l"); a.sub_r("e"); a.ld_r_r("a", "h"); a.sbc_a_r("d"); a.ccf(); a.ret("c")
+    # BC = the product's low twelve bits at its top; three groups of four
+    a.ld_r_r("a", "b"); a.and_n(0xF0); a.ld_r_r("b", "a")
+    a.ld_a_abs(Q14_PRODUCT); a.cb("swap", "a"); a.ld_r_r("c", "a"); a.and_n(0x0F); a.or_r("b"); a.ld_r_r("b", "a")
+    a.ld_r_r("a", "c"); a.and_n(0xF0); a.ld_r_r("c", "a")
+    a.ld_r_n("a", 3); a.call("divide16_group")
+    a.or_r("a"); a.ret()
+
     a.label("door_ray_plane_solid")
     a.ld_a_abs(DOOR_ACTIVE_ORIENTATION); a.ld_abs_a(DDA_AXIS)
     a.ld_a_abs(DOOR_PLANE_DISTANCE); a.ld_abs_a(DDA_DIST_L)

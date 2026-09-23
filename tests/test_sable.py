@@ -29,7 +29,10 @@ class SableTests(unittest.TestCase):
         self.assertEqual(bytes(c.vram[0][0x200:0x200+len(data)]), data)
         self.assertTrue(all(32 <= tilemap[y*32+x] < 32+len(data)//16
                             for y in range(12,18) for x in range(20)))
-        self.assertEqual(br.HUD_PACKET+11, br.MASK_TILES)
+        # The packet sits in the scanline scratch on every profile now that
+        # six actor slots own the bytes below the masked patterns; it never
+        # overlaps them.
+        self.assertLessEqual(br.HUD_PACKET + br.HUD_PACKET_BYTES, br.MASK_TILES)
         self.assertLessEqual(32*16+len(data), 0x800)
 
     def test_actual_stat_vector_switches_only_hud_addressing(self):

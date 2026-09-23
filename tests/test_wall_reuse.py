@@ -120,6 +120,9 @@ class WallReuseTests(unittest.TestCase):
         self.assertEqual(c.presentations, 2)
         self.assertEqual(c.page_swaps, 1)
         self.assertLessEqual(br.WALL_CACHE_MAP+256, br.STACK_TOP+1-512)
-        self.assertGreaterEqual(br.WALL_CACHE_META, br.PIXEL_SURFACE+160)
-        self.assertLess(br.WALL_CACHE_META+34, 0xE000)
+        # The key's scalars sit between the ray and physical surface profiles
+        # and overlap neither.
+        self.assertGreaterEqual(br.WALL_CACHE_META, br.RAY_SURFACE+80)
+        self.assertLessEqual(br.WALL_CACHE_META+br.WALL_KEY_META_BYTES, br.PIXEL_SURFACE)
+        self.assertEqual(br.WALL_KEY_BYTES, 256 + 5 + 2 + 1 + br.MAX_DOORS * br.DOOR_RECORD_BYTES + 2)
         self.assertGreaterEqual(self.manifest["memory_budget"]["resident_free_bytes"], 3000)

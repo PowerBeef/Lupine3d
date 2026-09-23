@@ -7,6 +7,7 @@ the engine, performs General Purpose VRAM DMA, advances LY, scans joypad input,
 and renders BG/OBJ output to PNG. Its purpose is repeatable CI smoke testing.
 """
 from __future__ import annotations
+import contextlib
 
 import argparse
 import json
@@ -41,6 +42,11 @@ BGPD = 0xFF69
 OBPI = 0xFF6A
 OBPD = 0xFF6B
 SVBK = 0xFF70
+# Nominal first dot of mode 0 on a visible line: 80 dots of OAM scan and the
+# shortest 172-dot mode 3. Hardware starts each HBlank block itself, so this
+# only decides where the harness charges the stall; correctness never
+# depends on it.
+HBLANK_DOT = 252
 
 
 class CPUError(RuntimeError):
@@ -90,6 +96,26 @@ class CGB:
         self.frame_count = 0
         self.page_swaps = 0
         self.explicit_presentations = "presentation_serial" in self.symbols
+        # Overlapped publication: the VBlank interrupt publishes a packet
+        # after the main loop has already taken the next snapshot, so the
+        # render state a presentation was built from is captured where the
+        # packet is handed off, and presented_view() shows it to validators.
+        self.handoff_pc = self.symbols.get("publication_handoff")
+        self._handoff_state = None
+        self.presented_state = None
+        # Diagnostic writes (poses, world bytes) must land between frames: a
+        # packet whose snapshot predates the write is stale. It is still
+        # published and still checked for publication safety, but it is not
+        # the presentation a diagnostic waits for (stale_commit_events).
+        self.main_loop_pc = self.symbols.get("main_loop")
+        self.handoff_serial = 0
+        self.stale_handoff = 0
+        self.stale_commit_events: list[dict[str, object]] = []
+        self._barrier_ready = False
+        # Right after a presentation the host sees the state that packet was
+        # built from, until the CPU steps again or the host writes.
+        self._viewing = None      # the live (wram0, wramx, hram, svbk) while viewing
+        self._view_pending = False
         self.main_iterations = 0
         self.buttons = 0  # active-high standard bit layout
         self.button_provider: Callable[[int, int], int] | None = None
@@ -97,6 +123,26 @@ class CGB:
         self.gdma_events: list[dict[str, int | bool]] = []
         self.commit_events: list[dict[str, object]] = []
         self.gdma_vblank_violations = 0
+        # HBlank DMA: one 16-byte block at the HBlank of every visible line
+        # while a transfer is active, reading the source through the CPU's
+        # own memory map (so SVBK selects the WRAM bank) and writing the VRAM
+        # bank VBK selects at that moment - the way both pinned cores do it.
+        # HDMA5 reads back the remaining block count with bit 7 clear while
+        # active and $FF once the last block has landed.
+        self.hdma_active = False
+        self.hdma_remaining = 0
+        self.hdma_src = 0
+        self.hdma_dst = 0
+        self.hdma_served_ly = -1
+        self.hdma_event: dict[str, object] | None = None
+        self.dma_cycles = 0  # every CPU stall spent on GDMA or HBlank blocks
+        # CPU writes the PPU forbids while it draws a line (mode 3): VRAM and
+        # the palette data ports. The line model below is coarse (80 dots of
+        # OAM scan, then 172 dots plus six per object on the line, then
+        # HBlank), so it errs towards calling a write mode 3; the pinned
+        # SameBoy lane counts the same events from the core's own STAT.
+        self.mode3_vram_writes = 0
+        self.mode3_palette_writes = 0
         self.interrupt_events: list[dict[str, int]] = []
         self.scx_events: list[dict[str, int]] = []
         self.raster_lcdc: dict[int, tuple[int, int, int]] = {}
@@ -165,6 +211,10 @@ class CGB:
             return self._read_p1()
         if addr == LY:
             return self.ly
+        if addr == STAT:
+            # Coarse mode bits and the LYC coincidence bit, from the line model.
+            coincidence = 0x04 if self.ly == self.io[LYC & 0x7F] else 0
+            return 0x80 | (self.io[STAT & 0x7F] & 0x78) | coincidence | self.ppu_mode()
         if addr < 0xFF80:
             return self.io[addr - 0xFF00]
         if addr < 0xFFFF:
@@ -172,6 +222,8 @@ class CGB:
         return self.ie
 
     def write8(self, addr: int, value: int) -> None:
+        if self._viewing is not None:
+            self._end_view()   # a host write belongs to the live machine
         addr &= 0xFFFF
         value &= 0xFF
         if addr < 0x8000:
@@ -184,6 +236,8 @@ class CGB:
                     self.rom_bank = (self.rom_bank & 0x0FF) | ((value & 1) << 8)
             return
         if addr < 0xA000:
+            if self.ppu_mode() == 3:
+                self.mode3_vram_writes += 1
             self.vram[self.io[VBK & 0x7F] & 1][addr - 0x8000] = value
             return
         if addr < 0xC000:
@@ -234,6 +288,8 @@ class CGB:
             if old & value & 0x80 and self.ly < 144 and (old ^ value) & 0x10:
                 self.raster_lcdc[self.ly] = (0x10, value & 0x10, old & 0x10)
             if not (value & 0x80):
+                if self.hdma_active:
+                    raise CPUError(f"LCD turned off with {self.hdma_remaining} HBlank DMA blocks pending")
                 self.raster_lcdc.clear()
                 self.ly = 0
                 self.ppu_dots = 0
@@ -250,6 +306,8 @@ class CGB:
                     self._record_presentation()
             self.last_lcdc = value
             return
+        if addr in (BGPD, OBPD) and self.ppu_mode() == 3:
+            self.mode3_palette_writes += 1
         if addr == BGPD:
             index = self.io[BGPI & 0x7F] & 0x3F
             self.bg_palette[index] = value
@@ -262,10 +320,17 @@ class CGB:
             if self.io[OBPI & 0x7F] & 0x80:
                 self.io[OBPI & 0x7F] = 0x80 | ((index + 1) & 0x3F)
             return
+        if addr == HDMA5:
+            if value & 0x80:
+                self._start_hdma(value)
+            elif self.hdma_active:
+                self._terminate_hdma()
+            else:
+                self.io[HDMA5 & 0x7F] = value
+                self._do_gdma(value)
+            return
         if addr < 0xFF80:
             self.io[addr - 0xFF00] = value
-            if addr == HDMA5 and not (value & 0x80):
-                self._do_gdma(value)
             return
         if addr < 0xFFFF:
             self.hram[addr - 0xFF80] = value
@@ -279,18 +344,75 @@ class CGB:
 
     def _record_presentation(self):
         events = [self.gdma_events[i] for i in self._pending_commit_event_indexes]
-        same_frame = not events or all(event["frame"] == events[0]["frame"] for event in events)
+        # HBlank transfers legitimately span frames: they stream hidden
+        # resources while the previous frame is displayed. Only the general
+        # purpose transfers of the VBlank tail have to share the flip's frame.
+        # A packet handed off before a diagnostic barrier is stale; one
+        # published synchronously (a reused wall view) never is.
+        handoff = self._handoff_state
+        stale = handoff is not None and handoff[3] <= self.stale_handoff
+        vblank_events = [event for event in events if event.get("kind") != "hdma"]
+        hblank_events = [event for event in events if event.get("kind") == "hdma"]
+        same_frame = not vblank_events or all(event["frame"] == vblank_events[0]["frame"] for event in vblank_events)
         safe = all(event["vblank_safe_complete"] for event in events) and 144 <= self.ly < 153
-        safe = safe and (not events or self.frame_count == events[-1]["frame"])
-        self.commit_events.append(dict(
+        safe = safe and (not vblank_events or self.frame_count == vblank_events[-1]["frame"])
+        safe = safe and not self.hdma_active
+        (self.stale_commit_events if stale else self.commit_events).append(dict(
             swap=self.page_swaps, presentation=self.presentations + 1,
             displayed_map=bool(self.io[LCDC & 0x7F] & 8), frame=self.frame_count,
             ly=self.ly, cycles=self.cycles, blocks=sum(event["blocks"] for event in events),
-            event_count=len(events), vblank_safe=safe, staged=not same_frame, events=tuple(events),
-            reused=bool(self.read8(0xC8B5)) if self.explicit_presentations else False,
+            vblank_blocks=sum(event["blocks"] for event in vblank_events),
+            hblank_blocks=sum(event["blocks"] for event in hblank_events),
+            event_count=len(events), vblank_safe=safe,
+            staged=not same_frame or bool(hblank_events), events=tuple(events),
+            reused=(bool(handoff[0][0xC8B5 - 0xC000]) if handoff is not None else bool(self.read8(0xC8B5))) if self.explicit_presentations else False,
             object_page=self.read8(0xC8B3) if self.explicit_presentations else None,
         ))
         self._pending_commit_event_indexes.clear()
+        self.presented_state = None if stale or handoff is None else handoff[:3]
+        self._view_pending = self.presented_state is not None
+        self._handoff_state = None
+
+    def diagnostic_barrier(self) -> None:
+        """Bring an overlapped-publication machine to the top of main_loop,
+        where the packet in flight is already composed and the next snapshot
+        not yet taken, and mark every packet so far stale. A no-op on a ROM
+        without the hand-off, and when nothing has run since the last one."""
+        if self.handoff_pc is None or self._barrier_ready or self.main_loop_pc is None:
+            return
+        if self.pc != self.main_loop_pc:
+            self.run(until_pc=self.main_loop_pc, max_steps=20_000_000)
+        self.stale_handoff = self.handoff_serial
+        self._barrier_ready = True
+
+    # Variables the interrupt tail itself writes when it publishes: the view
+    # keeps their live (published) values.
+    PUBLISHED_LIVE = {0xD148: 1, 0xC8B3: 0, 0xC8B6: 0}   # CURRENT_PAGE, OBJ_PAGE, PRESENT_SERIAL
+
+    @contextlib.contextmanager
+    def presented_view(self):
+        """WRAM and HRAM as they were when the presented packet was handed
+        off (overlapped publication); the live state otherwise. VRAM, OAM,
+        palettes and I/O are always live. Right after a presentation the
+        machine already shows this view (see step); this is for later reads."""
+        if self.presented_state is None or self._viewing is not None:
+            yield self
+            return
+        live = (self.wram0, self.wramx, self.hram)
+        wram0, wramx, hram = self.presented_state
+        self.wram0, self.wramx, self.hram = bytearray(wram0), [bytearray(b) for b in wramx], bytearray(hram)
+        for address, bank in self.PUBLISHED_LIVE.items():
+            if address >= 0xD000:
+                self.wramx[bank][address - 0xD000] = live[1][bank][address - 0xD000]
+            else:
+                self.wram0[address - 0xC000] = live[0][address - 0xC000]
+        svbk = self.io[0x70]
+        self.io[0x70] = 1
+        try:
+            yield self
+        finally:
+            self.wram0, self.wramx, self.hram = live
+            self.io[0x70] = svbk
 
     def read16(self, addr: int) -> int:
         return self.read8(addr) | (self.read8((addr + 1) & 0xFFFF) << 8)
@@ -344,6 +466,59 @@ class CGB:
         # Approximately 8 microseconds per 16-byte block. In CPU T-cycles,
         # that is ~32 normal-speed or ~64 double-speed cycles.
         self.extra_cycles += blocks * (64 if self.double_speed else 32)
+
+    def _start_hdma(self, control: int) -> None:
+        if self.hdma_active:
+            raise CPUError(f"HBlank DMA restarted while {self.hdma_remaining} blocks were pending")
+        if not self.io[LCDC & 0x7F] & 0x80:
+            raise CPUError("HBlank DMA started with the LCD off")
+        self.hdma_remaining = (control & 0x7F) + 1
+        self.hdma_src = (self.io[HDMA1 & 0x7F] << 8) | (self.io[HDMA2 & 0x7F] & 0xF0)
+        self.hdma_dst = 0x8000 | ((self.io[HDMA3 & 0x7F] & 0x1F) << 8) | (self.io[HDMA4 & 0x7F] & 0xF0)
+        self.hdma_active = True
+        self.io[HDMA5 & 0x7F] = (self.hdma_remaining - 1) & 0x7F
+        self.hdma_event = {
+            "kind": "hdma", "frame": self.frame_count, "ly": self.ly,
+            "bank": self.io[VBK & 0x7F] & 1, "source": self.hdma_src, "destination": self.hdma_dst,
+            "blocks": self.hdma_remaining, "lcd_on": True, "vblank_safe_start": True,
+            "vblank_safe_complete": False, "completed_frame": None, "completed_ly": None,
+            "terminated": False,
+        }
+        self.gdma_events.append(self.hdma_event)
+        self._pending_commit_event_indexes.append(len(self.gdma_events) - 1)
+        # Started inside an HBlank: the first block moves at once.
+        if self.ly < 144 and self.ppu_dots >= HBLANK_DOT and self.hdma_served_ly != self.ly:
+            self._hdma_block()
+
+    def _hdma_block(self) -> None:
+        bank = self.io[VBK & 0x7F] & 1
+        for i in range(16):
+            self.vram[bank][(self.hdma_dst - 0x8000 + i) & 0x1FFF] = self.read8((self.hdma_src + i) & 0xFFFF)
+        self.hdma_src = (self.hdma_src + 16) & 0xFFFF
+        self.hdma_dst = 0x8000 | ((self.hdma_dst - 0x8000 + 16) & 0x1FF0)
+        self.hdma_remaining -= 1
+        self.hdma_served_ly = self.ly
+        self.extra_cycles += 64 if self.double_speed else 32
+        assert self.hdma_event is not None
+        self.hdma_event["blocks_done"] = self.hdma_event.get("blocks_done", 0) + 1
+        if self.hdma_remaining:
+            self.io[HDMA5 & 0x7F] = (self.hdma_remaining - 1) & 0x7F
+            return
+        self.hdma_active = False
+        self.io[HDMA1 & 0x7F] = (self.hdma_src >> 8) & 0xFF
+        self.io[HDMA2 & 0x7F] = self.hdma_src & 0xF0
+        self.io[HDMA3 & 0x7F] = (self.hdma_dst >> 8) & 0x1F
+        self.io[HDMA4 & 0x7F] = self.hdma_dst & 0xF0
+        self.io[HDMA5 & 0x7F] = 0xFF
+        self.hdma_event["vblank_safe_complete"] = True
+        self.hdma_event["completed_frame"] = self.frame_count
+        self.hdma_event["completed_ly"] = self.ly
+
+    def _terminate_hdma(self) -> None:
+        self.hdma_active = False
+        self.io[HDMA5 & 0x7F] = 0x80 | ((self.hdma_remaining - 1) & 0x7F)
+        assert self.hdma_event is not None
+        self.hdma_event["terminated"] = True
 
     # ----- helpers --------------------------------------------------------
     def fetch8(self) -> int:
@@ -405,8 +580,30 @@ class CGB:
     def signed8(value: int) -> int:
         return value - 256 if value & 0x80 else value
 
+    def ppu_mode(self) -> int:
+        """The coarse STAT mode of the current dot: 0 HBlank, 1 VBlank, 2 OAM scan, 3 drawing."""
+        if not self.io[LCDC & 0x7F] & 0x80:
+            return 0
+        if self.ly >= 144:
+            return 1
+        if self.ppu_dots < 80:
+            return 2
+        height = 16 if self.io[LCDC & 0x7F] & 0x04 else 8
+        objects = 0
+        for index in range(40):
+            y = self.oam[index * 4] - 16
+            if y <= self.ly < y + height:
+                objects += 1
+                if objects == 10:
+                    break
+        return 3 if self.ppu_dots < 80 + 172 + 6 * objects else 0
+
     def _tick(self, cycles: int) -> None:
+        # extra_cycles is only ever a DMA stall. Charge it to dma_cycles at
+        # the moment it is consumed, so a block that lands inside this tick
+        # is attributed to the instruction whose elapsed time it extends.
         cycles += self.extra_cycles
+        self.dma_cycles += self.extra_cycles
         self.extra_cycles = 0
         self.cycles += cycles
         lcdc = self.io[LCDC & 0x7F]
@@ -414,6 +611,10 @@ class CGB:
             dots = cycles // (2 if self.double_speed else 1)
             self.ppu_dots += dots
             while self.ppu_dots >= 456:
+                # The line being left had an HBlank whether or not this
+                # instruction happened to observe it: serve it exactly once.
+                if self.hdma_active and self.ly < 144 and self.hdma_served_ly != self.ly:
+                    self._hdma_block()
                 self.ppu_dots -= 456
                 self.ly += 1
                 if self.ly == 144:
@@ -423,6 +624,9 @@ class CGB:
                 if self.ly >= 154:
                     self.ly = 0
                     self.frame_count += 1
+                    self.hdma_served_ly = -1
+            if self.hdma_active and self.ly < 144 and self.ppu_dots >= HBLANK_DOT and self.hdma_served_ly != self.ly:
+                self._hdma_block()
         else:
             self.ly = 0
             self.ppu_dots = 0
@@ -471,6 +675,43 @@ class CGB:
 
     # ----- instruction execution ----------------------------------------
     def step(self) -> int:
+        if self._viewing is not None:
+            self._end_view()
+        cycles = self._step()
+        if self._view_pending:
+            self._view_pending = False
+            self._begin_view()
+        return cycles
+
+    def _begin_view(self) -> None:
+        live = (self.wram0, self.wramx, self.hram, self.io[0x70])
+        wram0, wramx, hram = self.presented_state
+        self.wram0, self.wramx, self.hram = bytearray(wram0), [bytearray(b) for b in wramx], bytearray(hram)
+        for address, bank in self.PUBLISHED_LIVE.items():
+            if address >= 0xD000:
+                self.wramx[bank][address - 0xD000] = live[1][bank][address - 0xD000]
+            else:
+                self.wram0[address - 0xC000] = live[0][address - 0xC000]
+        self.io[0x70] = 1
+        self._viewing = live
+
+    @property
+    def live_wramx(self) -> list[bytearray]:
+        """The WRAM banks as the running machine holds them, whatever the
+        host is currently shown: a controller steering by the live world
+        (the route) reads these, never the presented view."""
+        return self._viewing[1] if self._viewing is not None else self.wramx
+
+    def _end_view(self) -> None:
+        self.wram0, self.wramx, self.hram, self.io[0x70] = self._viewing
+        self._viewing = None
+
+    def _step(self) -> int:
+        self._barrier_ready = False
+        if self.pc == self.handoff_pc:
+            self.handoff_serial += 1
+            self._handoff_state = (bytes(self.wram0), [bytes(bank) for bank in self.wramx], bytes(self.hram),
+                                   self.handoff_serial)
         pending = self.ie & self.io[IF & 0x7F] & 0x1F
         if self.halted:
             if pending:
@@ -811,10 +1052,15 @@ def run_to_world(cgb: "CGB", *, max_steps: int = 8_000_000) -> "CGB":
 
 
 def parse_symbols(path: Path) -> dict[str, int]:
+    """Name -> address from a symbol file: the bank-prefixed `BB:AAAA name`
+    form the build writes (comments start with `;`) or the flat `AAAA name`
+    form of the archived baselines. The bank is dropped: the harness
+    addresses the fixed halves and RAM by address alone."""
     symbols: dict[str, int] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip(): continue
+        if not line.strip() or line.lstrip().startswith(";"): continue
         address, name = line.split(maxsplit=1)
+        if ":" in address: address = address.split(":", 1)[1]
         symbols[name] = int(address, 16)
     return symbols
 

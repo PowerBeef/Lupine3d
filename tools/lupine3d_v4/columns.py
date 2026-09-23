@@ -27,8 +27,10 @@ def emit_column_expansion(a: Assembler):
                                 (RAY_SURFACE, PIXEL_SURFACE)):
         a.ld_rr_nn("hl", source); a.ld_rr_nn("de", destination)
         a.call("duplicate_pair_stream")
+    if TEXTURED_WALLS: a.call("expand_pixel_u")
     a.ld_r_n("a", RAYS); a.ld_abs_a(PAIR_INDEX)
     a.jp("pixel_expansion_done")
+    if TEXTURED_WALLS: emit_pixel_u_expansion(a)
     a.label("duplicate_pair_stream")
     a.ld_r_n("b", RAYS // 4)
     a.label("duplicate_pair_group")
@@ -37,6 +39,55 @@ def emit_column_expansion(a: Assembler):
         a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.dec_r("b"); a.jr("duplicate_pair_group", "nz"); a.ret()
     a.label("pixel_expansion_done")
+
+
+def emit_pixel_u_expansion(a: Assembler):
+    """PIXEL_U from RAY_U by the pair rule (texture_reference.expand_pixel_u).
+
+    Each pair ray's two pixels are pulled a quarter of the way towards the
+    neighbouring ray's coordinate when both rays lie on the same face (same
+    key and segment) and the coordinates do not wrap (|difference| < 128);
+    otherwise a pixel takes its own ray's coordinate. E is the pair index,
+    DE the neighbour offset (-1 then +1), HL the output pixel.
+    """
+    # The same streaming shape as the tops: HL walks the ray coordinates, DE
+    # the pixel coordinates, B/C hold the previous/current sample. There is
+    # no face test here: the two pixels beside every pair-level face break
+    # are recast exactly afterwards, so only a wrap (|difference| >= 128,
+    # a cell boundary inside one face) keeps a pixel on its own ray.
+    assert (RAY_U & 0xFF) + RAYS <= 0x100, "the ray coordinate array must not cross a page"
+    a.label("expand_pixel_u")
+    a.ld_rr_nn("hl", RAY_U); a.ld_rr_nn("de", PIXEL_U)
+    a.ldi_a_hl(); a.ld_r_r("b", "a"); a.ld_r_r("c", "a")
+    a.label("expand_u_pair_loop")
+    for side in ("prev", "next"):
+        # A = neighbour - current, with the borrow telling which way round.
+        if side == "prev": a.ld_r_r("a", "b")
+        else: a.ld_a_hl()
+        a.sub_r("c"); a.jr(f"expand_u_{side}_borrow", "c")
+        a.cp_n(128); a.jr(f"expand_u_{side}_own", "nc")
+        # current + floor((neighbour - current + 2) / 4). A difference of 0..127
+        # plus 2 can reach 129, past the signed range, so this side shifts
+        # logically; the arithmetic shift read 126 and 127 as negative.
+        a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.add_a_r("c"); a.jr(f"expand_u_{side}_store")
+        a.label(f"expand_u_{side}_borrow"); a.cp_n(129); a.jr(f"expand_u_{side}_own", "c")
+        # A difference of -127..-1: plus 2 stays signed, so shift arithmetically.
+        a.add_a_n(2); a.cb("sra", "a"); a.cb("sra", "a"); a.add_a_r("c"); a.jr(f"expand_u_{side}_store")
+        a.label(f"expand_u_{side}_own"); a.ld_r_r("a", "c")
+        a.label(f"expand_u_{side}_store"); a.ld_mem_rr_a("de"); a.inc_rr("de")
+    a.ld_r_r("b", "c"); a.ldi_a_hl(); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "l"); a.cp_n((RAY_U + RAYS) & 255); a.jr("expand_u_pair_loop", "nz")
+    # The last pair: its first pixel still pulls towards the previous ray;
+    # its following sample is itself, so the second pixel is its own.
+    a.ld_r_r("a", "b"); a.sub_r("c"); a.jr("expand_u_last_borrow", "c")
+    a.cp_n(128); a.jr("expand_u_last_own", "nc")
+    a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.add_a_r("c"); a.jr("expand_u_last_store")
+    a.label("expand_u_last_borrow"); a.cp_n(129); a.jr("expand_u_last_own", "c")
+    a.add_a_n(2); a.cb("sra", "a"); a.cb("sra", "a"); a.add_a_r("c"); a.jr("expand_u_last_store")
+    a.label("expand_u_last_own"); a.ld_r_r("a", "c")
+    a.label("expand_u_last_store"); a.ld_mem_rr_a("de"); a.inc_rr("de")
+    a.ld_r_r("a", "c"); a.ld_mem_rr_a("de")
+    a.ret()
 
 
 def column_pointer(a: Assembler, base: int):

@@ -29,6 +29,7 @@ def main():
         for action in json.loads((br.ROOT / "playtests/coherence_tour.json").read_text())["actions"]:
             if "pose" in action: pose(*action["pose"])
             if "b" in action.get("buttons", []):
+                c.diagnostic_barrier()   # the door opens between frames, never inside one
                 c.call_subroutine("open_door"); c.wramx[2][:256] = c.wramx[1][:256]
             c.run(until_presentations=c.presentations + 1); validate_frame(c)
             if "capture" in action:

@@ -1,6 +1,7 @@
 {
   "name": "hangar_breach",
   "world_mode": "living",
+  "snapshot_suite": "world",
   "actions": [
     {
       "buttons": [],
@@ -43,7 +44,7 @@
     },
     {
       "pose": [
-        896,
+        384,
         2432,
         192
       ],
@@ -53,17 +54,17 @@
     },
     {
       "pose": [
-        1728,
-        1920,
-        0
+        1664,
+        1600,
+        192
       ],
       "buttons": [
         "b"
       ],
       "updates": 2,
-      "capture": "zigzag_opening",
+      "capture": "mess_hatch_opening",
       "expect_doors": {
-        "zigzag_entry": 1
+        "mess_hatch": 1
       }
     },
     {

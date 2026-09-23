@@ -76,7 +76,10 @@ def run_sample(rom: bytes, symbols: dict[str, int], *, scripted: bool,
             "all_commits_vblank_safe": all(bool(event["vblank_safe"]) for event in commits),
             "all_commits_bounded_transfers": all(
                 (int(event["event_count"]) <= 1 and int(event["blocks"]) <= 32) if event["reused"]
-                else 2 <= int(event["event_count"]) <= 4 for event in commits),
+                else ((int(event["vblank_blocks"]) <= 62 and int(event["hblank_blocks"]) <= 126
+                       and all(e.get("kind") != "hdma" or e["vblank_safe_complete"] for e in event["events"]))
+                      if v2.HDMA_STREAMING
+                      else 2 <= int(event["event_count"]) <= 4) for event in commits),
             "commit_payload_bytes": number_stats([value * 16 for value in commit_blocks]),
             "last_adaptive_casts": cgb.read8(v2.ADAPTIVE_CASTS),
             "last_edge_recasts": cgb.read8(v2.EDGE_RECASTS),
@@ -131,6 +134,7 @@ def main() -> None:
     if not current_geometry_path.is_file():
         raise SystemExit("missing current static geometry comparison; run `make research-v3`")
     current_geometry = json.loads(current_geometry_path.read_text())
+    textured = bool(v2_manifest.get("textured_walls", {}).get("enabled"))
     atlas_research_path = ROOT / "research" / "results" / "tile_atlas_v4.json"
     if not atlas_research_path.exists():
         raise SystemExit("missing v0.4 atlas research; run `make research-atlas`")
@@ -153,7 +157,29 @@ def main() -> None:
     world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
     art_playtest = json.loads((v2.BUILD / "playtest/sable_art_tour/report.json").read_text())
     current_sha = hashlib.sha256(v2_rom).hexdigest()
-    completion = json.loads((v2.BUILD / "playthrough/report.json").read_text())
+    # The route plays the campaign in episodes (CI's matrix); every report for
+    # the current ROM contributes its sectors, and together they must cover
+    # the campaign in order.
+    completion_sectors = {}
+    route_reports = []
+    for report_path in sorted(v2.BUILD.glob("playthrough*/report.json")):
+        report = json.loads(report_path.read_text())
+        if report.get("rom_sha256") != hashlib.sha256(v2_rom).hexdigest():
+            continue
+        route_reports.append(report)
+        for sector in report["sectors"]:
+            completion_sectors.setdefault(sector["index"], sector)
+    # One record for the union: every chunk passed on controller input alone,
+    # and the chunk that reached the last sector restarted the campaign.
+    completion = {
+        "sectors": [completion_sectors[index] for index in sorted(completion_sectors)],
+        "passed": bool(route_reports) and all(r["passed"] for r in route_reports),
+        "controller_only": bool(route_reports) and all(r["controller_only"] for r in route_reports),
+        "game_ram_injections": sum(int(r["game_ram_injections"]) for r in route_reports),
+        "restart_verified": any(r.get("restart_verified") for r in route_reports),
+        "rom_sha256": hashlib.sha256(v2_rom).hexdigest() if route_reports else None,
+        "reports": len(route_reports),
+    }
     folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
     reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
@@ -177,17 +203,26 @@ def main() -> None:
         "header_checksum": header_checksum(v2_rom) == v2_rom[0x014D],
         "global_checksum": global_checksum(v2_rom) == expected_global,
         "engine_fits_rom": int(v2_manifest["engine_end"]) <= 0x8000,
-        "maximum_commit_176_blocks": int(v2_manifest["maximum_commit_blocks"]) <= 176,
-        "bounded_publication_stages": v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80,
+        # Staged: at most 176 GDMA blocks over two or three VBlanks. Streamed:
+        # patterns and map by HBlank DMA (at most 126 blocks over visible
+        # lines on the flat compositor; the textured ring streams up to its
+        # 238 pattern ids plus the 30-block map, docs/TEXTURED_WALLS.md), then
+        # one VBlank of at most 62 banked GDMA blocks.
+        "maximum_commit_176_blocks": (int(v2_manifest["maximum_commit_blocks"]) <= 176 if not v2_manifest["hblank_streaming"]["enabled"]
+                                      else v2_manifest["hblank_streaming"]["maximum_vblank_gdma_blocks"] <= 62
+                                      and v2_manifest["hblank_streaming"]["maximum_hblank_blocks"] <= (268 if textured else 126)
+                                      and int(v2_manifest["maximum_commit_blocks"]) <= (330 if textured else 188)),
+        "bounded_publication_stages": (v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80) if not v2_manifest["hblank_streaming"]["enabled"]
+                                      else v2_manifest["maximum_final_stage_blocks"] <= 62 and v2_manifest["maximum_publication_vblanks"] == 1,
         "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == current_sha,
         "sable_art_tour_current": art_playtest["rom_sha256"] == current_sha and art_playtest["summary"]["passed"] and art_playtest["summary"]["capture_count"] == 6,
         "hud_and_fixture_budgets": v2_manifest["hud_patterns"] <= 96 and v2_manifest["wall_fixture_oam_budget"] <= 4,
         "controller_only_completion": completion["passed"] and completion["controller_only"] and completion["game_ram_injections"] == 0 and completion["rom_sha256"] == current_sha,
         "fixed_tick_and_snapshot_enabled": v2_manifest["fixed_tick_simulation"] and v2_manifest["live_world_wram_bank"] != v2_manifest["render_snapshot_wram_bank"],
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
-        "masked_8x16_four_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == 4,
+        "masked_8x16_six_actor_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == v2.MAX_ACTORS == 6,
         "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
-        "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == 290 and v2_manifest["independent_obj_page"],
+        "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == v2.WALL_KEY_BYTES and v2_manifest["independent_obj_page"],
         "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
         "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],
         "streaming_columns_and_events_enabled": v2_manifest["streaming_columns"] and v2_manifest["streaming_surface_events"],
@@ -208,7 +243,12 @@ def main() -> None:
         "v3_wrong_segments_improved": current_geometry["improvement"]["wrong_segment_reduction_pct"] > 25.0,
         "driven_playtest_passed": bool(playtest["summary"]["passed"]),
         "driven_playtest_zero_unsafe_gdma": playtest["summary"]["gdma_vblank_violations"] == 0,
-        "driven_playtest_exact_current_pixels": bool(playtest["summary"]["pixel_oracle_exact"]),
+        # Golden-image snapshots (tools/snapshot.py): every driven route's
+        # captures match their accepted goldens on this exact ROM.
+        "snapshots_all_match": all(
+            report["summary"]["snapshot"] is not None and report["summary"]["snapshot"]["passed"]
+            and report["summary"]["snapshot"]["rom_sha256"] == current_sha
+            for report in (playtest, world_playtest, art_playtest)),
         # Sable's bounded decals have an explicit visual-content budget.
         "driven_playtest_mean_under_1_050k": float(playtest["summary"]["mean_cycles"]) < 1_050_000,
         "driven_playtest_max_under_1_400k": int(playtest["summary"]["max_cycles"]) < 1_400_000,
@@ -239,16 +279,16 @@ def main() -> None:
             v2_manifest["level_format"] == "lupine-level-v2"
             and int(v2_manifest["safe_spawn_radius_cells"]) >= 5
         ),
-        "four_independent_door_records": (
+        "independent_door_records": (
             int(v2_manifest["active_level_doors"]) == 4
-            and int(v2_manifest["maximum_level_doors"]) == 4
+            and int(v2_manifest["maximum_level_doors"]) == v2.MAX_DOORS
         ),
         "level_has_no_unreachable_walkable_cells": int(v2_manifest["unreachable_level_cells"]) == 0,
         "level_sightline_at_most_six_cells": int(v2_manifest["maximum_level_sightline"]) <= 6,
         "level_critical_path_has_three_turns": int(v2_manifest["critical_path_turns"]) >= 3,
         "every_level_door_is_meaningful": int(v2_manifest["minimum_door_separation"]) >= 8,
         "level_material_seams_include_latent_jambs": int(v2_manifest["material_surface_seams"]) == 2,
-        "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 2,
+        "level_material_singletons_include_latent_jambs": int(v2_manifest["material_singleton_runs"]) == 4,
         # Every campaign level carries the same certificate the first one does,
         # and each owns a distinct ROM bank the loader can select at runtime.
         "campaign_levels_each_certified": all(
@@ -256,20 +296,24 @@ def main() -> None:
             and level["critical_path_turns"] >= 3 and level["minimum_door_separation"] >= 8
             and level["material_singleton_runs"] <= 16
             and 1 <= level["doors"] <= int(v2_manifest["maximum_level_doors"])
-            and 1 <= level["actors"] <= 4 and level["fixtures"] <= 16
+            and 1 <= level["actors"] <= v2.MAX_ACTORS and level["fixtures"] <= 16
             for level in v2_manifest["campaign"]
         ),
-        "campaign_level_banks_distinct": (
-            [level["rom_bank"] for level in v2_manifest["campaign"]]
-            == list(range(int(v2_manifest["campaign_level_bank_base"]),
-                          int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"])))
-            and int(v2_manifest["campaign_level_bank_base"]) + int(v2_manifest["campaign_levels"]) <= 256
-            and int(v2_manifest["campaign_level_payload_bytes"]) <= 0x4000
+        "campaign_level_slots_distinct": (
+            len({(level["rom_bank"], level["rom_page"]) for level in v2_manifest["campaign"]})
+            == int(v2_manifest["campaign_levels"])
+            and all(int(v2_manifest["campaign_level_bank_base"]) <= level["rom_bank"] < 256
+                    and 0 <= level["rom_page"] * 256 < 0x4000
+                    and level["rom_page"] * 256 + int(v2_manifest["campaign_level_payload_bytes"]) <= 0x4000
+                    for level in v2_manifest["campaign"])
+            and int(v2_manifest["campaign_level_payload_bytes"]) <= int(v2_manifest["campaign_level_slot_pitch"])
+            and int(v2_manifest["campaign_levels_per_bank"]) * int(v2_manifest["campaign_level_slot_pitch"]) <= 0x4000
         ),
+        "campaign_route_restarted_after_the_last_sector": bool(completion["restart_verified"]),
         "campaign_route_completed_every_sector": (
             len(completion["sectors"]) == int(v2_manifest["campaign_levels"])
-            and all(sector["name"] == level["name"]
-                    for sector, level in zip(completion["sectors"], v2_manifest["campaign"]))
+            and all(sector["index"] == index and sector["name"] == level["name"]
+                    for index, (sector, level) in enumerate(zip(completion["sectors"], v2_manifest["campaign"])))
         ),
         "signed_bg_allocation": bool(v2_manifest["signed_bg_tile_addressing"]),
         "folded_compositor_enabled": bool(v2_manifest["folded_compositor"]),

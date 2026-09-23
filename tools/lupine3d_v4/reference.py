@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
+import math
 
 from .layout import *  # noqa: F401,F403
 from .resources import *  # noqa: F401,F403
@@ -32,6 +34,10 @@ class ReferenceRayHit:
     depth_q5: int
     segment_id: int
     surface_profile: int
+    # Position of the hit along the face it struck, Q8 within the cell (0..255),
+    # measured along the axis the face is parallel to, from that axis's low
+    # edge. This is the texture column's source; flat shading never reads it.
+    along_q8: int = 0
 
 
 def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
@@ -120,6 +126,23 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
             ny += 256
             err -= 256 * order_ax
 
+    # Along-face position by the console's own arithmetic: the other
+    # coordinate advanced by the axis distance times the direction's Q8 slope,
+    # through three 8x8 products (texture_reference.rom_along). Doors share
+    # the formula, since their panel sits on an axis plane too.
+    from .texture_reference import direction_slopes, rom_along
+    slope_x, slope_y = direction_slopes(angle_index)
+    if axis == 0:
+        along_q8 = rom_along(player_y_q8, sy > 0, distance, slope_x)
+        mirrored = sx < 0        # the east face of the cell reads right to left
+    else:
+        along_q8 = rom_along(player_x_q8, sx > 0, distance, slope_y)
+        mirrored = sy > 0        # the north face does too
+    # Oriented so the texture column never decreases from the viewer's left
+    # to right on any side of a cell: the console negates it for those sides.
+    if mirrored:
+        along_q8 = (-along_q8) & 0xFF
+
     component = ax if axis == 0 else ay
     d32 = min(511, (distance + 4) >> 3)
     perp32 = 511 if component == 0 else min(511, (d32 * corr + component // 2) // component)
@@ -146,6 +169,7 @@ def _reference_cast_hit(player_x_q8: int, player_y_q8: int, player_angle: int,
         face_key=face_key, along=along & 0xFF,
         depth_q5=depth_q5, segment_id=segment_id,
         surface_profile=reference_level().surface_table[(my * 16 + mx) * 4 + side],
+        along_q8=along_q8,
     )
 
 
@@ -190,13 +214,16 @@ def reference_full_descriptor_view(player_x_q8: int, player_y_q8: int, player_an
 def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, player_angle: int,
                                        grid: bytes | None = None,
                                        door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
-                                       *, include_surfaces: bool = False,
+                                       *, include_surfaces: bool = False, include_u: bool = False,
                                        ) -> tuple[list[int], list[int], list[int], list[int], int, list[int], list[int]]:
     """Apply the ROM's validated one-level affine span reconstruction."""
     hits = [
         reference_cast_hit(player_x_q8, player_y_q8, player_angle, i, grid, door_states)
         for i in range(RAYS)
     ]
+    from .texture_reference import midpoint_u
+    full_u = [hit.along_q8 for hit in hits]
+    u = [0] * RAYS
     full_tops = [hit.top for hit in hits]
     full_styles = [hit.style for hit in hits]
     full_keys = [hit.face_key for hit in hits]
@@ -214,9 +241,11 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
     for i in range(0, RAYS, 2):
         tops[i], styles[i], keys[i], alongs[i] = full_tops[i], full_styles[i], full_keys[i], full_alongs[i]
         depths[i], segments[i] = full_depths[i], full_segments[i]
+        u[i] = full_u[i]
         cast_count += 1
     tops[79], styles[79], keys[79], alongs[79] = full_tops[79], full_styles[79], full_keys[79], full_alongs[79]
     depths[79], segments[79] = full_depths[79], full_segments[79]
+    u[79] = full_u[79]
     cast_count += 1
     for i in range(1, 78, 2):
         same_face = (
@@ -232,12 +261,38 @@ def reference_adaptive_descriptor_view(player_x_q8: int, player_y_q8: int, playe
             depths[i] = make_top_depth_lut()[tops[i]]
             segments[i] = segments[i - 1]
             surfaces[i] = surfaces[i - 1]
+            u[i] = midpoint_u(u[i - 1], u[i + 1])
         else:
             tops[i], styles[i], keys[i], alongs[i] = full_tops[i], full_styles[i], full_keys[i], full_alongs[i]
             depths[i], segments[i] = full_depths[i], full_segments[i]
+            u[i] = full_u[i]
             cast_count += 1
     result = tops, styles, keys, alongs, cast_count, depths, segments
-    return (*result, surfaces) if include_surfaces else result
+    if include_surfaces: result = (*result, surfaces)
+    if include_u: result = (*result, u)
+    return result
+
+
+def reference_pixel_u_view(player_x_q8: int, player_y_q8: int, player_angle: int, grid: bytes | None = None,
+                           door_states: dict[tuple[int, int], tuple[int, int]] | None = None,
+                           ) -> tuple[list[int], list[int]]:
+    """The 80 ray and 160 physical-pixel texture coordinates the ROM must hold.
+
+    Ray coordinates follow the adaptive reconstruction (anchors cast, agreeing
+    midpoints averaged circularly); pixels follow the pair expansion, and the
+    two pixels beside every pair-level face break take their recasts' own.
+    """
+    from .texture_reference import expand_pixel_u
+    tops, styles, keys, alongs, casts, depths, segments, u = reference_adaptive_descriptor_view(
+        player_x_q8, player_y_q8, player_angle, grid, door_states, include_u=True)
+    edge_u = {}
+    for i in range(RAYS - 1):
+        if keys[i] == keys[i + 1] and segments[i] == segments[i + 1]:
+            continue
+        for pixel_index in (i * 2 + 1, i * 2 + 2):
+            edge_u[pixel_index] = reference_cast_physical_hit(
+                player_x_q8, player_y_q8, player_angle, pixel_index, grid, door_states).along_q8
+    return u, expand_pixel_u(u, edge_u)
 
 
 def decorate_surface_events(

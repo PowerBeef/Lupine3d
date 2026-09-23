@@ -8,12 +8,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 static uint32_t pixels[160 * 144];
 static unsigned swaps, unsafe_dma, unsafe_flips, dma_starts, frame;
 static unsigned presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes;
 static unsigned foreground_publications, mixed_world_oam;
 static unsigned unsafe_cpu_map_writes, visible_world_map_writes;
+/* CPU writes the PPU forbids while it draws (STAT mode 3): VRAM, and the CGB
+ * palette data ports. The host harness has no mode model, so only this lane
+ * can see them; they are counted from the core's own STAT register. */
+static unsigned mode3_vram_writes, mode3_palette_writes;
 
 static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -26,9 +31,18 @@ static uint32_t encode(GB_gameboy_t *gb, uint8_t r, uint8_t g, uint8_t b)
     return (r << 16) | (g << 8) | b;
 }
 
+/* The ROM writes MODE_PLAYING when it hands over to the world. SameBoy
+ * randomises power-on RAM, so the byte can hold that value before the ROM
+ * has initialised it: world entry is a write the hook has seen, never a read. */
+static bool mode_playing_written;
 static bool write_hook(GB_gameboy_t *gb, uint16_t address, uint8_t value)
 {
+    if (address == 0xc8cf && value == 1) mode_playing_written = true;
     uint8_t lcdc = GB_read_memory(gb, 0xff40);
+    if ((lcdc & 0x80) && (GB_read_memory(gb, 0xff41) & 3) == 3) {
+        if (address >= 0x8000 && address < 0xa000) mode3_vram_writes++;
+        if (address == 0xff69 || address == 0xff6b) mode3_palette_writes++;
+    }
     if (address >= 0x9800 && address < 0xa000 && (lcdc & 0x80)) {
         unsigned ly = GB_read_memory(gb, 0xff44);
         if (ly < 144 || ly >= 153) unsafe_cpu_map_writes++;
@@ -93,7 +107,7 @@ static bool enter_world(GB_gameboy_t *gb)
     for (unsigned waited = 0; waited < 600; waited++) {
         GB_set_key_mask(gb, GB_KEY_START_MASK);
         GB_run_frame(gb);
-        if (GB_read_memory(gb, GAME_MODE_ADDRESS) == MODE_PLAYING) {
+        if (mode_playing_written && GB_read_memory(gb, GAME_MODE_ADDRESS) == MODE_PLAYING) {
             GB_set_key_mask(gb, 0);
             GB_run_frame(gb);          /* release, so START is an edge again */
             return true;
@@ -102,12 +116,48 @@ static bool enter_world(GB_gameboy_t *gb)
     return false;
 }
 
+static int fail3(GB_gameboy_t *gb, const char *stage, unsigned long long seed)
+{
+    fprintf(stderr, "sameboy_smoke: %s failed (seed %llu): pc=%04x ly=%u lcdc=%02x hdma5=%02x game_mode=%02x serial=%02x svbk=%02x\n",
+            stage, seed, GB_get_registers(gb)->pc, GB_read_memory(gb, 0xff44), GB_read_memory(gb, 0xff40),
+            GB_read_memory(gb, 0xff55), GB_read_memory(gb, 0xc8cf), GB_read_memory(gb, 0xc8b6), GB_read_memory(gb, 0xff70));
+    return 3;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 3) { fprintf(stderr, "ROM OUTPUT_PREFIX [CGB_MODEL_HEX]\n"); return 2; }
     GB_model_t model = argc > 3 ? strtoul(argv[3], NULL, 16) : GB_MODEL_CGB_E;
+    /* SameBoy randomises power-on RAM from a time seed. Seed it explicitly so
+     * a failing run can be reproduced: LUPINE3D_SAMEBOY_SEED overrides the
+     * clock, and every failure below reports the seed it ran with. */
+    const char *seed_text = getenv("LUPINE3D_SAMEBOY_SEED");
+    unsigned long long seed = seed_text ? strtoull(seed_text, NULL, 10) : (unsigned long long)time(NULL);
+    GB_random_seed(seed);
     GB_gameboy_t *gb = GB_init(GB_alloc(), model);
     if (!gb || GB_load_rom(gb, argv[1])) return 2;
+    /* LUPINE3D_DUMP_RAM=path writes the power-on image the core chose - WRAM
+     * banks 0-7, HRAM, both VRAM banks and OAM - so the host harness can
+     * replay a seed's exact memory and trace what the ROM reads from it. */
+    const char *dump_path = getenv("LUPINE3D_DUMP_RAM");
+    if (dump_path) {
+        FILE *dump = fopen(dump_path, "wb");
+        if (!dump) return 2;
+        for (unsigned bank = 0; bank < 8; bank++) {
+            if (bank) GB_write_memory(gb, 0xff70, bank);
+            for (unsigned address = bank ? 0xd000 : 0xc000; address < (bank ? 0xe000 : 0xd000); address++)
+                fputc(GB_read_memory(gb, address), dump);
+        }
+        GB_write_memory(gb, 0xff70, 1);
+        for (unsigned address = 0xff80; address < 0xffff; address++) fputc(GB_read_memory(gb, address), dump);
+        for (unsigned bank = 0; bank < 2; bank++) {
+            GB_write_memory(gb, 0xff4f, bank);
+            for (unsigned address = 0x8000; address < 0xa000; address++) fputc(GB_read_memory(gb, address), dump);
+        }
+        GB_write_memory(gb, 0xff4f, 0);
+        for (unsigned address = 0xfe00; address < 0xfea0; address++) fputc(GB_read_memory(gb, address), dump);
+        fclose(dump);
+    }
     unsigned char boot[0x100] = {0};
     const unsigned char startup[] = {
         0xf3, 0x31, 0xfe, 0xff, 0xaf, 0xe0, 0x0f, 0xea, 0xff, 0xff,
@@ -130,10 +180,10 @@ int main(int argc, char **argv)
         if (!input) return 2;
         unsigned pc = fgetc(input); pc |= fgetc(input) << 8;
         unsigned count = fgetc(input); count |= fgetc(input) << 8;
-        if (!enter_world(gb)) return 3;
+        if (!enter_world(gb)) return fail3(gb, "enter_world", seed);
         unsigned steps = 0;
         while (GB_get_registers(gb)->pc != pc && steps++ < 5000000) GB_run(gb);
-        if (GB_get_registers(gb)->pc != pc) return 3;
+        if (GB_get_registers(gb)->pc != pc) return fail3(gb, "reach main_loop", seed);
         for (unsigned i=0; i<count; ++i) {
             int bank=fgetc(input), lo=fgetc(input), hi=fgetc(input), value=fgetc(input);
             if (value == EOF) return 2;
@@ -143,7 +193,7 @@ int main(int argc, char **argv)
         fclose(input); GB_write_memory(gb, 0xff70, 1);
         unsigned serial=GB_read_memory(gb,0xc8b6); steps=0;
         while (GB_read_memory(gb,0xc8b6)==serial && steps++<5000000) GB_run(gb);
-        if (GB_read_memory(gb,0xc8b6)==serial) return 3;
+        if (GB_read_memory(gb,0xc8b6)==serial) return fail3(gb, "first presentation after the patch", seed);
         GB_run_frame(gb); GB_run_frame(gb); capture(argv[2],"scene");
         unsigned max_objects=0;
         for (unsigned line=0; line<144; ++line) {
@@ -154,12 +204,13 @@ int main(int argc, char **argv)
             }
             if (objects>max_objects) max_objects=objects;
         }
-        bool passed=!unsafe_cpu_map_writes && !visible_world_map_writes && !unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10;
-        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u}\n",
-               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes);
+        bool passed=!unsafe_cpu_map_writes && !visible_world_map_writes && !unsafe_dma && !unsafe_oam && !visible_mask_writes && !mixed_world_oam && max_objects<=10
+            && !mode3_vram_writes && !mode3_palette_writes;
+        printf("{\"passed\":%s,\"diagnostic_ram_writes\":true,\"patch_count\":%u,\"max_oam_per_scanline\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,\"mode3_vram_writes\":%u,\"mode3_palette_writes\":%u}\n",
+               passed?"true":"false",count,max_objects,unsafe_dma,unsafe_oam,visible_mask_writes,mixed_world_oam,unsafe_cpu_map_writes,visible_world_map_writes,mode3_vram_writes,mode3_palette_writes);
         GB_dealloc(gb); return passed?0:1;
     }
-    if (!enter_world(gb)) return 3;
+    if (!enter_world(gb)) return fail3(gb, "enter_world", seed);
     /* Frame numbers below are counted from the world, not from reset, so the
      * route they describe is the one this adapter has always driven. */
     unsigned initial_angle = 0, initial_y = 0;
@@ -188,14 +239,17 @@ int main(int argc, char **argv)
     bool passed = presentations >= 30 && reused > 0 && swaps >= 10 && dma_starts >= 30
         && !unsafe_dma && !unsafe_flips && !unsafe_presentations && !unsafe_oam && !visible_mask_writes
         && !unsafe_cpu_map_writes && !visible_world_map_writes && !mixed_world_oam && (!foreground_test || foreground_publications>0)
+        && !mode3_vram_writes && !mode3_palette_writes
         && angle != initial_angle && y != initial_y && door_open && GB_is_cgb_in_cgb_mode(gb);
     printf("{\"passed\":%s,\"model\":%u,\"lcd_frames\":%u,\"page_swaps\":%u,"
            "\"gdma_starts\":%u,\"unsafe_gdma_starts\":%u,\"unsafe_page_flips\":%u,"
            "\"presentations\":%u,\"reused_presentations\":%u,\"unsafe_presentations\":%u,\"unsafe_oam_starts\":%u,\"visible_mask_writes\":%u,"
-           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
+           "\"foreground_publications\":%u,\"mixed_world_oam\":%u,\"unsafe_cpu_map_writes\":%u,\"visible_world_map_writes\":%u,"
+           "\"mode3_vram_writes\":%u,\"mode3_palette_writes\":%u,\"moved\":%s,\"turned\":%s,\"starting_door_open\":%s,\"bootstrap\":\"original minimal synthetic bootstrap\"}\n",
            passed ? "true" : "false", model, frame, swaps, dma_starts, unsafe_dma,
            unsafe_flips, presentations, reused, unsafe_presentations, unsafe_oam, visible_mask_writes,
            foreground_publications, mixed_world_oam, unsafe_cpu_map_writes, visible_world_map_writes,
+           mode3_vram_writes, mode3_palette_writes,
            y != initial_y ? "true" : "false", angle != initial_angle ? "true" : "false",
            door_open ? "true" : "false");
     GB_dealloc(gb);

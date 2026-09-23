@@ -63,9 +63,18 @@ def emit_surfaces(a: Assembler) -> None:
             a.ld_a_abs(VIEW_ATTRIBUTES + row * 32 + 19); a.ld_abs_a(VIEW_ATTRIBUTES + row * 32 + 20)
     a.ret()
 
+    if not OVERLAP_PUBLICATION: emit_upload_surface_attributes(a)
+
+
+def emit_upload_surface_attributes(a: Assembler) -> None:
+    """Bank-neutral, but an interrupt reaches it under overlapped publication,
+    so that profile emits it in the resident tail section instead."""
     a.label("upload_surface_attributes")
     a.ld_r_n("a", 1); a.ldh_n_a(VBK)
     a.ld_r_n("a", VIEW_ATTRIBUTES >> 8); a.ldh_n_a(HDMA1)
     a.xor_r("a"); a.ldh_n_a(HDMA2); a.ldh_n_a(HDMA4)
     a.ld_a_abs(CURRENT_PAGE); a.xor_n(1); a.or_r("a"); a.ld_r_n("a", 0x18); a.jr("surface_upload_page", "z"); a.ld_r_n("a", 0x1C)
-    a.label("surface_upload_page"); a.ldh_n_a(HDMA3); a.ld_r_n("a", 23); a.ldh_n_a(HDMA5); a.ret()
+    # The staged path transfers the twelve historical rows and copies the
+    # rest on the CPU; the streamed tail owns the whole packet by GDMA.
+    a.label("surface_upload_page"); a.ldh_n_a(HDMA3)
+    a.ld_r_n("a", VIEW_MAP_BYTES // 16 - 1 if HDMA_STREAMING else 23); a.ldh_n_a(HDMA5); a.ret()

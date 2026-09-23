@@ -7,7 +7,7 @@
 [![CI](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml/badge.svg)](https://github.com/PowerBeef/Lupine3d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8ac926.svg)](LICENSE)
 
-[**Download v0.9**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.9) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
+[**Download v0.11**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.11) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
 
 <img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Sable Outpost running in the emulator: industrial walls, a Sentinel, shotgun and compact steel HUD">
 
@@ -15,23 +15,28 @@
 
 </div>
 
-Fight through five sectors of an industrial outpost: clear each one, take what the dead leave, and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
+Fight through three episodes of six sectors, from the surface outpost down into the reactor and up the signal spire: clear each sector, take what the dead leave, and reach the exit. Lupine 3D renders its first-person world with Game Boy Color tiles and hardware sprites, without a framebuffer or cartridge RAM.
 
-**v0.9 turns the tech demo into a campaign:** five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
+**v0.11 makes it a campaign:** three episodes and eighteen sectors, each redrawn as a named place, four weapons, a boss at the end of each later episode, and episode screens. The engine gains golden-image verification, an opt-in textured-wall profile and an SDK for other games. **v0.10 made the renderer stream:** a full geometry update publishes in one VBlank instead of two or three, because hidden patterns and the hidden map now travel by HBlank DMA while the CPU is still composing, and a sixth sector joins the campaign. v0.9 turned the tech demo into a campaign: five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
 
-## What's new in v0.9
+## What's new in v0.11
 
-- **A campaign.** Five sectors — Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks and Signal Deck — each in its own ROM bank and chosen at runtime, rising from one enemy to four. Clearing one shows an intermission with its continue code, kills and time; dying retries the sector you lost; clearing the last one ends the campaign.
-- **Continue codes.** The cartridge has no save hardware, so progress is a four-digit code you write down. Select on the title opens code entry.
-- **Three enemy kinds and two weapons.** The Sentinel, the quick skirmisher that carries a keycard, and the heavy warden. Select swaps the shotgun for a slug rifle — twice the damage for a long recovery — by streaming its cels into the one pattern window they share.
-- **Music.** A title theme, an in-game loop and a victory sting on three channels, with the fourth kept free so gunfire never cuts a bar.
-- **Preserved engine contracts.** Deterministic builds, immutable render snapshots, exact wall reuse and bounded graphics publication. The MBC5 bank rule is now checked against the emitted image rather than approximated. Legacy artwork and historical image fixtures remain available.
+- **Three episodes, eighteen sectors.** Sable Outpost, Reactor Deep and Signal Spire, each with its own palette set, opening and closing screens, and a boss closing the later two. Every sector is a place with a purpose: an airlock and mess hall, a pump gallery, a turbine hall, flooded tunnels, a walk round the whole hull, a diamond ring round the transmitter ([campaign](docs/CAMPAIGN.md)).
+- **Four weapons**, rendered from 3D models into a 40×32 window; the arsenal grows by episode and a continue code restores it.
+- **Golden-image verification**, an **opt-in textured-wall profile** with a texture set per episode, and an **SDK**: exports for standard debuggers, one command line, the level format and certificate, a Tiled round trip and a developer guide ([docs](docs/README.md)).
+
+## What's new in v0.10
+
+- **HBlank-streamed publication.** The dynamic patterns and the whole hidden tile-number map stream into the hidden bank by HBlank DMA as each column is composed, so the VBlank tail is only the banked masks, attributes, HUD and OAM. A full update no longer spends an LCD interval idle between its pattern stage and its map stage. Every descriptor, packet and VRAM byte is unchanged; see [streamed publication](docs/STREAMED_PUBLICATION.md).
+- **Exact engine savings.** The folded compositor writes each column's fifteen map cells from one pointer instead of walking two per row; the column scan keeps its extremes in registers; the depth pass keeps each actor's projection for the draw pass; the wall-key compare and the snapshot copies run eight bytes per counter step. No pixel, packet or allocation order moves.
+- **A sixth sector.** Cryo Vault: a warden and a skirmisher above, a keycard hatch, and a sump with a Sentinel and a second skirmisher below, carrying the same compiler certificate as the other five.
+- **Measured.** The nine-image tour falls from 866,119 to 674,644 CPU T-cycles per update (−22.1%) and the living-world route from 719,567 to 632,973 (−12.0%) on the host harness; the sustained sixty-second results are in [the test report](docs/TEST_REPORT.md).
 
 <img src="docs/images/sable_objective_spaced_states_4x.png" width="640" alt="HUD states: hunt with one enemy remaining, exit with zero enemies, dead and done">
 
 ## How to play
 
-Open `Lupine3D_v0.9.gb` in a Game Boy Color emulator with MBC5 support. The monochrome Game Boy is not supported. There is no save system: progress is a continue code you write down.
+Open `Lupine3D_v0.11.gb` in a Game Boy Color emulator with MBC5 support. The monochrome Game Boy is not supported. There is no save system: progress is a continue code you write down.
 
 | Game Boy button | Action |
 |---|---|
@@ -39,16 +44,16 @@ Open `Lupine3D_v0.9.gb` in a Game Boy Color emulator with MBC5 support. The mono
 | D-pad Left / Right | Turn |
 | A | Fire |
 | B | Use a nearby door |
-| Select | Swap weapons; on the title, enter a continue code |
+| Select | Switch to the next weapon you own; on the title, enter a continue code |
 | Start | Begin, and continue past a results screen |
 
 The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means clear the sector; **GOAL / EXIT** means the exit is available. Reach it to finish. Green medical pickups restore health, and a keycard opens the door that wants one — in the sector you found it in. **Left and right on the title** choose one of three skill settings before you press Start.
 
 ## Performance and qualification
 
-Active 60-second scenarios measure **5.50–7.92 full geometry updates/s**, and the nine-image tour **6.611/s**, unchanged across all of the campaign work. Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second remains unmet.
+Active 60-second scenarios measure **6.62–10.25 full geometry updates/s** on v0.11's replays, which start in the redrawn first sector ([test report](docs/TEST_REPORT.md)). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is met while turning and missed by about 0.2/s in two more scenarios; it remains unmet in the other four.
 
-v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted, and v0.9 inherits it unchanged. Memory, graphics capacity and publication safety limits remain enforced.
+v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted and still stands. Memory, graphics capacity and publication safety limits remain enforced.
 
 Qualification uses the project harness and pinned **SameBoy CGB-0/CGB-E and mGBA** cores, all passing on the released ROM along with 87 frozen independent-witness scenes. It is **emulator-qualified**; physical hardware and an original Nintendo boot ROM have not been tested. Reprojection and the experimental foreground feedback lane remain disabled.
 

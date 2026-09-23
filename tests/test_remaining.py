@@ -227,7 +227,7 @@ class RemainingTests(unittest.TestCase):
     def test_maximum_176_block_packet_is_staged_and_atomic(self):
         c = self.boot(); c.write8(br.DYN_COUNT, 96); c.write8(br.MASK_TILE_COUNT, 32)
         old_oam = bytes(c.oam)
-        c.write8(br.OAM_SHADOW + 40, 64)
+        c.write8(br.OAM_SHADOW + br.ENTITY_OAM_FIRST * 4, 64)
         c.pc = self.asm.labels["upload_hidden_page"]
         c.run(until_pc=self.asm.labels["upload_packet_ready"])
         self.assertEqual(bytes(c.oam), old_oam)

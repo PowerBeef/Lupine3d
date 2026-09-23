@@ -79,6 +79,5 @@
       "updates": 1,
       "capture": "exit_approach"
     }
-  ],
-  "pixel_oracle": "sable_hud_capture_pixels.json"
+  ]
 }

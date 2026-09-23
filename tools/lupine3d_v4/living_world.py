@@ -8,24 +8,30 @@ from .resources import make_entity_tiles, make_oam_shadow  # noqa: F401
 
 
 def emit_level_loader(a: Assembler) -> None:
-    # LEVEL_INDEX selects the campaign level; its bank is the only variable in
-    # the payload, which is laid out at fixed offsets (see levels.py). Derive
-    # LEVEL_BANK once here so the hot segment lookup only has to read a byte.
+    # LEVEL_INDEX selects the campaign level. Its bank and the page of its slot
+    # in that bank are the only variables in the payload, which is laid out at
+    # fixed offsets inside the slot (see levels.py); the resident directory
+    # gives both, so the hot segment lookup only has to read two bytes.
     a.label("select_level")
-    a.ld_a_abs(LEVEL_INDEX); a.add_a_n(LEVEL_ROM_BANK_BASE); a.ld_abs_a(LEVEL_BANK); a.ret()
+    a.ld_a_abs(LEVEL_INDEX); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "level_directory"); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_abs_a(LEVEL_BANK); a.ld_a_hl(); a.ld_abs_a(LEVEL_PAGE); a.ret()
 
     a.label("load_level")
     a.call("invalidate_wall_cache")
     a.call("select_level")
     a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); add_level_page(a)
+    a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)")
     # The resident slice consumes a fixed header but the authored source owns
     # all coordinates, profiles, spawns, door metadata, and exit placement.
-    a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET)
+    a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET); add_level_page(a)
     a.inc_rr("hl"); a.inc_rr("hl")  # width, height
-    for address in (VRAM_PROFILE,):
+    # The palette set is a fixed-WRAM campaign scalar: enter_world uploads
+    # the set it names with the LCD off, after this loader has run.
+    for address in (VRAM_PROFILE, PALETTE_SET):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.inc_rr("hl")  # palette profile (palette set 0 is currently resident)
     for address in (
         PLAYER_XL, PLAYER_XH, PLAYER_YL, PLAYER_YH, ANGLE,
         SENTINEL_XL, SENTINEL_XH, SENTINEL_YL, SENTINEL_YH,
@@ -40,9 +46,20 @@ def emit_level_loader(a: Assembler) -> None:
     for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT,
                     ACTOR_COUNT, LEVEL_FIXTURE_COUNT, LEVEL_PICKUP_VALUE):
         a.ldi_a_hl(); a.ld_abs_a(address)
-    a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); a.ld_rr_nn("de", DOOR_TABLE)
+    a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); add_level_page(a); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    if TEXTURED_WALLS:
+        # The wall textures follow the palette set: TEX_DIRECTORY points at
+        # the set's 36-byte slice of tex_block_directory, and an unknown set
+        # reads as the first, as init_palettes clamps it.
+        a.ld_a_abs(PALETTE_SET); a.cp_n(PALETTE_SET_COUNT); a.jr("level_texture_set_ready", "c"); a.xor_r("a")
+        a.label("level_texture_set_ready")
+        a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.add_hl_rr("hl"); a.add_hl_rr("hl")
+        a.ld_r_r("d", "h"); a.ld_r_r("e", "l")                    # 4 * set
+        a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("de")   # 36 * set
+        a.ld_rr_label("de", "tex_block_directory"); a.add_hl_rr("de")
+        a.ld_r_r("a", "l"); a.ld_abs_a(TEX_DIRECTORY_L); a.ld_r_r("a", "h"); a.ld_abs_a(TEX_DIRECTORY_H)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_abs_a(SECTOR_KILLS)
@@ -50,6 +67,17 @@ def emit_level_loader(a: Assembler) -> None:
     # in fixed WRAM and so readable under any bank.
     a.ld_a_abs(SIM_CLOCK); a.ld_abs_a(SECTOR_START)
     a.ld_a_abs(SIM_CLOCK + 1); a.ld_abs_a(SECTOR_START + 1)
+    # The arsenal follows the sector (WEAPON_UNLOCK_SECTORS), so a continue
+    # code restores it for free and one that moves backwards takes a weapon
+    # away; a weapon in hand that is no longer owned drops to the first.
+    a.ld_a_abs(LEVEL_INDEX); a.ld_r_n("b", 0b0011)
+    for index in range(2, WEAPON_COUNT):
+        a.cp_n(WEAPON_UNLOCK_SECTORS[index]); a.jr("weapons_owned_ready", "c"); a.ld_r_n("b", (2 << index) - 1)
+    a.label("weapons_owned_ready"); a.ld_r_r("a", "b"); a.ld_abs_a(WEAPONS_OWNED)
+    a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "weapon_bit_masks"); a.add_hl_rr("de"); a.ld_a_hl(); a.and_r("b"); a.jr("weapon_in_hand_owned", "nz")
+    a.xor_r("a"); a.ld_abs_a(WEAPON_INDEX)
+    a.label("weapon_in_hand_owned")
     # The first sector is the start of a run: a death retries a sector and
     # keeps the totals, a continue code starts them from where it drops you.
     a.ld_a_abs(LEVEL_INDEX); a.or_r("a"); a.jr("load_level_totals_kept", "nz")
@@ -80,7 +108,7 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_rr_label("hl", "oam_dma_stub"); a.ld_rr_nn("de", OAM_DMA_HRAM); a.ld_rr_nn("bc", OAM_DMA_STUB_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     a.xor_r("a"); a.ld_abs_a(ENTITY_SLOT)
-    for index in range(5): a.ld_abs_a(LOD_HISTORY + index)
+    for index in range(MAX_ACTORS + 1): a.ld_abs_a(LOD_HISTORY + index)
     a.call_abs(OAM_DMA_HRAM); a.xor_r("a"); a.ld_abs_a(OAM_DIRTY); a.ret()
 
     a.label("publish_oam_if_budget")
@@ -104,6 +132,7 @@ def emit_oam_system(a: Assembler) -> None:
     a.ld_rr_nn("hl", OAM_SHADOW + ENTITY_OAM_FIRST * 4); store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     a.xor_r("a"); a.ld_abs_a(SENTINEL_OAM_USED)
     a.ld_abs_a(MASK_TILE_COUNT)
+    for index in range(MAX_ACTORS): a.ld_abs_a(ACTOR_PROJECTED + index)
     a.ld_rr_nn("hl", WORLD_SCANLINES); a.ld_r_n("b", 144)
     a.label("clear_world_scanlines"); a.ldi_hl_a(); a.dec_r("b"); a.jr("clear_world_scanlines", "nz")
     if SCANLINE_ADMISSION or SABLE_ART: a.ld_abs_a(ADMISSION_MODE)
@@ -170,6 +199,7 @@ def emit_door_system(a: Assembler) -> None:
         a.ld_a_abs(base + DOOR_Y_OFFSET); a.cb("swap", "a"); a.ld_r_r("b", "a")
         a.ld_a_abs(base + DOOR_X_OFFSET); a.add_a_r("b"); a.ld_r_r("l", "a")
         a.ld_r_n("h", 0xD0); a.xor_r("a"); a.ld_hl_a()
+        a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)")
         a.label(next_label)
     a.label("door_update_all_done"); a.ret()
 
@@ -491,6 +521,17 @@ def emit_world_update(a: Assembler) -> None:
     a.label("ai_not_dormant")
     a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jr("ai_patrol", "z")
     a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
+    # Contact across a diagonal counts only when the corner is clean: both
+    # cells the two share a side with must be open. A wall corner between
+    # them blocks the player's shot, so it blocks the actor's reach as well;
+    # the actor keeps chasing and takes its swing from beside the player.
+    a.ld_a_abs(LOS_DX); a.or_r("a"); a.jr("ai_contact", "z")
+    a.ld_a_abs(LOS_DY); a.or_r("a"); a.jr("ai_contact", "z")
+    a.ld_a_abs(SENTINEL_XH); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_YH); a.ld_r_r("c", "a")
+    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.ld_r_r("c", "a")
+    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.label("ai_contact")
     a.ld_r_n("a", SENTINEL_ATTACK); a.ld_abs_a(SENTINEL_STATE)
     a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
     if SABLE_ART:
@@ -602,8 +643,12 @@ def emit_world_update(a: Assembler) -> None:
     # A drop does not carry a kind byte of its own: it is whatever the actor
     # that left it was, which is already in the slot and already snapshotted.
     a.call("actor_kind_drop"); a.cp_n(DROP_KIND_IDS["keycard"]); a.jr("pickup_keycard", "z")
+    # Health is two digits on the HUD and 99 is full: a medkit tops it up and
+    # never past that (the old byte saturation showed 141 as "41").
     a.ld_a_abs(LEVEL_PICKUP_VALUE); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_store", "nc"); a.ld_r_n("a", 0xFF)
+    a.ld_a_abs(PLAYER_HEALTH); a.add_a_r("b"); a.jr("pickup_health_cap", "c")
+    a.cp_n(100); a.jr("pickup_health_store", "c")
+    a.label("pickup_health_cap"); a.ld_r_n("a", 99)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
     a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")
@@ -648,7 +693,12 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_r_n("a", RAY_VECTOR_SCALE); a.ld_abs_a(DDA_CORRECTION)
     a.ld_r_n("a", 240); a.ld_abs_a(Q14_RECORD)
     a.call("cast_one_v2")
-    a.ld_a_abs(DEPTH_RESULT); a.ld_r_r("b", "a")
+    # The occluder test has slack: an actor's centre sits on the wall plane it
+    # is pressed against, and Q5 rounding can put it a unit past it, while an
+    # actor that really is behind a wall or a closed panel is at least half a
+    # cell further. Without the slack a chaser hugging a wall could not be hit.
+    a.ld_a_abs(DEPTH_RESULT); a.add_a_n(HITSCAN_DEPTH_SLACK); a.jr("hit_depth_ready", "nc"); a.ld_r_n("a", 255)
+    a.label("hit_depth_ready"); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_DEPTH); a.cp_r("b"); a.ret("nc")
     if SABLE_ART:
         a.ld_r_n("a",2); a.call("stamp_actor_reaction")
@@ -736,7 +786,8 @@ def emit_movement_v6(a: Assembler) -> None:
     a.label("open_door_legacy")
     a.ld_a_abs(ANGLE); a.call("ray_setup"); a.ld_r_n("a", 2); a.ld_abs_a(v1.DOOR_COUNT)
     a.label("open_door_legacy_advance"); a.call("ray_advance"); a.ld_a_abs(v1.DOOR_COUNT); a.dec_r("a"); a.ld_abs_a(v1.DOOR_COUNT); a.jr("open_door_legacy_advance", "nz")
-    a.call("ray_map_cell"); a.cp_n(3); a.ret("nz"); a.xor_r("a"); a.ld_hl_a(); a.call("sound_door"); a.ret()
+    a.call("ray_map_cell"); a.cp_n(3); a.ret("nz"); a.xor_r("a"); a.ld_hl_a()
+    a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)"); a.call("sound_door"); a.ret()
 
 
 def emit_reprojection(a: Assembler) -> None:

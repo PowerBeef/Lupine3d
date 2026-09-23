@@ -26,13 +26,18 @@ ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / 
 CAMPAIGN = level_codec.campaign(ROOT)
 ACTIVE_LEVEL = CAMPAIGN[0]
 LEVEL_COUNT = len(CAMPAIGN)
-# The resident wall atlas and palette set are chosen once, at build time: the
-# VRAM profile selects which of the two atlases stays resident and which is
-# banked. A campaign level that wanted the other profile would have to stream
-# its atlas through a transition, so require one profile for the whole run.
+# The resident wall atlas is chosen once, at build time: the VRAM profile
+# selects which of the two atlases stays resident and which is banked. A
+# campaign level that wanted the other profile would have to stream its atlas
+# through a transition, so require one profile for the whole run. The palette
+# set is not resident: every world entry uploads the set the level header
+# names, so episodes may differ.
 for _level in CAMPAIGN[1:]:
-    if (_level.vram_profile, _level.palette_profile) != (ACTIVE_LEVEL.vram_profile, ACTIVE_LEVEL.palette_profile):
-        raise ValueError(f"campaign level {_level.name!r} does not share the resident VRAM/palette profile")
+    if _level.vram_profile != ACTIVE_LEVEL.vram_profile:
+        raise ValueError(f"campaign level {_level.name!r} does not share the resident VRAM profile")
+PALETTE_SET_COUNT = len(level_codec.PALETTE_IDS)
+PALETTE_SET_NAMES = tuple(sorted(level_codec.PALETTE_IDS, key=level_codec.PALETTE_IDS.get))
+assert set(level_codec.PALETTE_IDS.values()) == set(range(PALETTE_SET_COUNT))
 SLIM_DISPLAY = RENDER_CONFIG["display"] == "slim"
 COMPACT_DISPLAY = RENDER_CONFIG["display"] != "legacy"
 SABLE_ART = RENDER_CONFIG["art"] == "sable-v2"
@@ -77,7 +82,7 @@ PRESENT_SERIAL = 0xC8B6       # increment after every atomic publication, wraps 
 WALL_CACHE_DISABLE = 0xC8B7   # diagnostic reference path; never a gameplay setting
 WALL_EPOCH = 0xC8B8           # content/VRAM reload generation, fixed WRAM u16
 WALL_CACHE_MAP = 0xCD00       # exact 256-byte map key, below the reserved stack
-WALL_CACHE_META = 0xDF20      # 34-byte snapshot key after physical surface profiles
+WALL_CACHE_META = 0xDE50      # the snapshot key's scalars, between the ray and physical surface profiles
 WALL_REUSE_ENABLED = os.environ.get("LUPINE3D_WALL_REUSE", "1") != "0"
 SIM_CLOCK = 0xC8D0             # monotonic VBlank clock (wraps modulo 65536)
 INPUT_QUEUE_HEAD = 0xC8D2
@@ -99,17 +104,19 @@ DYNAMIC_TILE_VRAM = 0x9000
 BG_LCDC = 0x87                # signed BG; hardware 8x16 OBJ mode
 HUD_UNSIGNED = True           # viewport-boundary STAT selects bank-0 OBJ-only HUD patterns
 HUD_TILE_BASE = 32
-DECAL_RECORD = 0xD9E0          # x/y Q8, segment, kind, side, along-cell, door index
-DECAL_INDEX = 0xD9E9
-DECAL_USED = 0xD9EA
-DECAL_PROJECTING = 0xD9EB
-DECAL_HEIGHT = 0xD9EC
-DECAL_Y = 0xD9ED
-DECAL_SOURCE = 0xD9EE
-DECAL_WIDE = 0xD9EF
-DECAL_SAVED = 0xD9F0           # four public projection bytes restored after decor
-DECAL_COLUMN = 0xD9F4
-HUD_PACKET = 0xD3D8 if COMPACT_DISPLAY else 0xD9F5           # immutable tile IDs prepared before VBlank
+# Wall fixture (decal) projection scratch, in the block the wall key vacated.
+DECAL_RECORD = 0xDF20          # x/y Q8, segment, kind, side, along-cell, door index
+DECAL_INDEX = 0xDF29
+DECAL_USED = 0xDF2A
+DECAL_PROJECTING = 0xDF2B
+DECAL_HEIGHT = 0xDF2C
+DECAL_Y = 0xDF2D
+DECAL_SOURCE = 0xDF2E
+DECAL_WIDE = 0xDF2F
+DECAL_SAVED = 0xDF30           # four public projection bytes restored after decor
+DECAL_COLUMN = 0xDF34
+DECAL_END = DECAL_COLUMN + 1
+HUD_PACKET = 0xD3D8            # immutable tile IDs prepared before VBlank, every profile
 WEAPON_TILE_BASE = 32 if SABLE_ART else 64          # bank 1 $8400, disjoint from all BG patterns
 FOLDED_COMPOSITOR = os.environ.get("LUPINE3D_FOLDED", "1") != "0"
 COMPACT_STRIPS = RENDER_CONFIG["compact_strips"]
@@ -119,6 +126,20 @@ INCREMENTAL_CERTIFICATE = RENDER_CONFIG["incremental_certificate"]
 DYNAMIC_TILE_CACHE = RENDER_CONFIG["dynamic_tile_cache"]
 CACHE_KEY_MIX = RENDER_CONFIG["cache_key_mix"]
 ATTRIBUTE_PADDING = RENDER_CONFIG["attribute_padding"]
+# HBlank-streamed publication: hidden dynamic patterns and the hidden BG map
+# travel by HBlank DMA while the CPU is still composing, so a full packet
+# needs one VBlank instead of two or three. Both sources are fixed WRAM,
+# because an HBlank block reads through SVBK and a simulation yield may have
+# bank 2 mapped when it lands. Banked sources (masks, attributes) stay GDMA
+# in the VBlank tail. DYN_STREAMED counts the dynamic patterns already handed
+# to the transfer; render_view resets it and chains at column boundaries.
+HDMA_STREAMING = RENDER_CONFIG["hdma_streaming"]
+OVERLAP_PUBLICATION = RENDER_CONFIG["overlap_publication"]
+DYN_STREAMED = 0xC8CE
+# The folded compositor's column of tile IDs, written once per row and
+# copied into the map (both halves) once per column, after the snapshot copy
+# buffer and before the saved render HRAM.
+COLUMN_ROWS = 0xCAF0           # after the snapshot copy buffer (WORLD_COPY_BUFFER + WORLD_COPY_BYTES)
 NARROW_YIELDS = RENDER_CONFIG["narrow_yields"]
 ANCHOR_PACKETS = RENDER_CONFIG["anchor_packets"]
 PACKET_BOUNDS_REUSE = RENDER_CONFIG["packet_bounds_reuse"]
@@ -126,6 +147,30 @@ PACKET_WORKSPACE = 0xD2A0       # current packet plus two pending 32-byte siblin
 PHYSICAL_DEPTH = RENDER_CONFIG["physical_depth"]
 PIXEL_DEPTH_VALID = 0xDF42      # 160 validity bits for the current exact wall key
 PIXEL_DEPTH = 0xDF60            # 160 Q5 depths from actual physical-column queries
+# Textured walls (docs/TEXTURED_WALLS.md). Every cast records where along its
+# face it landed (RAY_U, Q8 within the cell); physical pixels take it by the
+# pair expansion (PIXEL_U, in the window physical depth would otherwise use:
+# the two are exclusive). Bank 247 holds the per-direction slopes the ROM
+# multiplies the axis distance by, the height-class row table and the stride
+# classes; the row-window tables follow, three 5-KiB shade blocks per bank.
+TEXTURED_WALLS = RENDER_CONFIG["textured_walls"]
+RAY_U = 0xD2A0                      # the packet traversal workspace; anchor packets are excluded
+PIXEL_U = 0xDF60
+TEXTURE_LUT_ROM_BANK = 247
+TEXTURE_SLOPES_OFFSET = 0x4000      # 1024 directions x (S_x, S_y) 16-bit = 4 KiB
+TEXTURE_V_LUT_OFFSET = 0x5000       # 61 height classes x 64 rows
+TEXTURE_STRIDE_LUT_OFFSET = 0x6000  # 8 run lengths x 256 coordinate differences
+# Row-window blocks, 5 KiB per (texture, shade), three to a bank, in this
+# bank order: seven textures (a structure and a machinery texture per
+# episode, one shared door plate) are 28 blocks. 248-251 hold the first
+# episode's three textures exactly where they always were; 246 and 155 are
+# free under every profile.
+TEXTURE_WINDOW_BANKS = (248, 249, 250, 251, 252, 253, 254, 255, 246, 155)
+TEXTURE_WINDOW_ROM_BANK_BASE = TEXTURE_WINDOW_BANKS[0]
+TEXTURE_SET_DIRECTORY_BYTES = 3 * 4 * 3   # surface profiles x shades x (bank, address)
+TEXTURE_WINDOW_BLOCK_BYTES = 5 * 1024
+U_RESULT = 0xD8F7                   # the cast's along-face coordinate, beside the other results
+U_SLOPE_H = 0xD8F8                  # slope high byte kept across the three products
 REFINEMENT_DIRTY = 0xD3A4
 REFINEMENT_QUERIED = 0xD3A5
 COVERAGE_MODE = 0xD3A6
@@ -177,7 +222,19 @@ def bg_tile_address(tile_id: int) -> int:
     if not 0 <= tile_id <= 255:
         raise ValueError("BG tile ID outside byte range")
     return 0x9000 + (tile_id if tile_id < 128 else tile_id - 256) * 16
-ENTITY_OAM_FIRST = 10          # eight weapon pairs, crosshair, muzzle
+# The weapon's OAM window. Sable weapons are rendered from models into a
+# 40x32 window right of centre: five 8x16 objects across, two down, four
+# cels of twenty patterns (tools/render_weapons.py). The per-scanline
+# admission counts these objects before it admits any world object, so ten
+# per line still holds with the muzzle flash on the top row. The legacy art
+# profile keeps its 32x32 centred window of eight objects.
+WEAPON_COLUMNS = 5 if SABLE_ART else 4
+WEAPON_OBJECTS = WEAPON_COLUMNS * 2
+WEAPON_CEL_PATTERNS = WEAPON_OBJECTS * 2
+WEAPON_SCREEN_X = 68 if SABLE_ART else 64
+RETICLE_OAM = WEAPON_OBJECTS
+MUZZLE_OAM = WEAPON_OBJECTS + 1
+ENTITY_OAM_FIRST = WEAPON_OBJECTS + 2   # the weapon's objects, crosshair, muzzle
 ENTITY_OAM_COUNT = 16          # bounded 32-pattern masked publication packet
 MASK_TILE_COUNT = 0xD8D0
 MASK_BITS = 0xD8D1
@@ -189,15 +246,15 @@ MASK_ROWS = 0xD8D6
 MASK_SCAN_START = 0xD8D7
 MASK_SCAN_COUNT = 0xD8D8
 ENTITY_SLOT = 0xD8D9
-LOD_HISTORY = 0xD8E0           # four actor histories + generic beacon
+MAX_ACTORS = level_codec.MAX_ACTORS
+LOD_HISTORY = 0xD8E0           # MAX_ACTORS actor histories + the generic beacon
 WORLD_SCANLINES = 0xD900      # 144 selected-object counters
-ENTITY_SLOTS = 0xD990         # four fixed 16-byte actor slots
-ACTOR_COUNT = 0xD9D0
-ACTOR_DEPTHS = 0xD9D1
-ACTOR_BEST = 0xD9D5
-ACTOR_BEST_DEPTH = 0xD9D6
-ACTOR_PASS = 0xD9D7
-MAX_ACTORS = 4
+ENTITY_SLOTS = 0xD990         # MAX_ACTORS fixed 16-byte actor slots (ACTOR_COUNT is fixed WRAM)
+ACTOR_DEPTHS = ENTITY_SLOTS + MAX_ACTORS * 16
+ACTOR_BEST = ACTOR_DEPTHS + MAX_ACTORS
+ACTOR_BEST_DEPTH = ACTOR_BEST + 1
+ACTOR_PASS = ACTOR_BEST_DEPTH + 1
+assert LOD_HISTORY + MAX_ACTORS + 1 <= 0xD8F0 and ACTOR_PASS < 0xDA00
 MASK_TILES = 0xDA00          # at most 32 patterns = 512 bytes
 VIEW_ATTRIBUTES = 0xDC00      # hidden 12x32 attribute packet
 RAY_SURFACE = 0xDE00
@@ -274,6 +331,12 @@ MUSIC_ROW_BYTES = 3
 # the ISR reads it under any SVBK, and every display profile leaves this
 # window free (slim's map ends here, and the strip scratch sits elsewhere).
 MUSIC_STATE = 0xC7E0
+# A switchable-WRAM address alone does not name its bank: the render snapshot
+# (bank 1) and the live world (bank 2) share every name by design, and banks
+# 4 and 5 reuse low addresses. The debugger export takes bank 1 for a
+# switchable address unless the name is listed here (lupine3d_v4/symbols.py).
+WRAM_BANK_OF_NAME = {"FG_COMPOSITE_OAM": 4, "FG_PUBLISHED_OAM": 4, "FG_QUEUE": 4,
+                     "MUSIC_NOTE_TABLE": MUSIC_WRAM_BANK, "MUSIC_ROWS": MUSIC_WRAM_BANK}
 MUSIC_ENABLED = MUSIC_STATE
 MUSIC_SONG = MUSIC_STATE + 1
 MUSIC_SPEED = MUSIC_STATE + 2
@@ -294,10 +357,51 @@ WEAPON_INDEX = MUSIC_STATE_END + 3
 WEAPON_RELOAD = WEAPON_INDEX + 1
 WEAPON_COOLDOWN = WEAPON_RELOAD + 1
 WORLD_STATE_END = WEAPON_COOLDOWN + 1
-WEAPON_COUNT = 2
+# Campaign scalars that cannot change while a frame is in flight live in fixed
+# WRAM, readable under any bank: load_level writes them with the LCD off, like
+# LEVEL_FIXTURE_COUNT. The actor count used to ride the snapshot copy; it is a
+# per-level constant, so it belongs here with the palette set, the weapons in
+# the player's possession, and the level's ROM page and texture directory.
+ACTOR_COUNT = WORLD_STATE_END           # actors the level fields, 1..MAX_ACTORS
+PALETTE_SET = ACTOR_COUNT + 1           # BG/OBJ palette set, from the level header
+WEAPONS_OWNED = PALETTE_SET + 1         # bit per weapon
+LEVEL_PAGE = WEAPONS_OWNED + 1          # high byte of the level's slot in its bank
+TEX_DIRECTORY_L = LEVEL_PAGE + 1        # u16: the level's texture block directory
+TEX_DIRECTORY_H = TEX_DIRECTORY_L + 1
+CAMPAIGN_SCALARS_END = TEX_DIRECTORY_H + 1
+# The live map changes only when a door finishes opening (or a level loads),
+# so the snapshot copies its 256 bytes only when this generation moved. Every
+# live map writer increments LIVE_MAP_GEN; begin_frame_snapshot records the
+# generation it copied in SNAP_MAP_GEN.
+LIVE_MAP_GEN = CAMPAIGN_SCALARS_END
+SNAP_MAP_GEN = LIVE_MAP_GEN + 1
+MAP_GENERATION_END = SNAP_MAP_GEN + 1
+# Overlapped publication: nonzero while a completed packet waits for the
+# VBlank interrupt to publish it (set by the main loop, cleared by the ISR).
+TAIL_PENDING = MAP_GENERATION_END
+TAIL_PENDING_END = TAIL_PENDING + 1
+assert TAIL_PENDING_END <= 0xC800, "campaign scalars overrun the OAM shadow"
+WEAPON_COUNT = 4                        # a power of two: the index is masked
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
+WEAPON_CELS = WEAPON_TILE_BYTES // (WEAPON_CEL_PATTERNS * 16)   # Sable 4, legacy 1
+assert WEAPON_CELS * WEAPON_CEL_PATTERNS * 16 == WEAPON_TILE_BYTES
 WEAPON_PATTERNS = WEAPON_TILE_BYTES // 16
+# The four cel sheets share one ROM bank of their own; weapon_source hands
+# the swap and init_vram a pointer into it, and both map it only for the copy.
+WEAPON_ROM_BANK = 245
+WEAPON_SHEET_LABELS = ("weapon_tiles", "slug_tiles", "arc_tiles", "pulse_tiles")
+# The sector (LEVEL_INDEX) from which each weapon is owned: load_level derives
+# WEAPONS_OWNED from the index, so a continue code restores the arsenal for
+# free and a code that moves backwards can take a weapon away.
+WEAPON_UNLOCK_SECTORS = (0, 0, 6, 12)
+# Episodes are six sectors each. The title is the first episode's opening;
+# reaching the first sector of a later episode (by clearing the one before or
+# by a continue code) shows that episode's opening, and clearing an episode
+# shows its closing before the next opening.
+EPISODE_SECTORS = 6
+EPISODE_STARTS = (6, 12)
+assert len(WEAPON_UNLOCK_SECTORS) == WEAPON_COUNT == len(WEAPON_SHEET_LABELS) and WEAPON_COUNT & (WEAPON_COUNT - 1) == 0
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.
 #
@@ -478,6 +582,11 @@ DOOR_RECORD_BYTES = level_codec.DOOR_RECORD_BYTES
 MAX_FIXTURES = level_codec.MAX_FIXTURES
 LEVEL_HEADER_BYTES = level_codec.LEVEL_HEADER_BYTES
 LEVEL_ROM_BANK_BASE = level_codec.LEVEL_ROM_BANK_BASE
+LEVELS_PER_BANK = level_codec.LEVELS_PER_BANK
+LEVEL_SLOT_PITCH = level_codec.LEVEL_SLOT_PITCH
+level_location = level_codec.level_location
+level_rom_offset = level_codec.level_rom_offset
+LEVEL_BANK_COUNT = (LEVEL_COUNT + LEVELS_PER_BANK - 1) // LEVELS_PER_BANK
 LEVEL_SEGMENT_OFFSET = level_codec.LEVEL_SEGMENT_OFFSET
 LEVEL_SURFACE_OFFSET = level_codec.LEVEL_SURFACE_OFFSET
 LEVEL_GRID_OFFSET = level_codec.LEVEL_GRID_OFFSET
@@ -486,8 +595,15 @@ LEVEL_DOOR_OFFSET = level_codec.LEVEL_DOOR_OFFSET
 LEVEL_ACTOR_OFFSET = level_codec.LEVEL_ACTOR_OFFSET
 LEVEL_FIXTURE_OFFSET = level_codec.LEVEL_FIXTURE_OFFSET
 LEVEL_PAYLOAD_END = level_codec.LEVEL_PAYLOAD_END
-if LEVEL_ROM_BANK_BASE + LEVEL_COUNT > 256:
+if LEVEL_ROM_BANK_BASE + LEVEL_BANK_COUNT > 256:
     raise ValueError("campaign level banks exceed the 4 MiB MBC5 image")
+
+
+def add_level_page(a) -> None:
+    """HL = HL + (LEVEL_PAGE << 8): from a slot-relative level offset to the
+    running level's slot. Six M-cycles; A is clobbered, HL cannot carry
+    because every offset plus its index stays inside the slot."""
+    a.ld_a_abs(LEVEL_PAGE); a.add_a_r("h"); a.ld_r_r("h", "a")
 DOOR_X_OFFSET = level_codec.DOOR_X
 DOOR_Y_OFFSET = level_codec.DOOR_Y
 DOOR_ORIENTATION_OFFSET = level_codec.DOOR_ORIENTATION
@@ -498,12 +614,22 @@ DOOR_FLAG_EXIT = level_codec.DOOR_FLAG_EXIT
 DOOR_FLAG_LOCK_SENTINEL = level_codec.DOOR_FLAG_LOCK_SENTINEL
 DOOR_FLAG_KEYCARD = level_codec.DOOR_FLAG_KEYCARD
 DROP_KIND_IDS = level_codec.DROP_KIND_IDS
+# A shot lands when the actor's Q5 depth is below the centre ray's wall depth
+# plus this slack: a quarter cell, so an actor flush against the wall it is
+# pressed to (its centre on the wall plane) is hittable, while one behind a
+# wall or a closed panel, at least half a cell further, is not.
+HITSCAN_DEPTH_SLACK = 8
 # Eight bytes per kind: damage, recovery, step, palette, drop, three spare.
 ACTOR_KIND_RECORD_BYTES = 8
 ACTOR_KIND_DROP = 4
 KIND_DROPS = level_codec.KIND_DROPS
 EXIT_CELL_X = DOOR_TABLE + MAX_DOORS * DOOR_RECORD_BYTES
 EXIT_CELL_Y = EXIT_CELL_X + 1
+# The exact wall key: camera (5), profile and world mode (2), the door count
+# and every door record, the reload generation (2), then the whole map.
+WALL_KEY_META_BYTES = 5 + 2 + 1 + MAX_DOORS * DOOR_RECORD_BYTES + 2
+WALL_KEY_BYTES = WALL_KEY_META_BYTES + 256
+assert WALL_CACHE_META + WALL_KEY_META_BYTES <= PIXEL_SURFACE, "wall key scalars overrun the physical surface profiles"
 
 # Compatibility aliases denote the door most recently selected by a lookup.
 # Runtime ownership lives in the fixed-capacity table above.
@@ -669,6 +795,7 @@ if _hram_next > OAM_DMA_HRAM:
 # used by another live routine.
 SECOND_TOP = GEN_GLOBAL_Y
 SECOND_STYLE = GEN_ROW_COUNT
+
 STRIP_KIND = GEN_PAIR_COUNT
 D32_LOW = TEMP_CODE
 LUT_CORRECTION = PROJECTION_PAGE
@@ -676,6 +803,19 @@ LUT_SLICE_LOW = SIGNATURE_COUNT
 # Reserved compositor detail byte. Spatial Clarity deliberately leaves it
 # inactive; eye-height surface rails proved to be a false horizon cue.
 DETAIL_MASK = STYLE_DIFF
+
+# The textured kernel replaces the microstrip compositor and the atlas lookup
+# under its profile, so their compositor-local HRAM scratch becomes its own
+# scalars: HRAM is full (the OAM-DMA stub sits four bytes above) and these
+# names are read by no other live routine. All live for one composed column.
+TEX_RUN_COUNT = SIGNATURE_HASH      # runs in the tile column being composed
+TEX_COL_OFFSET = ATLAS_ENTRY_COUNT  # first physical pixel of that column
+TEX_REC_L, TEX_REC_H = COMPOSE_DST_L, COMPOSE_DST_H   # the run record in hand
+TEX_LOOP = DYNAMIC_FLAG             # runs left to set up / merge
+TEX_INTERIOR = STRIP_STATE          # the tile needs no coverage masks
+TEX_CACHE_L = STRIP_PAIR            # the run's window cache (low byte)
+TEX_DST_L, TEX_DST_H = ATLAS_ENTRY_PTR_L, ATLAS_ENTRY_PTR_H   # where the run composes
+TEX_TMP0, TEX_TMP1, TEX_TMP2, TEX_TMP3, TEX_TMP4 = TEMP_TOP, SECOND_TOP, SECOND_STYLE, STRIP_STYLE, STRIP_KIND
 
 # Renderer constants / tile IDs.
 RAYS = 80
@@ -686,9 +826,10 @@ RAY_DIRECTION_BITS = 10
 RAY_DIRECTION_COUNT = 1 << RAY_DIRECTION_BITS
 RAY_PLAYER_SHIFT = RAY_DIRECTION_BITS - 8
 RAY_DIRECTION_HIGH_MASK = (RAY_DIRECTION_COUNT >> 8) - 1
-CEILING_TILE = 96
-FLOOR_TILE = 97
-WALL_TILE_BASE = 98
+FLAT_CEILING_TILE, FLAT_FLOOR_TILE, FLAT_WALL_TILE_BASE = 96, 97, 98
+CEILING_TILE = FLAT_CEILING_TILE
+FLOOR_TILE = FLAT_FLOOR_TILE
+WALL_TILE_BASE = FLAT_WALL_TILE_BASE
 STYLE_COUNT = 5
 RENDER_STYLE_COUNT = 8
 CREASE_STYLE = 5
@@ -714,9 +855,30 @@ STATIC_WALL_MASKS = (
     else _COMMON_STATIC_WALL_MASKS + (0x91, 0x89)
 )
 SURFACE_RAIL_VARIANTS = 2 if SURFACE_DETAIL_ENABLED else 0
-SURFACE_RAIL_TILE_BASE = WALL_TILE_BASE + len(STATIC_WALL_MASKS)
+SURFACE_RAIL_TILE_BASE = FLAT_WALL_TILE_BASE + len(STATIC_WALL_MASKS)
 STATIC_VIEW_TILES = 2 + len(STATIC_WALL_MASKS) + SURFACE_RAIL_VARIANTS
 ATLAS_TILE_BASE = SURFACE_RAIL_TILE_BASE + SURFACE_RAIL_VARIANTS
+# Textured walls compose every wall tile, so the seam tiles and the trained
+# atlas retire and the dynamic patterns take BG ids 0..237 of each bank; the
+# ceiling and floor move above them, below the sixteen UI tiles at $8F00.
+# The WRAM buffer keeps 96 slots and becomes a ring the HBlank stream drains.
+DYNAMIC_RING_SLOTS = 96
+TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE = 238, 239
+TEXTURED_DYNAMIC_TILE_CAPACITY = 238
+if TEXTURED_WALLS:
+    CEILING_TILE, FLOOR_TILE = TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE
+    WALL_TILE_BASE = TEXTURED_CEILING_TILE
+    STATIC_VIEW_TILES = 2
+    DYNAMIC_TILE_CAPACITY = TEXTURED_DYNAMIC_TILE_CAPACITY
+TEXTURE_STEP_OFFSET = 0x6800        # 61 half heights x Q8 row step (little-endian)
+# The kernel's per-column state: eight run records in fixed WRAM (mask, top,
+# Q8 accumulator, Q8 step, window cache address) and each run's sixteen-byte
+# row-window cache in the render bank, both alive for one composed column.
+TEX_RUNS = 0xCBA0                   # eight 12-byte run records
+TEX_RUN_BYTES = 12
+TEX_WINDOWS = 0xD170                # eight 16-byte window caches (WRAM bank 1)
+TEX_MASKS = 0xD130                  # a boundary tile's outline mask per row (WRAM bank 1)
+DYN_INFLIGHT = 0xC8DE               # first pattern of the HBlank transfer in flight
 FOV_DEGREES = 60.5
 CAMERA_FOCAL_PIXELS = round(80 / math.tan(math.radians(FOV_DEGREES / 2)))
 RAY_VECTOR_SCALE = 127
@@ -913,25 +1075,31 @@ ENABLE_MICRO_REPROJECTION = os.environ.get("LUPINE3D_REPROJECTION", "0") == "1"
 REPROJECT_LIMIT = 4
 REPROJECT_GDMA_THRESHOLD = 72
 
-# Shared by snapshot emission and the allocation/lifetime validator.
-WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, 128), (ENTITY_SLOTS, 65))
+# Shared by snapshot emission and the allocation/lifetime validator. The
+# world window holds the living-world scalars, the door table, the art clocks
+# and the campaign state; the actor slots are copied whole, and the count
+# beside them is a fixed-WRAM scalar.
+WORLD_WINDOW_BYTES = 136
+WORLD_COPY_RANGES = ((MAP, 256), (PLAYER_XL, 8), (VRAM_PROFILE, WORLD_WINDOW_BYTES), (ENTITY_SLOTS, MAX_ACTORS * 16))
+WORLD_COPY_BYTES = sum(count for _, count in WORLD_COPY_RANGES)
 
 RETICLE_TILE = 112 if SABLE_ART else 80
 MUZZLE_TILE = RETICLE_TILE + 2
 
-# Existing copied world slack: persistent cosmetic clocks, isolated per bank.
-SHOT_TICK=0xD77A
-SHOT_ACTIVE=0xD77C
-HURT_TICK=0xD77D
-HURT_ACTIVE=0xD77F
-HINT_TICK=0xD780
-HINT_ACTIVE=0xD782
-ACTOR_REACTION_TICK=0xD783
-ACTOR_REACTION=0xD785
-SENTINEL_KIND=0xD786          # per-actor stat/palette selector, inside the snapshot
-ART_STATE_END=0xD787
+# Copied world slack right after the exit cell: persistent cosmetic clocks,
+# isolated per bank. They follow the door table, so they move with MAX_DOORS.
+SHOT_TICK = EXIT_CELL_Y + 1
+SHOT_ACTIVE = SHOT_TICK + 2
+HURT_TICK = SHOT_ACTIVE + 1
+HURT_ACTIVE = HURT_TICK + 2
+HINT_TICK = HURT_ACTIVE + 1
+HINT_ACTIVE = HINT_TICK + 2
+ACTOR_REACTION_TICK = HINT_ACTIVE + 1
+ACTOR_REACTION = ACTOR_REACTION_TICK + 2
+SENTINEL_KIND = ACTOR_REACTION + 1   # per-actor stat/palette selector, inside the snapshot
+ART_STATE_END = SENTINEL_KIND + 1
 # Campaign state in the slack at the top of the copied world window. It rides
-# the existing 457-byte snapshot copy rather than growing it, so the renderer
+# the existing snapshot copy rather than growing it, so the renderer
 # and the screens read it as coherently as the world itself, and the simulation
 # writes the live copy in WRAM bank 2 like every other world field.
 GAME_STATE = ART_STATE_END
@@ -949,6 +1117,19 @@ SECTOR_TIME = SECTOR_START + 2        # u16 VBlanks, stamped when it is cleared
 CAMPAIGN_TIME = SECTOR_TIME + 2       # u16 VBlanks across the run
 GAME_STATE_END = CAMPAIGN_TIME + 2
 VBLANKS_PER_SECOND = 60
+
+# The depth pass projects every actor; the draw pass used to project each
+# one again with identical inputs. The depth pass now keeps what the draw
+# pass reads (SENTINEL_VISIBLE..SENTINEL_LOD, the foot row, the two strip
+# masks and MASK_BITS) per slot, beside the copied world window, and a flag
+# per slot says the record is this frame's. Bank 2 never reads either.
+ACTOR_PROJECTION = VRAM_PROFILE + WORLD_WINDOW_BYTES   # MAX_ACTORS records, ACTOR_PROJECTION_BYTES each
+ACTOR_PROJECTION_BYTES = 8
+ACTOR_PROJECTED = ACTOR_PROJECTION + MAX_ACTORS * ACTOR_PROJECTION_BYTES
+assert ACTOR_PROJECTED + MAX_ACTORS <= 0xD800
+# actor_projection_pointer adds a slot's offset to the low byte alone.
+assert (ACTOR_PROJECTION & 0xFF) + MAX_ACTORS * ACTOR_PROJECTION_BYTES <= 0x100
+assert (ACTOR_PROJECTED & 0xFF) + MAX_ACTORS <= 0x100
 
 # One bounded actor slot, in the order actor_save writes it. The first ten
 # bytes are the SENTINEL_XL..SENTINEL_COOLDOWN block; these follow.

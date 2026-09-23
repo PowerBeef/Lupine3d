@@ -15,11 +15,25 @@ PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # need a third OBJ palette and there is exactly one free slot, so adding one
 # means re-planning the weapon/reticle palettes, not editing this table.
 # The order is the runtime stat-table index; keep it stable.
-ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2}
-PALETTE_IDS = {"outpost": 0}
+# The fourth kind is the boss: the kind byte is masked to two bits, so the
+# table has four records whatever the campaign fields, and the boss takes the
+# record that used to repeat the Sentinel. It wears the Sentinel's cels and
+# OBJ palette (all eight palettes are spoken for) and is told apart by what
+# it does: the heaviest contact damage in the game and the health a level
+# gives it. The last sector of an episode fields one.
+ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2, "boss": 3}
+# Palette sets: one per episode. The header byte selects the 128-byte set
+# `init_palettes` uploads at every world entry, so levels of one campaign may
+# differ; the order is the ROM table index and the runtime clamp, keep it.
+PALETTE_IDS = {"outpost": 0, "reactor": 1, "spire": 2}
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
-MAX_DOORS = 4
+MAX_DOORS = 6
 DOOR_RECORD_BYTES = 6
+# Simulated actor slots. The renderer admits at most four per frame (sixteen
+# world objects, four per scanline, 32 masked patterns), so a level keeps at
+# most four actors on any one sightline; the slots beyond that are for actors
+# elsewhere in the sector.
+MAX_ACTORS = 6
 LEVEL_HEADER_BYTES = 24
 MAX_FIXTURES = 16
 DOOR_X = 0
@@ -34,25 +48,59 @@ DOOR_FLAG_KEYCARD = 0x04
 # What a dead actor leaves behind, selected by its kind rather than by a byte
 # in its slot: the slot is exactly full, and the kind is already there.
 DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
-KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit"}
+KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit", "boss": "medkit"}
 
-# One ROM bank per campaign level, at fixed offsets, so the SM83 loader needs
-# only a bank number and no per-level directory. lookup_segment_id reads the
-# segment and its surface through one pointer, so the surface table must stay
-# exactly 1024 bytes above the segment table.
+# Campaign levels are packed five to a ROM bank from LEVEL_ROM_BANK_BASE, in
+# 256-byte-aligned slots, at fixed offsets inside the slot. A resident
+# directory gives the loader each level's bank and the page of its slot; every
+# reader adds that page to the high byte of its offset, so the first slot of a
+# bank (page 0) reads exactly as the one-level-per-bank layout did.
+# lookup_segment_id reads the segment and its surface through one pointer, so
+# the surface table must stay exactly 1024 bytes above the segment table.
 LEVEL_ROM_BANK_BASE = 241
+LEVELS_PER_BANK = 5
+LEVEL_SLOT_PITCH = 0x0B00       # 2,816 bytes: the payload rounded up to a page
 LEVEL_SEGMENT_OFFSET = 0x4000   # 1024 bytes, indexed (cell * 4 + side)
 LEVEL_SURFACE_OFFSET = 0x4400   # 1024 bytes, same index
 LEVEL_GRID_OFFSET = 0x4800      # the 16x16 world map
 LEVEL_HEADER_OFFSET = 0x4900
-LEVEL_DOOR_OFFSET = 0x4920
-LEVEL_ACTOR_OFFSET = 0x4940     # MAX_ACTORS * 16 bounded Sentinel slots
-LEVEL_FIXTURE_OFFSET = 0x4980   # MAX_FIXTURES * 16 wall-mounted landmarks
-LEVEL_PAYLOAD_END = 0x4A80
+LEVEL_DOOR_OFFSET = 0x4920      # MAX_DOORS * DOOR_RECORD_BYTES, 16-aligned
+LEVEL_ACTOR_OFFSET = 0x4950     # MAX_ACTORS * 16 bounded Sentinel slots
+LEVEL_FIXTURE_OFFSET = 0x49B0   # MAX_FIXTURES * 16 wall-mounted landmarks
+LEVEL_PAYLOAD_END = 0x4AB0
+assert LEVEL_DOOR_OFFSET + MAX_DOORS * DOOR_RECORD_BYTES <= LEVEL_ACTOR_OFFSET
+assert LEVEL_ACTOR_OFFSET + MAX_ACTORS * 16 <= LEVEL_FIXTURE_OFFSET
+assert LEVEL_FIXTURE_OFFSET + MAX_FIXTURES * 16 <= LEVEL_PAYLOAD_END
+assert LEVEL_PAYLOAD_END - 0x4000 <= LEVEL_SLOT_PITCH, "a level payload overruns its slot"
+assert LEVELS_PER_BANK * LEVEL_SLOT_PITCH <= 0x4000, "level slots overrun their bank"
+assert LEVEL_SLOT_PITCH % 256 == 0, "the loader adds a slot's page to the high byte alone"
+
+
+def level_location(index: int) -> tuple[int, int]:
+    """(ROM bank, page offset of the slot) of campaign level `index`.
+
+    The page offset is what the console adds to the high byte of every
+    slot-relative offset: 0 for a bank's first slot, LEVEL_SLOT_PITCH >> 8 for
+    the second, and so on.
+    """
+    bank, slot = divmod(index, LEVELS_PER_BANK)
+    return LEVEL_ROM_BANK_BASE + bank, slot * (LEVEL_SLOT_PITCH >> 8)
+
+
+def level_rom_offset(index: int) -> int:
+    """Absolute ROM offset of the level's slot (its `$4000`)."""
+    bank, page = level_location(index)
+    return bank * 0x4000 + (page << 8)
 # The campaign, in order. LUPINE3D_LEVEL still selects a single level for
 # diagnostic and research builds; that build is a one-level campaign.
+# Three episodes of six sectors: Sable Outpost, Reactor Deep, Signal Spire.
+# The order is the campaign, the continue-code table and the level directory.
 CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json",
-                  "vent_stacks.json", "signal_deck.json")
+                  "vent_stacks.json", "signal_deck.json", "cryo_vault.json",
+                  "coolant_intake.json", "pump_gallery.json", "turbine_hall.json",
+                  "coolant_dark.json", "control_gallery.json", "reactor_heart.json",
+                  "antenna_base.json", "relay_deck.json", "hull_walk.json",
+                  "signal_vault.json", "transmitter_ring.json", "spire_crown.json")
 
 
 @dataclass(frozen=True)
@@ -407,13 +455,25 @@ def _validate_keycard_gates(
     unauthored = declared - dropped
     if unauthored:
         raise ValueError(f"declared drops no actor leaves: {sorted(unauthored)}")
+    passable = _passable_cells(grid, width, height)
+    # Every actor stands on a walkable cell the player can walk to with the
+    # Sentinel-locked doors shut, whether or not the level has a card door:
+    # those doors open only once every actor is dead, so an actor behind one
+    # (or inside a wall) can never be engaged and the route would deadlock.
+    locked = {(door.x, door.y) for door in doors if door.flags & DOOR_FLAG_LOCK_SENTINEL}
+    engageable = _reachable_cells(passable - locked, start)
+    for entity in entities:
+        cell = (entity.x_q8 >> 8, entity.y_q8 >> 8)
+        if grid[cell[1] * width + cell[0]] != 0:
+            raise ValueError(f"actor at cell {cell} is not on a walkable cell")
+        if cell not in engageable:
+            raise ValueError(f"actor at cell {cell} is behind a Sentinel-locked door or unreachable")
     if not keyed:
         if "keycard" in declared:
             raise ValueError("a declared keycard drop opens nothing in this level")
         return
     if "keycard" not in declared:
         raise ValueError("a keycard door needs the level to declare its card drop")
-    passable = _passable_cells(grid, width, height)
     # Every keycard door is a wall until the card is in hand.
     without_cards = passable - {(door.x, door.y) for door in keyed}
     before = _reachable_cells(without_cards, start)
@@ -424,10 +484,6 @@ def _validate_keycard_gates(
     ]
     if not carriers:
         raise ValueError("no card-dropping actor is reachable with the keycard doors shut")
-    everywhere = _reachable_cells(passable, start)
-    for entity in entities:
-        if (entity.x_q8 >> 8, entity.y_q8 >> 8) not in everywhere:
-            raise ValueError("every actor must be reachable once the doors are open")
 
 
 def analyze_level_readability(
@@ -621,8 +677,8 @@ def compile_level(path: Path) -> CompiledLevel:
         PickupSpec(str(item["kind"]), str(item["source"]), _bounded_int(item, "value", 1, 255))
         for item in source.get("pickups", [])
     )
-    if not 1 <= len(entities) <= 4:
-        raise ValueError("levels require one to four actors")
+    if not 1 <= len(entities) <= MAX_ACTORS:
+        raise ValueError(f"levels require one to {MAX_ACTORS} actors")
     unknown = [entity.kind for entity in entities if entity.kind not in ENTITY_KIND_IDS]
     if unknown:
         raise ValueError(f"unknown enemy kinds: {sorted(set(unknown))}")

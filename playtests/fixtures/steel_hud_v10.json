@@ -1,0 +1,202 @@
+{
+  "schema": "lupine3d.hud-fixture.v1",
+  "profile": "slim-sable-v2",
+  "description": "Steel HUD pixel contract for the 24-pixel slim HUD: chassis rails, corner highlights, vent notches, the helmet highlight, objective clearance, the divider row, and the portrait/status selection tables. Rows are colour indices 0-3 per pixel, x = 0..159 of the HUD, y = HUD row.",
+  "states": {
+    "health_ladder": [
+      [
+        0,
+        0,
+        8,
+        0
+      ],
+      [
+        11,
+        0,
+        8,
+        0
+      ],
+      [
+        22,
+        0,
+        8,
+        0
+      ],
+      [
+        33,
+        0,
+        8,
+        0
+      ],
+      [
+        44,
+        0,
+        8,
+        0
+      ],
+      [
+        55,
+        0,
+        8,
+        0
+      ],
+      [
+        66,
+        0,
+        8,
+        0
+      ],
+      [
+        77,
+        0,
+        8,
+        0
+      ],
+      [
+        88,
+        0,
+        8,
+        0
+      ],
+      [
+        99,
+        0,
+        8,
+        0
+      ]
+    ],
+    "expressions": [
+      [
+        99,
+        0,
+        62,
+        0
+      ],
+      [
+        99,
+        1,
+        8,
+        0
+      ],
+      [
+        99,
+        0,
+        8,
+        1
+      ]
+    ],
+    "fields": [
+      "health",
+      "hurt",
+      "frame_tick",
+      "level_complete"
+    ]
+  },
+  "chassis_rows": {
+    "0": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "1": "1111221111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111221111",
+    "2": "0001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000",
+    "21": "0001111101110111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000",
+    "22": "0001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000"
+  },
+  "points": [
+    {
+      "x": 80,
+      "y": 6,
+      "expected": 2,
+      "why": "helmet highlight survives every expression"
+    }
+  ],
+  "clear_spans": [
+    {
+      "y": 3,
+      "x": [
+        128,
+        152
+      ],
+      "expected": 0,
+      "why": "objective text clear of the upper bevel"
+    },
+    {
+      "y": 9,
+      "x": [
+        128,
+        152
+      ],
+      "expected": 0,
+      "why": "objective lines separated"
+    }
+  ],
+  "divider": {
+    "first_row_bytes": "ff00",
+    "why": "every dynamic tile under the HUD row keeps the static divider"
+  },
+  "portraits": {
+    "fields": [
+      "health",
+      "hurt",
+      "frame_tick",
+      "portrait"
+    ],
+    "cases": [
+      [
+        99,
+        0,
+        8,
+        0
+      ],
+      [
+        99,
+        0,
+        62,
+        1
+      ],
+      [
+        65,
+        1,
+        8,
+        2
+      ],
+      [
+        0,
+        0,
+        8,
+        3
+      ]
+    ]
+  },
+  "status": {
+    "fields": [
+      "health",
+      "level_complete",
+      "exit_active",
+      "status"
+    ],
+    "cases": [
+      [
+        99,
+        0,
+        0,
+        "LOCK"
+      ],
+      [
+        99,
+        0,
+        1,
+        "OPEN"
+      ],
+      [
+        0,
+        0,
+        1,
+        "DEAD"
+      ],
+      [
+        99,
+        1,
+        1,
+        "DONE"
+      ]
+    ]
+  }
+}
