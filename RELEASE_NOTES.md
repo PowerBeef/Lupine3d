@@ -7,9 +7,11 @@
   (`docs/PERFORMANCE_PHASE5.md`). `LUPINE3D_OVERLAP_PUBLICATION=0` (`make
   sync`) builds the synchronous tail. The harness validates a presented
   frame against the state it was handed off with (`docs/VERIFICATION.md`).
-- **Textured walls are the slim default.** The slim Sable build composes
-  every wall from its episode's textures; `LUPINE3D_TEXTURED_WALLS=0`
-  (`make flat`) builds the flat compositor, which legacy and compact keep.
+- **The engine is textured.** Every slim Sable build composes every wall
+  from its episode's textures; the flat slim profile, its goldens, make
+  targets and CLI flag were removed. The flat compositor remains only as the
+  renderer of the historical legacy and compact profiles, and the fold
+  identity in `make variants` now runs on compact.
 - **Exact performance round** (`docs/PERFORMANCE_PHASE5.md`). The textured
   kernel composes rows under one texel row in 76 T instead of 104 and drops
   its per-tile bookkeeping on one-face columns; every profile gets a leaner

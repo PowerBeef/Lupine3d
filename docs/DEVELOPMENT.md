@@ -17,7 +17,7 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
-`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--flat] [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
 
 | Profile | World / HUD | Default art |
 |---|---|---|
@@ -104,25 +104,15 @@ python tools/preview_sable.py --scene combat --output-dir build/v011/motion-prev
 
 Controller completion uses no game-RAM writes, but reads live state to steer; it is functional verification, not blind human navigation. Variants cover two actors, folded/unfolded, wall reuse, prepared rays and reprojection diagnostics. Wall-reuse testing includes 53 frozen comparisons. Current capture previews are emulator output; generated masters are design references only.
 
-### Textured walls and the flat profile
+### Textured walls
 
-The slim Sable build composes its walls with the row-window kernel of
-`docs/TEXTURED_WALLS.md`: textured walls are the default, and its goldens
-live under `snapshots/slim-sable-v2-textured/`. The legacy and compact
-profiles keep the flat microstrip compositor, and diagnostics textured walls
-cannot run with (the unfolded oracle, physical depth, anchor packets) fall
-back to it on their own. `LUPINE3D_TEXTURED_WALLS=0` builds the flat slim
-profile, which stays verified:
-
-```sh
-make flat                  # build/flat/lupine3d.gb, .sym, manifest
-make playtest-flat         # the three driven tours, frame-validated
-make sable-check-flat      # the Sable checks on the flat compositor
-make snapshot-diff-flat    # its own suites under snapshots/slim-sable-v2/
-```
-
-`tests/test_textured_walls.py` runs the Sable checks under the flag in a
-fresh process, and CI's `profiles` job runs the flat tours and checks above.
+The engine and its showcase are textured: every slim Sable build composes its
+walls with the row-window kernel of `docs/TEXTURED_WALLS.md`, and its goldens
+live under `snapshots/slim-sable-v2-textured/`. The flat slim profile was
+removed; the flat microstrip compositor is kept only as the renderer of the
+historical legacy and compact profiles, whose research lanes (the unfolded
+oracle, physical depth, anchor packets) run there. `tests/test_textured_walls.py`
+runs the Sable checks in a fresh process.
 
 The slim build also publishes each frame's tail from the VBlank interrupt
 (overlapped publication, `docs/PERFORMANCE_PHASE5.md`).

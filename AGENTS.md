@@ -113,18 +113,18 @@ regression contract.
 - Preserve prepared scalar records 0–240 and raw-query sentinel semantics.
   Packet experiments own records 241–250 only.
 
-## Textured walls (the slim default)
+## Textured walls (the engine's renderer)
 
-- Textured walls are the slim Sable default (slim + Sable + streaming only):
-  the row-window kernel in `textured.py` replaces the microstrip compositor
-  and the trained atlas; `texture_reference.compose_kernel` is its
-  byte-exact model and `docs/TEXTURED_WALLS.md` the contract, and the
-  default goldens live under `snapshots/slim-sable-v2-textured/`.
-  `LUPINE3D_TEXTURED_WALLS=0` builds the flat slim profile (`make flat
-  playtest-flat sable-check-flat`, goldens under `snapshots/slim-sable-v2/`);
-  legacy and compact are always flat, and diagnostics textured walls cannot
-  run with (unfolded, physical depth, anchor packets) adapt the implicit
-  default to flat. An explicit incompatible request fails.
+- The engine and its showcase are textured. Every slim Sable build uses the
+  row-window kernel in `textured.py` (slim + Sable + streaming); the flat
+  slim profile was removed, and `LUPINE3D_TEXTURED_WALLS=0`, the unfolded
+  oracle, physical depth or anchor packets on slim Sable are refused.
+  `texture_reference.compose_kernel` is the kernel's byte-exact model and
+  `docs/TEXTURED_WALLS.md` the contract; the goldens live under
+  `snapshots/slim-sable-v2-textured/`. The flat microstrip compositor
+  remains only as the renderer of the historical legacy and compact
+  profiles and their research lanes (the fold identity in `make variants`
+  runs on compact); do not reintroduce a flat slim build.
 - Every cast records its along-face coordinate (`RAY_U`, `PIXEL_U`), oriented
   so texture columns never decrease across the view: the console negates the
   east and north faces. Textures are authored 16x8 indexed PNGs under

@@ -31,9 +31,9 @@ IMPLEMENTED = {"compact_strips", "incremental_certificate", "camera_setup", "dyn
 DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding"}
 # HBlank-streamed publication follows the display profile: it is the compact
 # and slim production path, and the legacy profile keeps its staged VBlank
-# packets byte for byte. Textured walls are the slim Sable default wherever
-# they can run, and so is overlapped publication. All three are resolved
-# after the display, below.
+# packets byte for byte. Textured walls are the slim Sable renderer, and
+# overlapped publication the slim default. All three are resolved after the
+# display, below.
 PROFILE_DEFAULTS = {"hdma_streaming", "textured_walls", "overlap_publication"}
 
 
@@ -84,20 +84,22 @@ def resolve(environ=None):
     if result["hdma_streaming"] and (result["foreground_publication"] or env.get("LUPINE3D_REPROJECTION", "0") == "1"):
         raise ValueError("HBlank-streamed publication excludes the experimental foreground/reprojection lanes")
     # Textured walls (docs/TEXTURED_WALLS.md) compose every wall tile into a
-    # ring the HBlank stream drains, so they need streaming; their texture
-    # coordinates borrow the physical-depth window, so the two exclude each other.
-    # They are the slim Sable default; the diagnostics they cannot run with
-    # (the unfolded oracle, physical depth, anchor packets, no streaming)
-    # adapt the implicit default to flat walls, and LUPINE3D_TEXTURED_WALLS=0
-    # builds the flat slim profile. An explicit request that cannot run fails.
-    textured_default = (display == "slim" and art == "sable-v2" and result["hdma_streaming"]
-                        and not result["physical_depth"] and not result["anchor_packets"]
-                        and env.get("LUPINE3D_FOLDED", "1") != "0")
-    textured = env.get("LUPINE3D_TEXTURED_WALLS", "1" if textured_default else "0")
+    # ring the HBlank stream drains. They are the slim Sable renderer: the
+    # engine and its showcase are textured, and the flat slim profile was
+    # removed. The flat microstrip compositor remains only as the renderer of
+    # the historical legacy and compact profiles and their research lanes, so
+    # a slim Sable build that asks for flat walls, or for a lane textured
+    # walls cannot run with (no streaming, the unfolded oracle, physical
+    # depth, anchor packets), is refused rather than adapted.
+    textured_profile = display == "slim" and art == "sable-v2"
+    textured = env.get("LUPINE3D_TEXTURED_WALLS", "1" if textured_profile else "0")
     if textured not in ("0", "1"):
         raise ValueError("LUPINE3D_TEXTURED_WALLS must be 0 or 1")
     result["textured_walls"] = textured == "1"
-    if result["textured_walls"] and (display != "slim" or art != "sable-v2"):
+    if textured_profile and not result["textured_walls"]:
+        raise ValueError("The flat slim profile was removed: slim Sable builds are textured "
+                         "(legacy and compact keep the flat compositor)")
+    if result["textured_walls"] and not textured_profile:
         raise ValueError("Textured walls require the slim display and Sable art")
     if result["textured_walls"] and not result["hdma_streaming"]:
         raise ValueError("Textured walls require HBlank-streamed publication")

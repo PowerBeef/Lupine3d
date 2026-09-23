@@ -151,7 +151,8 @@ and a diagnostic write waits for a frame boundary so no packet mixes old
 and new state. With those, the coherence tour matches eight of nine
 textured goldens exactly (the ninth differs by the helmet blink's 6 pixels).
 Making it the default moved captures to other accepted ticks in the
-living-world suites of both slim profiles and the flat art tour (door panels
+living-world suites of the textured and the (since removed) flat slim
+profiles and the flat art tour (door panels
 a step further open, actor and beacon frames, the helmet blink, a drop a
 tick apart); each was reviewed by eye and accepted with a note, and every
 frame check, both pinned cores, the witness corpus, the conformance lane and

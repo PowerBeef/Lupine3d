@@ -16,7 +16,7 @@ build writes `build/lupine3d.gb`, a listing, RGBDS-form symbols
 version, budget and hash (`docs/DEVELOPMENT.md`, "Debugger exports").
 
 Every build flag is read at import time, so one process builds one
-configuration. `python tools/lupine.py build --flat` and the other CLI
+configuration. `python tools/lupine.py build --sync` and the other CLI
 subcommands spawn the right process for you.
 
 ## One frame
@@ -38,13 +38,14 @@ subcommands spawn the right process for you.
 5. **Casting** (`ray_setup.py`, `precision.py`, `columns.py`). Forty-one
    prepared anchor rays traverse the grid in Q14; adaptive pairs, edge recasts
    and conservative interpolation reconstruct 160 physical columns, each with
-   a top, a style, a segment key, a surface profile and (textured) an
-   along-face coordinate.
-6. **Composition** (`emitter.py`, `resources.py`; `textured.py` under the
-   textured profile). Each column becomes eight folded tile rows: static
-   ceiling/floor and seam tiles, exact-atlas tiles, or dynamic patterns
-   composed into the 96-slot ring in fixed WRAM. The textured kernel composes
-   from row-window tables instead of microstrips (`docs/TEXTURED_WALLS.md`).
+   a top, a style, a segment key, a surface profile and an along-face
+   texture coordinate.
+6. **Composition** (`textured.py`). Each column becomes eight folded tile
+   rows: static ceiling and floor, or dynamic patterns the row-window kernel
+   composes from the episode's textures into the 96-slot ring in fixed WRAM
+   (`docs/TEXTURED_WALLS.md`). The historical legacy and compact profiles
+   compose flat walls from microstrips and an exact atlas instead
+   (`emitter.py`, `resources.py`).
 7. **Entities** (`actors.py`, `masked_entities.py`, `animation.py`,
    `world_decor.py`). Actors, drops and fixtures are projected, admitted
    under the sixteen-object/four-per-line budget, masked against the wall
@@ -74,12 +75,12 @@ subcommands spawn the right process for you.
 
 ## Where the cycles go
 
-On the coherence tour a full update costs about 675k T-cycles on the flat
-compositor: casting is about half, entity work and publication most of the
-rest, and composition a few percent. `python tools/lupine.py profile` prints
-the split for the current build; `docs/PERFORMANCE_AUDIT_V08.md` ranks the
-remaining headroom and `docs/TEST_REPORT.md` has the sustained rates. The
-textured kernel's cost and its unmet gate are in `docs/TEXTURED_WALLS.md`.
+On the coherence tour a full update costs about 815k T-cycles: casting is
+about half, the texture kernel about a quarter, and entity work and the
+simulation most of the rest; the VBlank interrupt publishes each frame while
+the next one casts. `python tools/lupine.py profile` prints the split for the
+current build; `docs/PERFORMANCE_PHASE5.md` has the sustained rates and where
+an update goes, and `docs/TEXTURED_WALLS.md` the kernel's cost part by part.
 
 ## What is proven, and how
 

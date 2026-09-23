@@ -55,7 +55,7 @@ as the `visual-diff-<sha>` artifact.
 ```sh
 make playtest                      # fails: "snapshot suite 'tour' differs from its goldens: 09_exit_approach (changed, 6 px)"
 python tools/snapshot.py diff --suite tour
-open build/snapshots/slim-sable-v2/tour/report.html
+open build/snapshots/slim-sable-v2-textured/tour/report.html
 python tools/snapshot.py accept --suite tour --scene 09_exit_approach \
     --note "streamed publication presents one interval earlier; helmet blink phase moves"
 git add snapshots/ && git commit

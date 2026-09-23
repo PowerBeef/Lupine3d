@@ -134,13 +134,15 @@ class ObservationContracts(unittest.TestCase):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
                          {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming",
                           "textured_walls", "overlap_publication"})
-        # Textured walls are the slim Sable default; legacy and compact stay
-        # flat, the unfolded oracle adapts the implicit default, 0 opts out,
-        # and an explicit request that cannot run fails.
+        # Textured walls are the slim Sable renderer: the flat slim profile
+        # was removed, so asking for it, or for a lane textured walls cannot
+        # run with, is refused; legacy and compact stay flat.
         self.assertFalse(resolve({"LUPINE3D_DISPLAY": "legacy"})["textured_walls"])
         self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["textured_walls"])
-        self.assertFalse(resolve({"LUPINE3D_TEXTURED_WALLS": "0"})["textured_walls"])
-        self.assertFalse(resolve({"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"})["textured_walls"])
+        for removed in ({"LUPINE3D_TEXTURED_WALLS": "0"}, {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"},
+                        {"LUPINE3D_PHYSICAL_DEPTH": "1"}, {"LUPINE3D_HDMA_STREAMING": "0"}):
+            with self.assertRaises(ValueError):
+                resolve(removed)
         # Overlapped publication is the slim default and hands off the
         # streamed tail: compact keeps the synchronous tail unless asked, 0
         # opts out, and it cannot run without streaming or with the
@@ -149,7 +151,7 @@ class ObservationContracts(unittest.TestCase):
         self.assertFalse(resolve({"LUPINE3D_OVERLAP_PUBLICATION": "0"})["overlap_publication"])
         self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["overlap_publication"])
         self.assertTrue(resolve({"LUPINE3D_DISPLAY": "compact", "LUPINE3D_OVERLAP_PUBLICATION": "1"})["overlap_publication"])
-        self.assertFalse(resolve({"LUPINE3D_PHYSICAL_DEPTH": "1"})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact", "LUPINE3D_PHYSICAL_DEPTH": "1"})["overlap_publication"])
         for conflict in ({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy"}, {"LUPINE3D_HDMA_STREAMING": "0"},
                          {"LUPINE3D_PHYSICAL_DEPTH": "1"}):
             with self.assertRaises(ValueError):
@@ -170,7 +172,9 @@ class ObservationContracts(unittest.TestCase):
                                    ("PREPARED_RAYS", "CAMERA_SETUP"),
                                    ("REPROJECTION", "NARROW_YIELDS")):
             value = "1" if legacy == "REPROJECTION" else "0"
-            self.assertFalse(resolve({"LUPINE3D_"+legacy:value})[experiment.lower()])
+            # The unfolded oracle is a flat-compositor lane: compact carries it.
+            base = {"LUPINE3D_DISPLAY": "compact"} if legacy == "FOLDED" else {}
+            self.assertFalse(resolve({**base, "LUPINE3D_"+legacy:value})[experiment.lower()])
             with self.assertRaises(ValueError):
                 resolve({"LUPINE3D_"+legacy:value, "LUPINE3D_"+experiment:"1"})
 

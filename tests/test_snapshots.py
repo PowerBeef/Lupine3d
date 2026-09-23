@@ -107,21 +107,6 @@ class SnapshotTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.accept(["nope"])
 
-    def test_the_first_tour_goldens_equal_the_archived_v010_oracle(self):
-        """The v0.10 tour goldens were accepted from the same captures the last
-        hash oracle pinned; while that acceptance stands, the two agree."""
-        root = Path(__file__).resolve().parents[1]
-        manifest_path = root / "snapshots" / "slim-sable-v2" / "tour" / "manifest.json"
-        archived = json.loads((root / "playtests" / "archive" / "oracles" / "sable_v10_capture_pixels.json").read_text())
-        if not manifest_path.is_file():
-            self.skipTest("no slim tour goldens accepted yet")
-        manifest = json.loads(manifest_path.read_text())
-        for capture, digest in archived.items():
-            entry = manifest["scenes"].get(Path(capture).stem)
-            if entry is None or entry["rom_sha256"] != "76bc716faf798acd4182bbc69e21aa7f0a95b61e7ef7b583bb4b5a680593524c":
-                continue  # re-accepted on a later ROM: no longer the v0.10 evidence
-            self.assertEqual(entry["rgb_sha256"], digest, capture)
-
 
 if __name__ == "__main__":
     unittest.main()

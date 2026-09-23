@@ -86,27 +86,6 @@ snapshot-accept:
 	test -n "$(SUITE)" && test -n "$(NOTE)"
 	$(PYTHON) tools/snapshot.py accept --suite "$(SUITE)" $(if $(SCENE),--scene "$(SCENE)",) --note "$(NOTE)"
 
-# Textured walls (docs/TEXTURED_WALLS.md) are the slim default. The flat slim
-# profile (the microstrip compositor, LUPINE3D_TEXTURED_WALLS=0) builds into
-# build/flat and is verified by the same driven tours, the Sable checks and
-# its own golden snapshots under snapshots/slim-sable-v2/.
-FLAT := LUPINE3D_TEXTURED_WALLS=0
-FLAT_ROM := --rom build/flat/lupine3d.gb --symbols build/flat/lupine3d.sym
-
-flat:
-	$(FLAT) $(PYTHON) tools/build_rom.py --output-dir build/flat
-
-playtest-flat: flat
-	$(FLAT) $(PYTHON) tools/playtest.py $(FLAT_ROM) --output-dir build/playtest/flat/coherence_tour
-	$(FLAT) $(PYTHON) tools/playtest.py $(FLAT_ROM) --scenario playtests/living_world.json --output-dir build/playtest/flat/living_world
-	$(FLAT) $(PYTHON) tools/playtest.py $(FLAT_ROM) --scenario playtests/sable_art_tour.json --output-dir build/playtest/flat/sable_art_tour
-
-sable-check-flat:
-	$(FLAT) $(PYTHON) tools/check_sable.py --output-dir build/sable-v2/flat-checks
-
-snapshot-diff-flat:
-	$(FLAT) $(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable
-
 # Overlapped publication (docs/PERFORMANCE_PHASE5.md) is the slim default:
 # the VBlank interrupt publishes the streamed tail while the next update
 # casts. The synchronous tail it replaced (LUPINE3D_OVERLAP_PUBLICATION=0)
@@ -145,11 +124,12 @@ variants:
 	LUPINE3D_REPROJECTION=1 LUPINE3D_NARROW_YIELDS=0 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json
 	LUPINE3D_LEVEL=levels/two_sentinels.json $(PYTHON) tools/verify_variants.py two-actors --output build/two_sentinels.json
 	$(PYTHON) tools/verify_variants.py folding --output build/folded_pixels.json
-	# Folding is a property of the flat compositor: the unfolded oracle has
-	# no textured kernel, so the pair runs on flat walls.
-	$(FLAT) $(PYTHON) tools/verify_variants.py folding --output build/folded_flat_pixels.json
-	LUPINE3D_FOLDED=0 LUPINE3D_COMPACT_STRIPS=0 $(PYTHON) tools/verify_variants.py folding --output build/unfolded_pixels.json
-	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded_flat","unfolded")); assert len(a)==9 and a==b'
+	# Folding is a property of the flat microstrip compositor, which only the
+	# historical compact and legacy profiles keep: the unfolded oracle has no
+	# textured kernel, so the fold identity is proven on compact.
+	LUPINE3D_DISPLAY=compact $(PYTHON) tools/verify_variants.py folding --output build/folded_compact_pixels.json
+	LUPINE3D_DISPLAY=compact LUPINE3D_FOLDED=0 LUPINE3D_COMPACT_STRIPS=0 $(PYTHON) tools/verify_variants.py folding --output build/unfolded_pixels.json
+	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded_compact","unfolded")); assert len(a)==9 and a==b'
 	LUPINE3D_WALL_REUSE=0 $(PYTHON) tools/verify_variants.py folding --output build/reuse_disabled_pixels.json
 	$(PYTHON) -c 'import json; from pathlib import Path; a,b=(json.loads(Path("build/"+n+"_pixels.json").read_text())["checks"] for n in ("folded","reuse_disabled")); assert a==b'
 	LUPINE3D_PREPARED_RAYS=0 LUPINE3D_CAMERA_SETUP=0 $(PYTHON) tools/verify_variants.py folding --output build/prepared_disabled_pixels.json

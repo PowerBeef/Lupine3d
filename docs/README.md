@@ -22,7 +22,7 @@ keeps every link and command on these pages valid.
 |---|---|
 | [Architecture](ARCHITECTURE.md) | Memory, renderer, simulation and publication contracts |
 | [Streamed publication](STREAMED_PUBLICATION.md) | How a full update publishes in one VBlank, its contracts and measurements |
-| [Textured walls](TEXTURED_WALLS.md) | Texture-mapped walls with depth shading: the exact host reference, the prototype gate, the emitted row-window kernel and ring (the slim default; `LUPINE3D_TEXTURED_WALLS=0` builds flat walls), and its measured cost |
+| [Textured walls](TEXTURED_WALLS.md) | Texture-mapped walls with depth shading: the exact host reference, the prototype gate, the emitted row-window kernel and ring (the engine's renderer on every slim build), and its measured cost |
 | [Campaign](CAMPAIGN.md) | What turned the demo into a game, and what each decision cost |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Health, helmet, skull and objective implementation |

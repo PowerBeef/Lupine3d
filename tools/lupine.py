@@ -6,16 +6,16 @@ process with the profile flags set from the options, because the build
 flags are read at import time (AGENTS.md). Nothing here changes what the
 tools do; it only spares the reader the flag spelling and the script names.
 
-    lupine build [--flat] [--sync] [--display slim|compact|legacy] [--output-dir DIR]
-    lupine run   [--scenario FILE] [--flat] [--snapshot-mode check|record|none]
+    lupine build [--sync] [--display slim|compact|legacy] [--output-dir DIR]
+    lupine run   [--scenario FILE] [--sync] [--snapshot-mode check|record|none]
     lupine snapshot diff|accept|list ... (tools/snapshot.py)
     lupine level check FILE...        compile a level and print its certificate
     lupine level info FILE            the level's contents at a glance
     lupine level export-tmx SRC DST   the level as a Tiled map (docs/LEVEL_FORMAT.md)
     lupine level import-tmx SRC DST   a Tiled map back to JSON, compiled to check it
-    lupine profile [--flat]           cycles by main-loop stage on the coherence tour
-    lupine test | witnesses | release-check | sable-check [--flat]
-    lupine symbols [--flat]           where the debugger exports are and how to load them
+    lupine profile [--sync]           cycles by main-loop stage on the coherence tour
+    lupine test | witnesses | release-check | sable-check [--sync]
+    lupine symbols [--sync]           where the debugger exports are and how to load them
 """
 from __future__ import annotations
 
@@ -38,8 +38,6 @@ def profile_env(args) -> dict[str, str]:
         env["LUPINE3D_DISPLAY"] = display
         if display == "legacy":
             env.update(LUPINE3D_ART="legacy", LUPINE3D_ART_ANIMATION="0")
-    if getattr(args, "flat", False):
-        env["LUPINE3D_TEXTURED_WALLS"] = "0"
     if getattr(args, "sync", False):
         env["LUPINE3D_OVERLAP_PUBLICATION"] = "0"
     return env
@@ -53,9 +51,7 @@ def run(command: list[str], env: dict[str, str]) -> int:
 def output_dir(args) -> Path:
     if getattr(args, "output_dir", None):
         return Path(args.output_dir)
-    if getattr(args, "flat", False) and getattr(args, "sync", False):
-        return ROOT / "build" / "flat-sync"
-    return ROOT / "build" / ("flat" if getattr(args, "flat", False) else "sync" if getattr(args, "sync", False) else "")
+    return ROOT / "build" / ("sync" if getattr(args, "sync", False) else "")
 
 
 def rom_args(args) -> list[str]:
@@ -140,8 +136,8 @@ def cmd_test(args) -> int:
 
 def cmd_witnesses(args) -> int:
     command = [sys.executable, TOOLS / "independent_witnesses.py", "--snapshot-mode", args.snapshot_mode]
-    if args.flat:
-        command += ["--output-dir", ROOT / "build" / "independent-witnesses-flat"]
+    if args.sync:
+        command += ["--output-dir", ROOT / "build" / "independent-witnesses-sync"]
     return run(command, profile_env(args))
 
 
@@ -151,8 +147,8 @@ def cmd_release_check(args) -> int:
 
 def cmd_sable_check(args) -> int:
     command = [sys.executable, TOOLS / "check_sable.py", "--snapshot-mode", args.snapshot_mode]
-    if args.flat:
-        command += ["--output-dir", ROOT / "build" / "sable-v2" / "flat-checks"]
+    if args.sync:
+        command += ["--output-dir", ROOT / "build" / "sable-v2" / "sync-checks"]
     return run(command, profile_env(args))
 
 
@@ -160,7 +156,7 @@ def cmd_symbols(args) -> int:
     out = output_dir(args)
     manifest = out / "build_manifest.json"
     if not manifest.is_file():
-        print(f"no build under {out}: run `lupine build{' --flat' if args.flat else ''}` first")
+        print(f"no build under {out}: run `lupine build{' --sync' if args.sync else ''}` first")
         return 1
     exports = json.loads(manifest.read_text()).get("exports")
     if not exports:
@@ -179,12 +175,11 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     def profile_options(p):
-        p.add_argument("--flat", action="store_true", help="the flat-walled slim profile (LUPINE3D_TEXTURED_WALLS=0); textured walls are the slim default")
         p.add_argument("--sync", action="store_true", help="the synchronous publication tail (LUPINE3D_OVERLAP_PUBLICATION=0); overlapped publication is the slim default")
         p.add_argument("--display", choices=PROFILES, help="display profile; legacy implies legacy art")
 
     p = sub.add_parser("build", help="build the ROM, listing, symbols, map and manifest"); profile_options(p)
-    p.add_argument("--output-dir", help="default build/, or build/flat with --flat"); p.set_defaults(func=cmd_build)
+    p.add_argument("--output-dir", help="default build/, or build/sync with --sync"); p.set_defaults(func=cmd_build)
     p = sub.add_parser("run", help="run a driven scenario on the built ROM with every frame check"); profile_options(p)
     p.add_argument("--scenario"); p.add_argument("--snapshot-mode", choices=("check", "record", "none"), default="check")
     p.add_argument("--output-dir", dest="output_dir"); p.add_argument("--playtest-output"); p.set_defaults(func=cmd_run)

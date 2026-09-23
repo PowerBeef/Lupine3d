@@ -133,10 +133,10 @@ consequences are in "Cost, measured on the emitted ROM" below.
 
 ## What was emitted (Phase 2b)
 
-Textured walls need the slim display, Sable art and HBlank streaming, and
-since the Phase 5 round they are that profile's default
-(`LUPINE3D_TEXTURED_WALLS=0`, `make flat`, builds the flat slim ROM; the
-legacy and compact profiles are always flat). The contact sheet below is the coherence tour captured
+Textured walls need the slim display, Sable art and HBlank streaming. Since
+the Phase 5 round they are the engine's renderer: the flat slim profile was
+removed, and only the historical legacy and compact profiles keep the flat
+compositor. The contact sheet below is the coherence tour captured
 from the emitted ROM by the harness, not a host rendering.
 
 ![The coherence tour on the textured ROM](images/textured_walls_rom_tour.png)
