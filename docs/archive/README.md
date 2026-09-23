@@ -9,6 +9,7 @@ manifest and `docs/TEST_REPORT.md` to resolve any conflict with a page here.
 
 | Document | Release | What it records |
 |---|---|---|
+| [Test report v0.10](TEST_REPORT_V10.md) | v0.10 | HBlank-streamed publication and the six-sector campaign |
 | [Test report v0.9](TEST_REPORT_V09.md) | v0.9 | ROM-bound qualification and performance of the v0.9 campaign build |
 | [Test report v0.8](TEST_REPORT_V08.md) | v0.8 | The first steel-HUD, six-cel-weapon release |
 | [Test report beta.6](TEST_REPORT_BETA6.md) | beta.6 | The exact-output rendering milestone |

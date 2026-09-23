@@ -1,6 +1,6 @@
 # Documentation
 
-These guides describe **v0.10**, the six-sector campaign on the 160×120 Sable
+These guides describe **v0.11**, the eighteen-sector campaign on the 160×120 Sable
 build with a 24-pixel HUD and HBlank-streamed publication, plus the opt-in
 textured-walls profile. `python tools/check_docs.py` (in the fast CI lane)
 keeps every link and command on these pages valid.
@@ -27,7 +27,7 @@ keeps every link and command on these pages valid.
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Health, helmet, skull and objective implementation |
 | [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
-| [Test report](TEST_REPORT.md) | ROM-bound v0.10 qualification and performance |
+| [Test report](TEST_REPORT.md) | ROM-bound v0.11 qualification and performance |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |
 | [Agent guidance](../AGENTS.md) | Implementation map, invariants and checks |
 

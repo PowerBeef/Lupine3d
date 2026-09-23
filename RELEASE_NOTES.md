@@ -1,5 +1,31 @@
-# Unreleased
+# Lupine 3D v0.11 — Three episodes
 
+v0.10 streamed the renderer; v0.11 turns the six-sector demo into a
+campaign of three episodes and eighteen sectors, each a named place, and
+gives the engine what a campaign and other developers need: golden-image
+verification, an opt-in textured-wall profile, and an SDK.
+
+- **Golden-image verification.** Visual evidence is reviewable snapshots
+  (`tools/snapshot.py`, `docs/VERIFICATION.md`): goldens per profile and
+  suite, a diff report as a CI artifact, and an explicit `accept --note`
+  as the only way to change one. Engine invariants stay hard gates. CI is
+  split into fast, slow and campaign lanes, and a CPU conformance lane runs
+  every emitted instruction form in the harness and in pinned SameBoy.
+- **Textured walls** (opt-in, `LUPINE3D_TEXTURED_WALLS=1`). A row-window
+  kernel textures every wall from authored 16×8 PNGs with depth shading,
+  byte-exact against its host model (`docs/TEXTURED_WALLS.md`). It costs
+  more than the flat compositor and misses its performance gate, so the
+  default ROM is unchanged.
+- **An SDK for other games.** RGBDS-form `.sym` and `.map` exports, one
+  `tools/lupine.py` command line, the level format with a JSON schema and a
+  certificate reference, a lossless Tiled (TMX) round trip, an art pipeline
+  guide with a palette planner, and a developer guide with a generated
+  memory map (`docs/guide/`).
+- **Engine limits lifted for the campaign.** Levels are packed five to a
+  ROM bank behind a resident directory; a level holds six doors and six
+  actors; each episode has its own palette set; four weapons are owned by
+  episode; a boss kind closes an episode; and episodes open and close with
+  their own screens.
 - **Three episodes of six sectors.** Reactor Deep (sectors 7-12) and Signal
   Spire (13-18) join Sable Outpost, each with its own palette set, opening and
   closing screens, and a boss in its last sector; the arsenal grows to four

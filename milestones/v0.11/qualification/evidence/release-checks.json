@@ -1,0 +1,1372 @@
+{
+  "project": "Lupine 3D",
+  "version": "0.11",
+  "rom": {
+    "path": "build/lupine3d.gb",
+    "bytes": 4194304,
+    "sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+    "header_checksum": "0x29",
+    "global_checksum": "0x1664",
+    "title": "LUPINE3D",
+    "cgb_flag": "0xC0",
+    "cartridge_type": "0x19",
+    "version_byte": "0x06"
+  },
+  "checks": {
+    "rom_size_4_mib": true,
+    "cgb_only_flag": true,
+    "mbc5_no_ram_cartridge": true,
+    "rom_size_header_4_mib": true,
+    "header_checksum": true,
+    "global_checksum": true,
+    "engine_fits_rom": true,
+    "maximum_commit_176_blocks": true,
+    "bounded_publication_stages": true,
+    "playtest_hashes_current": true,
+    "sable_art_tour_current": true,
+    "hud_and_fixture_budgets": true,
+    "controller_only_completion": true,
+    "fixed_tick_and_snapshot_enabled": true,
+    "certified_q14_enabled": true,
+    "masked_8x16_six_actor_slots": true,
+    "folded_rgb_exact": true,
+    "exact_wall_reuse_enabled": true,
+    "wall_reuse_53_scenes_and_timed_feedback": true,
+    "wall_reuse_disabled_rgb_exact": true,
+    "streaming_columns_and_events_enabled": true,
+    "prepared_ray_table_budget": true,
+    "prepared_ray_disabled_rgb_exact": true,
+    "live_motion_current_and_safe": true,
+    "full_current_tail_scan": true,
+    "available_independent_evidence_current": true,
+    "integer_dda_zero_mismatches": true,
+    "adaptive_wall_identity_zero_mismatches": true,
+    "adaptive_style_zero_mismatches": true,
+    "dynamic_tile_corpus_zero_overflow": true,
+    "current_dynamic_tile_stress_zero_overflow": true,
+    "v3_mean_geometry_error_improved": true,
+    "v3_wrong_segments_improved": true,
+    "driven_playtest_passed": true,
+    "driven_playtest_zero_unsafe_gdma": true,
+    "snapshots_all_match": true,
+    "driven_playtest_mean_under_1_050k": true,
+    "driven_playtest_max_under_1_400k": true,
+    "living_world_max_under_2_200k": true,
+    "atlas_exact_signature_entries_255": true,
+    "atlas_patterns_fit_vram_121": true,
+    "entity_atlas_patterns_fit_vram_80": true,
+    "entity_atlas_frees_41_ids": true,
+    "entity_atlas_corpus_zero_overflow": true,
+    "atlas_pareto_full_cache_fastest": true,
+    "tail_corpus_all_large_errors_are_segment_events": true,
+    "vblank_input_sampling_enabled": true,
+    "input_edge_latching_enabled": true,
+    "interrupts_do_not_mutate_render_pose": true,
+    "ray_depth_buffer_80_bytes": true,
+    "ray_segment_buffer_80_bytes": true,
+    "pixel_segment_buffer_160_bytes": true,
+    "segment_aware_reconstruction": true,
+    "material_geometry_decoupled": true,
+    "horizon_locked_surface_rail_disabled": true,
+    "entity_heavy_profile_active": true,
+    "level_v2_safe_spawn_contract": true,
+    "independent_door_records": true,
+    "level_has_no_unreachable_walkable_cells": true,
+    "level_sightline_at_most_six_cells": true,
+    "level_critical_path_has_three_turns": true,
+    "every_level_door_is_meaningful": true,
+    "level_material_seams_include_latent_jambs": true,
+    "level_material_singletons_include_latent_jambs": true,
+    "campaign_levels_each_certified": true,
+    "campaign_level_slots_distinct": true,
+    "campaign_route_restarted_after_the_last_sector": true,
+    "campaign_route_completed_every_sector": true,
+    "signed_bg_allocation": true,
+    "folded_compositor_enabled": true,
+    "full_atlas_with_entities": true,
+    "world_space_exit_beacon": true,
+    "living_world_playtest_passed": true,
+    "living_world_oam_total_safe": true,
+    "living_world_oam_scanline_safe": true,
+    "living_world_zero_unsafe_gdma": true,
+    "living_world_level_completed": true,
+    "living_world_normal_and_exit_doors_completed": true,
+    "automated_test_inventory_291": true,
+    "material_full_width_contrast_bands_zero": true,
+    "stationary_no_dynamic_overflow": true,
+    "scripted_no_dynamic_overflow": true,
+    "stationary_vblank_safe_commits": true,
+    "scripted_vblank_safe_commits": true,
+    "stationary_bounded_transfers_per_commit": true,
+    "scripted_bounded_transfers_per_commit": true,
+    "stationary_no_unsafe_gdma": true,
+    "scripted_no_unsafe_gdma": true,
+    "stationary_vblank_input_interrupts": true,
+    "scripted_vblank_input_interrupts": true
+  },
+  "automated_tests": 291,
+  "architecture": {
+    "viewport": [
+      160,
+      120
+    ],
+    "geometry_columns": 80,
+    "physical_columns": 160,
+    "column_width_pixels": 2,
+    "ray_traversal": "certified Q14 crossing order with Q5 projection",
+    "adaptive_anchor_casts": 41,
+    "adaptive_validation": "same plane/material/segment/profile, adjacent face cells, and <=2-pixel anchor slope",
+    "direction_table_entries": 1024,
+    "direction_scale": 127,
+    "projection_fractional_bits": 5,
+    "selective_edge_recasts": true,
+    "ray_depth_buffer_bytes": 80,
+    "ray_segment_buffer_bytes": 80,
+    "segment_aware_reconstruction": true,
+    "compositor": "certified Q14 crossing order, Q5 projection, folded signed-BG compositor and masked 8x16 entities",
+    "wall_material_names": [
+      "oxidized bulkhead - light face",
+      "oxidized bulkhead - shadow face",
+      "inset machinery panel - light face",
+      "inset machinery panel - shadow face",
+      "reinforced hazard door"
+    ],
+    "wall_pattern_resolution_pairs": [
+      1,
+      1
+    ],
+    "full_width_contrast_bands": 0,
+    "dynamic_tile_capacity": 96,
+    "maximum_commit_bytes": 2816,
+    "maximum_commit_blocks": 188,
+    "framebuffer_bytes": 0,
+    "engine_bytes": 28469,
+    "engine_end": "0x7085",
+    "hram_hot_state_bytes": 112,
+    "cartridge": "MBC5",
+    "rom_banks": 256,
+    "projection_lut_bytes": 2359296,
+    "product_lut_bytes": 131072,
+    "vram_profile": "entity-heavy",
+    "renderer_atlas_patterns": 121,
+    "entity_atlas_patterns": 121,
+    "oam_reserved_ui_entries": 12,
+    "oam_entity_capacity": 16,
+    "level_format": "lupine-level-v2",
+    "player_collision_radius_q8": 56,
+    "animated_door": true,
+    "vblank_input_sampling": true,
+    "input_edge_latching": true,
+    "estimated_maximum_gdma_microseconds": 1504.0,
+    "estimated_vblank_microseconds": 1087.189
+  },
+  "archived_research_summary": {
+    "corpus_views": 24384,
+    "physical_column_samples": 3901440,
+    "integer_dda_samples": 243840,
+    "mean_top_edge_error_reduction_pct_vs_v0_2_2": 27.283,
+    "wrong_segment_reduction_pct_vs_v0_2_2": 33.88,
+    "mean_traversal_iteration_reduction_pct": 65.177,
+    "mean_total_casts": 45.844,
+    "mean_edge_recasts": 2.296,
+    "mean_dynamic_tiles": 17.019,
+    "exact_atlas_patterns": 121,
+    "exact_atlas_signatures": 255,
+    "exact_atlas_coverage_pct": 41.377,
+    "atlas_pareto_candidates": 6,
+    "entity_atlas_patterns": 80,
+    "entity_atlas_freed_tile_ids": 41,
+    "tail_threshold_px": 8.0,
+    "tail_columns_at_or_above_threshold": 1566,
+    "tail_columns_with_correct_segment": 0,
+    "full_results": "research/results/rendering_v3_results.json"
+  },
+  "driven_playtest": {
+    "update_count": 11,
+    "background_page_swaps": 9,
+    "reused_wall_updates": 2,
+    "executed_casts": 411,
+    "capture_count": 9,
+    "mean_cycles": 636149.4545454546,
+    "max_cycles": 984992,
+    "min_updates_per_second": 8.516422468405835,
+    "max_dynamic_tiles": 19,
+    "max_total_casts": 53,
+    "max_visible_oam": 13,
+    "max_oam_per_scanline": 5,
+    "oam_limits_respected": true,
+    "gdma_vblank_violations": 0,
+    "snapshot": {
+      "schema": "lupine3d.snapshots.v1",
+      "suite": "tour",
+      "profile": "slim-sable-v2",
+      "mode": "check",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
+      "golden_dir": "snapshots/slim-sable-v2/tour",
+      "counts": {
+        "match": 9,
+        "changed": 0,
+        "new": 0,
+        "missing": 0
+      },
+      "passed": true,
+      "scenes": [
+        {
+          "actual_sha256": "2f2078ff3d10698b2b68acddc4e0022804a47c344a2b6d5f528a4441dbdf4aa7",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "2f2078ff3d10698b2b68acddc4e0022804a47c344a2b6d5f528a4441dbdf4aa7",
+          "status": "match",
+          "scene": "01_protected_start",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:08+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "78b8736baee2e4e5e397d57dca3ca382b1305b265c8536b77f9a2cef9cea85d7",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "78b8736baee2e4e5e397d57dca3ca382b1305b265c8536b77f9a2cef9cea85d7",
+          "status": "match",
+          "scene": "02_airlock_approach",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:08+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "fc206fdd928865fd05cd7d9f58df04205167116aeb52c4d70132bc9b2852aad3",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "fc206fdd928865fd05cd7d9f58df04205167116aeb52c4d70132bc9b2852aad3",
+          "status": "match",
+          "scene": "03_airlock_open",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "6cb230c061f58884c2c20148391a2c41b6a7ca004280573625564161af0ee77b",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "6cb230c061f58884c2c20148391a2c41b6a7ca004280573625564161af0ee77b",
+          "status": "match",
+          "scene": "04_corridor_turn",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "78b8736baee2e4e5e397d57dca3ca382b1305b265c8536b77f9a2cef9cea85d7",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "78b8736baee2e4e5e397d57dca3ca382b1305b265c8536b77f9a2cef9cea85d7",
+          "status": "match",
+          "scene": "05_mess_hatch",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "d1ca5910563cf250e7013bf2665d55068378806de8bc4f23ce97636d4c620382",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "d1ca5910563cf250e7013bf2665d55068378806de8bc4f23ce97636d4c620382",
+          "status": "match",
+          "scene": "06_mess_open",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "ff9c131a6d1fcaf3203eef495f73a41458ff7e28101e1e3a0de089f79e699391",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "ff9c131a6d1fcaf3203eef495f73a41458ff7e28101e1e3a0de089f79e699391",
+          "status": "match",
+          "scene": "07_comms_entry",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "8a693045c19552d55d77eba7b15ee7db53e295c07c63e5e13cb8290c63b4bc6b",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "8a693045c19552d55d77eba7b15ee7db53e295c07c63e5e13cb8290c63b4bc6b",
+          "status": "match",
+          "scene": "08_comms_room",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:11:56+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "87537f3414e9795e2362f2fef5d67520d85882d9d2fb7adca9c61c57b93b1fd9",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "87537f3414e9795e2362f2fef5d67520d85882d9d2fb7adca9c61c57b93b1fd9",
+          "status": "match",
+          "scene": "09_exit_approach",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:08+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        }
+      ]
+    },
+    "failed_updates": [],
+    "passed": true
+  },
+  "living_world_playtest": {
+    "update_count": 47,
+    "background_page_swaps": 23,
+    "reused_wall_updates": 24,
+    "executed_casts": 1089,
+    "capture_count": 14,
+    "mean_cycles": 573162.2978723404,
+    "max_cycles": 1264032,
+    "min_updates_per_second": 6.636388952178426,
+    "max_dynamic_tiles": 25,
+    "max_total_casts": 55,
+    "max_visible_oam": 16,
+    "max_oam_per_scanline": 6,
+    "oam_limits_respected": true,
+    "gdma_vblank_violations": 0,
+    "snapshot": {
+      "schema": "lupine3d.snapshots.v1",
+      "suite": "world",
+      "profile": "slim-sable-v2",
+      "mode": "check",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
+      "golden_dir": "snapshots/slim-sable-v2/world",
+      "counts": {
+        "match": 14,
+        "changed": 0,
+        "new": 0,
+        "missing": 0
+      },
+      "passed": true,
+      "scenes": [
+        {
+          "actual_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+          "status": "match",
+          "scene": "01_safe_start",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:22+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "1c9ec4a37e583606bef9eb8553a7107ea4442d59d7d89083b4741c6dc86a5f66",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "1c9ec4a37e583606bef9eb8553a7107ea4442d59d7d89083b4741c6dc86a5f66",
+          "status": "match",
+          "scene": "02_start_airlock_opening",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:22+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "fc206fdd928865fd05cd7d9f58df04205167116aeb52c4d70132bc9b2852aad3",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "fc206fdd928865fd05cd7d9f58df04205167116aeb52c4d70132bc9b2852aad3",
+          "status": "match",
+          "scene": "03_start_airlock_open",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "bfff17e7d50d8681436f489362d6399a925e121b4cdafc71fc8b58abec08282d",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "bfff17e7d50d8681436f489362d6399a925e121b4cdafc71fc8b58abec08282d",
+          "status": "match",
+          "scene": "04_critical_turn",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "1c9ec4a37e583606bef9eb8553a7107ea4442d59d7d89083b4741c6dc86a5f66",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "1c9ec4a37e583606bef9eb8553a7107ea4442d59d7d89083b4741c6dc86a5f66",
+          "status": "match",
+          "scene": "05_mess_hatch_opening",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "208828596f14e81e52ae769b66d75395e219c50c91f33707d56506c29f261108",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "208828596f14e81e52ae769b66d75395e219c50c91f33707d56506c29f261108",
+          "status": "match",
+          "scene": "06_exit_approach_locked",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:22+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "235eb101eed3fb07c54508b54a6b605bdc9d42f7a34e8e7c2115da9a5a3242d1",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "235eb101eed3fb07c54508b54a6b605bdc9d42f7a34e8e7c2115da9a5a3242d1",
+          "status": "match",
+          "scene": "07_sentinel_encounter",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "fa9485b78b66f05e57a80423f7e5350148f1ac60a8c9147852e2e18ec446cd61",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "fa9485b78b66f05e57a80423f7e5350148f1ac60a8c9147852e2e18ec446cd61",
+          "status": "match",
+          "scene": "08_sentinel_hit_one",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "974ea15a0c90c4ba952c5ff5ea9cd4db1d7c0965273d17dd4d2702a382f1cdc3",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "974ea15a0c90c4ba952c5ff5ea9cd4db1d7c0965273d17dd4d2702a382f1cdc3",
+          "status": "match",
+          "scene": "09_sentinel_hit_two",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "98bfd63b913df61fd453261aa2c04e4c9c1102a179f063f6a350fc4bf049ed3c",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "98bfd63b913df61fd453261aa2c04e4c9c1102a179f063f6a350fc4bf049ed3c",
+          "status": "match",
+          "scene": "10_sentinel_dead",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "34c0ba4319c9f255836fff782651a028b21217185c3e4eb9791237cbd62a94ee",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "34c0ba4319c9f255836fff782651a028b21217185c3e4eb9791237cbd62a94ee",
+          "status": "match",
+          "scene": "11_pickup_collected",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "1f709ba78b0a0634ab6b7c5bbfb882ffd6b43553b3c6abf92413369c45caacec",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "1f709ba78b0a0634ab6b7c5bbfb882ffd6b43553b3c6abf92413369c45caacec",
+          "status": "match",
+          "scene": "12_exit_unlocking",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:18:22+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "0c8da9b200636fa13e0b9dac6c49155d7d022e477236301386820f23692a4e21",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "0c8da9b200636fa13e0b9dac6c49155d7d022e477236301386820f23692a4e21",
+          "status": "match",
+          "scene": "13_exit_beacon",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "d6f83e7bf4ee13579b8b1a0b5dfbf3b91d1b77498ada26d63a356006a86ef9ab",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "d6f83e7bf4ee13579b8b1a0b5dfbf3b91d1b77498ada26d63a356006a86ef9ab",
+          "status": "match",
+          "scene": "14_level_complete",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:27+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        }
+      ]
+    },
+    "failed_updates": [],
+    "passed": true
+  },
+  "sable_art_playtest": {
+    "update_count": 6,
+    "background_page_swaps": 6,
+    "reused_wall_updates": 0,
+    "executed_casts": 267,
+    "capture_count": 6,
+    "mean_cycles": 838582.0,
+    "max_cycles": 983272,
+    "min_updates_per_second": 8.531319919615326,
+    "max_dynamic_tiles": 18,
+    "max_total_casts": 53,
+    "max_visible_oam": 14,
+    "max_oam_per_scanline": 5,
+    "oam_limits_respected": true,
+    "gdma_vblank_violations": 0,
+    "snapshot": {
+      "schema": "lupine3d.snapshots.v1",
+      "suite": "art",
+      "profile": "slim-sable-v2",
+      "mode": "check",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
+      "golden_dir": "snapshots/slim-sable-v2/art",
+      "counts": {
+        "match": 6,
+        "changed": 0,
+        "new": 0,
+        "missing": 0
+      },
+      "passed": true,
+      "scenes": [
+        {
+          "actual_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "fafdad3ff9e67c4ae62421fbaf645c6de77578e2aa985445fe1d217d4ab45942",
+          "status": "match",
+          "scene": "01_airlock",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:19:14+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "d21104347020311ad15098da4e7e2e52fe2629dfad24acbfdf09411afd62f649",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "d21104347020311ad15098da4e7e2e52fe2629dfad24acbfdf09411afd62f649",
+          "status": "match",
+          "scene": "02_vent",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:19:14+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "8424689fd9f93e2b7de547f7018bd6b3235d9a10b64347567aa7e4df6a1fe238",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "8424689fd9f93e2b7de547f7018bd6b3235d9a10b64347567aa7e4df6a1fe238",
+          "status": "match",
+          "scene": "03_utility_light",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:19:14+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "dd6575f2fd839447a1b109b0bd83f524e3f750f8cc6483862d7640f9c2a1019a",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "dd6575f2fd839447a1b109b0bd83f524e3f750f8cc6483862d7640f9c2a1019a",
+          "status": "match",
+          "scene": "04_sector_07",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:13:40+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        },
+        {
+          "actual_sha256": "9fed989e6c644079b98acefe6bb2efbe7ba4761b5286366eea424e8366a19e32",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "9fed989e6c644079b98acefe6bb2efbe7ba4761b5286366eea424e8366a19e32",
+          "status": "match",
+          "scene": "05_oblique_vent",
+          "accepted": {
+            "rom_sha256": "e4b6de78a9a44bfa1ff93cf42891f949d41bc3cabceb9bcd89f5362493bdf81d",
+            "accepted_at": "2026-09-23T04:19:14+00:00",
+            "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
+          }
+        },
+        {
+          "actual_sha256": "906a356e7a80cdf252ac5afaf2b05d2ead4649549df63ac922cdd58d3412d678",
+          "changed_pixels": 0,
+          "bbox": null,
+          "world_pixels": 0,
+          "hud_pixels": 0,
+          "expected_sha256": "906a356e7a80cdf252ac5afaf2b05d2ead4649549df63ac922cdd58d3412d678",
+          "status": "match",
+          "scene": "06_sentinel",
+          "accepted": {
+            "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+            "accepted_at": "2026-09-23T07:17:42+00:00",
+            "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+          }
+        }
+      ]
+    },
+    "failed_updates": [],
+    "passed": true
+  },
+  "controller_completion": {
+    "sectors": [
+      {
+        "index": 0,
+        "name": "Sable Outpost",
+        "updates": 518,
+        "actors": 1,
+        "health_remaining": 92
+      },
+      {
+        "index": 1,
+        "name": "Coolant Spine",
+        "updates": 1139,
+        "actors": 2,
+        "health_remaining": 99
+      },
+      {
+        "index": 2,
+        "name": "Reactor Gate",
+        "updates": 1070,
+        "actors": 3,
+        "health_remaining": 26
+      },
+      {
+        "index": 3,
+        "name": "Vent Stacks",
+        "updates": 918,
+        "actors": 4,
+        "health_remaining": 99
+      },
+      {
+        "index": 4,
+        "name": "Signal Deck",
+        "updates": 991,
+        "actors": 4,
+        "health_remaining": 99
+      },
+      {
+        "index": 5,
+        "name": "Cryo Vault",
+        "updates": 960,
+        "actors": 4,
+        "health_remaining": 28
+      },
+      {
+        "index": 6,
+        "name": "Coolant Intake",
+        "updates": 1292,
+        "actors": 5,
+        "health_remaining": 82
+      },
+      {
+        "index": 7,
+        "name": "Pump Gallery",
+        "updates": 1428,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 8,
+        "name": "Turbine Hall",
+        "updates": 1364,
+        "actors": 4,
+        "health_remaining": 99
+      },
+      {
+        "index": 9,
+        "name": "Coolant Dark",
+        "updates": 2777,
+        "actors": 6,
+        "health_remaining": 99
+      },
+      {
+        "index": 10,
+        "name": "Control Gallery",
+        "updates": 1011,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 11,
+        "name": "Reactor Heart",
+        "updates": 1531,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 12,
+        "name": "Antenna Base",
+        "updates": 1120,
+        "actors": 4,
+        "health_remaining": 99
+      },
+      {
+        "index": 13,
+        "name": "Relay Deck",
+        "updates": 761,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 14,
+        "name": "Hull Walk",
+        "updates": 2386,
+        "actors": 6,
+        "health_remaining": 99
+      },
+      {
+        "index": 15,
+        "name": "Signal Vault",
+        "updates": 1453,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 16,
+        "name": "Transmitter Ring",
+        "updates": 1659,
+        "actors": 5,
+        "health_remaining": 99
+      },
+      {
+        "index": 17,
+        "name": "Spire Crown",
+        "updates": 1678,
+        "actors": 6,
+        "health_remaining": 99
+      }
+    ],
+    "passed": true,
+    "controller_only": true,
+    "game_ram_injections": 0,
+    "restart_verified": true,
+    "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+    "reports": 5
+  },
+  "current_q14_tail": {
+    "corpus": {
+      "positions": 381,
+      "angle_step": 4,
+      "views": 24384,
+      "physical_columns": 3901440
+    },
+    "tail": {
+      "maximum_top_error_px": 4.489522341029726,
+      "columns_at_or_above_threshold": 0,
+      "tail_columns_with_correct_segment": 0,
+      "wrong_segment_columns": 67,
+      "wrong_material_columns": 3,
+      "affected_poses": 67,
+      "retained_records": 64
+    },
+    "configuration": {
+      "q14_order": true,
+      "folded": true,
+      "viewport": [
+        160,
+        120
+      ],
+      "horizon": 60,
+      "level_grid_sha256": "73f56a7f179dbf67ffffd84078eb388d0512f1354acc65c45508b127cc76f453",
+      "benchmark_rom_sha256": "171443aaca2874558cdf4d6b5ca15b116e16c73d47822f89a61c74b36b624691",
+      "scope": "host floating comparison on this configured level; not an independent-emulator corpus"
+    }
+  },
+  "current_static_geometry": {
+    "configuration": {
+      "scope": "static-cell host geometry; finite doors and runtime timing are qualified separately",
+      "static_cell_geometry": true,
+      "legacy_horizon": 48,
+      "current_horizon": 60,
+      "level_grid_sha256": "73f56a7f179dbf67ffffd84078eb388d0512f1354acc65c45508b127cc76f453",
+      "benchmark_rom_sha256": "171443aaca2874558cdf4d6b5ca15b116e16c73d47822f89a61c74b36b624691"
+    },
+    "corpus": {
+      "views": 24384,
+      "physical_column_samples": 3901440
+    },
+    "common_96_pixel_window": {
+      "mean_px": 0.23255097329870172,
+      "p95_px": 0.7881519227791216,
+      "p99_px": 1.1092607688158083,
+      "max_px": 4.489522341029726,
+      "mean_top_error_reduction_pct": 30.42949749475702
+    },
+    "v0.2.2": {
+      "mean_px": 0.33426662870686635,
+      "p95_px": 1.256152897071665,
+      "p99_px": 1.9526992845128177,
+      "max_px": 41.0,
+      "wrong_segment_pct": 0.384396530511811,
+      "wrong_material_pct": 0.032244504593175856,
+      "mean_casts": 44.94385662729659
+    },
+    "current": {
+      "mean_px": 0.299378519249975,
+      "p95_px": 0.9754212616421327,
+      "p99_px": 1.486740978125205,
+      "max_px": 4.489522341029726,
+      "wrong_segment_pct": 0.0017173146325459318,
+      "wrong_material_pct": 7.689468503937008e-05,
+      "mean_total_casts": 46.93253772965879,
+      "mean_edge_recasts": 2.3126640419947506,
+      "max_edge_recasts": 16,
+      "mean_material_events": 3.843380905511811,
+      "max_material_events": 25,
+      "mean_split_pairs": 5.709194553805775,
+      "mean_dynamic_tiles": 12.547203083989501,
+      "max_dynamic_tiles": 33,
+      "overflow_views": 0
+    },
+    "improvement": {
+      "mean_top_error_reduction_pct": 10.437209838103922,
+      "p95_top_error_reduction_pct": 22.34852429859232,
+      "p99_top_error_reduction_pct": 23.862266457677606,
+      "wrong_segment_reduction_pct": 99.55324398212976,
+      "wrong_material_reduction_pct": 99.76152623211448
+    }
+  },
+  "independent_emulators": {
+    "sameboy_cgb0.json": {
+      "passed": true,
+      "model": 512,
+      "lcd_frames": 480,
+      "page_swaps": 32,
+      "gdma_starts": 162,
+      "unsafe_gdma_starts": 0,
+      "unsafe_page_flips": 0,
+      "presentations": 293,
+      "reused_presentations": 261,
+      "unsafe_presentations": 0,
+      "unsafe_oam_starts": 0,
+      "visible_mask_writes": 0,
+      "foreground_publications": 0,
+      "mixed_world_oam": 0,
+      "unsafe_cpu_map_writes": 0,
+      "visible_world_map_writes": 0,
+      "mode3_vram_writes": 0,
+      "mode3_palette_writes": 0,
+      "moved": true,
+      "turned": true,
+      "starting_door_open": true,
+      "bootstrap": "original minimal synthetic bootstrap",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "core": "SameBoy",
+      "core_commit": "213a12ce93d66b105a113debd9396306066a7cfc",
+      "physical_hardware_tested": false,
+      "original_boot_rom_tested": false,
+      "color_conversion": "linear RGB15, channel*255//31",
+      "startup_rgb_matches_host": true,
+      "startup_rgb_scope": "separate frozen snapshot; controller smoke remains unpatched"
+    },
+    "sameboy_cgbe.json": {
+      "passed": true,
+      "model": 517,
+      "lcd_frames": 480,
+      "page_swaps": 32,
+      "gdma_starts": 162,
+      "unsafe_gdma_starts": 0,
+      "unsafe_page_flips": 0,
+      "presentations": 293,
+      "reused_presentations": 261,
+      "unsafe_presentations": 0,
+      "unsafe_oam_starts": 0,
+      "visible_mask_writes": 0,
+      "foreground_publications": 0,
+      "mixed_world_oam": 0,
+      "unsafe_cpu_map_writes": 0,
+      "visible_world_map_writes": 0,
+      "mode3_vram_writes": 0,
+      "mode3_palette_writes": 0,
+      "moved": true,
+      "turned": true,
+      "starting_door_open": true,
+      "bootstrap": "original minimal synthetic bootstrap",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "core": "SameBoy",
+      "core_commit": "213a12ce93d66b105a113debd9396306066a7cfc",
+      "physical_hardware_tested": false,
+      "original_boot_rom_tested": false,
+      "color_conversion": "linear RGB15, channel*255//31",
+      "startup_rgb_matches_host": true,
+      "startup_rgb_scope": "separate frozen snapshot; controller smoke remains unpatched"
+    },
+    "mgba_cgb.json": {
+      "passed": true,
+      "lcd_frames": 480,
+      "page_swaps": 32,
+      "presentations": 294,
+      "moved": true,
+      "turned": true,
+      "starting_door_open": true,
+      "input_queue_overflow": 0,
+      "foreground_publications": 0,
+      "mixed_world_oam": 0,
+      "bootstrap": "mGBA built-in skip-BIOS",
+      "dma_write_instrumentation": false,
+      "core": "mGBA",
+      "core_commit": "507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6",
+      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "physical_hardware_tested": false,
+      "original_boot_rom_tested": false,
+      "startup_rgb_matches_host": true,
+      "startup_rgb_scope": "separate frozen snapshot; controller smoke remains unpatched"
+    }
+  },
+  "wall_reuse": {
+    "candidate_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+    "diagnostic_initial_state_injection": true,
+    "physical_hardware_tested": false,
+    "frozen": {
+      "exact_scenes": 53,
+      "full_mean_cycles": 1006974.716981132,
+      "cached_mean_cycles": 143516.90566037735,
+      "reduction_percent": 85.74771508756098
+    },
+    "live": {
+      "idle": {
+        "forced_full": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.1892013549804688,
+          "presentations": 10,
+          "display_updates_hz": 8.409004882242368,
+          "full_updates": 10,
+          "reused_updates": 0,
+          "mean_cycles": 983136.0,
+          "max_cycles": 983172,
+          "mean_gdma_blocks": 68.0,
+          "visible_enemy_animation_changes": 0,
+          "presses": [],
+          "health": 99,
+          "input_queue_overflow": 0
+        },
+        "cached": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.1892004013061523,
+          "presentations": 71,
+          "display_updates_hz": 59.70398254324292,
+          "full_updates": 0,
+          "reused_updates": 71,
+          "mean_cycles": 140416.338028169,
+          "max_cycles": 140476,
+          "mean_gdma_blocks": 2.0,
+          "visible_enemy_animation_changes": 0,
+          "presses": [],
+          "health": 99,
+          "input_queue_overflow": 0
+        }
+      },
+      "combat": {
+        "forced_full": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.189143180847168,
+          "presentations": 10,
+          "display_updates_hz": 8.409416259592737,
+          "full_updates": 10,
+          "reused_updates": 0,
+          "mean_cycles": 983154.0,
+          "max_cycles": 983340,
+          "mean_gdma_blocks": 76.4,
+          "visible_enemy_animation_changes": 2,
+          "presses": [
+            {
+              "onset_cycle": 3689860,
+              "publication_ms": 116.790771484375,
+              "muzzle_scanline_ms": 128.50570678710938
+            },
+            {
+              "onset_cycle": 7060616,
+              "publication_ms": 66.5593147277832,
+              "muzzle_scanline_ms": 78.2771110534668
+            },
+            {
+              "onset_cycle": 10431368,
+              "publication_ms": 16.332149505615234,
+              "muzzle_scanline_ms": 28.048992156982422
+            }
+          ],
+          "health": 99,
+          "input_queue_overflow": 0
+        },
+        "cached": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.1891412734985352,
+          "presentations": 35,
+          "display_updates_hz": 29.433004118196656,
+          "full_updates": 0,
+          "reused_updates": 35,
+          "mean_cycles": 280835.54285714286,
+          "max_cycles": 281084,
+          "mean_gdma_blocks": 10.4,
+          "visible_enemy_animation_changes": 13,
+          "presses": [
+            {
+              "onset_cycle": 3689864,
+              "publication_ms": 16.06464385986328,
+              "muzzle_scanline_ms": 28.048992156982422
+            },
+            {
+              "onset_cycle": 7060612,
+              "publication_ms": 16.065597534179688,
+              "muzzle_scanline_ms": 28.049468994140625
+            },
+            {
+              "onset_cycle": 10431368,
+              "publication_ms": 16.06607437133789,
+              "muzzle_scanline_ms": 28.048992156982422
+            }
+          ],
+          "health": 99,
+          "input_queue_overflow": 0
+        }
+      },
+      "turning": {
+        "forced_full": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.1892008781433105,
+          "presentations": 11,
+          "display_updates_hz": 9.24990907942669,
+          "full_updates": 11,
+          "reused_updates": 0,
+          "mean_cycles": 893759.6363636364,
+          "max_cycles": 983236,
+          "mean_gdma_blocks": 70.9090909090909,
+          "visible_enemy_animation_changes": 0,
+          "presses": [],
+          "health": 99,
+          "input_queue_overflow": 0
+        },
+        "cached": {
+          "lcd_frames": 72,
+          "feedback_drain_lcd_frames": 0,
+          "elapsed_seconds": 1.1892008781433105,
+          "presentations": 19,
+          "display_updates_hz": 15.9771156826461,
+          "full_updates": 10,
+          "reused_updates": 9,
+          "mean_cycles": 524713.052631579,
+          "max_cycles": 985340,
+          "mean_gdma_blocks": 38.94736842105263,
+          "visible_enemy_animation_changes": 0,
+          "presses": [],
+          "health": 99,
+          "input_queue_overflow": 0
+        }
+      }
+    },
+    "passed": true
+  },
+  "test_inventory_is_not_test_execution": true,
+  "harness": {
+    "scope": "project-specific deterministic SM83/CGB smoke-test harness; not an independent cycle-accurate emulator",
+    "refresh_hz_used_for_estimates": 59.727501,
+    "current_stationary_10_updates": {
+      "steps": 465169,
+      "cycles": 4105016,
+      "frames": 17,
+      "swaps": 1,
+      "pc": 26267,
+      "player_x": 1152,
+      "player_y": 3456,
+      "angle": 192,
+      "version": "0.11",
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x8F",
+      "presentations": 10,
+      "estimated_updates_per_second": 35.134,
+      "cycles_per_completed_update_including_boot": 410501.6,
+      "gdma_events": 23,
+      "commit_events": 10,
+      "commit_blocks": {
+        "mean": 8.6,
+        "median": 2.0,
+        "max": 68.0
+      },
+      "gdma_vblank_violations": 0,
+      "all_commits_vblank_safe": true,
+      "all_commits_bounded_transfers": true,
+      "commit_payload_bytes": {
+        "mean": 137.6,
+        "median": 32.0,
+        "max": 1088.0
+      },
+      "last_adaptive_casts": 45,
+      "last_edge_recasts": 8,
+      "last_material_events": 5,
+      "last_dynamic_tiles": 6,
+      "dynamic_tile_high_water": 6,
+      "dynamic_tile_overflow": 0,
+      "vblank_interrupts": 19,
+      "input_samples": 19
+    },
+    "current_scripted_10_updates": {
+      "steps": 1283046,
+      "cycles": 11270104,
+      "frames": 68,
+      "swaps": 9,
+      "pc": 26267,
+      "player_x": 1152,
+      "player_y": 3360,
+      "angle": 221,
+      "version": "0.11",
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x8F",
+      "presentations": 10,
+      "estimated_updates_per_second": 8.783,
+      "cycles_per_completed_update_including_boot": 1127010.4,
+      "gdma_events": 110,
+      "commit_events": 10,
+      "commit_blocks": {
+        "mean": 66.0,
+        "median": 73.5,
+        "max": 77.0
+      },
+      "gdma_vblank_violations": 0,
+      "all_commits_vblank_safe": true,
+      "all_commits_bounded_transfers": true,
+      "commit_payload_bytes": {
+        "mean": 1056.0,
+        "median": 1176.0,
+        "max": 1232.0
+      },
+      "last_adaptive_casts": 44,
+      "last_edge_recasts": 6,
+      "last_material_events": 4,
+      "last_dynamic_tiles": 15,
+      "dynamic_tile_high_water": 15,
+      "dynamic_tile_overflow": 0,
+      "vblank_interrupts": 70,
+      "input_samples": 70
+    },
+    "v0_1_stationary_10_updates": {
+      "steps": 933173,
+      "cycles": 9486868,
+      "frames": 59,
+      "swaps": 10,
+      "pc": 982,
+      "player_x": 384,
+      "player_y": 384,
+      "angle": 0,
+      "version": "0.1.0",
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x93",
+      "presentations": 10,
+      "estimated_updates_per_second": 10.123,
+      "cycles_per_completed_update_including_boot": 948686.8,
+      "gdma_events": 24,
+      "commit_events": 10,
+      "commit_blocks": {
+        "mean": 240.0,
+        "median": 240.0,
+        "max": 240.0
+      },
+      "gdma_vblank_violations": 0
+    },
+    "v0_1_scripted_10_updates": {
+      "steps": 933263,
+      "cycles": 9486900,
+      "frames": 59,
+      "swaps": 10,
+      "pc": 982,
+      "player_x": 464,
+      "player_y": 384,
+      "angle": 16,
+      "version": "0.1.0",
+      "double_speed": true,
+      "main_iterations": 10,
+      "lcdc": "0x93",
+      "presentations": 10,
+      "estimated_updates_per_second": 10.123,
+      "cycles_per_completed_update_including_boot": 948690.0,
+      "gdma_events": 24,
+      "commit_events": 10,
+      "commit_blocks": {
+        "mean": 240.0,
+        "median": 240.0,
+        "max": 240.0
+      },
+      "gdma_vblank_violations": 0
+    },
+    "isolated_routines": {
+      "v0.11": {
+        "version": "0.11",
+        "cast_all": {
+          "cycles": 594972,
+          "instructions": 68341
+        },
+        "render_view": {
+          "cycles": 161964,
+          "instructions": 18913
+        },
+        "adaptive_casts": 45,
+        "dynamic_tiles": 6,
+        "dynamic_tile_overflow": 0
+      },
+      "v0.1.0": {
+        "version": "0.1.0",
+        "cast_all": {
+          "cycles": 277016,
+          "instructions": 24505
+        },
+        "render_states": {
+          "cycles": 357420,
+          "instructions": 39573
+        }
+      }
+    }
+  },
+  "before_after": {
+    "horizontal_geometry_columns": {
+      "v0.1.0": 40,
+      "v0.11": 80
+    },
+    "physical_output_columns": {
+      "v0.1.0": 40,
+      "v0.11": 160
+    },
+    "stationary_updates_per_second": {
+      "v0.1.0": 10.123,
+      "v0.11": 35.134
+    },
+    "stationary_rate_retained_pct": 347.071,
+    "engine_bytes": {
+      "v0.1.0": 24240,
+      "v0.11": 28469
+    },
+    "fixed_framebuffer_bytes": {
+      "v0.1.0": 3840,
+      "v0.11": 0
+    },
+    "commit_vblanks": {
+      "v0.1.0": 2,
+      "v0.11": "1 cached; 2 or 3 full, packet-size dependent"
+    }
+  },
+  "physical_hardware_tested": false,
+  "hardware_acceptance_document": "docs/HARDWARE_TEST_CHECKLIST.md"
+}

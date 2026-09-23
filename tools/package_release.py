@@ -44,7 +44,7 @@ TOP_LEVEL_FILES = (
     "VERSION",
     "requirements.txt",
 )
-TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "tests", "tools")
+TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "snapshots", "tests", "tools")
 BUILD_FILES = (
     "atlas_verification.json",
     "static_geometry/rendering_v3_results.json",
@@ -222,10 +222,15 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",
     ], ROOT)
-    # The full campaign already takes about eight minutes on a fast CI runner.
-    # Give slower runners a bounded 30 minutes; retain every controller-only
-    # check and keep the short-command timeout unchanged for other gates.
-    run([python, "tools/playthrough.py", "--restart"], ROOT, timeout=1800)
+    # The campaign route runs in CI's episode chunks: episode one from the
+    # title, then three-sector chunks from their continue codes, the last
+    # restarting the campaign. A chunk is at most 10,500 updates; give each
+    # an hour and keep every controller-only check.
+    for sectors, directory, restart in (("1-6", "playthrough", False), ("7-9", "playthrough-ep2a", False),
+                                        ("10-12", "playthrough-ep2b", False), ("13-15", "playthrough-ep3a", False),
+                                        ("16-18", "playthrough-ep3b", True)):
+        run([python, "tools/playthrough.py", "--sectors", sectors, "--output-dir", f"build/{directory}"]
+            + (["--restart"] if restart else []), ROOT, timeout=3600)
     run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
          "--output-dir", "build/playtest/sable_art_tour"], ROOT)
     run(["make", "variants"], ROOT)

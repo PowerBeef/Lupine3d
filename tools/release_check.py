@@ -160,13 +160,25 @@ def main() -> None:
     # the current ROM contributes its sectors, and together they must cover
     # the campaign in order.
     completion_sectors = {}
+    route_reports = []
     for report_path in sorted(v2.BUILD.glob("playthrough*/report.json")):
-        completion = json.loads(report_path.read_text())
-        if completion.get("rom_sha256") != hashlib.sha256(v2_rom).hexdigest():
+        report = json.loads(report_path.read_text())
+        if report.get("rom_sha256") != hashlib.sha256(v2_rom).hexdigest():
             continue
-        for sector in completion["sectors"]:
+        route_reports.append(report)
+        for sector in report["sectors"]:
             completion_sectors.setdefault(sector["index"], sector)
-    completion = {"sectors": [completion_sectors[index] for index in sorted(completion_sectors)]}
+    # One record for the union: every chunk passed on controller input alone,
+    # and the chunk that reached the last sector restarted the campaign.
+    completion = {
+        "sectors": [completion_sectors[index] for index in sorted(completion_sectors)],
+        "passed": bool(route_reports) and all(r["passed"] for r in route_reports),
+        "controller_only": bool(route_reports) and all(r["controller_only"] for r in route_reports),
+        "game_ram_injections": sum(int(r["game_ram_injections"]) for r in route_reports),
+        "restart_verified": any(r.get("restart_verified") for r in route_reports),
+        "rom_sha256": hashlib.sha256(v2_rom).hexdigest() if route_reports else None,
+        "reports": len(route_reports),
+    }
     folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
     reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
@@ -205,7 +217,7 @@ def main() -> None:
         "controller_only_completion": completion["passed"] and completion["controller_only"] and completion["game_ram_injections"] == 0 and completion["rom_sha256"] == current_sha,
         "fixed_tick_and_snapshot_enabled": v2_manifest["fixed_tick_simulation"] and v2_manifest["live_world_wram_bank"] != v2_manifest["render_snapshot_wram_bank"],
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
-        "masked_8x16_four_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == 4,
+        "masked_8x16_six_actor_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == v2.MAX_ACTORS == 6,
         "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
         "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == v2.WALL_KEY_BYTES and v2_manifest["independent_obj_page"],
         "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
@@ -294,6 +306,7 @@ def main() -> None:
             and int(v2_manifest["campaign_level_payload_bytes"]) <= int(v2_manifest["campaign_level_slot_pitch"])
             and int(v2_manifest["campaign_levels_per_bank"]) * int(v2_manifest["campaign_level_slot_pitch"]) <= 0x4000
         ),
+        "campaign_route_restarted_after_the_last_sector": bool(completion["restart_verified"]),
         "campaign_route_completed_every_sector": (
             len(completion["sectors"]) == int(v2_manifest["campaign_levels"])
             and all(sector["index"] == index and sector["name"] == level["name"]
