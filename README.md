@@ -9,7 +9,7 @@
 
 [**Download v0.11**](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.11) · [Build](#build-from-source) · [Controls](#how-to-play) · [Release notes](RELEASE_NOTES.md)
 
-<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Sable Outpost running in the emulator: industrial walls, a Sentinel, shotgun and compact steel HUD">
+<img src="docs/images/lupine3d_preview_4x.png" width="640" alt="Sable Outpost running in the emulator: textured vent walls near and far, a Sentinel, shotgun and compact steel HUD">
 
 <sub>160×120 world view · Animated native sprites · 4 MiB MBC5 ROM · CGB only</sub>
 

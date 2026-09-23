@@ -57,10 +57,11 @@ def main() -> None:
     # current engine: wall composition, the 16x32 Sentinel and foreground UI.
     hero = CGB(v2_rom, v2_assembler.labels)
     run_to_world(hero)
-    # Face the Sentinel across the comms room so the repository hero
-    # image communicates the complete current slice, not an empty start wall.
-    for address, value in ((v2.PLAYER_XL, 128), (v2.PLAYER_XH, 8),
-                           (v2.PLAYER_YL, 128), (v2.PLAYER_YH, 8), (v2.ANGLE, 240)):
+    # Stand beside the comms room's vent wall facing the Sentinel, so the
+    # repository hero image shows textured walls near and far, an enemy and
+    # the HUD, not an empty start wall.
+    for address, value in ((v2.PLAYER_XL, 102), (v2.PLAYER_XH, 8),
+                           (v2.PLAYER_YL, 179), (v2.PLAYER_YH, 8), (v2.ANGLE, 12)):
         set_test_world_byte(hero, address, value)
     hero.run(until_presentations=1, max_steps=3_000_000)
     hero_image = nearest(hero.render_screen())
