@@ -17,7 +17,7 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
-`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `ci`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
 
 | Profile | World / HUD | Default art |
 |---|---|---|
@@ -122,6 +122,31 @@ The slim build also publishes each frame's tail from the VBlank interrupt
 make sync                  # build/sync/lupine3d.gb, .sym, manifest
 make playtest-sync         # the coherence tour's frame checks and a motion replay
 ```
+
+### Before you push
+
+Work lands on `main`, and every push to `main` runs CI to completion (a newer
+push supersedes a running CI only on a pull request), so verify a batch
+locally and push it once:
+
+```sh
+python tools/ci_local.py --changed   # the lanes this change needs
+python tools/ci_local.py             # every CI lane
+python tools/ci_local.py --list      # the lanes and their commands
+```
+
+`tools/ci_lanes.py` is the one definition of CI's lanes: the `fast`,
+`profiles` and `slow` jobs command for command, and the controller route in
+chunks sized by measured route updates, one CI runner each (the first from
+the title, the rest from their continue codes, the last restarting the
+campaign). `tools/ci_local.py` runs every lane in its own copy of the working
+tree, one per CPU by default, longest first; it drops the caller's
+`LUPINE3D_*` flags, needs the pinned cores under `build/deps` for the slow
+lane (a missing core is reported, never passed), checks that every lane
+built the same ROM, and copies the route reports back into `build/` for
+`tools/release_check.py`. A change to documentation alone runs only
+`make docs-check` under `--changed`. `tests/test_ci_lanes.py` holds the
+workflow's matrix and commands to the table.
 
 ## Measurement
 

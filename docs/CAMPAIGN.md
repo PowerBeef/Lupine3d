@@ -212,11 +212,11 @@ Signal Spire field the boss kind.
 
 Every sector carries the same compiler certificate as the first six
 (`docs/LEVEL_CERTIFICATE.md`; `tests/test_campaign.py` pins it for all
-eighteen), and the controller route plays all of them: CI's slow lane plays
-episode one and a `campaign` matrix plays episodes two and three from their
-continue codes in three-sector chunks (`make playthrough SECTORS=7-9
-ROUTE_DIR=build/playthrough-ep2a`), the last chunk restarting the campaign
-from the ending. `release_check.py`
+eighteen), and the controller route plays all of them in CI's `route` matrix:
+eight chunks sized by route updates (`tools/ci_lanes.py`), each on its own
+runner and entered by continue code (`make playthrough SECTORS=8-9
+ROUTE_DIR=build/playthrough-8-9`), the first from the title and the last
+restarting the campaign from the ending. `release_check.py`
 unions the reports for the current ROM. Regenerating the continue-code table
 for eighteen sectors changed every code.
 

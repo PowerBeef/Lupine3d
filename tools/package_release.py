@@ -26,6 +26,9 @@ from pathlib import Path
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+from ci_lanes import ROUTE_CHUNKS  # noqa: E402
+
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 PROJECT_SLUG = "Lupine3D"
 ARCHIVE_ROOT = f"{PROJECT_SLUG}_v{VERSION}"
@@ -222,15 +225,12 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
         "--output-dir", "build/playtest/living_world",
     ], ROOT)
-    # The campaign route runs in CI's episode chunks: episode one from the
-    # title, then three-sector chunks from their continue codes, the last
-    # restarting the campaign. A chunk is at most 10,500 updates; give each
-    # an hour and keep every controller-only check.
-    for sectors, directory, restart in (("1-6", "playthrough", False), ("7-9", "playthrough-ep2a", False),
-                                        ("10-12", "playthrough-ep2b", False), ("13-15", "playthrough-ep3a", False),
-                                        ("16-18", "playthrough-ep3b", True)):
-        run([python, "tools/playthrough.py", "--sectors", sectors, "--output-dir", f"build/{directory}"]
-            + (["--restart"] if restart else []), ROOT, timeout=3600)
+    # The campaign route runs in CI's chunks (tools/ci_lanes.py): the first
+    # from the title, the rest from their continue codes, the last restarting
+    # the campaign. Give each an hour and keep every controller-only check.
+    for chunk in ROUTE_CHUNKS:
+        run([python, "tools/playthrough.py", "--sectors", chunk.sectors, "--output-dir", chunk.directory]
+            + (["--restart"] if chunk.restart else []), ROOT, timeout=3600)
     run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
          "--output-dir", "build/playtest/sable_art_tour"], ROOT)
     run(["make", "variants"], ROOT)

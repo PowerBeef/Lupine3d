@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test docs-check memory-map lupine research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine ci-local research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -19,6 +19,11 @@ docs-check: build
 
 memory-map: build
 	$(PYTHON) tools/memory_map.py
+
+# CI's jobs locally, each lane in its own copy of the working tree, in
+# parallel (tools/ci_local.py): make ci-local ARGS="--changed"
+ci-local:
+	$(PYTHON) tools/ci_local.py $(ARGS)
 
 # The `lupine` CLI: make lupine ARGS="level check levels/*.json"
 lupine:

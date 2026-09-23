@@ -83,9 +83,15 @@ not a defect.
   profile, then fresh-process production checks).
 - `make playtest playtest-world playtest-art` — the driven routes with
   snapshot checks (CI `fast` job, with the visual-diff artifact).
-- `make playthrough variants wall-reuse motion`, `make sameboy`, `make mgba`,
-  `python tools/independent_witnesses.py` — the controller route, exact A/B
-  equality, timed motion and the pinned cores (CI `slow` job).
+- `make variants wall-reuse motion`, `make sameboy`, `make mgba`,
+  `python tools/independent_witnesses.py` — exact A/B equality, timed motion
+  and the pinned cores (CI `slow` job).
+- `make playthrough SECTORS=A-B` — the controller route, one chunk of
+  `tools/ci_lanes.py` per CI `route` job; `make playtest-sync` — the
+  synchronous publication tail (CI `profiles` job).
+- `python tools/ci_local.py` — all of CI's lanes locally, in parallel, each
+  in its own copy of the working tree; `--changed` picks the lanes a change
+  needs, `--list` prints them.
 - `tools/sable_sustained.py` — the eight sixty-second trials (manual and
   release qualification, never short CI).
 - `python tools/release_check.py` — the aggregate gate over all of the above.

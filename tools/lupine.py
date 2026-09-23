@@ -141,6 +141,10 @@ def cmd_witnesses(args) -> int:
     return run(command, profile_env(args))
 
 
+def cmd_ci(args) -> int:
+    return run([sys.executable, TOOLS / "ci_local.py", *args.rest], dict(os.environ))
+
+
 def cmd_release_check(args) -> int:
     return run([sys.executable, TOOLS / "release_check.py"], profile_env(args))
 
@@ -171,6 +175,11 @@ def cmd_symbols(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] == ["ci"]:
+        # Everything after `ci` is ci_local's (argparse will not hand a leading
+        # option to a REMAINDER argument).
+        return cmd_ci(argparse.Namespace(rest=argv[1:]))
     parser = argparse.ArgumentParser(prog="lupine", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -194,6 +203,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("test", help="the regression suite (make test)"); p.set_defaults(func=cmd_test)
     p = sub.add_parser("witnesses", help="frozen scenes in every pinned core against the goldens"); profile_options(p)
     p.add_argument("--snapshot-mode", choices=("check", "record", "none"), default="check"); p.set_defaults(func=cmd_witnesses)
+    sub.add_parser("ci", help="CI's jobs locally, in parallel, before a push; arguments go to tools/ci_local.py")
     p = sub.add_parser("release-check", help="the release verification report"); p.set_defaults(func=cmd_release_check)
     p = sub.add_parser("sable-check", help="the emitted-ROM Sable qualification checks"); profile_options(p)
     p.add_argument("--snapshot-mode", choices=("check", "record", "none"), default="check"); p.set_defaults(func=cmd_sable_check)

@@ -14,9 +14,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request supersedes its running CI. On main every
+# pushed commit is verified: a run in progress finishes, and GitHub keeps only
+# the newest pending run behind it.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   sustained:
@@ -119,30 +122,35 @@ jobs:
             build/lupine3d.sym
             build/build_manifest.json
 
-  # The campaign lanes: episodes two and three played by the controller route
-  # from their continue codes in three-sector chunks, in parallel with the
-  # slow lane, which plays episode one. The last chunk restarts the campaign
-  # from the ending. release_check.py unions every report.
-  campaign:
+  # The route: the whole campaign played by controller input in chunks, one
+  # runner each, entered by continue code (the first from the title); the last
+  # chunk plays the ending and restarts the campaign. tools/ci_lanes.py is the
+  # table (tests/test_ci_lanes.py holds this matrix to it) and release_check.py
+  # unions every chunk's report.
+  route:
+    name: route (${{ matrix.sectors }})
     runs-on: ubuntu-latest
-    # A chunk is at most 10,500 route updates (three sectors of 3,500); the
-    # heaviest measured chunk, 16-18 with the restart, is 7,500.
-    timeout-minutes: 50
+    # The heaviest chunk is about 3,700 route updates, about 17 minutes.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
         include:
-          - episode: 2a
-            sectors: 7-9
+          - sectors: 1-4
             restart: ""
-          - episode: 2b
-            sectors: 10-12
+          - sectors: 5-7
             restart: ""
-          - episode: 3a
-            sectors: 13-15
+          - sectors: 8-9
             restart: ""
-          - episode: 3b
-            sectors: 16-18
+          - sectors: 10-10
+            restart: ""
+          - sectors: 11-13
+            restart: ""
+          - sectors: 14-15
+            restart: ""
+          - sectors: 16-17
+            restart: ""
+          - sectors: 18-18
             restart: "1"
 
     steps:
@@ -161,23 +169,20 @@ jobs:
       - name: Build
         run: make build
 
-      - name: Complete episode ${{ matrix.episode }} with controller input only
-        run: make playthrough SECTORS=${{ matrix.sectors }} RESTART=${{ matrix.restart }} ROUTE_DIR=build/playthrough-ep${{ matrix.episode }}
+      - name: Complete sectors ${{ matrix.sectors }} with controller input only
+        run: make playthrough SECTORS=${{ matrix.sectors }} ROUTE_DIR=build/playthrough-${{ matrix.sectors }} RESTART=${{ matrix.restart }}
 
       - name: Upload the route evidence
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: route-ep${{ matrix.episode }}-${{ github.sha }}
+          name: route-${{ matrix.sectors }}-${{ github.sha }}
           if-no-files-found: error
           retention-days: 14
           path: |
-            build/playthrough-ep${{ matrix.episode }}/report.json
-            build/playthrough-ep${{ matrix.episode }}/contact_sheet.png
+            build/playthrough-${{ matrix.sectors }}/report.json
+            build/playthrough-${{ matrix.sectors }}/contact_sheet.png
 
-  # The slow lane: the controller route, the exact A/B variants, wall reuse,
-  # LCD-timed motion, and the pinned independent cores over the frozen
-  # witness scenes. Both cores are cached by their pinned commit.
   # The retained slim alternative: the synchronous publication tail the
   # default overlaps.
   profiles:
@@ -200,9 +205,12 @@ jobs:
       - name: Verify the synchronous publication tail on the tour and a motion replay
         run: make playtest-sync
 
+  # The slow lane: the exact A/B variants, wall reuse, LCD-timed motion, and
+  # the pinned independent cores over the frozen witness scenes. Both cores
+  # are cached by their pinned commit. The route runs in its own jobs.
   slow:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 35
 
     steps:
       - name: Check out source
@@ -219,9 +227,6 @@ jobs:
 
       - name: Build
         run: make build
-
-      - name: Complete episode one with controller input only
-        run: make playthrough SECTORS=1-6
 
       - name: Verify two-actor, folding and reprojection variants
         run: make variants
@@ -287,8 +292,6 @@ jobs:
           path: |
             build/lupine3d.gb
             build/build_manifest.json
-            build/playthrough/report.json
-            build/playthrough/contact_sheet.png
             build/snapshots/
             build/sameboy_*.json
             build/sameboy_*.ppm

@@ -441,7 +441,11 @@ Other experiments still require their acceptance gates. Same-snapshot exactness
 and live-controller performance are different comparisons.
 
 Follow `.github/workflows/ci.yml` for complete short CI. `make qa`/`verify` do not
-cover every lane. Reports must identify ROM/configuration and actual checks run.
+cover every lane. Work lands on `main` directly, and every push to `main` runs
+CI to completion (only pull requests cancel a superseded run), so push verified
+batches: `python tools/ci_local.py` (`make ci-local`, `lupine ci`) runs CI's
+lanes from `tools/ci_lanes.py` in parallel, each in its own copy of the working
+tree, and `--changed` runs only `docs-check` for a documentation-only change. Reports must identify ROM/configuration and actual checks run.
 Documentation-only edits need link/command/diff checks, not a ROM test rerun:
 `make docs-check` (`tools/check_docs.py`) verifies every link and command and
 that `docs/guide/MEMORY_MAP.md` matches the manifest (regenerate it with
@@ -453,11 +457,13 @@ point for build, run, snapshot, level, profile and verification commands.
 
 Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names:
 three episodes of six sectors (`docs/CAMPAIGN.md`, "Three episodes"). The
-full controller route plays every sector, so it is run by episode: CI's slow
-lane plays `SECTORS=1-6` and the `campaign` matrix plays 7-18 in three-sector
-chunks from their continue codes (`make playthrough SECTORS=A-B ROUTE_DIR=…`,
+full controller route plays every sector, so it is run in chunks: CI's `route`
+matrix gives each chunk of `tools/ci_lanes.py:ROUTE_CHUNKS` its own runner,
+entered by continue code (`make playthrough SECTORS=A-B ROUTE_DIR=…`,
 `RESTART=1` for the last); `release_check.py` unions every report for the
-current ROM.
+current ROM. Chunks are sized by measured route updates (none above about
+3,700); re-balance the table when a sector's count moves, and
+`tests/test_ci_lanes.py` holds the workflow to it.
 Budget minutes, not seconds. Retain the
 two-sentinel acceptance and renderer-benchmark levels. Preserve compiler checks
 for clearance, reachability, door gates, sightlines and room sizes: every

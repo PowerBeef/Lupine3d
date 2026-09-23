@@ -65,7 +65,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     assert len(scenes['scenes']) == 87
     assert all(core['passed'] and core['rgb_matches_host']
                for scene in scenes['scenes'] for core in scene['cores'].values())
-    # The route plays the campaign in episode chunks, as CI does: each chunk
+    # The route plays the campaign in chunks, as CI does: each chunk
     # after the first starts from its continue code, and the last one
     # restarts the campaign from the ending. Every chunk for this ROM is
     # bound with its replay; together they must cover every sector.
