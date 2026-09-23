@@ -5,57 +5,65 @@
   "height": 16,
   "rows": [
     "1111111111111111",
-    "1000011111100001",
-    "1000010000100001",
-    "1001030010000001",
-    "1000010000100001",
-    "1222221101111111",
-    "1111111131111111",
-    "1111111100000111",
-    "1111111100000111",
-    "1111111100010111",
-    "1000011110000111",
-    "1000011111132221",
-    "1000030100000011",
-    "1000010000100011",
-    "1111122222100011",
+    "1111100001111111",
+    "1111100001111111",
+    "1111111311111111",
+    "1111100000011111",
+    "1000102222010001",
+    "1000302222030001",
+    "1000102222010001",
+    "1000102222010001",
+    "1111100000011111",
+    "1111111311111111",
+    "1111100000111111",
+    "1000102020111111",
+    "1000302000111111",
+    "1000100000111111",
     "1111111111111111"
   ],
   "player_spawn": {
-    "x_q8": 640,
-    "y_q8": 384,
-    "angle": 64,
+    "x_q8": 3456,
+    "y_q8": 1920,
+    "angle": 128,
     "safe_radius_cells": 5
   },
   "doors": [
     {
-      "id": "deck_gate",
-      "x": 5,
+      "id": "mast_shaft",
+      "x": 7,
       "y": 3,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "radio_room",
+      "x": 4,
+      "y": 6,
       "orientation": "vertical",
       "kind": "standard",
       "unlock": "none"
     },
     {
-      "id": "mast_shaft",
-      "x": 8,
+      "id": "deck_gate",
+      "x": 11,
       "y": 6,
-      "orientation": "horizontal",
+      "orientation": "vertical",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "lower_throat",
-      "x": 11,
-      "y": 11,
+      "x": 7,
+      "y": 10,
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "keycard"
     },
     {
-      "id": "deck_exit",
-      "x": 5,
-      "y": 12,
+      "id": "exit_lift",
+      "x": 4,
+      "y": 13,
       "orientation": "vertical",
       "kind": "exit",
       "unlock": "sentinel_dead"
@@ -63,31 +71,31 @@
   ],
   "entities": [
     {
-      "kind": "warden",
-      "x_q8": 3200,
-      "y_q8": 2176,
-      "health": 5,
-      "activation_radius_q4": 96
-    },
-    {
       "kind": "skirmisher",
-      "x_q8": 1920,
-      "y_q8": 896,
+      "x_q8": 1408,
+      "y_q8": 384,
       "health": 2,
       "activation_radius_q4": 96
     },
     {
       "kind": "skirmisher",
-      "x_q8": 2944,
-      "y_q8": 3200,
+      "x_q8": 640,
+      "y_q8": 1664,
       "health": 2,
       "activation_radius_q4": 96
     },
     {
       "kind": "skirmisher",
       "x_q8": 2176,
-      "y_q8": 3456,
+      "y_q8": 2432,
       "health": 2,
+      "activation_radius_q4": 96
+    },
+    {
+      "kind": "warden",
+      "x_q8": 1920,
+      "y_q8": 3712,
+      "health": 5,
       "activation_radius_q4": 96
     }
   ],
@@ -117,106 +125,94 @@
   "readability": {
     "maximum_sightline": 6,
     "minimum_door_separation": 8,
-    "minimum_critical_path_steps": 15,
+    "minimum_critical_path_steps": 12,
     "minimum_critical_path_turns": 3,
     "maximum_material_singletons": 16
   },
   "fixtures": [
     {
-      "x": 5,
+      "x": 7,
       "y": 3,
-      "side": "west",
+      "side": "north",
       "kind": "access"
     },
     {
-      "x": 8,
+      "x": 4,
       "y": 6,
-      "side": "north",
+      "side": "west",
       "kind": "access"
     },
     {
       "x": 11,
-      "y": 11,
-      "side": "north",
-      "kind": "access"
-    },
-    {
-      "x": 5,
-      "y": 12,
+      "y": 6,
       "side": "west",
       "kind": "access"
     },
     {
-      "x": 10,
+      "x": 7,
+      "y": 10,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 4,
+      "y": 13,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 4,
       "y": 1,
       "side": "east",
-      "kind": "vent"
-    },
-    {
-      "x": 1,
-      "y": 14,
-      "side": "north",
-      "kind": "sector"
-    },
-    {
-      "x": 14,
-      "y": 5,
-      "side": "north",
       "kind": "light"
-    },
-    {
-      "x": 2,
-      "y": 14,
-      "side": "north",
-      "kind": "vent"
     },
     {
       "x": 9,
       "y": 1,
-      "side": "south",
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 6,
+      "y": 3,
+      "side": "north",
       "kind": "sector"
     },
     {
-      "x": 3,
-      "y": 14,
-      "side": "north",
+      "x": 1,
+      "y": 4,
+      "side": "south",
       "kind": "light"
     },
     {
-      "x": 13,
-      "y": 5,
-      "side": "north",
+      "x": 11,
+      "y": 4,
+      "side": "west",
       "kind": "vent"
     },
     {
       "x": 4,
-      "y": 14,
-      "side": "north",
-      "kind": "sector"
-    },
-    {
-      "x": 10,
-      "y": 2,
+      "y": 5,
       "side": "west",
       "kind": "light"
     },
     {
-      "x": 14,
-      "y": 14,
+      "x": 8,
+      "y": 5,
+      "side": "north",
+      "kind": "light"
+    },
+    {
+      "x": 6,
+      "y": 7,
       "side": "west",
       "kind": "vent"
     },
     {
-      "x": 1,
-      "y": 5,
-      "side": "north",
+      "x": 9,
+      "y": 8,
+      "side": "east",
       "kind": "sector"
-    },
-    {
-      "x": 14,
-      "y": 13,
-      "side": "west",
-      "kind": "light"
     }
   ],
   "palette_profile": "outpost",

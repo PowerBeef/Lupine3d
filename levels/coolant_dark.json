@@ -5,58 +5,58 @@
   "height": 16,
   "rows": [
     "1111111111111111",
-    "1000110000111001",
-    "1000030200111001",
-    "1020110000100201",
-    "1000110000100001",
-    "1101111111111011",
-    "1001112000100001",
-    "1000030200100001",
-    "1020010000102201",
-    "1000010111100001",
-    "1111110111113111",
-    "1000010000110111",
-    "1000030200100001",
-    "1000012000002001",
-    "1000010011100001",
+    "1000000200000011",
+    "1022202220222011",
+    "1022202220222011",
+    "1000200000200011",
+    "1220222022202211",
+    "1220222022202211",
+    "1200000020000011",
+    "1131111111113111",
+    "1000000110000011",
+    "1000000110000011",
+    "1000200110200011",
+    "1113111111131111",
+    "1000000110000111",
+    "1000000110000111",
     "1111111111111111"
   ],
   "player_spawn": {
-    "x_q8": 1920,
-    "y_q8": 2176,
-    "angle": 64,
+    "x_q8": 640,
+    "y_q8": 2688,
+    "angle": 192,
     "safe_radius_cells": 5
   },
   "doors": [
     {
       "id": "sump_hatch",
-      "x": 5,
-      "y": 12,
-      "orientation": "vertical",
+      "x": 2,
+      "y": 8,
+      "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "dark_stair",
       "x": 12,
-      "y": 10,
+      "y": 8,
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "gallery_west",
-      "x": 5,
-      "y": 7,
-      "orientation": "vertical",
+      "x": 3,
+      "y": 12,
+      "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
     },
     {
       "id": "dark_lock",
-      "x": 5,
-      "y": 2,
-      "orientation": "vertical",
+      "x": 11,
+      "y": 12,
+      "orientation": "horizontal",
       "kind": "exit",
       "unlock": "sentinel_dead"
     }
@@ -65,21 +65,21 @@
     {
       "kind": "sentinel",
       "x_q8": 3456,
-      "y_q8": 640,
+      "y_q8": 384,
       "health": 3,
       "activation_radius_q4": 96
     },
     {
       "kind": "skirmisher",
-      "x_q8": 3200,
-      "y_q8": 3712,
+      "x_q8": 1408,
+      "y_q8": 640,
       "health": 2,
       "activation_radius_q4": 96
     },
     {
       "kind": "warden",
-      "x_q8": 3456,
-      "y_q8": 1920,
+      "x_q8": 2176,
+      "y_q8": 1152,
       "health": 5,
       "activation_radius_q4": 96
     },
@@ -91,17 +91,17 @@
       "activation_radius_q4": 96
     },
     {
-      "kind": "skirmisher",
-      "x_q8": 896,
-      "y_q8": 640,
-      "health": 2,
+      "kind": "sentinel",
+      "x_q8": 3200,
+      "y_q8": 2688,
+      "health": 3,
       "activation_radius_q4": 96
     },
     {
-      "kind": "sentinel",
+      "kind": "skirmisher",
       "x_q8": 640,
-      "y_q8": 3200,
-      "health": 3,
+      "y_q8": 3712,
+      "health": 2,
       "activation_radius_q4": 96
     }
   ],
@@ -119,100 +119,100 @@
     }
   ],
   "exit": {
-    "x": 8,
-    "y": 2,
+    "x": 11,
+    "y": 14,
     "marker": "beacon"
   },
   "readability": {
     "maximum_sightline": 6,
     "minimum_door_separation": 8,
-    "minimum_critical_path_steps": 15,
+    "minimum_critical_path_steps": 12,
     "minimum_critical_path_turns": 3,
     "maximum_material_singletons": 16
   },
   "fixtures": [
     {
-      "x": 5,
-      "y": 12,
-      "side": "west",
-      "kind": "access"
-    },
-    {
-      "x": 12,
-      "y": 10,
+      "x": 2,
+      "y": 8,
       "side": "north",
       "kind": "access"
     },
     {
-      "x": 5,
-      "y": 7,
-      "side": "west",
+      "x": 12,
+      "y": 8,
+      "side": "north",
       "kind": "access"
     },
     {
-      "x": 5,
-      "y": 2,
-      "side": "west",
+      "x": 3,
+      "y": 12,
+      "side": "north",
       "kind": "access"
     },
     {
-      "x": 4,
+      "x": 11,
+      "y": 12,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 7,
       "y": 1,
       "side": "west",
       "kind": "light"
     },
     {
-      "x": 10,
+      "x": 14,
       "y": 1,
       "side": "west",
       "kind": "vent"
     },
     {
-      "x": 7,
+      "x": 2,
       "y": 2,
       "side": "west",
       "kind": "sector"
     },
     {
-      "x": 2,
-      "y": 3,
+      "x": 10,
+      "y": 2,
       "side": "west",
       "kind": "light"
     },
     {
-      "x": 13,
-      "y": 3,
+      "x": 4,
+      "y": 4,
       "side": "west",
       "kind": "vent"
     },
     {
-      "x": 5,
-      "y": 4,
-      "side": "east",
-      "kind": "light"
-    },
-    {
-      "x": 8,
+      "x": 1,
       "y": 5,
       "side": "north",
       "kind": "light"
     },
     {
-      "x": 3,
-      "y": 6,
+      "x": 8,
+      "y": 5,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 12,
+      "y": 5,
       "side": "west",
       "kind": "vent"
     },
     {
-      "x": 10,
+      "x": 14,
       "y": 7,
       "side": "west",
       "kind": "sector"
     },
     {
-      "x": 5,
+      "x": 3,
       "y": 8,
-      "side": "west",
+      "side": "north",
       "kind": "light"
     }
   ],

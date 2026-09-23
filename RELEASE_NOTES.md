@@ -5,6 +5,12 @@
   closing screens, and a boss in its last sector; the arsenal grows to four
   weapons by episode. The continue-code table now holds fifty-four codes,
   which changes every code (`docs/CAMPAIGN.md`, "Three episodes").
+- **Every sector is a named place.** Sectors 2-18 are redrawn as places with
+  a purpose (a pump house and spine, a security checkpoint, a turbine hall, a
+  flooded tunnel lattice, a hull walk round the whole map, a diamond ring
+  round the transmitter), each with the same certificate and enemy mix, and
+  each played through by the controller route (`docs/CAMPAIGN.md`, "Named
+  places").
 - **Weapons rendered from 3D models.** Each weapon is a small 3D model
   rendered straight at the console's resolution with banded shading, part
   outlines, in a larger 40×32 window right of centre with four animation

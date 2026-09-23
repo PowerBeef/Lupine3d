@@ -103,13 +103,17 @@ class EnemyKindTests(unittest.TestCase):
 
     def test_a_level_may_field_a_boss_and_it_leaves_a_medkit(self):
         source = json.loads((ROOT / "levels" / "cryo_vault.json").read_text())
-        entities = [dict(source["entities"][0], kind="boss", health=12)] + source["entities"][1:]
+        # Make the first actor that does not carry the card a boss, so the
+        # vault's card door stays openable.
+        first = next(i for i, e in enumerate(source["entities"]) if levels.KIND_DROPS[e["kind"]] != "keycard")
+        entities = list(source["entities"])
+        entities[first] = dict(entities[first], kind="boss", health=12)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "boss.json"
             path.write_text(json.dumps(dict(source, entities=entities)))
             level = levels.compile_level(path)
         records = br.actor_records(level)
-        self.assertEqual(records[br.ACTOR_KIND_OFFSET], ENTITY_KIND_IDS["boss"])
+        self.assertEqual(records[first * 16 + br.ACTOR_KIND_OFFSET], ENTITY_KIND_IDS["boss"])
         self.assertEqual(levels.KIND_DROPS["boss"], "medkit")
         # Contact with the boss costs more than any other kind, on every skill.
         boss = self.stats[ENTITY_KIND_IDS["boss"]]

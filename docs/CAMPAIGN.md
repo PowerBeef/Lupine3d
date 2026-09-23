@@ -219,3 +219,39 @@ ROUTE_DIR=build/playthrough-ep2a`), the last chunk restarting the campaign
 from the ending. `release_check.py`
 unions the reports for the current ROM. Regenerating the continue-code table
 for eighteen sectors changed every code.
+
+### Named places
+
+Every sector is laid out as one place with a purpose, so the way through it
+follows how the place would be used rather than a grid of rooms:
+
+| Sector | Place |
+|---|---|
+| 2 Coolant Spine | a pump house, then a pipe-lined spine climbing to the valve head and the lift, with the coolant shaft off to one side |
+| 3 Reactor Gate | a security checkpoint: a lobby, a ring corridor round the guard block, the cell block and turbine stair off it, the Warden at the reactor gate |
+| 4 Vent Stacks | two shafts from the stack base: west to the fan room and the card, east to the carded upper walk and the exhaust hall |
+| 5 Signal Deck | a ring walk round the antenna mast, with the mast shaft, radio room and deck gate off it and the carded throat down to the lower deck |
+| 6 Cryo Vault | the cold throat up to the pod hall, the control room with the card, the carded sump below the pods |
+| 7 Coolant Intake | a pump stair into a cistern held up by four pump columns, with the settling tank, intake valve and grate gallery off it |
+| 8 Pump Gallery | a U of pump bays wrapped round the pump room, the valve room at the head of the U |
+| 9 Turbine Hall | two turbine rooms, each walked round its turbine, with the stair and condenser below and the carded control room above |
+| 10 Coolant Dark | unlit tunnels threading a staggered lattice of pipe blocks; the tunnels loop, so anything in them can come from two sides |
+| 11 Control Gallery | an observation gallery opening by two arches onto a field of console pedestals, the offices and lock behind it |
+| 12 Reactor Heart | a two-wide ring walk round the core, where the boss circles, with the coolant loops either side |
+| 13 Antenna Base | a four-flight switchback stair up the base, the relay room at its head, the base hall and lift below |
+| 14 Relay Deck | a deck of relay racks in staggered pairs, the operations room and the lock behind the carded door |
+| 15 Hull Walk | a walk that circles the whole hull, jogging along the plating, with the four hull rooms off it |
+| 16 Signal Vault | archive stacks either side of the vault; the west stacks hold the card, the vault holds two Wardens and the data core |
+| 17 Transmitter Ring | a diamond ring round the transmitter, with a door at each point: arrival, two emitter rooms, the lock |
+| 18 Spire Crown | the crown chamber, eight pillars round the boss, with bays either side and the uplink lock above |
+
+The certificate shapes every plan (`docs/LEVEL_CERTIFICATE.md`): a door
+counts as open floor in the six-cell sightline, so a door sits where the
+corridor turns, and every door must cut off at least eight cells, so doors
+lead into wings and never sit on a loop; the loops are open corridors.
+The controller route added three rules of its own. A boss fight needs room to
+back away: a one-wide ring corner trapped the route against the boss, so
+Reactor Heart's ring is two cells wide. A door should not open between two
+enemies that wake together. And a lone pillar in a small room can hide an
+actor from every firing position; Relay Deck's Warden walks the deck instead
+of the operations room.
