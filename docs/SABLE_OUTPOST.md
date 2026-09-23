@@ -22,7 +22,7 @@ Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame m
 
 | Asset | Native size | Cels |
 |---|---|---:|
-| Shotgun | 32×32 | 5: idle, recoil, pump back, pump forward, recovery |
+| Shotgun | 40×32 | 4: idle, recoil, pump back, pump forward (rendered from a 3D model, `docs/ART_PIPELINE.md`) |
 | Muzzle flash | 8×16 | 2 |
 | Sentinel | 16×32, 16×16, 8×16 | 12 per size: idle, walk, attack, hurt, death |
 | Player helmet | 16×16 | 4: normal, blink, hurt, dead |

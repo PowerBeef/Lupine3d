@@ -38,7 +38,7 @@ bit-planes per row, most significant bit on the left. Objects are 8×16 pairs
 | Enemy, near | `assets/sable_v2/native/sentinel_near.png` | 16×32 | 12 | ROM cel dictionary (242 source patterns); masked into 32 OBJ patterns per bank at runtime |
 | Enemy, mid | `sentinel_mid.png` | 16×16 | 12 | same |
 | Enemy, far | `sentinel_far.png` | 8×16 | 12 | same |
-| Weapons | `shotgun.png`, `slug_rifle.png`, `arc_lance.png`, `pulse_carbine.png`, reduced by `tools/draw_weapons.py` from the SVGs in `vector/` | 32×32 | 5 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1; one weapon resident, SELECT swaps with the LCD off |
+| Weapons | `shotgun.png`, `slug_rifle.png`, `arc_lance.png`, `pulse_carbine.png`, rendered by `tools/render_weapons.py` from 3D models | 40×32 | 4 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1; one weapon resident, SELECT swaps with the LCD off |
 | Muzzle flash | `flash.png` | 8×16 | 2 | preloaded OBJ patterns |
 | Reticle | `reticle.png` | 8×16 | 1 | preloaded OBJ pattern, palette 4 |
 | Helmet portrait | `helmet_steel.png` | 16×16 | 4 (normal, blink, hurt, dead) | HUD packet portrait, six tile IDs |
@@ -58,40 +58,59 @@ Every weapon must compile to exactly `WEAPON_TILE_BYTES` (1,280 bytes, eighty
 patterns) in the 8×16 pair order the weapon window expects; pattern IDs never
 change between weapons, only their contents.
 
-## Weapons are vector illustrations, reduced
+## Weapons are rendered from models
 
-A first-person weapon has to read as a solid object seen from the shooter's
-eye, and pixels placed by hand at 32×32 did not. Each weapon is therefore
-an SVG illustration under `assets/sable_v2/vector/`, drawn in cel units
-(`viewBox="0 0 32 32"`, one unit per pixel) with as much detail as the
-drawing wants, using only the weapon palette's three tones as fills
-(`#1e2328` dark, `#6f8489` mid, `#eee5c5` light) so every shape already
-says which tone it is: lit tops and bevels, mid bodies, dark flanks,
-grooves, undersides and a contour. The perspective is drawn, not
-computed: the eye is above and behind the gun, the barrel converges on the
-reticle thirty units above the frame, the forend or housing is the nearest
-thing in view and the receiver sits under it, mostly out of frame.
+A first-person weapon has to read as a solid object held by the player, and
+neither pixels placed by hand nor flat illustrations reduced to 32×32 did.
+Each weapon is therefore a small 3D model in `tools/render_weapons.py`,
+rendered straight at the console's resolution: the technique 3D-to-pixel-art
+pipelines use, fitted to the OBJ hardware.
 
-`tools/draw_weapons.py` rasterises each cel at sixteen times the cel size
-with cairosvg and reduces it block by block: a pixel is opaque when half
-its block is covered, dark when dark ink reaches a quarter of it, mid when
-mid ink reaches a third, otherwise the majority tone. So a line drawn 0.5
-units wide survives as a one-pixel line and a highlight has to be at least
-half a unit wide to show; draw with that in mind and check the reduction,
-not only the illustration. The cels are posed from named groups: `action`
-(the pump, charging handle, capacitor ring or vent shutter, translated by
-`data-travel` units), `flare` (shown in the kick cel only) and `gun`
-(everything, kicked down and toward the eye on recoil).
+- **Model.** A handful of signed-distance primitives in gun space (+z along
+  the barrel, +y up): tubes, rounded boxes, and ellipsoids for the gloved
+  hands. Each part has a material (steel, polymer, wood, glove, sleeve, ink,
+  glow) and a name; parts of the action (the shotgun's pump, the rifle's
+  bolt, the lance's capacitor rings, the carbine's shutter) move with the
+  animation, so all four cels are posed from one model.
+- **Camera.** The view's own eye with a viewmodel field of view: a long
+  focal length and a distant gun, as first-person games draw their held
+  weapon, so it keeps its shape instead of ballooning near the eye. The pose
+  is solved from where the receiver's rear and the muzzle land on screen,
+  a three-quarter view from the right with the muzzle under the flash. The
+  gun sits right of the eye pointing at the centre, so the camera sees its
+  **left** flank: details that must show go on −x.
+- **Pixels.** Every pixel is decided at the target resolution from 4×4
+  samples (majority part, its mean normal, nearest depth), never shrunk from
+  a large image. Shading is three bands per material from one key light,
+  with a specular glint on metal.
+- **Ink.** A dark line on the silhouette's own edge and on the far side of
+  every boundary between differently named parts: that is what makes a pump
+  read as a pump at forty pixels.
+- **One palette.** Every object uses OBJ palette 0 (ink, steel, highlight).
+  A sprite takes one palette, so a second colour, wood on a pump, could
+  only show in whole 8×16 blocks; the gun is diagonal and the action
+  slides, so those blocks sat over the gun as rectangles that did not
+  follow the part. Wood therefore reads as the mid tone without the crest
+  highlight, cut by ink grooves. The fit still records a palette per object
+  (`object_palettes` in `assets.json`, written by `animate_weapon` from the
+  ROM's `weapon_object_attributes` table), so a later weapon whose second
+  material fills whole objects can use OBJ palette 5.
 
-The tool is offline authoring: `--write` reduces the four sheets into
-`assets/sable_v2/native/` and updates their hashes in `assets.json`, and
-`tests/test_weapon_art.py` refuses a committed sheet that is not the
-reduction of its SVG, so a weapon is changed in the drawing and
-regenerated, never touched up by hand. The bottom corner objects of the
-weapon grid use OBJ palette 5 (leather), so the gloves are drawn there and
-everything steel stays in the middle columns; the muzzle sits under the
-flash object at the top centre. The legacy art profile keeps its original
-drawn cels.
+The window is 40×32 pixels at world x 68..107 on the slim display: five
+8×16 objects across and two down, ten objects and four cels of twenty
+patterns (idle, the kick, the action back, the action returning; recovery
+shows the idle cel). The scanline admission counts the weapon's objects
+before any world object, so a line never exceeds ten objects with the flash
+on the top row. The legacy art profile keeps its eight-object 32×32 window
+and takes the centre 32 columns of each idle cel.
+
+The tool is offline authoring: `python tools/render_weapons.py` writes
+previews to `build/weapon-art/`, `--write` renders the four sheets into
+`assets/sable_v2/native/` and updates their manifest records, and `--check`
+fails when a committed sheet is not a fresh render. `tests/test_weapon_art.py`
+does the same check, so a weapon is changed in its model and re-rendered,
+never touched up by hand. numpy is pinned in `requirements.txt` so the
+render is byte-identical everywhere.
 
 ## Palettes
 
@@ -126,7 +145,7 @@ authored in `make_palette_sets` (`tools/build_rom.py`) from the outpost set;
 | 2 | drops (medkit, keycard) |
 | 3 | muzzle flash and decor |
 | 4 | decor and the reticle |
-| 5 | the weapon's lit corners |
+| 5 | the weapon's second palette (unused by the current weapons, `docs/ART_PIPELINE.md`) |
 | 6 | warden (brass; acid green, crimson), *per set* |
 | 7 | skirmisher (cold blue; violet, teal), *per set* |
 

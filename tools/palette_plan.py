@@ -24,7 +24,7 @@ BG_OWNERS = {0: "structure walls, upper half (colour 0 is the ceiling)", 1: "HUD
              2: "structure walls, lower half (colour 0 is the floor)", 3: "door faces, upper",
              4: "door faces, lower", 5: "machinery faces, upper", 6: "machinery faces, lower", 7: "screens"}
 OBJ_OWNERS = {0: "weapon", 1: "Sentinel", 2: "drops", 3: "muzzle flash and decor", 4: "decor and the reticle",
-              5: "the weapon's lit corners", 6: "warden", 7: "skirmisher"}
+              5: "the weapon's second palette", 6: "warden", 7: "skirmisher"}
 
 
 def rgb555_to_rgb(value: int) -> tuple[int, int, int]:

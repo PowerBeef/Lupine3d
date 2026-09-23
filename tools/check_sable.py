@@ -237,10 +237,18 @@ def check(output,snapshot_mode='check'):
             expected=compile_frame(name,frame,column_major=True)
             assert bytes(c.read8(b.MASK_TILES+i) for i in range(len(expected)))==expected,(name,frame)
     checks['all_36_emitted_enemy_cels']=True
-    for age,cel in ((0,1),(4,2),(10,3),(16,4),(24,0)):
+    # Four rendered cels (idle, kick, action back, action returning);
+    # recovery shows the idle cel again. Twenty patterns a cel.
+    for age,cel in ((0,1),(4,2),(10,3),(16,0),(24,0)):
         c.write16(b.SHOT_TICK,65530);c.write16(b.FRAME_TICK,(65530+age)&65535);c.write8(b.SHOT_ACTIVE,1);c.write8(b.FLASH,0)
-        c.call_subroutine('animate_weapon');assert c.read8(b.OAM_SHADOW+2)==32+16*cel
-    c.write8(b.FLASH,9);c.write8(b.SHOT_ACTIVE,0);c.call_subroutine('animate_weapon');assert c.read8(b.OAM_SHADOW+2)==48
+        c.call_subroutine('animate_weapon');assert c.read8(b.OAM_SHADOW+2)==b.WEAPON_TILE_BASE+b.WEAPON_CEL_PATTERNS*cel
+    c.write8(b.FLASH,9);c.write8(b.SHOT_ACTIVE,0);c.call_subroutine('animate_weapon');assert c.read8(b.OAM_SHADOW+2)==b.WEAPON_TILE_BASE+b.WEAPON_CEL_PATTERNS
+    # Every weapon's objects carry the OBJ palettes it was fitted with.
+    from lupine3d_v4.resources import weapon_object_palettes
+    for weapon,table in enumerate(weapon_object_palettes()):
+        c.write8(b.WEAPON_INDEX,weapon);c.call_subroutine('animate_weapon')
+        assert [c.read8(b.OAM_SHADOW+i*4+3) for i in range(b.WEAPON_OBJECTS)]==[0x08|p for p in table],weapon
+    c.write8(b.WEAPON_INDEX,0);c.call_subroutine('animate_weapon')
     for tick in (65534,1,2):
         c.write16(b.SIM_TICK,tick);c.call_subroutine('stamp_shot');assert c.read16(b.SHOT_TICK)==tick
     checks['weapon_phases_rapid_restarts_wrap_pending_flash']=True

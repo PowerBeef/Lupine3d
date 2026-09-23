@@ -50,8 +50,8 @@ class AdmissionTests(unittest.TestCase):
         c.write8(br.SENTINEL_DEPTH,20)
         for i in range(80): c.write8(br.RAY_DEPTH+i,100)
         c.write8(br.SENTINEL_OAM_USED,used);c.write8(br.MASK_TILE_COUNT,tiles)
-        c.write8(br.ENTITY_OAM_PTR_L,(br.OAM_SHADOW+40+used*4)&255)
-        c.write8(br.ENTITY_OAM_PTR_H,(br.OAM_SHADOW+40+used*4)>>8)
+        c.write8(br.ENTITY_OAM_PTR_L,(br.OAM_SHADOW+br.ENTITY_OAM_FIRST*4+used*4)&255)
+        c.write8(br.ENTITY_OAM_PTR_H,(br.OAM_SHADOW+br.ENTITY_OAM_FIRST*4+used*4)>>8)
         c.call_subroutine("render_actor_atomic")
 
     def test_fallback_commit_and_total_failure_are_atomic(self):

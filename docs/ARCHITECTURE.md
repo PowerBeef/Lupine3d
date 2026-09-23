@@ -238,7 +238,7 @@ actor, only a dangerous one.
 Kinds share the Sentinel's cels, so variety costs ROM bytes rather than VRAM
 patterns. A distinct *look*, though, costs an OBJ palette, and all eight are
 now spoken for: 0 the weapon, 1 the Sentinel, 2 drops, 3 the muzzle and decor,
-4 decor and the reticle, 5 the weapon's lit corners, 6 the warden and 7 the
+4 decor and the reticle, 5 the weapon's second palette, 6 the warden and 7 the
 skirmisher. Palette 6 came free only because the reticle is a single-colour
 crosshair whose colour was already within three parts in thirty-one of
 palette 4's, and moving it still changed eight shipped pixels a frame. A
@@ -261,7 +261,8 @@ damage only: half, as authored, or one and a half.
 ## Weapons
 
 The weapon window is eighty OBJ patterns at `$8200` in VRAM bank 1, and that is
-one weapon's five cels exactly — the reticle and muzzle take the next four and
+one weapon's four 40×32 cels exactly (ten objects, twenty patterns a cel;
+`docs/ART_PIPELINE.md`) — the reticle and muzzle take the next four and
 the masked pool owns the thirty-two below. Two weapons cannot both be resident,
 so SELECT streams the next owned one's cels in as a single GDMA of eighty
 blocks. The four cel sheets share ROM bank `WEAPON_ROM_BANK` in weapon order

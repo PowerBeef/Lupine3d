@@ -77,15 +77,27 @@ def emit_animation(a):
             a.ld_a_abs(FLASH);a.or_r('a');a.jr('weapon_pending_flash','nz')
             a.ld_a_abs(SHOT_ACTIVE);a.or_r('a');a.jr('weapon_frame_ready','z')
             age(a,SHOT_TICK,FRAME_TICK);a.ld_r_r('a','h');a.or_r('a');a.jr('weapon_frame_ready','nz')
-            for limit,cel in ((4,1),(10,2),(16,3),(24,4)):
+            # The kick, the action back, the action returning; recovery is
+            # the idle cel again (four rendered cels, tools/render_weapons.py).
+            for limit,cel in ((4,1),(10,2),(16,3)):
                 a.ld_r_r('a','l');a.cp_n(limit);a.ld_r_n('c',cel);a.jr('weapon_frame_ready','c')
             a.ld_r_n('c',0);a.jr('weapon_frame_ready')
             a.label('weapon_pending_flash');a.ld_r_n('c',1)
-        a.label('weapon_frame_ready');a.ld_r_r('a','c');a.cb('swap','a');a.add_a_n(WEAPON_TILE_BASE)
-        for index in range(8):
+        # First pattern = base + cel * 20: C*16 + C*4.
+        a.label('weapon_frame_ready');a.ld_r_r('a','c');a.add_a_r('a');a.add_a_r('a');a.ld_r_r('b','a')
+        a.add_a_r('a');a.add_a_r('a');a.add_a_r('b');a.add_a_n(WEAPON_TILE_BASE)
+        for index in range(WEAPON_OBJECTS):
             a.ld_abs_a(OAM_SHADOW+index*4+2);a.add_a_n(2)
+        # Each weapon picks OBJ palette 0 or 5 per object; the attributes of
+        # the weapon in hand are rewritten with its cel (clobbers DE, HL).
+        a.ld_a_abs(WEAPON_INDEX);a.and_n(WEAPON_COUNT-1);a.ld_r_r('e','a')
+        assert WEAPON_OBJECTS == 10
+        a.add_a_r('a');a.add_a_r('a');a.add_a_r('e');a.add_a_r('a')   # index*4 + index, doubled: index*10
+        a.ld_r_r('e','a');a.ld_r_n('d',0);a.ld_rr_label('hl','weapon_object_attributes');a.add_hl_rr('de')
+        for index in range(WEAPON_OBJECTS):
+            a.ldi_a_hl();a.ld_abs_a(OAM_SHADOW+index*4+3)
         a.ld_r_n('a',1);a.ld_abs_a(OAM_DIRTY)
-        a.ld_a_abs(FRAME_TICK);a.and_n(1);a.add_a_r('a');a.add_a_n(MUZZLE_TILE);a.ld_abs_a(OAM_SHADOW+9*4+2);a.ret()
+        a.ld_a_abs(FRAME_TICK);a.and_n(1);a.add_a_r('a');a.add_a_n(MUZZLE_TILE);a.ld_abs_a(OAM_SHADOW+MUZZLE_OAM*4+2);a.ret()
 
     a.label('prepare_compact_hud')
     if not COMPACT_DISPLAY:a.ret()

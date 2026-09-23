@@ -5,8 +5,10 @@
   closing screens, and a boss in its last sector; the arsenal grows to four
   weapons by episode. The continue-code table now holds fifty-four codes,
   which changes every code (`docs/CAMPAIGN.md`, "Three episodes").
-- **Weapon art** is drawn as vector illustrations and reduced
-  (`docs/ART_PIPELINE.md`).
+- **Weapons rendered from 3D models.** Each weapon is a small 3D model
+  rendered straight at the console's resolution with banded shading, part
+  outlines, in a larger 40×32 window right of centre with four animation
+  cels (`tools/render_weapons.py`, `docs/ART_PIPELINE.md`).
 - **Engine fixes the eighteen-sector route found.** The projection table's
   component-zero slice now saturates to the far clamp like the host model:
   an exactly axial ray that the Q14 crossing order carried across the

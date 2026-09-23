@@ -580,8 +580,8 @@ def emit_input_system(a: Assembler) -> None:
     a.dec_r("a"); a.ld_abs_a(FLASH); a.ld_r_n("b", VIEW_HEIGHT - 40 + 16); a.jr("muzzle_shadow_compare")
     a.label("muzzle_hidden"); a.ld_r_n("b", 0)
     a.label("muzzle_shadow_compare")
-    a.ld_a_abs(OAM_SHADOW + 9 * 4); a.cp_r("b"); a.ret("z")
-    a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + 9 * 4)
+    a.ld_a_abs(OAM_SHADOW + MUZZLE_OAM * 4); a.cp_r("b"); a.ret("z")
+    a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + MUZZLE_OAM * 4)
     a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY); a.ret()
 
 

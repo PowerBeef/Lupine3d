@@ -85,7 +85,7 @@ class ForegroundTests(unittest.TestCase):
         c=self.cpu();self.enqueue(c);self.consume(c)
         c.write8(br.FG_ACTIVE,0);c.write8(br.FLASH,9)  # older immutable snapshot still carries the legacy event
         c.call_subroutine("prepare_foreground_commit")
-        self.assertEqual(c.read8(br.OAM_SHADOW+36),0)
+        self.assertEqual(c.read8(br.OAM_SHADOW+br.MUZZLE_OAM*4),0)
         self.assertEqual(c.read16(br.FG_CONSUMED_SEQUENCE),1)
         c.call_subroutine("finish_foreground_commit")
         self.assertEqual(c.wramx[4][0x100+36],0);self.assertEqual(c.read8(br.FG_WORLD_PENDING),0)

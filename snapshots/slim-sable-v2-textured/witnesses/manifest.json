@@ -2,700 +2,700 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "actor_covered_discontinuity": {
-      "rgb_sha256": "320b4016584dc3c8d74716b77afb0aadc3bd95193bef6ddaabd76defb6b1108a",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "4f8f16da1d141d9a7c7d545ba7a18e22235b890807da480f87d1cc73695c6c5d",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "close_clipped_wall": {
-      "rgb_sha256": "6cacf5cbff26af2bba75f86fb8cb6bc2837559d54f44110be635ec488109a26d",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7cd66887b3f9d71ba1aa2ec7253eeb40191f8efdc717f9506b6b3b3f3717bdd1",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "finite_door_0": {
-      "rgb_sha256": "0686b5ca6a2838bb0549bc0e2750508a37e7eb5407ec0b4164e737a009b69318",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "9540f132b990c6e03ea349e3c98339827a025998955e2dd8ff3ba1fd3c93cb65",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "finite_door_128": {
-      "rgb_sha256": "3f516b1bfc68d94371df976bc5cd91cc06da294d90d5b1b7a8c772ef68a3a5d1",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "19d6b78d63e9900d045d3c8a7f92a2ab2182796c2e31992176f1c522b94c28fd",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "finite_door_192": {
-      "rgb_sha256": "8fc309dc60cb8ff855b3ccb3c9a4bf3939fa37436eee24715ff0b3e84076774f",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "91f51e0a21d2821fb6635354c0a821128ceb50ec5f2107b16b525ca57c276eb4",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "finite_door_224": {
-      "rgb_sha256": "cfc3e51743674851ef7c1e9c31c34b4d543915ea0ee62b02ba881ece3ac4aba2",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "fd3b1d16dacd6f17a9752009423232aa95b103596592acaadbc9d59c7807a5a9",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "finite_door_64": {
-      "rgb_sha256": "f7c65324b5c4310ae2f076969064186c0f876b3f5e0ab4cf81cc18f1fe26e2b7",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "511fa776162b38cfebd1a0898ca2696a05f7399e92c781247e1674f059fa6df5",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "four_actor_coverage": {
-      "rgb_sha256": "067f76c8f607be908e772b3bd23111fb0139072bcc8c73c23bee0ec736f8c0bc",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "6090965039e327cbb4ee89dfd7ee730fc9dd34b564049d75ef7d4ae9b6a9e76d",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_00": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_01": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_02": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_03": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_04": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_05": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_06": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_07": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_08": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_09": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_10": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_11": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_12": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_13": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_14": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "fractional_actor_15": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "height_class_occlusion": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0064": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0079": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0080": {
-      "rgb_sha256": "d333666b296d71424c08a8623f51063d60737e4a129b9f947a6b3ebafb4cd5e5",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "b7308dfea5160415ab20163b068115e3452f1a0984146b03ae3d416a9a3c4ee5",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0081": {
-      "rgb_sha256": "d333666b296d71424c08a8623f51063d60737e4a129b9f947a6b3ebafb4cd5e5",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "b7308dfea5160415ab20163b068115e3452f1a0984146b03ae3d416a9a3c4ee5",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0095": {
-      "rgb_sha256": "d333666b296d71424c08a8623f51063d60737e4a129b9f947a6b3ebafb4cd5e5",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "b7308dfea5160415ab20163b068115e3452f1a0984146b03ae3d416a9a3c4ee5",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0096": {
-      "rgb_sha256": "d333666b296d71424c08a8623f51063d60737e4a129b9f947a6b3ebafb4cd5e5",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "b7308dfea5160415ab20163b068115e3452f1a0984146b03ae3d416a9a3c4ee5",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0447": {
-      "rgb_sha256": "a177ed29db3965e6e795bf0c1c0fbd4d5ccb4fab6cde3dcf2f54ca10090f52b4",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "da1c9c284ab8f2eee60eca778a8eefe1576bbf89a71b3a8aa27afa07195c50ab",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0448": {
-      "rgb_sha256": "a177ed29db3965e6e795bf0c1c0fbd4d5ccb4fab6cde3dcf2f54ca10090f52b4",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "da1c9c284ab8f2eee60eca778a8eefe1576bbf89a71b3a8aa27afa07195c50ab",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0449": {
-      "rgb_sha256": "a177ed29db3965e6e795bf0c1c0fbd4d5ccb4fab6cde3dcf2f54ca10090f52b4",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "da1c9c284ab8f2eee60eca778a8eefe1576bbf89a71b3a8aa27afa07195c50ab",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0575": {
-      "rgb_sha256": "d2cf4e4c1957cd881be68b462231c82aaaecc519d557f48cf6a6e08b19787d78",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "9388e56086ac6d9bd85af7f8a82d61cf063d001e359916466c3c4750b0654e41",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0576": {
-      "rgb_sha256": "053f0a29ae53a343e7b479220e4ff0be0bb3280cdecb690d8b4f49a64fb139a2",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "8f73b839af1c29f6c99f68132496781ac3e61f81895ec2ae545b4cdbf89f3a8b",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0959": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_0960": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_1087": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_1088": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "near_lod_1089": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_00": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_01": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_02": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_03": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_04": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_05": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_06": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_07": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_08": {
-      "rgb_sha256": "5ab20fe3daa406d5e3a49920f2d5a76101e422361ca1757828afb5239938d320",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f0fee447ea96044c387e00814469d92ee30a18703a763a27d664e6b81a724a30",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_09": {
-      "rgb_sha256": "3bb7b6831e874a794f8819f709047d2f509606f3b39328831d51a8dbcc31cd37",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "2ccd86a312e3c2e54c67e68f2bd77b569c857e5d7c8d392d402d6977062e0fb3",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_10": {
-      "rgb_sha256": "3bb7b6831e874a794f8819f709047d2f509606f3b39328831d51a8dbcc31cd37",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "2ccd86a312e3c2e54c67e68f2bd77b569c857e5d7c8d392d402d6977062e0fb3",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_far_11": {
-      "rgb_sha256": "3bb7b6831e874a794f8819f709047d2f509606f3b39328831d51a8dbcc31cd37",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "2ccd86a312e3c2e54c67e68f2bd77b569c857e5d7c8d392d402d6977062e0fb3",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_00": {
-      "rgb_sha256": "abf554722643aae1dd9b485e4c04c40289471ddd228bbcfc7839c7003fb9a7f5",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "adbea8ad5beb1570cc23cb49e16dc8caa3c137272624d6cd67ce1799c7c55e98",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_01": {
-      "rgb_sha256": "b8435b3cadfec40aec895c4777595d4e4eaf456ddb1df7b64dffe6b832c9b135",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "32843e5231fdce387d22685561aba2f26dea48455b0fb828fa68d35d6c9a40e4",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_02": {
-      "rgb_sha256": "0d41252bafe7e3f4bd0a5358ea70234a9b7d929f0fc948fbc0a720bbc3b2ac36",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7e1da7f122e41ef546b2b5fd62d75d6ec44916c0de703bff9e823cbb078271cb",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_03": {
-      "rgb_sha256": "434b32e4bce41c2aa6df83f6e6068ac45e96b3110f53e297b932462bc526aa2d",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "5a1f8b0616be163febd0258f8ba32920f388290dfdfe00bf5f8a89abe902da3d",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_04": {
-      "rgb_sha256": "f931a30c4de2dcbb81e31d7913ae72ab81531573f3b16c698dda7a0da5455e99",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "771b568939aa37ca5b3d7fc30000f37a6370ab8810d7e253ef3da95ad3a05e63",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_05": {
-      "rgb_sha256": "43eaa9c6d499c72a260a0cb23b346c51eed194a540fd45b32112f3ce4db01f50",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "2f7b631463a5e85575ecac4e5247cea21d8f6f03179026180045f89baaad6576",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_06": {
-      "rgb_sha256": "b81d0b7197a7fd5d4a29af99fa0c4f9b66c3588b7ff60713b90bf774dd04844d",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "31107b3c73870e4d005014cc7834cdbeb209b67178135567183e3f6d737e4bc7",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_07": {
-      "rgb_sha256": "b0abb3c410bfd6019b9b3f9fbc1dd17af18cb09480212d2a50e3d82a08382245",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "c0d813b4345fd386d5501c9c6c563e205e1746a60539b71154608ee94b7aa1e1",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_08": {
-      "rgb_sha256": "23ee495acf6a504229b6b7a21f08ba1c07969eed1aaea8f6a0b538b5776ce778",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "88130cb8caa2967020d7b1c9a8eaaf7fe5c246d9244fbf66620a92f21763f7c6",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_09": {
-      "rgb_sha256": "cd42f9aa283990d77d0c0ef7e67a5f1a6479853683f0dbc8c0c4f173863e217f",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "3f019b4070b35b57bec94bdcd3fcc51a2b091bc74b7e4080028498aadb2e63f2",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_10": {
-      "rgb_sha256": "994952e74ad237ccf4e1eda2c1ab18faa02bbc13233ec03f90b842e8d6482400",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "def444f54ed7c5c47c92071e53d6385b82bca6ffd3fba47cb0a28f1768d0ed94",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_mid_11": {
-      "rgb_sha256": "4f9b689d0b977966bf5d6cced5af054728d0966c0b77bdeb433030d811a608b3",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7410e7b49eb3b3d84a96c7f31ce5bf6979640af057eeab8befb068cc49450335",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_00": {
-      "rgb_sha256": "eda64c30d3e70b17a9a29045a805d2150496cad68381b1db9670bfde1d546aab",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "51fd4e19e99dc192673b816f539e04d3343a162bc5943020bdfb3b12b7cc7e70",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_01": {
-      "rgb_sha256": "8ab5e40c30bf3b6b2cea23e3e19f019266f4cef1c300d9e664306b9e2fe100c2",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "3ec365bd8c6d569a19fd76efcf00f2384474b0dc923a01be5f5f492094e009f6",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_02": {
-      "rgb_sha256": "4ac8e77be1e2f6a6e0be34e793362a7133e23bc71385c67f30706d17d197e366",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "fbcee5ddb18568d643882910ebdb38e7a117f89862bbfe1473f4ead2cfa11529",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_03": {
-      "rgb_sha256": "2bdcdc393d03b2d45f986213d92d40f1991ac6973045eef7cda8d67965dbc6e6",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "281ff6fd08ac4835cde01f1d79aa9278ea9c609e320382f2243a9e696326e175",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_04": {
-      "rgb_sha256": "48c5be5f9fd2d0d22c655923f8aa0d1422f990c4245e3e93675cce0fc80c66ad",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "24fe16feca27550c1d5f6a6df0776677fd9ba9c696c0be69a5beb696e91fefb2",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_05": {
-      "rgb_sha256": "d24033319880e8020055e2cad59e237c6499758824dd2623b58a8f92db42c75d",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "ed9e2efdbbf6c99042ebb7100304a7a4a7bcb9a8efeec14d0ea8f2107022d082",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_06": {
-      "rgb_sha256": "6d165c2adb77e7d3bce843b6ba2bd3007243c901d8858ffeea569043b3f0dafb",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "11a8f1b24b2eef1772b12e782bd4103cb73f8fc366a2b57c711dc2e1f1d7a709",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_07": {
-      "rgb_sha256": "a124755f4dc7b9d65e58090445161f305c5be53e96c9e75c673d4153355bac8a",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "cc0027289fc06e862809263db8d44cb673b239c933411cbe631434755903b9a1",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_08": {
-      "rgb_sha256": "9daad03890c507ec1e9d6e5ab780bac43622281c55dff7b14ad35c3058bf0b06",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "cf20feb4b47a6a7634640fd5513dad9d3da244c848e120167fb5f706864fda42",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_09": {
-      "rgb_sha256": "e6c47b8a45aeff42b9745151126be832a8be8b41765b20c084804afcdd67a00b",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "9739c35d60900288bfad8be3ca6bc0ceb11d7a90c2b38f6ae9d8b1f564f0b672",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_10": {
-      "rgb_sha256": "8929d484323dded48987da9792ba5bae134a7e4be83e0f3fe002bc198b93b0dc",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "a95e43a91944ca80c2fdd66baeb112abfbc494e4ce1fa5595ca54d29a96e8987",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "sable_near_11": {
-      "rgb_sha256": "e359e7c233efff2cc980091f5a91d0d28ebf2a062d1795b9898b19a6ae77e04f",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "e88f364597184c6e3fef2ed661aa710f6d15e27850cdd3c7db71940fd1408fc1",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "shallow_angle": {
-      "rgb_sha256": "d8c03cd2f8821609f477d0b06f1e1781d7f93c59dde64cd053e9852b54499b9a",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "21f40f103c8b24b074c5f039a7bb3ddd21bd54ee666a38889bbbdb1075fbcc13",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "thin_occluder": {
-      "rgb_sha256": "1d41b5dbba9f7764461fd9c7a0204b1dc2e13e8ba3d9648c6d6378285a71027c",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "1b7c818a819bf6d272088118d2e8a957c795ed70aec08898f240cd956d08d880",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "touching_doors_axis_0": {
-      "rgb_sha256": "51ae1119fb2b553d763ca89ea2a8b55ee8c6f7595f21b4fe953d44214f4012c8",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "4fcd29cca9df855851f7c41ca0be28530dbf3e4bdceb1fcc8c675d8081501bd8",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "touching_doors_axis_1": {
-      "rgb_sha256": "4cb303baa716f16984e57bdbb8c38a4ad495050a0258896f7a7ea3d71b7a2dcf",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "32827002579f548e5ae3bad4e5368da0ad4a7e39d648a86a070a11ee9e90dc64",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "two_actor_corner": {
-      "rgb_sha256": "c0f05a7eeda52fad9bd5e63033eed65d6c0891240d4307ad437d557212fb2ac9",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f88957380ac60252be2b89a7c0f7d87d09ec4499abba61067e2e982b3280a04e",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "yaw_wrap_000": {
-      "rgb_sha256": "36ead82b2874b47c9bb9ea26ef281244ac8e9b91115d519a79955131d4036f86",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "7c5e576272cb7dea603411c7ff37073a3d721024815883a6c42ccc88a43ae5cc",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "yaw_wrap_001": {
-      "rgb_sha256": "717c8236c2f0ae8594481fb473346c0d59db96a7267a8aeaa04b720b6a237d64",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "db0194d8fa739459714cad7ac9bcf9f60e6f22af4ea807e195fb31e2e36c1b65",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "yaw_wrap_002": {
-      "rgb_sha256": "4b45b7a49cb11517ed23148a3802cf8bc617be30522de468386e35e81aed305d",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "f106785636d3209621c20b818b2792327a0b3a429e16aeb312957b1a50116182",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "yaw_wrap_254": {
-      "rgb_sha256": "971b7e0c1d4a49f3252703a9083ed4d8b362195069ca90f754931c99be4851a2",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "cb6c83c2451faf72dba15f9ad1e94c0ee079448f3f3bd5168cd40c4934e88058",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "yaw_wrap_255": {
-      "rgb_sha256": "11b06bd7e08e4130f78a98686f95d8f17633a8189c0f2455726a1fabb733e651",
-      "rom_sha256": "c49d2f89f922d3376d9049b398e397cc3c77a918c3cacea82da2a1a5f92073f2",
+      "rgb_sha256": "b8c76af50f7e8b1776b748b4668444257a0463c3048a5bcda6cb04a03154c53f",
+      "rom_sha256": "72715703ae5a9eedb1837c10fc0ce2dd4897530b2bdda42d2a8cf51c1ed31065",
       "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-22T18:33:57+00:00",
+      "accepted_at": "2026-09-23T04:28:28+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Weapon cels are now reductions of vector illustrations (assets/sable_v2/vector, tools/draw_weapons.py): the shotgun and slug rifle sheets replace the flat drawn cels, so every scene showing the weapon changes inside the bottom-centre weapon objects and nowhere else; frame checks, the HUD fixture and core agreement are unchanged."
+      "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     }
   }
 }

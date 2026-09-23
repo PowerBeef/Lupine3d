@@ -214,7 +214,19 @@ def bg_tile_address(tile_id: int) -> int:
     if not 0 <= tile_id <= 255:
         raise ValueError("BG tile ID outside byte range")
     return 0x9000 + (tile_id if tile_id < 128 else tile_id - 256) * 16
-ENTITY_OAM_FIRST = 10          # eight weapon pairs, crosshair, muzzle
+# The weapon's OAM window. Sable weapons are rendered from models into a
+# 40x32 window right of centre: five 8x16 objects across, two down, four
+# cels of twenty patterns (tools/render_weapons.py). The per-scanline
+# admission counts these objects before it admits any world object, so ten
+# per line still holds with the muzzle flash on the top row. The legacy art
+# profile keeps its 32x32 centred window of eight objects.
+WEAPON_COLUMNS = 5 if SABLE_ART else 4
+WEAPON_OBJECTS = WEAPON_COLUMNS * 2
+WEAPON_CEL_PATTERNS = WEAPON_OBJECTS * 2
+WEAPON_SCREEN_X = 68 if SABLE_ART else 64
+RETICLE_OAM = WEAPON_OBJECTS
+MUZZLE_OAM = WEAPON_OBJECTS + 1
+ENTITY_OAM_FIRST = WEAPON_OBJECTS + 2   # the weapon's objects, crosshair, muzzle
 ENTITY_OAM_COUNT = 16          # bounded 32-pattern masked publication packet
 MASK_TILE_COUNT = 0xD8D0
 MASK_BITS = 0xD8D1
@@ -353,6 +365,8 @@ assert CAMPAIGN_SCALARS_END <= 0xC800, "campaign scalars overrun the OAM shadow"
 WEAPON_COUNT = 4                        # a power of two: the index is masked
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
+WEAPON_CELS = WEAPON_TILE_BYTES // (WEAPON_CEL_PATTERNS * 16)   # Sable 4, legacy 1
+assert WEAPON_CELS * WEAPON_CEL_PATTERNS * 16 == WEAPON_TILE_BYTES
 WEAPON_PATTERNS = WEAPON_TILE_BYTES // 16
 # The four cel sheets share one ROM bank of their own; weapon_source hands
 # the swap and init_vram a pointer into it, and both map it only for the copy.

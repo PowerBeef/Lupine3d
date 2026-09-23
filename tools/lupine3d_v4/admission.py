@@ -14,10 +14,10 @@ def emit_admission(a: Assembler):
     # reserves its maximum Y occupancy even while the current flash is hidden.
     if not FOREGROUND_PUBLICATION:
         a.ld_a_abs(FLASH); a.or_r("a"); a.ld_r_n("a",0); a.jr("seed_muzzle_ready","z"); a.ld_r_n("a",VIEW_HEIGHT - 24)
-        a.label("seed_muzzle_ready"); a.ld_abs_a(OAM_SHADOW+9*4)
+        a.label("seed_muzzle_ready"); a.ld_abs_a(OAM_SHADOW+MUZZLE_OAM*4)
     for index in range(ENTITY_OAM_FIRST):
         end=f"seed_ui_{index}_done"
-        if FOREGROUND_PUBLICATION and index==9: a.ld_r_n("a",VIEW_HEIGHT - 24)
+        if FOREGROUND_PUBLICATION and index==MUZZLE_OAM: a.ld_r_n("a",VIEW_HEIGHT - 24)
         else: a.ld_a_abs(OAM_SHADOW+index*4)
         a.or_r("a"); a.jr(end,"z"); a.cp_n(160); a.jr(end,"nc")
         a.ld_r_r("c","a"); a.sub_n(16); a.jr(f"seed_ui_{index}_start","nc"); a.xor_r("a")

@@ -401,6 +401,13 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # lance is the heavy, slow discharge; the pulse carbine a quick double hit.
     a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15, 4, 40, 2, 6)), "damage and cooldown per weapon")
     a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
+    # Per weapon, the attribute byte of each of its objects (VRAM bank 1,
+    # OBJ palette 0 or 5), as tools/render_weapons.py fitted them.
+    a.label("weapon_object_attributes")
+    if SABLE_ART:
+        from lupine3d_v4.resources import weapon_object_palettes
+        a.bytes(bytes(0x08 | palette for table in weapon_object_palettes() for palette in table),
+                "OAM attribute per weapon object")
     a.label("weapon_sources")
     for name in WEAPON_SHEET_LABELS: a.dw_label(name)
     a.label("password_codes"); a.bytes(bytes(
@@ -446,7 +453,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             colours=sprite_manifest()['assets'][name]['palette']
             obj_palette_values[index*4:index*4+4]=[rgb15(*(round(c*31/255) for c in rgb)) for rgb in colours]
     # OBJ palettes after the re-plan: 0 weapon, 1 Sentinel, 2 drops, 3
-    # muzzle/decor, 4 decor and the reticle, 5 the weapon's lit corners,
+    # muzzle/decor, 4 decor and the reticle, 5 the weapon's second palette,
     # 6 warden, 7 skirmisher. Palette 7 was the only free slot until the
     # reticle - a single-colour crosshair - moved onto palette 4, whose
     # index 3 it very nearly already was. That freed palette 6 for a third

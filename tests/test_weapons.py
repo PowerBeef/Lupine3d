@@ -57,10 +57,10 @@ class WeaponTableTests(unittest.TestCase):
     def test_the_second_weapon_is_drawn_not_generated(self):
         # Every cel must carry ink, and no two consecutive cels may be equal,
         # or the animation would stall on a frame.
-        cels = [br.make_slug_tiles()[i * 256:(i + 1) * 256]
-                for i in range(br.WEAPON_TILE_BYTES // 256)]
+        size = br.WEAPON_CEL_PATTERNS * 16
+        cels = [br.make_slug_tiles()[i * size:(i + 1) * size] for i in range(br.WEAPON_CELS)]
         for index, cel in enumerate(cels):
-            self.assertNotEqual(cel, bytes(256), index)
+            self.assertNotEqual(cel, bytes(size), index)
         # The legacy art profile carries one cel per weapon and no animation.
         if len(cels) > 1:
             self.assertGreater(len(set(cels)), 1, "every cel is identical")

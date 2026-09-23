@@ -1,2 +1,2 @@
 Pillow>=10.0
-cairosvg>=2.7   # offline weapon art reduction (tools/draw_weapons.py) and its test
+numpy==2.4.6    # offline weapon rendering (tools/render_weapons.py) and its test; pinned so a fresh render is byte-identical

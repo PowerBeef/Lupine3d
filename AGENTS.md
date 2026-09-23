@@ -227,7 +227,7 @@ regression contract.
 - Kinds share the Sentinel's cels, so variety costs ROM, not VRAM patterns —
   but a distinct look costs an **OBJ palette**, and all eight are spoken for:
   0 weapon, 1 Sentinel, 2 drops, 3 muzzle/decor, 4 decor and the reticle,
-  5 the weapon's lit corners, 6 warden, 7 skirmisher. A fourth visible kind
+  5 the weapon's second palette, 6 warden, 7 skirmisher. A fourth visible kind
   means re-planning those, not editing the table; palette 6 came free only
   because the reticle is a single-colour crosshair that could share palette 4,
   and that still moved shipped pixels. Resolve the palette once per actor in
@@ -272,8 +272,15 @@ regression contract.
   weapon away; a weapon in hand that is no longer owned drops to the first.
 - Pattern IDs never change, only their contents, so no OAM is rewritten and the
   animation code is weapon-agnostic. Every weapon must compile to exactly
-  `WEAPON_TILE_BYTES`; the sheets are reductions of the SVG illustrations in
-  `assets/sable_v2/vector/` (`docs/ART_PIPELINE.md`).
+  `WEAPON_TILE_BYTES`; the sheets are rendered from 3D models by
+  `tools/render_weapons.py` (`docs/ART_PIPELINE.md`, "Weapons are rendered
+  from models") into a 40x32 window right of centre: ten objects
+  (`WEAPON_OBJECTS`, OAM 0-9, then the reticle and muzzle), four cels of
+  twenty patterns, and a per-weapon OBJ palette per object that
+  `animate_weapon` writes from `weapon_object_attributes` (all palette 0
+  today: a second colour could only fill whole sprites, and on a diagonal,
+  sliding gun that shows as rectangles). The scanline
+  admission counts those objects before admitting world objects.
 - `weapon_stats` gives each weapon damage and recovery in simulation ticks. The
   shotgun's record is the engine's original behaviour exactly — one damage, no
   recovery — so a change there is a change to every existing measurement.
