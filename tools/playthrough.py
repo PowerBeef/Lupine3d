@@ -566,9 +566,28 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                     # Nothing shot from anywhere nearby has reached a dormant
                     # or patrolling actor: walk onto its own cell, where no
                     # corner is left to hide behind, while the bar can take it.
+                    # Stop once the walk is costing health and a step has
+                    # brought it beside the actor with a line: walking on past
+                    # a line while it swings at the route is how Reactor
+                    # Gate's warden killed it (seven contacts, no shot). A walk
+                    # nothing is hitting goes on to the actor's cell: stopping
+                    # it early sends the route back into the corner fight
+                    # Reactor Heart's boss wins.
                     fruitless[survivor["slot"]] = 0
                     record["decision"] = "close in"
-                    navigate((survivor["x"] >> 8, survivor["y"] >> 8), stop=lambda: not survives_contact(survivor))
+                    slot, walk_health = survivor["slot"], live8(br.PLAYER_HEALTH)
+                    walk_x, walk_y, _ = pose()
+
+                    def lined_up():
+                        live = next((a for a in living() if a["slot"] == slot), None)
+                        if live is None:
+                            return True
+                        x, y, _ = pose()
+                        beside = abs(live["x"] - x) < 512 and abs(live["y"] - y) < 512
+                        return (live8(br.PLAYER_HEALTH) < walk_health and (x >> 8, y >> 8) != (walk_x >> 8, walk_y >> 8)
+                                and beside and has_sight(live))
+                    navigate((survivor["x"] >> 8, survivor["y"] >> 8),
+                             stop=lambda: not survives_contact(survivor) or lined_up())
                 elif engageable(survivor):
                     # The shot had a host-side line but the ROM's exact centre
                     # ray did not reach the actor: it stands against a corner

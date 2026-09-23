@@ -173,23 +173,32 @@ def emit_precision(a: Assembler) -> None:
     a.ret()
 
     a.label("q14_multiply_u16")  # HL * DE -> 32-bit product, no overflow
-    store_hl_abs(a, Q14_MULTIPLICAND, Q14_MULTIPLICAND + 1)
-    a.ld_r_r("a", "e"); a.ld_abs_a(Q14_MULTIPLIER)
+    # Four table products, B and C chosen so each call keeps one operand
+    # (mul_u8 preserves BC): mL*pL, mL*pH, mH*pL, mH*pH. The running sum
+    # rides the stack between calls and each product byte is stored once.
+    # Clobbers everything; the operands' high bytes wait in the multiplier
+    # scratch, which nothing else reads.
+    a.ld_r_r("a", "h"); a.ld_abs_a(Q14_MULTIPLICAND + 1)
     a.ld_r_r("a", "d"); a.ld_abs_a(Q14_MULTIPLIER + 1)
-    a.xor_r("a")
-    for byte in range(4): a.ld_abs_a(Q14_PRODUCT + byte)
-    for left in range(2):
-        for right in range(2):
-            skip = f"wide_product_{left}_{right}_skip"
-            a.ld_a_abs(Q14_MULTIPLICAND + left); a.or_r("a"); a.jr(skip, "z"); a.ld_r_r("b", "a")
-            a.ld_a_abs(Q14_MULTIPLIER + right); a.or_r("a"); a.jr(skip, "z"); a.ld_r_r("c", "a")
-            a.call("mul_u8")
-            start = left + right
-            a.ld_a_abs(Q14_PRODUCT + start); a.add_a_r("l"); a.ld_abs_a(Q14_PRODUCT + start)
-            a.ld_a_abs(Q14_PRODUCT + start + 1); a.adc_a_r("h"); a.ld_abs_a(Q14_PRODUCT + start + 1)
-            for byte in range(start + 2, 4):
-                a.ld_a_abs(Q14_PRODUCT + byte); a.adc_a_n(0); a.ld_abs_a(Q14_PRODUCT + byte)
-            a.label(skip)
+    a.ld_r_r("a", "e"); a.ld_abs_a(Q14_MULTIPLIER)
+    a.ld_r_r("b", "l"); a.ld_r_r("c", "e"); a.call("mul_u8")            # mL*pL
+    a.ld_r_r("a", "l"); a.ld_abs_a(Q14_PRODUCT); a.push("hl")
+    a.ld_a_abs(Q14_MULTIPLIER + 1); a.ld_r_r("c", "a"); a.call("mul_u8")  # mL*pH
+    a.pop("de")
+    a.ld_r_r("a", "l"); a.add_a_r("d"); a.ld_r_r("e", "a")               # byte 1 so far
+    a.ld_r_r("a", "h"); a.adc_a_n(0); a.ld_r_r("d", "a")                 # byte 2: at most $FE + 1
+    a.push("de")
+    a.ld_a_abs(Q14_MULTIPLICAND + 1); a.ld_r_r("b", "a")
+    a.ld_a_abs(Q14_MULTIPLIER); a.ld_r_r("c", "a"); a.call("mul_u8")      # mH*pL
+    a.pop("de")
+    a.ld_r_r("a", "l"); a.add_a_r("e"); a.ld_abs_a(Q14_PRODUCT + 1)
+    a.ld_r_r("a", "h"); a.adc_a_r("d"); a.ld_r_r("e", "a")
+    a.ld_r_n("a", 0); a.adc_a_n(0); a.ld_r_r("d", "a")                   # byte 3's carry
+    a.push("de")
+    a.ld_a_abs(Q14_MULTIPLIER + 1); a.ld_r_r("c", "a"); a.call("mul_u8")  # mH*pH
+    a.pop("de")
+    a.ld_r_r("a", "l"); a.add_a_r("e"); a.ld_abs_a(Q14_PRODUCT + 2)
+    a.ld_r_r("a", "h"); a.adc_a_r("d"); a.ld_abs_a(Q14_PRODUCT + 3)
     a.ret()
     a.label("q14_multiply_u16_shift_reference")
     store_hl_abs(a, Q14_MULTIPLICAND, Q14_MULTIPLICAND + 1)

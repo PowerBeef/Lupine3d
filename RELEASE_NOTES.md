@@ -1,3 +1,20 @@
+# Unreleased — after v0.11
+
+- **Exact performance round** (`docs/PERFORMANCE_PHASE5.md`). The textured
+  kernel composes rows under one texel row in 76 T instead of 104 and drops
+  its per-tile bookkeeping on one-face columns; every profile gets a leaner
+  16x16 multiply, a twelve-step door-panel divide and the crossing
+  certificate fused into the DDA loop. Textured walking 6.47 to 6.85/s,
+  turning 8.40 to 9.08/s; default walking 7.77 to 8.08/s, turning 10.25 to
+  10.84/s. The Phase 5 targets are not met.
+- **Textured texture coordinates.** A neighbour difference of 126 or 127
+  pulled a pixel's U the wrong way; `check_sable.py` now runs the expansion
+  over every difference.
+- **The render snapshot copies its map** only when a door or a load changed
+  it.
+- **The route** stops a close-in walk that is costing health once a step has
+  put it beside the actor with a line, instead of walking on past it.
+
 # Lupine 3D v0.11 — Three episodes
 
 v0.10 streamed the renderer; v0.11 turns the six-sector demo into a

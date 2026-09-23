@@ -26,6 +26,7 @@ keeps every link and command on these pages valid.
 | [Campaign](CAMPAIGN.md) | What turned the demo into a game, and what each decision cost |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Health, helmet, skull and objective implementation |
+| [Performance after textures](PERFORMANCE_PHASE5.md) | Phase 5: sustained rates of both profiles, where an update goes, the exact savings taken and what the rest would need |
 | [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
 | [Test report](TEST_REPORT.md) | ROM-bound v0.11 qualification and performance |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |

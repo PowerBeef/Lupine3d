@@ -148,7 +148,11 @@ regression contract.
   missed gate and what each part costs are in `docs/TEXTURED_WALLS.md` and
   `research/results/textured_walls_lab_v2.json`. One-face columns run
   `tex_column_single` with the accumulator, step and slot in registers
-  across the column; seam columns run `tex_compose_tile` per tile.
+  across the column; seam columns run `tex_compose_tile` per tile. A run
+  whose row step is under one texel row takes the 76 T rows (`fast_rows`:
+  `DE` the cache row, `B` the fraction, `C` the step, `HL` the
+  destination, `set 3,e` for the second plane), which relies on a run's
+  cache being sixteen-aligned and its texel rows staying below eight.
 
 ## Campaign, modes and screens
 

@@ -44,6 +44,29 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual((actual, c.hl), divmod(numerator, divisor), (numerator, divisor))
             self.assertEqual((c.d << 8) | c.e, divisor)
 
+    def test_door_quotient_is_the_divide_below_4096_and_refuses_the_rest(self):
+        # The door panel needs floor(p / d) only below 4096; the routine starts
+        # the divide from floor(p / 4096) and must agree with Python exactly.
+        c = self.boot()
+        rng = random.Random(709)
+        divisors = sorted({1, 2, 3, 15, 16, 17, 255, 256, 4095, 4096, 16383, 16384, 32767, 65535,
+                           *(rng.randrange(1, 65536) for _ in range(24))})
+        cases = [(q * d + r, d) for d in divisors for q in (0, 1, 4094, 4095, 4096, 4097, 65536)
+                 for r in {0, d - 1, d // 2}]
+        cases += [(rng.randrange(1 << 32), rng.randrange(1, 65536)) for _ in range(256)]
+        cases += [(x * y, rng.randrange(1, 32768)) for x, y in
+                  ((rng.randrange(4096), rng.randrange(32768)) for _ in range(256))]
+        for numerator, divisor in cases:
+            numerator &= 0xFFFFFFFF
+            c.write16(br.Q14_PRODUCT, numerator & 65535)
+            c.write16(br.Q14_PRODUCT + 2, numerator >> 16)
+            c.d, c.e = divisor >> 8, divisor & 255
+            c.call_subroutine("door_quotient")
+            quotient = numerator // divisor
+            self.assertEqual(c.flag(0x10), quotient >= 4096, (numerator, divisor))
+            if quotient < 4096:
+                self.assertEqual((c.b << 8) | c.c, quotient, (numerator, divisor))
+
     def test_product_lookup_covers_every_bank_selector_and_restores_bank_one(self):
         c = self.boot()
         for right in range(256):

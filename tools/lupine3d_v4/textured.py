@@ -125,62 +125,64 @@ def emit_textured_kernel(a) -> None:
     # fall through
 
     # ----- tex_setup_runs: shade, tables and the window cache of every run -----
+    # The record pointer stays in HL (on the stack while HL does other work):
+    # eight twelve-byte records fill $CBA0-$CBFF, so `inc l` never carries.
+    assert TEX_RUNS & 0xFF == 0xA0 and TEX_RUN_BYTES * 8 == 0x60
+    assert PIXEL_U & 0xFF == 0x60 and PHYSICAL_COLUMNS == 160
     a.label("tex_setup_runs")
-    a.ld_r_n("a", TEX_RUNS & 0xFF); a.ld_abs_a(TEX_REC_L); a.ld_r_n("a", TEX_RUNS >> 8); a.ld_abs_a(TEX_REC_H)
     a.ld_a_abs(TEX_RUN_COUNT); a.ld_abs_a(TEX_LOOP)
+    a.ld_rr_nn("hl", TEX_RUNS)
     a.label("tex_setup_loop")
-    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl")
     # half = HORIZON - TOP -> TEX_TMP0 and C
     a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_r_n("a", HORIZON); a.sub_r("b"); a.ld_abs_a(TEX_TMP0); a.ld_r_r("c", "a")
-    # shade: the dark side is set 3; else near/mid/far by half
-    a.ld_rr_nn("de", R_SHADE); a.add_hl_rr("de"); a.ld_a_hl(); a.or_r("a"); a.ld_r_n("a", 3); a.jr("tex_shade_ready", "nz")
+    # D = START, E = LAST, B = SURF; the shade from SHADE and half
+    a.inc_r("l"); a.inc_r("l"); a.inc_r("l")
+    a.ldi_a_hl(); a.ld_r_r("d", "a"); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ldi_a_hl(); a.ld_r_r("b", "a")
+    a.ld_a_hl(); a.or_r("a"); a.ld_r_n("a", 3); a.jr("tex_shade_ready", "nz")
     a.ld_r_r("a", "c"); a.cp_n(NEAR_HALF); a.ld_r_n("a", 0); a.jr("tex_shade_ready", "nc")
     a.ld_r_r("a", "c"); a.cp_n(MID_HALF); a.ld_r_n("a", 1); a.jr("tex_shade_ready", "nc")
     a.ld_r_n("a", 2)
-    a.label("tex_shade_ready"); a.ld_abs_a(TEX_TMP1)
-    # directory entry = (SURF*4 + shade) * 3 -> bank in TEX_TMP2, address in DE
-    a.dec_rr("hl"); a.ld_a_hl(); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("b", "a")
-    a.ld_a_abs(TEX_TMP1); a.add_a_r("b"); a.ld_r_r("b", "a"); a.add_a_r("a"); a.add_a_r("b")
-    # The level's texture set: `load_level` points TEX_DIRECTORY at it.
-    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_a_abs(TEX_DIRECTORY_L); a.ld_r_r("l", "a"); a.ld_a_abs(TEX_DIRECTORY_H); a.ld_r_r("h", "a"); a.add_hl_rr("de")
-    a.ldi_a_hl(); a.ld_abs_a(TEX_TMP2)
-    a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
-    a.push("de")
+    a.label("tex_shade_ready")
+    # directory entry = (SURF*4 + shade) * 3 in the level's texture set
+    a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.add_a_r("a"); a.add_a_r("a"); a.add_a_r("c")
+    a.ld_r_r("c", "a"); a.add_a_r("a"); a.add_a_r("c")
+    a.push("hl"); a.push("de")
+    a.ld_r_r("c", "a"); a.ld_r_n("b", 0)
+    a.ld_a_abs(TEX_DIRECTORY_L); a.ld_r_r("l", "a"); a.ld_a_abs(TEX_DIRECTORY_H); a.ld_r_r("h", "a"); a.add_hl_rr("bc")
+    a.ldi_a_hl(); a.ld_abs_a(TEX_TMP2)                          # the window bank
+    a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ld_r_r("b", "(hl)")    # BC = the block
     # bank 247: the row step of this half, then the stride class
     a.ld_r_n("a", TEXTURE_LUT_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_a_abs(TEX_TMP0); a.add_a_r("a"); a.ld_r_r("l", "a"); a.ld_r_n("h", TEXTURE_STEP_OFFSET >> 8)
     a.ldi_a_hl(); a.ld_abs_a(TEX_TMP3); a.ld_a_hl(); a.ld_abs_a(TEX_TMP4)
-    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.ld_rr_nn("de", R_START); a.add_hl_rr("de")
-    a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ld_a_hl(); a.ld_r_r("b", "a")          # C = START, B = LAST
-    a.ld_a_abs(TEX_COL_OFFSET); a.add_a_r("c"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
-    a.ld_rr_nn("hl", PIXEL_U); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_abs_a(TEX_TMP0)   # u_first
-    a.ld_a_abs(TEX_COL_OFFSET); a.add_a_r("b"); a.ld_r_r("e", "a")
-    a.ld_rr_nn("hl", PIXEL_U); a.add_hl_rr("de"); a.ld_a_hl()                       # u_last
-    a.ld_r_r("e", "a"); a.ld_a_abs(TEX_TMP0); a.ld_r_r("d", "a"); a.ld_r_r("a", "e"); a.sub_r("d"); a.ld_r_r("l", "a")
-    a.ld_r_r("a", "b"); a.sub_r("c"); a.add_a_n(TEXTURE_STRIDE_LUT_OFFSET >> 8); a.ld_r_r("h", "a")
-    a.ld_a_hl(); a.ld_abs_a(TEX_TMP1)                                                # k
-    # phase = (u_first - START << (k + 1)) >> 2
-    a.ld_r_r("b", "a"); a.inc_r("b"); a.ld_r_r("a", "c")
-    a.label("tex_phase_shift"); a.add_a_r("a"); a.dec_r("b"); a.jr("tex_phase_shift", "nz")
-    a.ld_r_r("d", "a"); a.ld_a_abs(TEX_TMP0); a.sub_r("d"); a.cb("srl", "a"); a.cb("srl", "a")
-    # window = block + k * 1024 + phase * 16
     a.pop("de")
-    a.cb("swap", "a"); a.ld_r_r("c", "a"); a.and_n(0xF0); a.add_a_r("e"); a.ld_r_r("e", "a")
-    a.ld_r_r("a", "c"); a.and_n(0x0F); a.adc_a_r("d"); a.ld_r_r("d", "a")
-    a.ld_a_abs(TEX_TMP1); a.add_a_r("a"); a.add_a_r("a"); a.add_a_r("d"); a.ld_r_r("d", "a")
-    # the run's cache address, then the copy from the window bank
-    a.push("de"); load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.inc_rr("hl"); a.inc_rr("hl"); a.ld_a_hl(); a.pop("hl")
-    a.ld_r_r("e", "a"); a.ld_r_n("d", TEX_WINDOWS >> 8)
+    a.ld_r_n("h", PIXEL_U >> 8)
+    a.ld_a_abs(TEX_COL_OFFSET); a.add_a_r("d"); a.add_a_n(PIXEL_U & 0xFF); a.ld_r_r("l", "a"); a.ld_a_hl(); a.ld_abs_a(TEX_TMP0)   # u_first
+    a.ld_a_abs(TEX_COL_OFFSET); a.add_a_r("e"); a.add_a_n(PIXEL_U & 0xFF); a.ld_r_r("l", "a"); a.ld_a_hl()                         # u_last
+    a.ld_r_r("l", "a"); a.ld_a_abs(TEX_TMP0); a.ld_r_r("h", "a"); a.ld_r_r("a", "l"); a.sub_r("h"); a.ld_r_r("l", "a")
+    a.ld_r_r("a", "e"); a.sub_r("d"); a.add_a_n(TEXTURE_STRIDE_LUT_OFFSET >> 8); a.ld_r_r("h", "a")
+    a.ld_a_hl(); a.ld_r_r("e", "a")                                                  # E = k
+    # phase = (u_first - START << (k + 1)) >> 2
+    a.ld_r_r("l", "e"); a.inc_r("l"); a.ld_r_r("a", "d")
+    a.label("tex_phase_shift"); a.add_a_r("a"); a.dec_r("l"); a.jr("tex_phase_shift", "nz")
+    a.ld_r_r("l", "a"); a.ld_a_abs(TEX_TMP0); a.sub_r("l"); a.cb("srl", "a"); a.cb("srl", "a")
+    # window = block + k * 1024 + phase * 16
+    a.cb("swap", "a"); a.ld_r_r("l", "a"); a.and_n(0xF0); a.add_a_r("c"); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "l"); a.and_n(0x0F); a.adc_a_r("b"); a.ld_r_r("b", "a")
+    a.ld_r_r("a", "e"); a.add_a_r("a"); a.add_a_r("a"); a.add_a_r("b"); a.ld_r_r("b", "a")
+    # the run's cache (CACHE_L, four bytes below SHADE), then the copy
+    a.pop("hl"); a.ld_r_r("a", "l"); a.sub_n(4); a.ld_r_r("l", "a"); a.push("hl")
+    a.ld_r_r("e", "(hl)"); a.ld_r_n("d", TEX_WINDOWS >> 8)
+    a.ld_r_r("h", "b"); a.ld_r_r("l", "c")
     a.ld_a_abs(TEX_TMP2); a.ld_abs_a(0x2000)
-    a.push("de"); a.call("copy_16"); a.pop("de")
+    a.call("copy_16")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     # The accumulator's high byte is the cache row address: it starts at
     # the cache itself (row 0) and each texture row advances it by one.
-    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.ld_rr_nn("de", R_ACC_L); a.add_hl_rr("de")
-    a.xor_r("a"); a.ldi_hl_a(); a.ld_r_r("a", "e"); a.ldi_hl_a()
-    a.ld_a_abs(TEX_TMP3); a.ldi_hl_a(); a.ld_a_abs(TEX_TMP4); a.ld_hl_a()
-    a.ld_a_abs(TEX_REC_L); a.add_a_n(TEX_RUN_BYTES); a.ld_abs_a(TEX_REC_L)
+    a.pop("hl"); a.ldi_a_hl(); a.ld_r_r("b", "a")
+    a.xor_r("a"); a.ldi_hl_a(); a.ld_r_r("a", "b"); a.ldi_hl_a()
+    a.ld_a_abs(TEX_TMP3); a.ldi_hl_a(); a.ld_a_abs(TEX_TMP4); a.ldi_hl_a()
+    a.ld_r_r("a", "l"); a.add_a_n(TEX_RUN_BYTES - 7); a.ld_r_r("l", "a")
     a.ld_a_abs(TEX_LOOP); a.dec_r("a"); a.ld_abs_a(TEX_LOOP); a.jp("tex_setup_loop", "nz")
     a.ret()
 
@@ -343,6 +345,7 @@ def emit_textured_compositor(a) -> None:
     a.label("tex_single_ceiling"); a.ld_hl_n(CEILING_TILE); a.inc_rr("hl"); a.dec_r("c"); a.jr("tex_single_ceiling", "nz")
     a.label("tex_single_no_ceiling")
     a.ld_rr_nn("hl", TEX_RUNS + R_STEP_L); a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
+    a.or_r("a"); a.jp("tex_fast_single", "z")                # under a texel row per screen row
     a.ld_a_abs(TEX_RUNS + R_CACHE_L); a.ld_r_r("h", "a"); a.ld_r_n("l", 0)
     load_hram_pair(a, DYN_PTR_L, DYN_PTR_H, "bc")
     a.label("tex_single_tile")
@@ -405,6 +408,7 @@ def emit_textured_compositor(a) -> None:
     a.ld_r_r("a", "b"); a.ld_abs_a(DYN_HIGH_WATER); a.ret()
     a.label("tex_single_entries")
     for row in range(9): a.dw_label(f"tex_single_rows_{row}")
+    emit_fast_single(a)
 
     # ----- tex_compose_run: HL = record, TEX_DST = destination ------------------
     # Composes the run's eight rows (four for the centre tile) at the row
@@ -423,22 +427,33 @@ def emit_textured_compositor(a) -> None:
     # removes them), so the kernel is entered at row n = TOP - y0 with the
     # accumulator at texture row 0 and the destination advanced past them;
     # the centre tile composes its four upper rows only, so it enters four
-    # rows further in. The entry address is pushed and reached by `ret`.
+    # rows further in. The entry address is pushed and reached by `ret`; a
+    # step under one texel row takes the 76 T rows (`emit_fast_single`).
     a.ld_r_r("c", "a")
+    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.ld_rr_nn("de", R_STEP_L); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.ld_a_abs(TILE_Y0); a.cp_n(CENTRE_Y0); a.ld_r_r("a", "c"); a.jr("tex_run_entry_ready", "nz")
     a.add_a_n(4); a.cp_n(8); a.jr("tex_run_entry_ready", "c"); a.ld_r_n("a", 8)
     a.label("tex_run_entry_ready")
-    a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "tex_run_entries"); a.add_hl_rr("de")
+    a.add_a_r("a"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.push("de")
+    a.ld_r_r("a", "d"); a.or_r("a"); a.ld_rr_label("de", "tex_run_entries"); a.jr("tex_run_table_ready", "nz")
+    a.ld_rr_label("de", "tex_runf_entries")
+    a.label("tex_run_table_ready")
+    a.add_hl_rr("de"); a.pop("de")
     a.ldi_a_hl(); a.ld_r_r("h", "(hl)"); a.ld_r_r("l", "a"); a.push("hl")
-    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.ld_rr_nn("de", R_STEP_L); a.add_hl_rr("de")
-    a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
-    a.ld_a_abs(TEX_CACHE_L); a.ld_r_r("h", "a"); a.ld_r_n("l", 0)
     a.ld_r_r("a", "c"); a.add_a_r("a"); a.ld_r_r("c", "a")
     a.ld_a_abs(TEX_DST_L); a.add_a_r("c"); a.ld_r_r("c", "a"); a.ld_a_abs(TEX_DST_H); a.ld_r_r("b", "a")
+    a.ld_r_r("a", "d"); a.or_r("a"); a.jr("tex_run_start_fast", "z")
+    a.ld_a_abs(TEX_CACHE_L); a.ld_r_r("h", "a"); a.ld_r_n("l", 0)
+    a.ret()
+    a.label("tex_run_start_fast")
+    a.ld_r_r("h", "b"); a.ld_r_r("l", "c"); a.ld_r_r("c", "e"); a.ld_r_n("b", 0)
+    a.ld_a_abs(TEX_CACHE_L); a.ld_r_r("e", "a"); a.ld_r_n("d", TEX_WINDOWS >> 8)
     a.ret()
     a.label("tex_run_continuing")
     a.ldi_a_hl(); a.ld_r_r("c", "a"); a.ldi_a_hl(); a.ld_r_r("b", "a")
     a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
+    a.or_r("a"); a.jp("tex_run_continue_fast", "z")
     a.ld_r_r("h", "b"); a.ld_r_r("l", "c")
     load_hram_pair(a, TEX_DST_L, TEX_DST_H, "bc")
     a.ld_a_abs(TILE_Y0); a.cp_n(CENTRE_Y0); a.jr("tex_run_rows_4", "z")
@@ -459,6 +474,18 @@ def emit_textured_compositor(a) -> None:
     a.or_r("a"); a.ret()
     a.label("tex_run_entries")
     for row in range(9): a.dw_label(f"tex_run_rows_{row}")
+    # A step under one texel row: DE = the cache row, B = the fraction,
+    # C = the step, HL = the destination (see `emit_fast_single`).
+    a.label("tex_run_continue_fast")
+    a.ld_r_r("d", "b"); a.ld_r_r("b", "c"); a.ld_r_r("c", "e"); a.ld_r_r("e", "d"); a.ld_r_n("d", TEX_WINDOWS >> 8)
+    load_hram_pair(a, TEX_DST_L, TEX_DST_H, "hl")
+    a.ld_a_abs(TILE_Y0); a.cp_n(CENTRE_Y0); a.jp("tex_runf_rows_4", "z")
+    fast_rows(a, "tex_runf_rows", 0)
+    load_hram_pair(a, TEX_REC_L, TEX_REC_H, "hl"); a.inc_rr("hl"); a.inc_rr("hl"); a.inc_rr("hl")
+    a.ld_r_r("(hl)", "b"); a.inc_rr("hl"); a.ld_r_r("(hl)", "e")
+    a.or_r("a"); a.ret()
+    a.label("tex_runf_entries")
+    for row in range(9): a.dw_label(f"tex_runf_rows_{row}")
 
     # ----- tex_mask_tables: the outline pixels of each row of a boundary tile ---
     # TEX_MASKS[r] = pixels whose top is row r; TEX_TMP0 = pixels covered
@@ -503,3 +530,134 @@ def emit_textured_compositor(a) -> None:
         a.ldi_a_hl(); a.or_r("c"); a.ld_mem_rr_a("de"); a.inc_r("e")
         a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.dec_r("e"); a.dec_r("e"); a.dec_r("e")
     a.ret()
+
+
+def fast_rows(a, prefix: str, first: int) -> None:
+    """Rows `first`..7 of the 76 T kernel, then the label `{prefix}_8`.
+    DE = the cache row, B = the Q8 fraction, C = the step (under 256),
+    HL = the destination; the texel row advances on the fraction's carry."""
+    for row in range(first, 8):
+        a.label(f"{prefix}_{row}")
+        a.ld_a_mem_rr("de"); a.ldi_hl_a(); a.cb("set", "e", 3)
+        a.ld_a_mem_rr("de"); a.ldi_hl_a(); a.cb("res", "e", 3)
+        a.ld_r_r("a", "b"); a.add_a_r("c"); a.ld_r_r("b", "a")
+        a.jr(f"{prefix}_{row}_same", "nc"); a.inc_r("e")
+        a.label(f"{prefix}_{row}_same")
+    a.label(f"{prefix}_8")
+
+
+def emit_fast_single(a) -> None:
+    """Cold: a one-face column whose row step is under one texel row.
+
+    The same accumulator as `tex_column_single`, held differently so a row
+    costs 76 T instead of 104: DE is the cache row (D the window page, E the
+    run's cache plus the texel row), B the Q8 fraction, C the step, HL the
+    ring slot written with `ld (hl+),a`. The second plane is the cache row
+    with bit 3 set: a run's cache is sixteen-aligned and its rows stay below
+    eight ((half - 1) * step < 2048), so `set 3,e` is the kernel's `+8`. With
+    a step below 256 the texel row advances by the fraction's carry alone.
+
+    Tiles run top to bottom and the last is the centre tile, so the boundary
+    tiles are a count taken once ((MAX_TOP >> 3) - (MIN_TOP >> 3) + 1, in
+    TEX_TMP3), the loop ends when TILE_Y0 reaches the centre, the slot
+    advances by the sixteen bytes the rows wrote, and the column's ids are
+    written after the loop from the first one (TEX_TMP4).
+    In: the prologue of `tex_column_single` (TILE_Y0, TEX_TMP1 = rows to skip,
+    COLUMN_ROWS' ceiling cells), C = the step. Clobbers everything.
+    """
+    ring_end = (DYNAMIC_TILES + DYNAMIC_RING_SLOTS * 16) >> 8
+    assert (COLUMN_ROWS & 0xFF) + FOLDED_ROWS <= 0x100
+    assert (TEX_WINDOWS & 0x0F) == 0 and TEXEL_ROWS == 8
+
+    def claim_slot(wait_label: str, ready_label: str) -> None:
+        # pattern DYN_COUNT goes into this slot; only one beyond the ring's
+        # depth can find its slot still owed to VRAM
+        a.ld_a_abs(DYN_COUNT); a.cp_n(DYNAMIC_RING_SLOTS); a.jr(wait_label, "nc")
+        a.label(ready_label)
+        a.inc_r("a"); a.ld_abs_a(DYN_COUNT)
+
+    def wait_slot(wait_label: str, ready_label: str) -> None:
+        a.label(wait_label)
+        a.push("hl"); a.push("de"); a.push("bc"); a.call("tex_ring_wait"); a.pop("bc"); a.pop("de"); a.pop("hl")
+        a.ld_a_abs(DYN_COUNT); a.jr(ready_label)
+
+    def rows(prefix: str, first: int) -> None:
+        fast_rows(a, prefix, first)
+
+    a.label("tex_fast_single")
+    a.ld_a_abs(MIN_TOP)
+    for _ in range(3): a.cb("srl", "a")
+    a.ld_r_r("b", "a"); a.ld_a_abs(MAX_TOP)
+    for _ in range(3): a.cb("srl", "a")
+    a.sub_r("b"); a.inc_r("a"); a.ld_abs_a(TEX_TMP3)
+    a.ld_a_abs(DYN_COUNT); a.ld_abs_a(TEX_TMP4)
+    load_hram_pair(a, DYN_PTR_L, DYN_PTR_H, "hl")
+    # The first tile: its slot, then the entry row - past the rows above the
+    # wall, and four further on the centre tile - through a table.
+    claim_slot("tex_fast_first_wait", "tex_fast_first_ready")
+    a.ld_r_r("a", "l"); a.ld_abs_a(TEX_DST_L); a.ld_r_r("a", "h"); a.ld_abs_a(TEX_DST_H)
+    a.ld_a_abs(TILE_Y0); a.cp_n(CENTRE_Y0); a.ld_a_abs(TEX_TMP1); a.ld_rr_label("hl", "tex_fast_entries")
+    a.jr("tex_fast_entry_ready", "nz")
+    a.add_a_n(4); a.cp_n(8); a.jr("tex_fast_centre_entry", "c"); a.ld_r_n("a", 8)
+    a.label("tex_fast_centre_entry"); a.sub_n(4); a.ld_rr_label("hl", "tex_fast_centre_entries")
+    a.label("tex_fast_entry_ready")
+    a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_r_r("h", "(hl)"); a.ld_r_r("l", "a"); a.push("hl")
+    a.ld_a_abs(TEX_TMP1); a.add_a_r("a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(TEX_DST_L); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_a_abs(TEX_DST_H); a.ld_r_r("h", "a")
+    a.ld_a_abs(TEX_RUNS + R_STEP_L); a.ld_r_r("c", "a"); a.ld_r_n("b", 0)
+    a.ld_a_abs(TEX_RUNS + R_CACHE_L); a.ld_r_r("e", "a"); a.ld_r_n("d", TEX_WINDOWS >> 8)
+    a.ret()
+    wait_slot("tex_fast_first_wait", "tex_fast_first_ready")
+
+    # ----- a tile above the centre: eight rows, then its masks if it is a
+    # boundary tile, the slot's wrap and the next tile -----
+    rows("tex_fast_rows", 0)
+    a.ld_a_abs(TEX_TMP3); a.or_r("a"); a.jr("tex_fast_boundary", "nz")
+    a.label("tex_fast_masked")
+    a.ld_r_r("a", "h"); a.cp_n(ring_end); a.jr("tex_fast_slot_ready", "nz"); a.ld_r_n("h", DYNAMIC_TILES >> 8)
+    a.label("tex_fast_slot_ready")
+    a.ld_a_abs(TILE_Y0); a.add_a_n(8); a.ld_abs_a(TILE_Y0)
+    a.cp_n(CENTRE_Y0); a.jr("tex_fast_centre_tile", "z")
+    claim_slot("tex_fast_tile_wait", "tex_fast_tile_ready")
+    a.jp("tex_fast_rows_0")
+    wait_slot("tex_fast_tile_wait", "tex_fast_tile_ready")
+    a.label("tex_fast_boundary")
+    # HL is the slot's end, sixteen-aligned: the tile starts sixteen below
+    a.dec_r("a"); a.ld_abs_a(TEX_TMP3)
+    a.push("bc"); a.push("de"); a.push("hl")
+    a.call("tex_mask_tables")
+    a.pop("hl"); a.push("hl"); a.ld_r_r("a", "l"); a.sub_n(16); a.ld_r_r("l", "a"); a.jr("tex_fast_boundary_page", "nc"); a.dec_r("h")
+    a.label("tex_fast_boundary_page")
+    a.call("tex_apply_masks")
+    a.pop("hl"); a.pop("de"); a.pop("bc")
+    a.jr("tex_fast_masked")
+
+    # ----- the centre tile: its four upper rows, masks, the mirror -----
+    wait_slot("tex_fast_centre_wait", "tex_fast_centre_ready")
+    a.label("tex_fast_centre_tile")
+    claim_slot("tex_fast_centre_wait", "tex_fast_centre_ready")
+    a.ld_r_r("a", "l"); a.ld_abs_a(TEX_DST_L); a.ld_r_r("a", "h"); a.ld_abs_a(TEX_DST_H)
+    rows("tex_fast_centre_rows", 4)
+    a.ld_a_abs(TEX_TMP3); a.or_r("a"); a.ld_r_n("a", 1); a.jr("tex_fast_centre_interior", "z")
+    a.call("tex_mask_tables"); load_hram_pair(a, TEX_DST_L, TEX_DST_H, "hl"); a.call("tex_apply_masks")
+    a.xor_r("a")
+    a.label("tex_fast_centre_interior"); a.ld_abs_a(TEX_INTERIOR)
+    load_hram_pair(a, TEX_DST_L, TEX_DST_H, "hl"); a.call("tex_mirror_centre")
+    # the next slot, with the ring's wrap
+    a.ld_a_abs(TEX_DST_L); a.add_a_n(16); a.ld_abs_a(DYN_PTR_L)
+    a.ld_a_abs(TEX_DST_H); a.adc_a_n(0); a.cp_n(ring_end); a.jr("tex_fast_ptr_ready", "nz"); a.ld_r_n("a", DYNAMIC_TILES >> 8)
+    a.label("tex_fast_ptr_ready"); a.ld_abs_a(DYN_PTR_H)
+    # the column's ids, first to last, then the high-water mark
+    a.ld_a_abs(MIN_TOP)
+    for _ in range(3): a.cb("srl", "a")
+    a.ld_r_r("b", "a"); a.add_a_n(COLUMN_ROWS & 0xFF); a.ld_r_r("l", "a"); a.ld_r_n("h", COLUMN_ROWS >> 8)
+    a.ld_r_n("a", FOLDED_ROWS); a.sub_r("b"); a.ld_r_r("c", "a")
+    a.ld_a_abs(TEX_TMP4)
+    a.label("tex_fast_ids"); a.ldi_hl_a(); a.inc_r("a"); a.dec_r("c"); a.jr("tex_fast_ids", "nz")
+    a.ld_r_r("b", "a"); a.ld_a_abs(DYN_HIGH_WATER); a.cp_r("b"); a.ret("nc")
+    a.ld_r_r("a", "b"); a.ld_abs_a(DYN_HIGH_WATER); a.ret()
+    a.label("tex_fast_entries")
+    for row in range(8): a.dw_label(f"tex_fast_rows_{row}")
+    a.label("tex_fast_centre_entries")
+    for row in range(4, 9): a.dw_label(f"tex_fast_centre_rows_{row}")

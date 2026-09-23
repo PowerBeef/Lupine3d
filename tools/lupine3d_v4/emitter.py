@@ -685,8 +685,30 @@ def emit_dda(a: Assembler) -> None:
     a.ld_a_abs(Q14_RECORD); a.cp_n(255); a.jr("dda_loop", "z")
     a.call("dda_read_cell"); a.cp_n(3); a.jp("q14_restart", "z")
     a.label("dda_loop")
-    if Q14_ORDER_ENABLED:
-        a.call("q14_crossing_uncertain_prepared" if INCREMENTAL_CERTIFICATE else "q14_crossing_uncertain"); a.jp("q14_resume", "nz")
+    if Q14_ORDER_ENABLED and not INCREMENTAL_CERTIFICATE:
+        # q14_crossing_uncertain, inline and fused with the axis choice: a
+        # certified crossing has both coarse components nonzero and a nonzero
+        # error whose sign is the step (negative X, positive Y), so the loads
+        # the choice below repeats are skipped. The same comparisons in the
+        # same order; the public routine stays for probes.
+        a.ld_a_abs(Q14_RECORD); a.inc_r("a"); a.jr("dda_choose_axis", "z")
+        a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("q14_resume", "z")
+        a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("q14_resume", "z")
+        a.ld_a_abs(DDA_NEXT_X_L); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_L); a.add_a_r("b"); a.ld_r_r("e", "a")
+        a.ld_a_abs(DDA_NEXT_X_H); a.ld_r_r("b", "a")
+        a.ld_a_abs(DDA_NEXT_Y_H); a.adc_a_r("b"); a.ld_r_r("d", "a")
+        load_hl_abs(a, DDA_ERR_L, DDA_ERR_H)
+        a.cb("bit", "h", 7); a.jr("dda_certify_negative", "nz")
+        # |error| = HL: certain when Nx + Ny < |error|
+        a.ld_r_r("a", "e"); a.sub_r("l"); a.ld_r_r("a", "d"); a.sbc_a_r("h"); a.jp("q14_resume", "nc")
+        a.jp("dda_step_y")
+        # |error| = 65536 - HL: Nx + Ny < |error| exactly when DE + HL does not carry
+        a.label("dda_certify_negative")
+        a.add_hl_rr("de"); a.jp("q14_resume", "c"); a.jp("dda_step_x")
+        a.label("dda_choose_axis")
+    elif Q14_ORDER_ENABLED:
+        a.call("q14_crossing_uncertain_prepared"); a.jp("q14_resume", "nz")
     # Choose X on negative or zero signed error; Y on positive error.
     a.ld_a_abs(DDA_ABS_X); a.or_r("a"); a.jp("dda_step_y", "z")
     a.ld_a_abs(DDA_ABS_Y); a.or_r("a"); a.jp("dda_step_x", "z")
@@ -718,7 +740,10 @@ def emit_dda(a: Assembler) -> None:
 
     a.label("dda_post_step")
     a.ld_a_abs(DDA_CROSSINGS); a.inc_r("a"); a.ld_abs_a(DDA_CROSSINGS); a.cp_n(32); a.jr("dda_force_hit", "nc")
-    a.call("dda_read_cell"); a.cp_n(3); a.jr("dda_regular_cell", "nz")
+    # dda_read_cell, inline
+    a.ld_a_abs(DDA_MAP_Y); a.cb("swap", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(DDA_MAP_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0xD0)
+    a.ld_a_hl(); a.cp_n(3); a.jr("dda_regular_cell", "nz")
     a.call("door_ray_hit")
     a.label("dda_regular_cell"); a.or_r("a"); a.jr("dda_hit", "nz")
     a.xor_r("a"); a.ret()

@@ -265,6 +265,41 @@ rather than trims - fewer composed rows (grouping screen rows that share a
 texture row on near walls, or half-height texel rows) or content-hashed
 pattern sharing - and is Phase 5's baseline.
 
+### Phase 5: exact savings
+
+The first round after v0.11 kept every byte of output and every golden's
+pixels (captures of the living world moved to neighbouring accepted ticks),
+and measured the sustained scenarios on the textured ROM before and after.
+
+* **A 76 T row for steps under one texel row.** A run whose Q8 row step is
+  below 256 - every wall of half-height eight or more, so all but the
+  farthest - holds its accumulator differently: `DE` is the cache row (`D`
+  the window page, `E` the run's cache plus the texel row), `B` the
+  fraction, `C` the step and `HL` the destination written with
+  `ld (hl+),a`. The second plane is `set 3,e` (a run's cache is
+  sixteen-aligned and its rows stay below eight, since
+  `(half - 1) * step < 2048`), and the texel row advances on the fraction's
+  carry alone: `ld a,(de); ld (hl+),a; set 3,e; ld a,(de); ld (hl+),a;
+  res 3,e; ld a,b; add c; ld b,a; jr nc; inc e` - 76 T against 104. Seam
+  tiles (`tex_compose_run`) take the same rows when their run's step allows.
+* **A one-face column without per-tile bookkeeping** (`tex_fast_single`).
+  Tiles run top to bottom and the last is the centre tile, so the boundary
+  tiles are a count taken once, the loop ends when `TILE_Y0` reaches the
+  centre, the slot advances by the sixteen bytes the rows wrote, and the
+  column's ids are written after the loop from the first one. Per interior
+  tile that is about 200 T of bookkeeping instead of 650.
+* **The run setup keeps its record in `HL`**, reads START, LAST, SURF and
+  SHADE in one pass, and indexes `PIXEL_U` with an 8-bit add; the fixed half
+  gained 48 bytes.
+
+Over the coherence tour the kernel's regions went from 254k to 217k T per
+full update and the whole update from 879k to 828k. Shared with every
+profile, the same round made the 16x16 multiply accumulate its table
+products through the stack, divided a door panel's displacement for its
+last twelve quotient bits only, and fused the crossing certificate into the
+DDA loop; `tests/test_runtime.py` pins the door quotient against Python.
+The sustained rates are in `docs/PERFORMANCE_PHASE5.md`.
+
 ### Texture sets per episode
 
 Each episode walls its sectors in its own texture set. A set is three

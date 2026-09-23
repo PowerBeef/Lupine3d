@@ -58,28 +58,28 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "fa9485b78b66f05e57a80423f7e5350148f1ac60a8c9147852e2e18ec446cd61",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "c815dc45e054c359928d900a16370f601d02033e6c7beac4ff206b6d6f0aa46a",
+      "rom_sha256": "9d0da248d04d8a548a4b10b0ab62d8d6d8a638d152f7c38e533e1ae16e009001",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T11:56:40+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Exact engine savings (16x16 multiply through the stack, a twelve-bit door quotient, the crossing certificate fused into the DDA loop) finish updates earlier, so this capture lands on the tick where the reticle shows its hit-confirm halo. Reviewed by eye; every frame check passes."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "e224a143b9c3bdd295ae29338be920f736b73bd2b6f8360fd485d3bcb3fad56c",
-      "rom_sha256": "d518ee2aa282e4ee5da4beaa4f509bcd3ffeca176b3aa699130c8f6d723df2d0",
+      "rgb_sha256": "020b64ffd1b0354a494dcaf8b1eb8dfd10d87c9887d2e0b03b0d1cd502187f09",
+      "rom_sha256": "9d0da248d04d8a548a4b10b0ab62d8d6d8a638d152f7c38e533e1ae16e009001",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T10:13:48+00:00",
+      "accepted_at": "2026-09-23T11:56:40+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
+      "note": "Exact engine savings (16x16 multiply through the stack, a twelve-bit door quotient, the crossing certificate fused into the DDA loop) finish updates earlier, so this capture lands on the tick where the reticle shows its hit-confirm halo. Reviewed by eye; every frame check passes."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "98bfd63b913df61fd453261aa2c04e4c9c1102a179f063f6a350fc4bf049ed3c",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "8ea8d84be3c2b37daed94347686725ab23d7a4fecd3e385eb84a1ab2ad0d6af3",
+      "rom_sha256": "9d0da248d04d8a548a4b10b0ab62d8d6d8a638d152f7c38e533e1ae16e009001",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T11:56:40+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Exact engine savings (16x16 multiply through the stack, a twelve-bit door quotient, the crossing certificate fused into the DDA loop) finish updates earlier, so this capture lands on the tick where the reticle shows its hit-confirm halo. Reviewed by eye; every frame check passes."
     },
     "11_pickup_collected": {
       "rgb_sha256": "10d3c1f90869470f799400d818b944020440d0ddd967a2008c4c39b583cfb096",
