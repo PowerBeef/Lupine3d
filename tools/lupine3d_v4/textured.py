@@ -44,8 +44,10 @@ def load_hram_pair(a, low: int, high: int, pair: str) -> None:
 
 def emit_textured_kernel(a) -> None:
     """Resident: column setup (bank switches), ring hand-off, flushes."""
+    from .texture_reference import TEXTURE_SETS
+    assert len(TEXTURE_SETS) == PALETTE_SET_COUNT and TEXTURE_SET_DIRECTORY_BYTES == 36
     a.label("tex_block_directory")
-    a.bytes(block_directory(TEXTURE_WINDOW_ROM_BANK_BASE), text="texture window blocks: bank, address")
+    a.bytes(block_directory(TEXTURE_WINDOW_BANKS), text="texture window blocks per set: bank, address")
 
     # ----- tex_column_runs: the tile column's runs and their window caches -----
     # In: COLUMN_COUNT (20 down to 1), MIN_TOP. Clobbers everything.
@@ -139,7 +141,9 @@ def emit_textured_kernel(a) -> None:
     # directory entry = (SURF*4 + shade) * 3 -> bank in TEX_TMP2, address in DE
     a.dec_rr("hl"); a.ld_a_hl(); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("b", "a")
     a.ld_a_abs(TEX_TMP1); a.add_a_r("b"); a.ld_r_r("b", "a"); a.add_a_r("a"); a.add_a_r("b")
-    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "tex_block_directory"); a.add_hl_rr("de")
+    # The level's texture set: `load_level` points TEX_DIRECTORY at it.
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_a_abs(TEX_DIRECTORY_L); a.ld_r_r("l", "a"); a.ld_a_abs(TEX_DIRECTORY_H); a.ld_r_r("h", "a"); a.add_hl_rr("de")
     a.ldi_a_hl(); a.ld_abs_a(TEX_TMP2)
     a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.push("de")

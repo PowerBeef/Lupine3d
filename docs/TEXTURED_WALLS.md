@@ -82,7 +82,7 @@ against the flat compositor's on each pose's measured per-update cycles.
 | Modelled Δ, p95 | ≤ one interval (140,448 T) | 105k T (max 135k) |
 | Modelled LCD intervals, net over the corpus | ≤ +2% | **+0.34%** (4,114 → 4,128) |
 | Unique patterns per update, p95 / max | ≤ 114 / ≤ 224 | **63 / 85** (160 wall tiles composed at most; identical tiles share a pattern) |
-| ROM for tables | ≤ 160 KiB | 82 KiB for three textures |
+| ROM for tables | ≤ 160 KiB | 82 KiB for three textures (the per-episode sets now use 140 KiB of windows, `Texture sets per episode`) |
 | Overflow | none | none |
 
 Where the cycles come from: a textured frame composes every wall tile
@@ -249,8 +249,33 @@ rather than trims - fewer composed rows (grouping screen rows that share a
 texture row on near walls, or half-height texel rows) or content-hashed
 pattern sharing - and is Phase 5's baseline.
 
-### Not done in this phase
+### Texture sets per episode
 
-A level does not yet name its texture set: the surface profile selects the
-texture (structure, machinery, door). The V-row lookup table in bank 247 is
-still written but unused by the kernel, which accumulates rows instead.
+Each episode walls its sectors in its own texture set. A set is three
+textures, one per surface profile (structure, machinery, door), and the set
+is the level's palette set, so a level needs no extra header byte:
+
+| Palette set | Structure | Machinery | Door |
+|---|---|---|---|
+| 0 Sable Outpost | `steel_panel` | `machinery_grille` | `door_plate` |
+| 1 Reactor Deep | `reactor_plate` | `reactor_pipes` | `door_plate` |
+| 2 Signal Spire | `spire_hull` | `spire_array` | `door_plate` |
+
+Seven textures are 28 row-window blocks of 5 KiB, three to a bank, in the
+bank order `TEXTURE_WINDOW_BANKS` gives (248-255, then 246 and 155, both
+free under every profile); the first episode's three textures keep their
+indices and banks, so its windows never moved. `tex_block_directory` holds
+one 36-byte slice per set (surface profile x shade x bank and address), and
+`load_level` points the campaign scalar `TEX_DIRECTORY` at the level's
+slice with the LCD off, clamping an unknown set to the first as
+`init_palettes` does; `tex_setup_loop` reads its entries through that
+pointer, two fixed-WRAM loads more per run than the immediate label it
+replaced. The reference follows the running machine: `level_texture_set()`
+reads the palette set of the level `select_reference_level` chose, which
+`validate_frame` takes from the ROM's `LEVEL_INDEX`. `tools/check_sable.py`
+enters a Reactor Deep and a Signal Spire sector through their continue
+codes and validates turning frames against that reference
+(`texture_sets_per_episode`).
+
+The V-row lookup table in bank 247 is still written but unused by the
+kernel, which accumulates rows instead.

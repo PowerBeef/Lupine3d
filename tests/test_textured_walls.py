@@ -39,7 +39,8 @@ class TexturedWallsLane(unittest.TestCase):
             checks = json.loads((Path(directory) / 'checks.json').read_text())
             self.assertTrue(checks['passed'])
             self.assertTrue(checks['configuration']['textured_walls'])
-            for name in ('texture_window_blocks_and_directory', 'textured_blind_composition_ring_lap_and_vram_half',
+            for name in ('texture_window_blocks_and_directory', 'texture_sets_per_episode',
+                         'textured_blind_composition_ring_lap_and_vram_half',
                          'publication_cpu_and_dma_windows', 'hblank_streaming_bank_isolation_and_chaining',
                          'geometry_and_all_published_rows'):
                 self.assertTrue(checks['checks'][name], name)

@@ -159,7 +159,14 @@ TEXTURE_LUT_ROM_BANK = 247
 TEXTURE_SLOPES_OFFSET = 0x4000      # 1024 directions x (S_x, S_y) 16-bit = 4 KiB
 TEXTURE_V_LUT_OFFSET = 0x5000       # 61 height classes x 64 rows
 TEXTURE_STRIDE_LUT_OFFSET = 0x6000  # 8 run lengths x 256 coordinate differences
-TEXTURE_WINDOW_ROM_BANK_BASE = 248  # row windows, 5 KiB per (texture, shade)
+# Row-window blocks, 5 KiB per (texture, shade), three to a bank, in this
+# bank order: seven textures (a structure and a machinery texture per
+# episode, one shared door plate) are 28 blocks. 248-251 hold the first
+# episode's three textures exactly where they always were; 246 and 155 are
+# free under every profile.
+TEXTURE_WINDOW_BANKS = (248, 249, 250, 251, 252, 253, 254, 255, 246, 155)
+TEXTURE_WINDOW_ROM_BANK_BASE = TEXTURE_WINDOW_BANKS[0]
+TEXTURE_SET_DIRECTORY_BYTES = 3 * 4 * 3   # surface profiles x shades x (bank, address)
 TEXTURE_WINDOW_BLOCK_BYTES = 5 * 1024
 U_RESULT = 0xD8F7                   # the cast's along-face coordinate, beside the other results
 U_SLOPE_H = 0xD8F8                  # slope high byte kept across the three products

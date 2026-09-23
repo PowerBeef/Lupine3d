@@ -17,13 +17,16 @@ from pathlib import Path
 
 from PIL import Image
 
-from .texture_reference import (DELTA_CLASSES, PHASE_STEPS, SHADE_SETS, TEXEL_ROWS, TEXELS, Texture,
+from .texture_reference import (DELTA_CLASSES, PHASE_STEPS, SHADE_SETS, TEXEL_ROWS, TEXELS, TEXTURE_SETS, Texture,
                                 make_row_windows, window_planes)
 
 TEXTURE_DIR = Path(__file__).resolve().parents[2] / "assets" / "textures"
-# The order is the texture index a surface profile selects (structure,
-# machinery, door); a level's texture set will name these in Phase 4.
-TEXTURE_NAMES = ("steel_panel", "machinery_grille", "door_plate")
+# Texture indices. `texture_reference.TEXTURE_SETS` maps each palette set's
+# surface profiles (structure, machinery, door) onto these: Sable Outpost
+# 0 1 2, Reactor Deep 3 4 2, Signal Spire 5 6 2. The first three keep their
+# indices and banks, so the first episode's windows never move.
+TEXTURE_NAMES = ("steel_panel", "machinery_grille", "door_plate",
+                 "reactor_plate", "reactor_pipes", "spire_hull", "spire_array")
 BLOCK_BYTES = len(DELTA_CLASSES) * TEXELS * PHASE_STEPS * TEXEL_ROWS * 2   # 5,120
 BLOCKS_PER_BANK = 3
 
@@ -65,32 +68,38 @@ def block_index(texture_index: int, shade: int) -> int:
     return texture_index * SHADE_SETS + shade
 
 
-def block_location(texture_index: int, shade: int, base_bank: int) -> tuple[int, int]:
-    """(ROM bank, address in the switchable window) of a block."""
+def block_location(texture_index: int, shade: int, banks: tuple[int, ...]) -> tuple[int, int]:
+    """(ROM bank, address in the switchable window) of a block: three blocks
+    to a bank, banks taken in the order given."""
     block = block_index(texture_index, shade)
-    return base_bank + block // BLOCKS_PER_BANK, 0x4000 + (block % BLOCKS_PER_BANK) * BLOCK_BYTES
+    if block // BLOCKS_PER_BANK >= len(banks):
+        raise ValueError("the texture blocks need more window banks than the layout gives them")
+    return banks[block // BLOCKS_PER_BANK], 0x4000 + (block % BLOCKS_PER_BANK) * BLOCK_BYTES
 
 
-def window_payloads(base_bank: int) -> list[tuple[int, int, bytes]]:
+def window_payloads(banks: tuple[int, ...]) -> list[tuple[int, int, bytes]]:
     """(bank, offset within the bank, bytes) for every block."""
     out = []
     for t in range(len(textures())):
         for shade in range(SHADE_SETS):
-            bank, address = block_location(t, shade, base_bank)
+            bank, address = block_location(t, shade, banks)
             out.append((bank, address - 0x4000, window_block(t, shade)))
     return out
 
 
-def block_directory(base_bank: int) -> bytes:
-    """Three bytes per block for the console: bank, address low, address high."""
+def block_directory(banks: tuple[int, ...]) -> bytes:
+    """The console's directory: per texture set, per surface profile, per
+    shade, three bytes (bank, address low, address high). `load_level`
+    points `TEX_DIRECTORY` at its level's set."""
     out = bytearray()
-    for t in range(len(textures())):
-        for shade in range(SHADE_SETS):
-            bank, address = block_location(t, shade, base_bank)
-            out += bytes((bank, address & 0xFF, address >> 8))
+    for texture_set in TEXTURE_SETS:
+        for texture in texture_set:
+            for shade in range(SHADE_SETS):
+                bank, address = block_location(texture, shade, banks)
+                out += bytes((bank, address & 0xFF, address >> 8))
     return bytes(out)
 
 
 def evidence() -> dict:
-    return {"textures": [t.name for t in textures()], "block_bytes": BLOCK_BYTES,
+    return {"textures": [t.name for t in textures()], "texture_sets": [list(t) for t in TEXTURE_SETS], "block_bytes": BLOCK_BYTES,
             "blocks": len(textures()) * SHADE_SETS, "banks": (len(textures()) * SHADE_SETS + BLOCKS_PER_BANK - 1) // BLOCKS_PER_BANK}

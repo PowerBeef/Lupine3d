@@ -9,6 +9,9 @@
   rendered straight at the console's resolution with banded shading, part
   outlines, in a larger 40×32 window right of centre with four animation
   cels (`tools/render_weapons.py`, `docs/ART_PIPELINE.md`).
+- **Texture sets per episode** (textured profile). Reactor Deep and Signal
+  Spire wall their sectors in their own structure and machinery textures;
+  the level's palette set selects the set (`docs/TEXTURED_WALLS.md`).
 - **Engine fixes the eighteen-sector route found.** The projection table's
   component-zero slice now saturates to the far clamp like the host model:
   an exactly axial ray that the Q14 crossing order carried across the
@@ -19,6 +22,10 @@
   a diagonal only when the corner is clean, the same rule the player's shot
   obeys. The compiler refuses an actor inside a wall or behind a
   Sentinel-locked door, whether or not the level has a card door.
+  `init_vram` read the weapon pointer table with the weapon bank already
+  mapped; the table is resident data that the textured build places above
+  `$4000`, so the first weapon loaded as blank patterns there. It is now read
+  with bank 1 mapped, as the swap already did.
 
 # Lupine 3D v0.10 — The renderer streams
 

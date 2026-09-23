@@ -218,8 +218,20 @@ def texel_column(u_q8: int) -> Fraction:
 
 # The kernel's stride classes in Q8 along-face units: a texel is 16 units.
 DELTA_Q8 = tuple(int(delta * TEXELS) for delta in DELTA_CLASSES)   # 2, 4, 8, 16, 32
-# A pixel's surface profile is its texture: structure, machinery, door.
-PROFILE_TEXTURE = (0, 1, 2)
+# A pixel's surface profile picks one texture of its level's set:
+# structure, machinery, door. The set is the level's palette set (outpost,
+# reactor, spire); every episode shares the door plate.
+TEXTURE_SETS = ((0, 1, 2), (3, 4, 2), (5, 6, 2))
+PROFILE_TEXTURE = TEXTURE_SETS[0]
+
+
+def level_texture_set() -> tuple[int, int, int]:
+    """The texture set of the level the host oracle follows (the running
+    ROM's, via `select_reference_level`); an unknown set reads as the first,
+    as the console clamps it."""
+    from .layout import reference_level
+    index = reference_level().palette_profile
+    return TEXTURE_SETS[index] if index < len(TEXTURE_SETS) else TEXTURE_SETS[0]
 
 
 # ----- what one physical column shows ----------------------------------------
@@ -258,9 +270,11 @@ def tile_runs(columns: Sequence[TexturedColumn], first: int) -> list[tuple[int, 
 
 
 def rom_texture_columns(tops: Sequence[int], styles: Sequence[int], keys: Sequence[int],
-                        surfaces: Sequence[int], pixel_u: Sequence[int]) -> list[TexturedColumn]:
+                        surfaces: Sequence[int], pixel_u: Sequence[int],
+                        texture_set: Sequence[int] | None = None) -> list[TexturedColumn]:
     """The 160 columns the console kernel composes, from its own descriptors."""
-    columns = [TexturedColumn(tops[x], styles[x], keys[x], PROFILE_TEXTURE[surfaces[x]], texel_column(pixel_u[x]), 0)
+    texture_set = level_texture_set() if texture_set is None else texture_set
+    columns = [TexturedColumn(tops[x], styles[x], keys[x], texture_set[surfaces[x]], texel_column(pixel_u[x]), 0)
                for x in range(PHYSICAL_COLUMNS)]
     for first in range(0, PHYSICAL_COLUMNS, 8):
         for start, end in tile_runs(columns, first):

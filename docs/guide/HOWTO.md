@@ -70,9 +70,13 @@ walks to the next owned one with the LCD off. The count is a power of two
 
 1. Author a 16×8 indexed PNG (the upper half of a 16×16 face; the compiler
    mirrors it) using indices 1..3 only, under `assets/textures/`.
-2. Add its name to `TEXTURE_NAMES` in `texture_assets.py`. The index is what
-   a surface profile selects; three textures use banks 248-251 at four 5 KiB
-   shade blocks each. A level chooses per-face profiles with `surfaces`.
+2. Add its name to `TEXTURE_NAMES` in `texture_assets.py` and use its index
+   in a set of `TEXTURE_SETS` in `texture_reference.py`: a set is the
+   (structure, machinery, door) textures of one palette set, so an episode's
+   levels get it through their `palette_profile`, and a level chooses
+   per-face profiles with `surfaces`. Each texture is four 5 KiB shade
+   blocks, three blocks to a bank, in the order `TEXTURE_WINDOW_BANKS`
+   gives; the build refuses more blocks than those banks hold.
 3. `make textured playtest-textured sable-check-textured`; the reference in
    `texture_reference.py` predicts every tile byte, so a mismatch is a bug in
    one of them, never something to accept. Accept the textured goldens with a

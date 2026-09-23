@@ -180,7 +180,10 @@ def emit_vram_init(a: Assembler) -> None:
     a.label("weapon_damage")     # A = what one hit takes off
     a.call("weapon_record"); a.ld_a_hl(); a.ret()
 
-    a.label("weapon_source")     # HL -> this weapon's cels in WEAPON_ROM_BANK (clobbers A, DE)
+    # HL -> this weapon's cels in WEAPON_ROM_BANK (clobbers A, DE). Call with
+    # ROM bank 1 mapped: `weapon_sources` is resident data and may lie above
+    # $4000, where another bank would hide it.
+    a.label("weapon_source")
     a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1); a.add_a_r("a")
     a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "weapon_sources"); a.add_hl_rr("de")
@@ -205,7 +208,7 @@ def emit_vram_init(a: Assembler) -> None:
 
     a.label("service_weapon_swap")
     # Two weapons cannot both be resident: the window is eighty OBJ patterns
-    # and that is one weapon's five cels exactly. So the pattern IDs never
+    # and that is one weapon's four cels exactly. So the pattern IDs never
     # change and only their contents do, which means no OAM rewrite and no
     # animation change - one GDMA of eighty blocks into $8200 in VRAM bank 1.
     # It runs from the main loop between frames, never from an interrupt, and
@@ -270,9 +273,12 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_rr_label("hl", "static_view_tiles"); a.ld_rr_nn("de", bg_tile_address(CEILING_TILE)); a.ld_rr_nn("bc", STATIC_VIEW_TILES * 16); a.call("copy_bc")
     if not TEXTURED_WALLS: a.call("upload_profile_tiles")
     # The weapon in hand comes from the weapon bank; the boot bank comes back
-    # for the UI objects that follow.
+    # for the UI objects that follow. The pointer table is resident data that
+    # can sit above $4000 (it does in the textured build), so it is read with
+    # bank 1 mapped and only then is the weapon bank switched in.
+    a.ld_r_n("a", 1); a.ld_abs_a(0x2000); a.call("weapon_source")
     a.ld_r_n("a", WEAPON_ROM_BANK); a.ld_abs_a(0x2000)
-    a.call("weapon_source"); a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
+    a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")

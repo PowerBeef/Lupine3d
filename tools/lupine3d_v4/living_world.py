@@ -48,6 +48,17 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); add_level_page(a); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
+    if TEXTURED_WALLS:
+        # The wall textures follow the palette set: TEX_DIRECTORY points at
+        # the set's 36-byte slice of tex_block_directory, and an unknown set
+        # reads as the first, as init_palettes clamps it.
+        a.ld_a_abs(PALETTE_SET); a.cp_n(PALETTE_SET_COUNT); a.jr("level_texture_set_ready", "c"); a.xor_r("a")
+        a.label("level_texture_set_ready")
+        a.ld_r_r("l", "a"); a.ld_r_n("h", 0); a.add_hl_rr("hl"); a.add_hl_rr("hl")
+        a.ld_r_r("d", "h"); a.ld_r_r("e", "l")                    # 4 * set
+        a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("hl"); a.add_hl_rr("de")   # 36 * set
+        a.ld_rr_label("de", "tex_block_directory"); a.add_hl_rr("de")
+        a.ld_r_r("a", "l"); a.ld_abs_a(TEX_DIRECTORY_L); a.ld_r_r("a", "h"); a.ld_abs_a(TEX_DIRECTORY_H)
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_abs_a(SECTOR_KILLS)

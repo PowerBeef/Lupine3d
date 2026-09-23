@@ -27,7 +27,9 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("ROM", l.PROJECTION_LUT_BASE_BANK * 0x4000, l.PRODUCT_LUT_BASE_BANK * 0x4000, "projection allocation"),
         A("ROM", l.PRODUCT_LUT_BASE_BANK * 0x4000, l.BANKED_ATLAS_ROM_BANK * 0x4000, "product table"),
         A("ROM", l.BANKED_ATLAS_ROM_BANK * 0x4000, (l.BANKED_ATLAS_ROM_BANK + 1) * 0x4000, "inactive atlas"),
-        A("ROM", l.SEGMENT_TABLE_ROM_BANK * 0x4000, (l.SEGMENT_TABLE_ROM_BANK + 1) * 0x4000, "reserved (levels now carry their own segment/surface records)"),
+        *([] if l.SEGMENT_TABLE_ROM_BANK in (l.TEXTURE_WINDOW_BANKS if l.TEXTURED_WALLS else ()) else
+          [A("ROM", l.SEGMENT_TABLE_ROM_BANK * 0x4000, (l.SEGMENT_TABLE_ROM_BANK + 1) * 0x4000,
+             "reserved (levels now carry their own segment/surface records)")]),
         A("ROM", l.BOOT_ASSETS_ROM_BANK * 0x4000, l.BOOT_ASSETS_ROM_BANK * 0x4000 + boot_bytes, "boot art and authored state"),
         A("ROM", l.WEAPON_ROM_BANK * 0x4000, l.WEAPON_ROM_BANK * 0x4000 + l.WEAPON_COUNT * l.WEAPON_TILE_BYTES,
           "weapon cel sheets, streamed into the OBJ window one at a time"),
@@ -99,7 +101,9 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
            A("WRAM1", l.TEX_MASKS, l.TEX_MASKS + 8, "boundary tile outline masks", "one composed tile"),
            A("WRAM1", l.TEX_WINDOWS, l.TEX_WINDOWS + 8 * 16, "run row-window caches", "one composed column"),
            A("ROM", l.TEXTURE_LUT_ROM_BANK * 0x4000, (l.TEXTURE_LUT_ROM_BANK + 1) * 0x4000,
-             "texture slopes, height-class rows and stride classes")] if l.TEXTURED_WALLS else []),
+             "texture slopes, height-class rows and stride classes"),
+           *(A("ROM", bank * 0x4000, (bank + 1) * 0x4000, "texture row windows (three blocks per bank)")
+             for bank in l.TEXTURE_WINDOW_BANKS)] if l.TEXTURED_WALLS else []),
         A("WRAM2", 0xD000, 0xE000, "live world and query scratch"),
         A("WRAM3", 0xD000, 0xE000, "128 x 32-byte dynamic cache (reserved)"),
         A("WRAM4", 0xD000, 0xD0A0, "foreground composite DMA buffer"),

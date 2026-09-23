@@ -42,11 +42,33 @@ def check(output,snapshot_mode='check'):
         # The kernel's window blocks and their directory are the reference's
         # tables, bank for bank; the flat atlas is retired under this profile.
         from lupine3d_v4 import texture_assets as ta
-        for bank,offset,payload in ta.window_payloads(b.TEXTURE_WINDOW_ROM_BANK_BASE):
+        for bank,offset,payload in ta.window_payloads(b.TEXTURE_WINDOW_BANKS):
             assert rom[bank*0x4000+offset:bank*0x4000+offset+len(payload)]==payload,(bank,offset)
-        directory=a.labels['tex_block_directory'];entry=ta.block_directory(b.TEXTURE_WINDOW_ROM_BANK_BASE)
+        directory=a.labels['tex_block_directory'];entry=ta.block_directory(b.TEXTURE_WINDOW_BANKS)
         assert rom[directory:directory+len(entry)]==entry
         checks['texture_window_blocks_and_directory']=True
+        # Each episode walls its sectors in its own texture set: entered
+        # through a continue code, the level's palette set points the
+        # kernel's directory at that set, and turning frames match the
+        # reference composed from the same set, pattern for pattern.
+        from playthrough import enter_sector
+        from lupine3d_v4.texture_reference import TEXTURE_SETS
+        for level in (b.EPISODE_STARTS[0], b.EPISODE_STARTS[1]):
+            e=CGB(rom,a.labels);enter_sector(e,level);run_to_world(e)
+            palette_set=b.CAMPAIGN[level].palette_profile
+            assert e.read8(b.PALETTE_SET)==palette_set,(level,palette_set)
+            pointer=e.read8(b.TEX_DIRECTORY_L)|e.read8(b.TEX_DIRECTORY_H)<<8
+            assert pointer==a.labels['tex_block_directory']+palette_set*b.TEXTURE_SET_DIRECTORY_BYTES,(level,hex(pointer))
+            b.select_reference_level(level)
+            from lupine3d_v4.texture_reference import level_texture_set
+            assert level_texture_set()==TEXTURE_SETS[palette_set]
+            for step in range(12):
+                e.button_provider=lambda *_:0x02
+                e.run(until_presentations=e.presentations+1,max_steps=3_000_000)
+                validate_frame(e)
+            e.button_provider=None
+        b.select_reference_level(0)       # the checks below boot the first sector
+        checks['texture_sets_per_episode']=True
     else:
         # Every translated atlas signature independently composes to its unchanged
         # checked-in payload; all new/near-clipped signatures remain exact misses.

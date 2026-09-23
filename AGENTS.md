@@ -125,7 +125,11 @@ regression contract.
   so texture columns never decrease across the view: the console negates the
   east and north faces. Textures are authored 16x8 indexed PNGs under
   `assets/textures/`, mirrored about the horizon by construction; builds
-  compile them into row-window blocks (bank 248+) and never generate images.
+  compile them into row-window blocks (`TEXTURE_WINDOW_BANKS`: 248-255,
+  246, 155) and never generate images. Each episode has its own texture set,
+  selected by the level's palette set: `load_level` points `TEX_DIRECTORY`
+  at the set's slice of `tex_block_directory` (`docs/TEXTURED_WALLS.md`,
+  "Texture sets per episode").
 - Dynamic patterns are numbered in composition order (ids 0..237: below 128
   at `$9000`, the rest at `$8800`; ceiling 238, floor 239) and composed into
   a 96-slot ring at `$C000` that HBlank DMA drains in chunks that never cross
