@@ -66,12 +66,12 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "974ea15a0c90c4ba952c5ff5ea9cd4db1d7c0965273d17dd4d2702a382f1cdc3",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "e224a143b9c3bdd295ae29338be920f736b73bd2b6f8360fd485d3bcb3fad56c",
+      "rom_sha256": "d518ee2aa282e4ee5da4beaa4f509bcd3ffeca176b3aa699130c8f6d723df2d0",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T10:13:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
     },
     "10_sentinel_dead": {
       "rgb_sha256": "98bfd63b913df61fd453261aa2c04e4c9c1102a179f063f6a350fc4bf049ed3c",
@@ -82,12 +82,12 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "11_pickup_collected": {
-      "rgb_sha256": "34c0ba4319c9f255836fff782651a028b21217185c3e4eb9791237cbd62a94ee",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "10d3c1f90869470f799400d818b944020440d0ddd967a2008c4c39b583cfb096",
+      "rom_sha256": "d518ee2aa282e4ee5da4beaa4f509bcd3ffeca176b3aa699130c8f6d723df2d0",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T10:13:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
     },
     "12_exit_unlocking": {
       "rgb_sha256": "1f709ba78b0a0634ab6b7c5bbfb882ffd6b43553b3c6abf92413369c45caacec",
@@ -98,20 +98,20 @@
       "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "0c8da9b200636fa13e0b9dac6c49155d7d022e477236301386820f23692a4e21",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "46061604dc038bec4326a54555777b93ce76b516d86c314e55375d403f64f723",
+      "rom_sha256": "d518ee2aa282e4ee5da4beaa4f509bcd3ffeca176b3aa699130c8f6d723df2d0",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T10:13:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
     },
     "14_level_complete": {
-      "rgb_sha256": "d6f83e7bf4ee13579b8b1a0b5dfbf3b91d1b77498ada26d63a356006a86ef9ab",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
+      "rgb_sha256": "82f5cc22165ffa7c30b1461f2bf574421b34280b67e8fa943041e79a25a277fe",
+      "rom_sha256": "d518ee2aa282e4ee5da4beaa4f509bcd3ffeca176b3aa699130c8f6d723df2d0",
       "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:13:27+00:00",
+      "accepted_at": "2026-09-23T10:13:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "The render snapshot copies the 256-byte map only when the live map generation moved (a door finished opening or a level loaded), about 11k T less per update and exact. Updates finish earlier, so living-world captures land on other accepted simulation ticks: the helmet blink, a beacon's animation frame, and the drop the route teleports to after the Sentinel dies a tick apart. Every frame check passes."
     }
   }
 }

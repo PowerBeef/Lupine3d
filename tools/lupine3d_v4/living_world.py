@@ -23,6 +23,7 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_a_abs(LEVEL_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_nn("hl", LEVEL_GRID_OFFSET); add_level_page(a)
     a.ld_rr_nn("de", MAP); a.ld_rr_nn("bc", 256); a.call("copy_bc")
+    a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)")
     # The resident slice consumes a fixed header but the authored source owns
     # all coordinates, profiles, spawns, door metadata, and exit placement.
     a.ld_rr_nn("hl", LEVEL_HEADER_OFFSET); add_level_page(a)
@@ -198,6 +199,7 @@ def emit_door_system(a: Assembler) -> None:
         a.ld_a_abs(base + DOOR_Y_OFFSET); a.cb("swap", "a"); a.ld_r_r("b", "a")
         a.ld_a_abs(base + DOOR_X_OFFSET); a.add_a_r("b"); a.ld_r_r("l", "a")
         a.ld_r_n("h", 0xD0); a.xor_r("a"); a.ld_hl_a()
+        a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)")
         a.label(next_label)
     a.label("door_update_all_done"); a.ret()
 
@@ -784,7 +786,8 @@ def emit_movement_v6(a: Assembler) -> None:
     a.label("open_door_legacy")
     a.ld_a_abs(ANGLE); a.call("ray_setup"); a.ld_r_n("a", 2); a.ld_abs_a(v1.DOOR_COUNT)
     a.label("open_door_legacy_advance"); a.call("ray_advance"); a.ld_a_abs(v1.DOOR_COUNT); a.dec_r("a"); a.ld_abs_a(v1.DOOR_COUNT); a.jr("open_door_legacy_advance", "nz")
-    a.call("ray_map_cell"); a.cp_n(3); a.ret("nz"); a.xor_r("a"); a.ld_hl_a(); a.call("sound_door"); a.ret()
+    a.call("ray_map_cell"); a.cp_n(3); a.ret("nz"); a.xor_r("a"); a.ld_hl_a()
+    a.ld_rr_nn("hl", LIVE_MAP_GEN); a.inc_r("(hl)"); a.call("sound_door"); a.ret()
 
 
 def emit_reprojection(a: Assembler) -> None:

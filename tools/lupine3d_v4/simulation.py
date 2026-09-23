@@ -39,12 +39,25 @@ def emit_copy_bulk(a: Assembler) -> None:
     a.ldi_a_hl(); a.ld_mem_rr_a("de"); a.inc_rr("de"); a.dec_r("b"); a.jr("copy_bulk_remainder", "nz"); a.ret()
 
 
-def emit_simulation(a: Assembler) -> None:
+def emit_snapshot(a: Assembler) -> None:
+    """The world copies, simulation start and the per-frame snapshot.
+
+    They run only from the main loop and enter_world with ROM bank 1 mapped,
+    never from an interrupt or inside a bank window, so they are a cold
+    section above $4000 (bank_safety checks it); SVBK is a WRAM bank.
+    """
     ranges = WORLD_COPY_RANGES
+    assert ranges[0] == (MAP, 256), "the map is the first copied range"
+    # Each routine copies the map first, so a second entry point just past it
+    # copies every range but the map, at the same buffer offsets: the
+    # snapshot enters there while the live map generation matches the one it
+    # last copied, when both banks already hold the same map.
     for name, to_buffer in (("world_to_buffer", True), ("buffer_to_world", False)):
         a.label(name)
         offset = 0
         for world_address, count in ranges:
+            if world_address != MAP and offset == 256:
+                a.label(name + "_keep_map")
             source, target = (world_address, WORLD_COPY_BUFFER + offset) if to_buffer else (WORLD_COPY_BUFFER + offset, world_address)
             a.ld_rr_nn("hl", source); a.ld_rr_nn("de", target); a.ld_rr_nn("bc", count); a.call("copy_bc")
             offset += count
@@ -58,21 +71,36 @@ def emit_simulation(a: Assembler) -> None:
         a.call("world_to_buffer"); a.ld_r_n("a", 2); a.ldh_n_a(SVBK)
         a.call("buffer_to_world"); a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD)
         a.ld_r_n("a", 1); a.ldh_n_a(SVBK); a.ld_abs_a(SIM_READY)
+        # Both banks now hold the same map.
+        a.ld_a_abs(LIVE_MAP_GEN); a.ld_abs_a(SNAP_MAP_GEN)
     a.ret()
 
     a.label("begin_frame_snapshot")
     a.call("render_yield")
-    a.ld_r_n("a", 2); a.ldh_n_a(SVBK); a.call("world_to_buffer")
+    a.ld_r_n("a", 2); a.ldh_n_a(SVBK)
+    # Nothing writes the live map between render_yield's return and here, so
+    # the generation read now is the one this copy carries.
+    a.ld_a_abs(SNAP_MAP_GEN); a.ld_r_r("b", "a"); a.ld_a_abs(LIVE_MAP_GEN); a.cp_r("b")
+    a.jr("snapshot_map_changed", "nz")
+    a.call("world_to_buffer_keep_map")
     # Flash is a presentation event: acknowledge only after snapshotting it,
     # never expire it unseen while a slow frame is still being rendered.
     a.xor_r("a"); a.ld_abs_a(FLASH)
+    a.ld_r_n("a", 1); a.ldh_n_a(SVBK); a.call("buffer_to_world_keep_map")
+    a.jr("snapshot_copied")
+    a.label("snapshot_map_changed")
+    a.ld_abs_a(SNAP_MAP_GEN); a.call("world_to_buffer")
+    a.xor_r("a"); a.ld_abs_a(FLASH)
     a.ld_r_n("a", 1); a.ldh_n_a(SVBK); a.call("buffer_to_world")
+    a.label("snapshot_copied")
     for byte in range(2):
         a.ld_a_abs(SIM_TICK + byte); a.ld_abs_a(FRAME_TICK + byte)
         if FOREGROUND_PUBLICATION:
             a.ld_a_abs(WALL_EPOCH+byte); a.ld_abs_a(FG_FRAME_GENERATION+byte)
     a.ret()
 
+
+def emit_simulation(a: Assembler) -> None:
     a.label("queue_vblank_input")
     # ISR owns the producer index and clock. Payload is complete before HEAD
     # changes; the consumer never reads an in-progress slot.

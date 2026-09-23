@@ -14,8 +14,12 @@ It owns WRAM bank 2. Queue debt and button edges survive slow rendering.
 The narrow production yield contexts preserve live registers/state; the generic
 full-HRAM ABI remains a diagnostic reference.
 
-At snapshot creation, 456 bytes of map/player/world/actor state pass through
-fixed WRAM into bank 1. Geometry, animation, HUD and OAM all use that immutable
+At snapshot creation, 496 bytes of map/player/world/actor state pass through
+fixed WRAM into bank 1 (`WORLD_COPY_BYTES`). The 256-byte map among them is
+copied only when it changed: every live map writer (a door finishing its
+opening, the empty world's instant door, `load_level`) increments
+`LIVE_MAP_GEN`, and `begin_frame_snapshot` skips the map while the generation
+it last copied, `SNAP_MAP_GEN`, still matches (`tests/test_snapshot_map.py`). Geometry, animation, HUD and OAM all use that immutable
 snapshot while simulation continues in bank 2. Animation uses accepted ticks,
 not host time or the number of rendered frames.
 

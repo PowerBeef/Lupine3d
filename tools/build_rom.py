@@ -27,7 +27,7 @@ from lupine3d_v4.projection_storage import pack_projection, emit_projection_stor
 from lupine3d_v4.near_field import near_corrections, emit_near_field
 from lupine3d_v4.foreground import emit_foreground
 from lupine3d_v4.door_geometry import emit_door_geometry
-from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk
+from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk, emit_snapshot
 from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_renderer_v7
 from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
@@ -357,6 +357,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("wall_cache", emit_wall_cache), ("surfaces", emit_surfaces),
         ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
         ("entity_renderer_v7", emit_entity_renderer_v7), ("movement_v6", emit_movement_v6),
+        ("snapshot", emit_snapshot),
     ]
     if TEXTURED_WALLS: cold_sections.append(("textured_compositor", emit_textured_compositor))
 

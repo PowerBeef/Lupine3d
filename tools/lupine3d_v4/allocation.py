@@ -50,6 +50,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM0", l.MUSIC_STATE_END, l.WORLD_STATE_END, "skill and per-actor stat scratch"),
         A("WRAM0", l.WORLD_STATE_END, l.CAMPAIGN_SCALARS_END,
           "campaign scalars: actor count, palette set, weapons owned, level page, texture directory"),
+        A("WRAM0", l.LIVE_MAP_GEN, l.MAP_GENERATION_END, "live and snapshot map generations"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", l.DYN_STREAMED, l.DYN_STREAMED + 1, "dynamic patterns already streamed by HBlank DMA", "composition through publication"),

@@ -368,7 +368,14 @@ LEVEL_PAGE = WEAPONS_OWNED + 1          # high byte of the level's slot in its b
 TEX_DIRECTORY_L = LEVEL_PAGE + 1        # u16: the level's texture block directory
 TEX_DIRECTORY_H = TEX_DIRECTORY_L + 1
 CAMPAIGN_SCALARS_END = TEX_DIRECTORY_H + 1
-assert CAMPAIGN_SCALARS_END <= 0xC800, "campaign scalars overrun the OAM shadow"
+# The live map changes only when a door finishes opening (or a level loads),
+# so the snapshot copies its 256 bytes only when this generation moved. Every
+# live map writer increments LIVE_MAP_GEN; begin_frame_snapshot records the
+# generation it copied in SNAP_MAP_GEN.
+LIVE_MAP_GEN = CAMPAIGN_SCALARS_END
+SNAP_MAP_GEN = LIVE_MAP_GEN + 1
+MAP_GENERATION_END = SNAP_MAP_GEN + 1
+assert MAP_GENERATION_END <= 0xC800, "campaign scalars overrun the OAM shadow"
 WEAPON_COUNT = 4                        # a power of two: the index is masked
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256

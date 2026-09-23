@@ -44,6 +44,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$C7E0-$C7EC` | 12 | music sequencer state | persistent |
 | `$C7EC-$C7F2` | 6 | skill and per-actor stat scratch | persistent |
 | `$C7F2-$C7F8` | 6 | campaign scalars: actor count, palette set, weapons owned, level page, texture directory | persistent |
+| `$C7F8-$C7FA` | 2 | live and snapshot map generations | persistent |
 | `$C800-$C8BA` | 186 | OAM, publication and world epoch state | persistent |
 | `$C8BA-$C8CE` | 20 | foreground queue and publication ownership | persistent |
 | `$C8CE-$C8CF` | 1 | dynamic patterns already streamed by HBlank DMA | composition through publication |
