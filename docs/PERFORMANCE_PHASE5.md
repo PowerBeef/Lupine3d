@@ -14,7 +14,7 @@ unsafe GDMA starts in every trial. Host time never enters a result.
 
 Full geometry updates per second (mean full update in thousands of T):
 
-| Scenario | Textured before | Textured after | Default v0.11 | Default after |
+| Scenario | Textured before | Textured after | Flat default v0.11 | Flat after (profile since removed) |
 | --- | ---: | ---: | ---: | ---: |
 | walking | 6.47 (1296k) | **6.85** (1223k) | 7.77 | **8.08** (1037k) |
 | turning | 8.40 (997k) | **9.08** (922k) | 10.25 | **10.84** (773k) |

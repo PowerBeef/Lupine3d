@@ -1,8 +1,10 @@
 # Documentation
 
-These guides describe **v0.11**, the eighteen-sector campaign on the 160×120 Sable
-build with a 24-pixel HUD and HBlank-streamed publication, with textured walls
-as the slim default. `python tools/check_docs.py` (in the fast CI lane)
+These guides describe **main after v0.11** (unreleased): the eighteen-sector
+campaign on the 160×120 Sable build with a 24-pixel HUD, textured walls as the
+only slim renderer, and HBlank-streamed publication whose tail the VBlank
+interrupt runs (overlapped publication). The test report is the v0.11
+release's qualification. `python tools/check_docs.py` (in the fast CI lane)
 keeps every link and command on these pages valid.
 
 ## Using the engine
@@ -26,7 +28,7 @@ keeps every link and command on these pages valid.
 | [Campaign](CAMPAIGN.md) | What turned the demo into a game, and what each decision cost |
 | [Sable Outpost](SABLE_OUTPOST.md) | Art direction, source assets and animation budgets |
 | [Steel HUD](STEEL_HUD.md) | Health, helmet, skull and objective implementation |
-| [Performance after textures](PERFORMANCE_PHASE5.md) | Phase 5: sustained rates of both profiles, where an update goes, the exact savings taken and what the rest would need |
+| [Performance after textures](PERFORMANCE_PHASE5.md) | Phase 5: sustained rates of the textured ROM before and after the exact round and with overlapped publication (the default), where an update goes, the exact savings taken and what the rest would need |
 | [Performance audit](PERFORMANCE_AUDIT_V08.md) | Where a v0.8 update spends its cycles, and the ranked remaining headroom |
 | [Test report](TEST_REPORT.md) | ROM-bound v0.11 qualification and performance |
 | [Release notes](../RELEASE_NOTES.md) | Changes by version |

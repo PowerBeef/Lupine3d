@@ -5,7 +5,7 @@ shipped v0.8 ROM, and ranks the remaining optimization opportunities by measured
 value. It is an engineering assessment, not a release record; the qualification
 evidence for v0.8 itself remains [its test report](archive/TEST_REPORT_V08.md).
 
-The target (`docs/RENDERING_IMPLEMENTATION.md`) is ten sustained full geometry
+The target (`docs/archive/RENDERING_IMPLEMENTATION.md`) is ten sustained full geometry
 updates per second. v0.8 reaches 5.5–7.9/s and the gate `Q <= (B + P) / 2` fails
 in all eight sustained scenarios by 139k–351k T-cycles. That is an owner-accepted
 visual tradeoff, recorded and unchanged. This document asks what it would take to
@@ -94,7 +94,7 @@ the interval.
 Measured `publication_waits` is 215,656 per update, about 1.54 intervals. Roughly
 half an interval is unavoidable alignment; **a full interval is dead time**.
 
-`docs/PERFORMANCE_V4.md` rejected interrupt-driven publication in v0.4, correctly:
+`docs/archive/PERFORMANCE_V4.md` rejected interrupt-driven publication in v0.4, correctly:
 the packet then fit in a single VBlank entered at LCD line 129, so an ISR could
 not publish any earlier. The slim viewport made publication a two-or-three stage
 operation, and stages 2 and 3 now sit behind whole-interval stalls that did not
@@ -340,7 +340,7 @@ These are owner decisions, recorded here without being implemented.
   and ~2,830 T to the middle one — possibly enough to raise the 49-pattern
   threshold and drop the third stage on more frames.
 * **HBlank DMA (mode 1) for the BG packet.** 144 HBlanks × 16 bytes exceeds a
-  whole packet. `docs/PERFORMANCE_V4.md` rejected it because it needed a second
+  whole packet. `docs/archive/PERFORMANCE_V4.md` rejected it because it needed a second
   1,920-byte staging buffer — an objection §3 dissolves. It is the riskiest item
   here: CGB HDMA behaviour at double speed must be proved on both pinned cores.
 * **Dirty-flag HUD and OAM publication.** `prepare_hud_tiles` and
@@ -362,7 +362,7 @@ These are owner decisions, recorded here without being implemented.
 ## 12. Already settled — do not re-propose
 
 Each of these was measured, not assumed
-(`docs/RENDERING_IMPLEMENTATION.md`, `docs/PERFORMANCE_V4.md`):
+(`docs/archive/RENDERING_IMPLEMENTATION.md`, `docs/archive/PERFORMANCE_V4.md`):
 
 * Dynamic tile cache, residual signature cache and tile dedup — insufficient hits, net slower; rejected three separate times.
 * `ANCHOR_PACKETS` (+7.60 %) and `PACKET_BOUNDS_REUSE` (+6.89 %) — exact but slower.
@@ -436,14 +436,14 @@ decision, and it should be recorded rather than engineered around.
 ## 14. How to qualify any of this
 
 Per change, measured on its own and reverted rather than stacked if it does not
-pay (`docs/RESEARCH_AND_DECISIONS.md`):
+pay (`docs/archive/RESEARCH_AND_DECISIONS.md`):
 
 1. `make build && make test` — unit, allocation/lifetime and linker gates.
 2. `tools/profile_rendering.py` on the coherence and living-world routes, to
    attribute the gain to the stage that changed. Expect the frame mean to move
    only when the saving crosses an LCD interval (§1).
 3. Exactness: `make playtest playtest-world playtest-art` against the nine-image
-   oracle `playtests/sable_objective_spaced_capture_pixels.json`, plus
+   oracle `playtests/archive/oracles/sable_objective_spaced_capture_pixels.json`, plus
    `make variants`. Never adjust a fixture to make a change pass.
 4. Budgets: `tools/release_check.py` — resident reserve, `$4000` ceiling,
    publication ceiling, dynamic pattern cap.

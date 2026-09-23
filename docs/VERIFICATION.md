@@ -30,8 +30,9 @@ them has a bug; find which.
 `tools/snapshot.py` keeps one golden PNG per scene under
 `snapshots/<profile>/<suite>/` with a `manifest.json` that records, per scene,
 the RGB SHA-256, the ROM SHA-256 and configuration it was accepted on, who
-accepted it, when, and **why**. The profile is the display/art pair
-(`slim-sable-v2` for the production build).
+accepted it, when, and **why**. The profile is the display/art pair, with
+`-textured` for textured walls (`slim-sable-v2-textured` for the production
+build).
 
 | Suite | Producer | Scenes |
 | --- | --- | --- |

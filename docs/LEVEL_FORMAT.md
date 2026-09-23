@@ -48,7 +48,7 @@ on the boundary is refused separately).
 `side` is the face of the solid cell (`west`, `east`, `north`, `south`), the
 cell must be solid, a face may be overridden once, and the `door` profile is
 allowed only on material-3 cells (and a door cell may not be painted as
-anything else). Under the textured profile the surface profile selects the
+anything else). On slim builds (textured walls) the surface profile selects the
 texture (`docs/TEXTURED_WALLS.md`).
 
 ## Top-level keys

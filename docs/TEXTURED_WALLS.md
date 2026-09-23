@@ -4,8 +4,10 @@ Lupine 3D's walls have been flat two-tone surfaces with composed edge
 strips since v0.2. This document is the design for texture-mapped walls
 with depth shading on the same renderer, the exact host reference that
 defines what every textured tile byte must be, and the host-side prototype
-that decided whether the console kernel is worth emitting. It is written
-before any SM83 exists for it; the emission is Phase 2b of the roadmap.
+that decided whether the console kernel is worth emitting. It began as the
+pre-emission design; the kernel (Phase 2b) is now the renderer of every slim
+build, and the sections below record the design, the gate, the emission and
+its cost.
 
 ## What the folded compositor allows
 
@@ -75,8 +77,8 @@ window** table `W[texture][shade][Δ][phase][v]` (eight texels, two plane
 bytes) masked by the silhouette. A face seam inside a tile column splits it
 into runs, one lookup each. `affine_columns` states the approximation
 exactly, and the two compositions must be byte-identical on every scene;
-the emitted kernel will be checked against this the way `render_view` is
-checked against `reference_compose_view` today.
+the emitted kernel is checked against this the way `render_view` is checked
+against `reference_compose_view`.
 
 **Costs.** A window table is 20 KiB per texture (4 shades × 5 strides × 64
 phases × 8 rows × 2 bytes); the V lookup is 3.9 KiB; a 128×128 quotient
@@ -120,8 +122,8 @@ set with 4× exact-coordinate renders lands in `build/textured-lab/`) shows
 each accepted flat golden beside the textured prototype of the same pose.
 The summary is `research/results/textured_walls_lab_v1.json`.
 
-**Decision: go.** Phase 2b emits the kernel under a `walls=textured`
-profile flag, keeps the legacy and compact profiles byte-identical, and
+**Decision: go.** Phase 2b emits the kernel under a profile flag (then
+`LUPINE3D_TEXTURED_WALLS=1`; slim builds are now always textured), keeps the legacy and compact profiles byte-identical, and
 re-runs this gate on the emitted ROM.
 
 *Re-evaluated after emission:* the table above is the pre-emission
@@ -208,7 +210,7 @@ and `upload_hidden_page` drains whatever the last column left before the map.
   the ids' addresses (the ring has been reused by then), plus the map, the
   published map, `ray_u_exact`, `pixel_u_exact` and the mode-3 counters. The
   coherence, living-world and art tours pass on every update.
-* `tools/check_sable.py` under the flag: the window blocks and directory in
+* `tools/check_sable.py` on the default slim ROM: the window blocks and directory in
   the ROM equal the reference tables; the kernel composed blind (LCD off)
   for far walls in the centre tile, a seam with a decorated pixel and a
   full-height wall whose 160 patterns lap the ring and cross the VRAM half
@@ -216,8 +218,9 @@ and `upload_hidden_page` drains whatever the last column left before the map.
   chunked hand-off under a foreign WRAM bank; six validated poses.
 * Pinned SameBoy (CGB-0 and CGB-E) and mGBA run the textured ROM with no
   unsafe transfer, no visible-map write and no mode-3 VRAM or palette write.
-* `tests/test_textured_walls.py` runs the Sable checks under the flag in a
-  fresh process; the CI slow lane runs the tours and checks.
+* `tests/test_textured_walls.py` runs the Sable checks in a fresh process
+  inside `make test`; CI's `fast` job runs it with the tours and their
+  snapshots.
 
 ### Cost, measured on the emitted ROM
 

@@ -81,7 +81,9 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Level compilation, surfaces and fixtures | `levels.py`, `surfaces.py`, `world_decor.py` |
 | Game modes and full-screen presentation | `screens.py` |
 | Songs, the sequencer and sound effects | `music.py` |
+| Textured walls (the slim renderer) | `textured.py`, `texture_reference.py`, `texture_assets.py` |
 | Native art, animation, steel HUD | `artwork.py`, `sprite_assets.py`, `animation.py`, `steel_hud.py` |
+| Debugger exports, Tiled levels | `symbols.py`, `tmx_import.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
 | Content, assets, scenarios and tests | `levels/`, `assets/`, `playtests/`, `tests/` |
@@ -173,7 +175,7 @@ regression contract.
   exactly as long as that state exists, and `enter_world` refills the buffer.
   Campaign state that must ride the render snapshot goes in the slack at the
   top of the copied world window; it never grows the copy (`WORLD_COPY_BYTES`:
-  the map, the camera, the 128-byte world window and the actor slots). Per-level
+  the map, the camera, the 136-byte world window and the actor slots). Per-level
   constants (`ACTOR_COUNT`, the palette set, weapons owned, the level page) are
   fixed-WRAM campaign scalars written by `load_level` with the LCD off.
 - Level selection is runtime, not an assembled immediate. Campaign levels are
@@ -202,6 +204,9 @@ regression contract.
   that advanced onto it shows the finished episode's closing first
   (`show_episode_closing`, intermission mode only, so a death retry never
   shows one). `SCREEN_EPISODE_CLOSINGS`/`OPENINGS` index `SCREEN_SOURCES`.
+- A sector's time runs from the baseline `init_simulation` arms after it resets
+  `SIM_CLOCK` (every load reaches it through `enter_world`), never from a clock
+  captured in `load_level`, which runs first.
 - Death retries the current sector; completion advances `LEVEL_INDEX` through an
   intermission, and the last sector's ending restarts the campaign. Host
   geometry oracles must follow the ROM: select the reference level from the
@@ -293,8 +298,9 @@ regression contract.
   today: a second colour could only fill whole sprites, and on a diagonal,
   sliding gun that shows as rectangles). The scanline
   admission counts those objects before admitting world objects.
-- `weapon_stats` gives each weapon damage and recovery in simulation ticks. The
-  shotgun's record is the engine's original behaviour exactly — one damage, no
+- `weapon_stats` gives each weapon damage and recovery in simulation ticks.
+  Recovery belongs to the shot: `swap_weapon` keeps `WEAPON_COOLDOWN`, so a
+  slow weapon cannot shed its cost by swapping away. The shotgun's record is the engine's original behaviour exactly — one damage, no
   recovery — so a change there is a change to every existing measurement.
 - A shot lands on the nearest actor inside the aim window whose Q5 depth is
   below the centre ray's wall depth plus `HITSCAN_DEPTH_SLACK` (a quarter
@@ -340,7 +346,8 @@ regression contract.
 - Full publication owns matching BG patterns/maps/attributes, masks, HUD and
   OAM. Commit coherently. BG/OBJ bank owners may differ after cached updates.
   Preserve exact wall-key validation and reload-generation handling.
-- Limits: 96 dynamic BG patterns, 32 masked OBJ patterns, six simulated actor
+- Limits: 96 dynamic BG patterns on legacy/compact (slim: 238 dynamic pattern
+  ids composed through the 96-slot ring), 32 masked OBJ patterns, six simulated actor
   slots (`MAX_ACTORS`) of which the OBJ budget admits four per frame,
   16 world objects/four per scanline, 40 total objects/ten per scanline.
   Do not partially admit an actor or overwrite published patterns.

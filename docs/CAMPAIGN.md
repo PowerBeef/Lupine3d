@@ -7,18 +7,16 @@ Contracts live beside their source; this is the summary and the evidence.
 
 ## What the game is now
 
-| | v0.8 | main |
-| --- | --- | --- |
-| | v0.8 | v0.9 |
-| --- | --- | --- |
-| Levels | 1, chosen at build time | **5**, chosen at runtime from their own ROM banks |
-| Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity |
-| Weapons | 1 | **2**, streamed through one 80-pattern window |
-| Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one |
-| Framing | none | title, intermission, results and ending screens, with **kills and time** |
-| Difficulty | fixed | **three skill settings**, chosen on the title |
-| Persistence | none | **four-digit continue codes** |
-| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus nine effects on CH1 |
+| | v0.8 | v0.9 | main |
+| --- | --- | --- | --- |
+| Levels | 1, chosen at build time | **5**, chosen at runtime from their own ROM banks | **18** in three episodes, five to a ROM bank behind a resident directory |
+| Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity | 1–6 actors, **four kinds** including the boss that closes an episode |
+| Weapons | 1 | **2**, streamed through one 80-pattern window | **4**, owned by episode and restored by a continue code |
+| Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one | up to six per level |
+| Framing | none | title, intermission, results and ending screens, with **kills and time** | also episode opening and closing screens |
+| Difficulty | fixed | **three skill settings**, chosen on the title | unchanged |
+| Persistence | none | **four-digit continue codes** | one per sector and skill |
+| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus nine effects on CH1 | unchanged |
 
 A run starts at the title, where left and right choose a skill and Select opens
 code entry. Each sector is cleared by killing every actor and reaching the exit;
@@ -74,7 +72,11 @@ oracle rather than editing the v0.8 one.
 build-time table holds one four-digit code per sector and skill; the console
 only ever compares bytes.
 
-## Measured cost
+## Measured cost (v0.9)
+
+These figures were taken on the v0.9 ROM; the engine has grown since (the
+generated [memory map](guide/MEMORY_MAP.md) and the manifest hold the current
+budgets).
 
 | | Figure |
 | --- | --- |
@@ -95,7 +97,7 @@ instructions, 1.6 KB are genuinely pinned below the boundary.
 
 ## The sixth sector
 
-v0.10 adds **Cryo Vault**, sector six, in ROM bank 246: a vault of four
+v0.10 added **Cryo Vault**, sector six, then in ROM bank 246 (levels are now packed five to a bank, and it sits in bank 242): a vault of four
 rooms above a keycard hatch, with a warden and a card-carrying skirmisher
 upstairs and a Sentinel and a second skirmisher in the sump below, and the
 exit behind the Sentinel-locked door of a fourth room. It carries the same
@@ -113,7 +115,7 @@ to be blocked by a claim that was true of the code but not of the hardware.
 
 **Patrol routes** were blocked on the actor slot, which is exactly sixteen
 bytes full. Per-actor state does not have to live in the slot: a parallel
-four-byte array in the snapshot slack, indexed like `ACTOR_DEPTHS`, holds a
+per-actor array in the snapshot slack (four bytes then, `MAX_ACTORS` now), indexed like `ACTOR_DEPTHS`, holds a
 heading, and patrol walks it through the same stepping bodies and collision
 test the chase uses. A refused step turns the actor a quarter turn. The
 authored `activation_radius_q4`, parsed and stepped over since it was written,

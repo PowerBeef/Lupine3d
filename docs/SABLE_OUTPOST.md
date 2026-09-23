@@ -33,7 +33,7 @@ The current helmet is the armoured, narrow-visor portrait retained after review.
 
 ## Animation and gameplay
 
-Accepted simulation ticks enter immutable render snapshots. Walking phases last eight ticks; idle motion is slower. Attack, hurt and firing select short reactions. Accepted shots restart recoil, and pending flashes survive until they can be published. The gun's preloaded cels animate through OAM references, without per-frame weapon-pattern uploads.
+Accepted simulation ticks enter immutable render snapshots. Walking phases last eight ticks; idle motion is slower. Attack, hurt and firing select short reactions. Accepted shots restart recoil, and pending flashes survive until they can be published. The resident weapon's cels (streamed in with the LCD off on a swap) animate through OAM references, without per-frame weapon-pattern uploads.
 
 Death animation is cosmetic: enemy death, pickup availability and exit activation happen immediately. Three death poses span roughly 0.6 simulation seconds where capacity permits. Living actors and gameplay pickups take priority over cosmetic corpses. Visible animation cadence depends on full or cached presentation timing; the experimental fast foreground lane remains disabled.
 
@@ -57,6 +57,6 @@ Fixtures project at the upper quarter of a wall, use discrete size levels, and r
 
 ## Verification and history
 
-The current oracle is `playtests/sable_v09_capture_pixels.json`; `sable_objective_spaced_capture_pixels.json` is retained as the v0.8 fixture. Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
+The hash oracles are retired: the v0.9 oracle (`playtests/archive/oracles/sable_v09_capture_pixels.json`) and the v0.8 fixture (`sable_objective_spaced_capture_pixels.json`) are kept as evidence, and current captures are golden snapshots ([verification](VERIFICATION.md)). Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
 
 See [the current qualification](TEST_REPORT.md), [architecture](ARCHITECTURE.md), and the preserved [beta.6 art contract](archive/SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.

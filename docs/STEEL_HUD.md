@@ -29,7 +29,7 @@ when health, portrait or status tiles change on either map.
 
 ## Skull and objective
 
-The skull counts living Sentinels remaining, not kills already made. The
+The skull counts living enemies remaining, not kills already made. The
 right readout states the next objective: `GOAL / HUNT` while enemies remain,
 then `GOAL / EXIT` when all are defeated. Reach the exit to finish; ordinary
 doors still use B. This replaces the ambiguous EXIT LOCK/OPEN wording and does
@@ -51,11 +51,11 @@ chassis rail. The existing packet carries only each pair's first ID.
 HUD usage is 94 of 96 patterns, up 25 patterns (400 bytes) from the initial
 24-pixel HUD. Bank 0 occupies $8200–$87DF within its existing reservation.
 The HUD packet remains 16 bytes, with no new per-frame pattern uploads, OAM
-objects or DMA blocks. Fixed-ROM free space is 1,776 bytes and the resident
-reserve 3,123 bytes. Weapon/enemy/fixture source artwork is unchanged.
+objects or DMA blocks. At the time (v0.8), fixed-ROM free space was 1,776
+bytes and the resident reserve 3,123 bytes. Weapon/enemy/fixture source artwork is unchanged.
 
-The oracle for this work was `playtests/sable_objective_spaced_capture_pixels.json`,
-retained; the current one is `playtests/sable_v09_capture_pixels.json`. Checks exercise
+The oracle for this work was `playtests/archive/oracles/sable_objective_spaced_capture_pixels.json`,
+retained as evidence; current captures are golden snapshots ([verification](VERIFICATION.md)). Checks exercise
 all health digits, four portrait states, both maps, chassis rails, persistent
 highlights, immutable packets, and the maximal 176-block publication. A/B
 subroutine measurement and six frozen-world comparisons are provided by:

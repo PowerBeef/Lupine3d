@@ -17,8 +17,22 @@
   its per-tile bookkeeping on one-face columns; every profile gets a leaner
   16x16 multiply, a twelve-step door-panel divide and the crossing
   certificate fused into the DDA loop. Textured walking 6.47 to 6.85/s,
-  turning 8.40 to 9.08/s; default walking 7.77 to 8.08/s, turning 10.25 to
-  10.84/s. The Phase 5 targets are not met.
+  turning 8.40 to 9.08/s; the flat default of the time (since removed)
+  walking 7.77 to 8.08/s, turning 10.25 to 10.84/s. The Phase 5 targets are
+  not met.
+- **Gameplay fixes** (from the v0.9 correctness audit). A weapon swap no
+  longer clears the recovery the last shot started, so a slow weapon cannot
+  shed its cost by swapping away; each sector's time is measured from the
+  clock `init_simulation` has just reset rather than the previous sector's;
+  and moving the continue-code cursor restores a digit the blink had hidden.
+  The medkit's cap at 99 health was already in.
+- **CI in parallel chunks.** The route runs as a matrix of eight chunks
+  sized by measured route updates (`tools/ci_lanes.py`, none above about
+  3,700 updates), so the slow job no longer plays it (it took 38.7 of its 40
+  minutes with the route); a push to `main` runs to completion instead of
+  being cancelled by the next one.
+  `python tools/ci_local.py` (`make ci-local`, `lupine ci`) runs every CI
+  lane locally in parallel, each in its own copy of the working tree.
 - **Textured texture coordinates.** A neighbour difference of 126 or 127
   pulled a pixel's U the wrong way; `check_sable.py` now runs the expansion
   over every difference.

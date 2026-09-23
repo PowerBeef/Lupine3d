@@ -29,10 +29,10 @@ subcommands spawn the right process for you.
    queued packets per service. Movement, doors, combat, actor AI and pickups
    live here; positions are Q8.8 and doors, rays, hitscan and line of sight
    share one finite door geometry (`door_geometry.py`).
-3. **Snapshot**. 456 bytes of world state are copied into bank 1. Rendering,
+3. **Snapshot**. 496 bytes of world state are copied into bank 1. Rendering,
    animation and the HUD read only the snapshot, so simulation can keep going
    while a frame is composed.
-4. **Wall key** (`wall_cache.py`). A 290-byte key (camera, map, door state,
+4. **Wall key** (`wall_cache.py`). A 302-byte key (camera, map, door state,
    configuration, reload generation) decides whether the walls can be reused.
    A hit refreshes entities and HUD only; a miss renders the world.
 5. **Casting** (`ray_setup.py`, `precision.py`, `columns.py`). Forty-one
@@ -52,17 +52,19 @@ subcommands spawn the right process for you.
    depth into 32 OBJ patterns, and animated by accepted simulation ticks.
 8. **Publication** (`emitter.py` `upload_hidden_page`, `steel_hud.py`). On
    slim, dynamic patterns and the hidden map stream by HBlank DMA during
-   composition; one VBlank then moves the masks and attributes by GDMA,
-   writes the HUD cells, runs OAM DMA and flips the page. Legacy keeps the
-   staged two-VBlank packet. `docs/STREAMED_PUBLICATION.md` has the timing.
+   composition; the VBlank interrupt (`vblank_tail`) then moves the masks and
+   attributes by GDMA, writes the HUD cells, runs OAM DMA and flips the page
+   while the main loop already casts the next update (overlapped
+   publication; `LUPINE3D_OVERLAP_PUBLICATION=0` runs that tail
+   synchronously). Legacy keeps the staged two-VBlank packet. `docs/STREAMED_PUBLICATION.md` has the timing.
 9. **HUD** (`steel_hud.py`). A 16-byte packet (health digits, enemy count,
    caption, status, portrait) updates the 24-pixel strip below the STAT
    split; the portrait blinks on snapshot ticks.
 
 ## Modes and content
 
-- `screens.py` owns the title, code entry, intermission, death and ending
-  modes: full-screen backgrounds composed with the LCD off into the idle
+- `screens.py` owns the title, code entry, results, intermission, death,
+  episode opening and closing, and ending modes: full-screen backgrounds composed with the LCD off into the idle
   pattern window, with runtime digit cells for scores and continue codes.
 - `levels.py` compiles JSON levels into page-aligned ROM slots, five to a bank, and issues the
   certificate (`docs/LEVEL_FORMAT.md`, `docs/LEVEL_CERTIFICATE.md`).

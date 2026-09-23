@@ -33,8 +33,9 @@ Kinds share the Sentinel's cels; a kind is stats plus an OBJ palette.
    table index, and the drop must be a kind in `DROP_KIND_IDS`.
 2. `actor_kind_stats` in `tools/build_rom.py`: eight bytes (contact damage,
    attack recovery in AI ticks, Q8 step, OBJ palette, drop, three spare).
-   There are four records because the kind byte is masked to two bits, so a
-   fourth kind replaces the spare that repeats the Sentinel.
+   There are four records because the kind byte is masked to two bits, and
+   all four are used (the fourth is the boss), so a fifth kind needs a wider
+   kind mask, not another record.
 3. The palette: all eight OBJ palettes are allocated (`docs/ART_PIPELINE.md`).
    A distinct look means re-planning owners, not adding a slot; run `python
    tools/palette_plan.py` and change `obj_palette_values` deliberately.
@@ -78,7 +79,7 @@ walks to the next owned one with the LCD off. The count is a power of two
    blocks, three blocks to a bank, in the order `TEXTURE_WINDOW_BANKS`
    gives; the build refuses more blocks than those banks hold.
 3. `make build playtest playtest-world playtest-art sable-check` (textured
-   walls are the slim default); the reference in `texture_reference.py`
+   walls are the only slim renderer); the reference in `texture_reference.py`
    predicts every tile byte, so a mismatch is a bug in one of them, never
    something to accept. Accept the changed goldens with a note.
 
@@ -115,8 +116,9 @@ walks to the next owned one with the LCD off. The count is a power of two
 
 ## Add a check
 
-Engine invariants are hard gates: put them in `tests/` (fresh-process lanes
-in `tools/run_tests.py` for the slim configuration), `tools/check_sable.py`
+Engine invariants are hard gates: put them in `tests/` (a test that needs the
+slim configuration spawns a fresh process, as `tests/test_textured_walls.py`
+does), `tools/check_sable.py`
 or `tools/release_check.py`. Visual expectations are golden snapshots: add a
 scene to a suite and accept it with a note. A check is never weakened to
 pass; the archived hash oracles show what that policy replaced.

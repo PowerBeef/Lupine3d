@@ -10,9 +10,8 @@ gates every campaign level on it, not only the first.
 `python tools/lupine.py level check levels/<file>.json` prints it:
 
 ```
-levels/living_world.json: ok - Sable Outpost: 16x16, 4 doors, 1 actors, 1 drops, 16 fixtures, 70 segments
-  certificate: 94 walkable, 0 unreachable, critical path 19 steps/6 turns, sightline 6, room 5x3,
-  door separation 11, seams 0, singleton runs 0
+levels/living_world.json: ok - Sable Outpost: 16x16, 4 doors, 1 actors, 1 drops, 16 fixtures, 66 segments
+  certificate: 95 walkable, 0 unreachable, critical path 19 steps/6 turns, sightline 6, room 4x4, door separation 11, seams 2, singleton runs 4
 ```
 
 `lupine level info` prints the same as JSON, and the build manifest carries
@@ -53,8 +52,8 @@ the values (`readability: sightline is too long (8 > 6)`).
 
 - **Playability by the route.** `tools/playthrough.py` plays every sector with
   controller input only. A level that certifies but that the route cannot
-  clear (an actor the route cannot engage, a door it cannot reach) fails the
-  slow CI lane, which is the intended second gate.
+  clear (an actor the route cannot engage, a door it cannot reach) fails its
+  CI `route` chunk, which is the intended second gate.
 - **Frame budget.** The certificate bounds sightlines and rooms, which bounds
   wall-heavy views, but the measured cost of a level's views is a matter for
   `make sustained` and the snapshot suites.

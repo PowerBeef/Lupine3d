@@ -40,12 +40,13 @@ LUPINE3D_DUMP_RAM=build/ram.bin make sameboy SAMEBOY_DIR=build/deps/SameBoy
 
 The dump can be loaded into the harness to replay the same power-on state
 (`docs/DEVELOPMENT.md`, "Power-on RAM in the core adapters"). Both adapters
-press START first and wait for the ROM's own write of `MODE_PLAYING`.
+press START first; SameBoy's waits for the ROM's own write of `MODE_PLAYING`,
+and mGBA's for the title to be seen before the mode reads playing.
 
 ## Snapshots and pictures
 
 A visual difference is a golden-image diff: `python tools/snapshot.py diff
---suite tour` writes `build/snapshots/tour/report.html` with expected, actual
+--suite tour` writes `build/snapshots/slim-sable-v2-textured/tour/report.html` with expected, actual
 and the changed pixels. Accepting a change is explicit and noted
 (`docs/VERIFICATION.md`). `make preview` renders actual emulator images.
 

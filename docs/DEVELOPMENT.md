@@ -81,7 +81,7 @@ OAM) that the host harness can replay; every adapter failure reports its seed.
 
 ## Content and diagnostics
 
-Author gameplay in `levels/living_world.json`; use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
+Author gameplay in the eighteen campaign levels `levels.py:CAMPAIGN_ORDER` names (sector 1 is `levels/living_world.json`; [campaign](CAMPAIGN.md)); use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
 
 `tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. Its captures are checked against the golden snapshots under `snapshots/` (suites `tour`, `world`, `art`); a changed frame fails naming the scene and writes `build/snapshots/<profile>/<suite>/report.html` for review. Accept a deliberate change with a note:
 
@@ -163,7 +163,7 @@ Engine, simulation, interrupts, waits and DMA form a mutually exclusive time par
 
 `make atlas-check` verifies the preserved atlas in its original legacy training domain, including source hashes and exact patterns. Current translated keys are separately verified by `check_sable.py`; never retrain an atlas as an incidental release step. Current geometry studies write to `build/` and retain historical `research/results` untouched.
 
-The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8's visual tradeoff was explicitly accepted despite failure of that criterion, and v0.9 inherits it unchanged. Record the failure; do not change thresholds or generalize that exception to unrelated kernels.
+The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8's visual tradeoff was explicitly accepted despite failure of that criterion, and later releases inherit it unchanged. Record the failure; do not change thresholds or generalize that exception to unrelated kernels.
 
 ## Releasing
 

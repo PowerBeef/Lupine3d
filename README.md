@@ -19,6 +19,15 @@ Fight through three episodes of six sectors, from the surface outpost down into 
 
 **v0.11 makes it a campaign:** three episodes and eighteen sectors, each redrawn as a named place, four weapons, a boss at the end of each later episode, and episode screens. The engine gains golden-image verification, an opt-in textured-wall profile and an SDK for other games. **v0.10 made the renderer stream:** a full geometry update publishes in one VBlank instead of two or three, because hidden patterns and the hidden map now travel by HBlank DMA while the CPU is still composing, and a sixth sector joins the campaign. v0.9 turned the tech demo into a campaign: five levels behind a title screen, three enemy kinds, two weapons, keycard doors, music, skill settings and written-down continue codes. The release includes the playable ROM, native art sources, generated concept masters, previews and reproducible verification evidence.
 
+## On main since v0.11
+
+Unreleased; the download above is v0.11.
+
+- **Textured walls are the engine's renderer.** Every slim build composes its walls from the episode's 16×8 textures with depth shading, byte-exact against a host model; the flat slim profile is gone ([textured walls](docs/TEXTURED_WALLS.md)).
+- **Overlapped publication.** The VBlank interrupt publishes each frame's tail while the main loop already casts the next one ([Phase 5](docs/PERFORMANCE_PHASE5.md)).
+- **Faster verification.** CI plays the campaign route in eight parallel chunks, and `python tools/ci_local.py` runs every CI lane locally before a push.
+- **Fixes.** A weapon swap keeps the recovery the last shot started, sector times are measured from the clock the sector actually starts on, and the continue-code cursor no longer leaves a blinking digit blank.
+
 ## What's new in v0.11
 
 - **Three episodes, eighteen sectors.** Sable Outpost, Reactor Deep and Signal Spire, each with its own palette set, opening and closing screens, and a boss closing the later two. Every sector is a place with a purpose: an airlock and mess hall, a pump gallery, a turbine hall, flooded tunnels, a walk round the whole hull, a diamond ring round the transmitter ([campaign](docs/CAMPAIGN.md)).
@@ -51,7 +60,7 @@ The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means 
 
 ## Performance and qualification
 
-Active 60-second scenarios measure **6.62–10.25 full geometry updates/s** on v0.11's replays, which start in the redrawn first sector ([test report](docs/TEST_REPORT.md)). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is met while turning and missed by about 0.2/s in two more scenarios; it remains unmet in the other four.
+On main (textured walls with overlapped publication, ROM `0f3bcb50…`), active 60-second scenarios measure **7.12–9.89 full geometry updates/s**: walking 7.45, turning 9.89, two actors 7.12 ([Phase 5](docs/PERFORMANCE_PHASE5.md)). The released v0.11, with flat walls, measured 6.62–10.25 on the same replays ([test report](docs/TEST_REPORT.md)). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is not met in any scenario on main; textured walls cost more per update than the flat walls they replaced, and the owner accepted that trade.
 
 v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted and still stands. Memory, graphics capacity and publication safety limits remain enforced.
 
@@ -75,11 +84,11 @@ make playtest playtest-world playtest-art
 make playthrough variants wall-reuse motion
 ```
 
-| Display profile | World / HUD | Default art |
-|---|---|---|
-| `slim` — default | 160×120 / 160×24 | Sable, animated |
-| `compact` | 160×112 / 160×32 | Sable, animated |
-| `legacy` | 160×96 / 160×48 | Historical, static |
+| Display profile | World / HUD | Default art | Walls |
+|---|---|---|---|
+| `slim` — default | 160×120 / 160×24 | Sable, animated | Textured |
+| `compact` | 160×112 / 160×32 | Sable, animated | Flat (historical) |
+| `legacy` | 160×96 / 160×48 | Historical, static | Flat (historical) |
 
 For example, `LUPINE3D_DISPLAY=legacy make build` reproduces the beta.6 visual configuration. Rebuild without overrides to restore the current ROM. Project development takes place directly on `main`.
 
@@ -93,7 +102,9 @@ For example, `LUPINE3D_DISPLAY=legacy make build` reproduces the beta.6 visual c
 | [Campaign](docs/CAMPAIGN.md) | From demo to game: decisions, measured cost and evidence |
 | [Sable Outpost art](docs/SABLE_OUTPOST.md) | Visual language, animation sources and budgets |
 | [Steel HUD](docs/STEEL_HUD.md) | Layout, objective text and native tile contracts |
-| [Verification](docs/TEST_REPORT.md) | Current ROM hash, executed checks and performance |
+| [Textured walls](docs/TEXTURED_WALLS.md) | The renderer: texture format, kernel, exactness and cost |
+| [Verification](docs/VERIFICATION.md) | Hard gates, golden snapshots, CI lanes and the local runner |
+| [Test report](docs/TEST_REPORT.md) | The v0.11 release ROM's hash, executed checks and performance |
 | [Contributing](CONTRIBUTING.md) | Change requirements and development policy |
 | [Agent guidance](AGENTS.md) | Code map and implementation invariants |
 

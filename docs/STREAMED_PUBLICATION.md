@@ -113,7 +113,7 @@ six pixels on HUD row 131. They are the helmet portrait's blink, which uses
 accepted snapshot ticks 62–63 modulo 64; that update now completes in five LCD
 intervals instead of six, so the accepted tick lands on the blink window
 differently. No world pixel, sprite or packet differs. v0.10 therefore
-carries its own oracle, `playtests/sable_v10_capture_pixels.json`, with the
+carries its own oracle, `playtests/archive/oracles/sable_v10_capture_pixels.json` (retired since for golden snapshots), with the
 other eight hashes identical to v0.9, and the v0.9 oracle is retained.
 
 The controller route died once on the faster ROM, in Coolant Spine, standing
@@ -136,8 +136,9 @@ ROM otherwise:
 
 `upload_hidden_page` itself falls from 206,941 to 101,201 mean cycles on the
 tour: what remains is the alignment wait to the next VBlank, which no
-synchronous scheme can remove. The sustained sixty-second results are in
-[the test report](TEST_REPORT.md).
+synchronous scheme can remove (overlapped publication, the slim default
+since, hands that wait to the VBlank interrupt). The v0.10 sustained
+sixty-second results are in [its test report](archive/TEST_REPORT_V10.md).
 
 ## What it does not do
 

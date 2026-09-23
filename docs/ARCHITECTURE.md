@@ -1,4 +1,4 @@
-# Lupine 3D v0.8 architecture
+# Lupine 3D architecture
 
 Lupine generates a CGB-only, 4 MiB MBC5 cartridge with no cartridge RAM.
 Python emits SM83 machine code, fixed-point tables and native 2bpp assets.
@@ -58,6 +58,15 @@ panel, at least half a cell further, is not. Collision, wall rays, LOS and hitsc
 geometry. Physical-depth and higher-precision actor experiments remain disabled;
 production height-derived mask depth is not labelled a continuous geometric query.
 
+Slim builds compose every wall with the textured row-window kernel
+(`textured.py`, [textured walls](TEXTURED_WALLS.md)): textures are mirrored
+about the horizon, so the lower half is the upper half's Y-flipped patterns,
+and up to 238 dynamic pattern ids (below 128 at `$9000`, the rest at `$8800`)
+are composed through a 96-slot ring in fixed WRAM that HBlank DMA drains.
+`texture_reference.compose_kernel` is its byte-exact host model. The rest of
+this section describes the flat microstrip compositor that the historical
+legacy and compact profiles keep.
+
 The signed-BG compositor folds upper/lower wall tiles using vertical attributes.
 Legacy/compact use 19 logical strip states and nine stored states; slim needs
 21/11 because the centre tile can contain both boundaries (states 19/20).
@@ -68,7 +77,7 @@ Static classification precedes exact atlas lookup. The checked-in atlas was
 trained in the legacy domain; eligible keys are translated for larger horizons,
 and misses use the exact compositor. `make atlas-check` verifies legacy training
 assets; Sable validation checks production lookups. This release does not retrain
-or replace the atlas. Dynamic allocation is bounded to 96 patterns.
+or replace the atlas. Flat dynamic allocation is bounded to 96 patterns.
 
 ## ROM allocation
 
@@ -77,8 +86,8 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 0–1 | Resident engine, level records and hot metadata |
 | 2–145 | Direct paired projection top/depth tables: 2,359,296 bytes |
 | 146–153 | 8×8 multiplication tables: 131,072 bytes |
-| 154 | Alternate atlas/dictionary |
-| 155 | Reserved; campaign levels now carry their own segment/surface records |
+| 154 | Alternate atlas/dictionary (inactive on slim) |
+| 155 | Texture row windows (three blocks per bank) |
 | 156 | Cold startup/art assets |
 | 157–172 | Q14 camera directions: 262,144 bytes |
 | 173–236 | Prepared ray metadata: 1,048,576 bytes |
@@ -86,8 +95,13 @@ or replace the atlas. Dynamic allocation is bounded to 96 patterns.
 | 238 | Cold raw ray vectors and camera-plane offset/correction tables |
 | 239 | Authored full-screen presentation (title, results, intermission, episode openings and closings) |
 | 240 | Songs and the sequencer's note periods |
-| 241+ | Campaign levels, five per bank in page-aligned slots |
-| … –255 | Unallocated cartridge capacity |
+| 241–244 | Campaign levels, five per bank in page-aligned slots |
+| 245 | Weapon cel sheets, streamed into the OBJ window one at a time |
+| 246, 248–255 | Texture row windows (three blocks per bank) |
+| 247 | Texture slopes, height-class rows and stride classes |
+
+No bank is free on the slim build; `docs/guide/MEMORY_MAP.md` is generated
+from the manifest and gives every range.
 
 ### Campaign levels
 
@@ -130,7 +144,8 @@ every set, so a screen never has to restore anything.
 For the qualified v0.8 ROM, fixed code ended at `$3910` (1,776 bytes below
 `$4000`); resident data ended at `$73CD`, leaving **3,123 bytes** below `$8000`.
 Moving the cold ray tables and the level records out of banks 0/1 since then
-takes the current build to **7,166 bytes** free. The required reserve remains
+leaves the current build over 7,500 bytes free (`memory_budget.resident_free_bytes`
+in the manifest has the exact figure). The required reserve remains
 3,000 bytes, and saving resident table data still does not buy fixed-code room.
 
 ### The bank boundary
@@ -157,9 +172,12 @@ cartridge's own reset and interrupt vectors rather than declared.
 
 Sections that neither switch a bank, nor can run inside another section's bank
 window, nor are reachable from an interrupt vector are emitted after the data
-and land above `$4000` in ROM bank 1, the engine's resting bank. Of 15.8 KB of
-instructions, **1.6 KB** are pinned to the fixed half; fixed code ends at
-`$3050`, **4,016 bytes** below the boundary. Prepared scalar records 0–240 and
+and land above `$4000` in ROM bank 1, the engine's resting bank. Of about
+22 KB of instructions, about **2.0 KB** are pinned to the fixed half, and the
+overlapped publication tail and the textured kernel's banked helpers have
+filled it: fixed code ends at `$3FC0`, **64 bytes** below the boundary
+(`bank_safety` and `memory_budget.fixed_code_end` in the manifest). New
+resident code has to be cold or move something cold first. Prepared scalar records 0–240 and
 the raw-query sentinel are unchanged; disabled packets own only records
 241–250.
 
@@ -182,8 +200,8 @@ allocations. Important owners are:
 | WRAM bank 4 | Reserved foreground buffers/event queue experiment |
 | WRAM bank 5 | Note periods and the selected song's rows |
 | WRAM banks 6–7 | Available |
-| HRAM | 111 state bytes and a separate 10-byte DMA stub |
-| BG patterns | Static/atlas tiles plus at most 96 dynamic patterns |
+| HRAM | 112 state bytes and a separate 10-byte DMA stub |
+| BG patterns | Slim: ceiling, floor and up to 238 dynamic pattern ids through a 96-slot ring; legacy/compact: static/atlas tiles plus at most 96 dynamic patterns |
 | Bank-0 HUD patterns | 94 of 96, `$8200–$87DF` |
 | Bank-1 OBJ patterns | 86 preloaded weapon/UI plus 32 masked world patterns; 80 of the 86 are the streamed weapon window |
 | OAM | 40 hardware objects; world pool 16, at most four per scanline |
@@ -224,7 +242,7 @@ using the same slots: left and right move a blinking cursor, up and down roll
 the digit under it, START looks the code up and, on a match, sets the level and
 the skill. An unknown code is simply not taken, and SELECT returns to the title.
 
-Screens carry up to four rewritable map cells. Patterns 0–9 are the decimal
+Screens carry up to `SCREEN_SLOT_CAPACITY` (ten) rewritable map cells. Patterns 0–9 are the decimal
 digits and pattern 10 is blank, so showing a number or clearing a cell is a
 single map write with the LCD off, or at the top of VBlank.
 
@@ -282,15 +300,17 @@ same window at `enter_world`: a transfer with the LCD on is part of a frame's
 publication to the console and to the harness, and this is a VRAM re-upload
 rather than a publication. The cost is the frame each swap blanks.
 
-A two-record table gives each weapon the damage a hit takes off and its
-recovery in simulation ticks. The shotgun's record is the engine's original
-behaviour exactly — one damage, no recovery — so the trade belongs to the slug
-rifle alone.
+A four-record table (`weapon_stats`) gives each weapon the damage a hit takes
+off and its recovery in simulation ticks. The shotgun's record is the engine's
+original behaviour exactly — one damage, no recovery — and the other three
+weapons trade damage against recovery. Recovery belongs to the shot: a swap
+keeps it, so a slow weapon cannot shed its cost by swapping away.
 
 ## Sound
 
-CH1 is reserved for effects — the shot, a locked door, a door opening, the
-player being hit, a Sentinel dying, a pickup and a cleared sector — so nothing
+CH1 is reserved for effects — the shot, a weapon swap, a locked door, a door
+opening, the player being hit, an enemy dying, a pickup, a keycard and a
+cleared sector — so nothing
 the player does can cut a bar of music. The sequencer owns CH2 (pulse lead),
 CH3 (wave bass) and CH4 (noise percussion).
 
@@ -319,7 +339,8 @@ the same share of a full geometry update.
 ## Publication and timing
 
 On the compact and slim profiles a full packet is **streamed**: the hidden
-dynamic patterns (at most 96 blocks) and the complete hidden tile-number map
+dynamic patterns (at most 96 blocks on compact; up to 238 on slim, 268 HBlank
+blocks with the map) and the complete hidden tile-number map
 (30 blocks on slim) travel by HBlank DMA while `render_view` is still
 composing, one block at the HBlank of each visible line, into the bank and
 map the displayed page never reads. `render_view` hands each column's
@@ -363,10 +384,11 @@ is a target, not an achieved guarantee.
 
 Original generated concepts are adapted into indexed PNGs and deterministically
 compiled into 2bpp data. Builds do not generate images or download assets.
-The shotgun has five preloaded cels; flashes have two. Sentinels have twelve
+Each weapon has four 40×32 cels of twenty patterns, streamed into the
+80-pattern OBJ window with the LCD off when it is swapped in; flashes have two. Sentinels have twelve
 frames at each of three deliberately authored sizes. The HUD uses the approved
 armoured helmet with normal/blink/hurt/dead states. Snapshot timing selects cels;
-OAM references animate the weapon without runtime pattern uploads.
+OAM references animate the weapon without per-frame pattern uploads.
 
 Accepted fire restarts recoil and preserves pending flash feedback until it is
 published. Gameplay death happens immediately; a short three-pose death visual
