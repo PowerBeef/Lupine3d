@@ -92,8 +92,8 @@
     },
     {
       "kind": "sentinel",
-      "x_q8": 3200,
-      "y_q8": 2688,
+      "x_q8": 2432,
+      "y_q8": 2944,
       "health": 3,
       "activation_radius_q4": 96
     },
