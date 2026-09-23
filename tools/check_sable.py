@@ -69,6 +69,20 @@ def check(output,snapshot_mode='check'):
             e.button_provider=None
         b.select_reference_level(0)       # the checks below boot the first sector
         checks['texture_sets_per_episode']=True
+        # PIXEL_U's pair rule against the reference for every neighbour
+        # difference, in four rounding phases: a difference of 126 or 127 used
+        # to pass through an arithmetic shift as negative and pull the pixel
+        # the wrong way (found by the textured two-actor sustained trial).
+        from lupine3d_v4.texture_reference import expand_pixel_u
+        u=boot()
+        for base in range(4):
+            for step in range(256):
+                ray=[(base+i*step)&255 for i in range(b.RAYS)]
+                for i,value in enumerate(ray):u.write8(b.RAY_U+i,value)
+                u.call_subroutine('expand_pixel_u')
+                got=[u.read8(b.PIXEL_U+i) for i in range(b.PHYSICAL_COLUMNS)]
+                assert got==expand_pixel_u(ray,{}),(base,step)
+        checks['pixel_u_expansion_every_difference']=True
     else:
         # Every translated atlas signature independently composes to its unchanged
         # checked-in payload; all new/near-clipped signatures remain exact misses.

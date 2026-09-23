@@ -65,10 +65,13 @@ def emit_pixel_u_expansion(a: Assembler):
         if side == "prev": a.ld_r_r("a", "b")
         else: a.ld_a_hl()
         a.sub_r("c"); a.jr(f"expand_u_{side}_borrow", "c")
-        a.cp_n(128); a.jr(f"expand_u_{side}_own", "nc"); a.jr(f"expand_u_{side}_pull")
+        a.cp_n(128); a.jr(f"expand_u_{side}_own", "nc")
+        # current + floor((neighbour - current + 2) / 4). A difference of 0..127
+        # plus 2 can reach 129, past the signed range, so this side shifts
+        # logically; the arithmetic shift read 126 and 127 as negative.
+        a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.add_a_r("c"); a.jr(f"expand_u_{side}_store")
         a.label(f"expand_u_{side}_borrow"); a.cp_n(129); a.jr(f"expand_u_{side}_own", "c")
-        a.label(f"expand_u_{side}_pull")
-        # current + floor((neighbour - current + 2) / 4), the signed difference in A.
+        # A difference of -127..-1: plus 2 stays signed, so shift arithmetically.
         a.add_a_n(2); a.cb("sra", "a"); a.cb("sra", "a"); a.add_a_r("c"); a.jr(f"expand_u_{side}_store")
         a.label(f"expand_u_{side}_own"); a.ld_r_r("a", "c")
         a.label(f"expand_u_{side}_store"); a.ld_mem_rr_a("de"); a.inc_rr("de")
@@ -77,9 +80,10 @@ def emit_pixel_u_expansion(a: Assembler):
     # The last pair: its first pixel still pulls towards the previous ray;
     # its following sample is itself, so the second pixel is its own.
     a.ld_r_r("a", "b"); a.sub_r("c"); a.jr("expand_u_last_borrow", "c")
-    a.cp_n(128); a.jr("expand_u_last_own", "nc"); a.jr("expand_u_last_pull")
+    a.cp_n(128); a.jr("expand_u_last_own", "nc")
+    a.add_a_n(2); a.cb("srl", "a"); a.cb("srl", "a"); a.add_a_r("c"); a.jr("expand_u_last_store")
     a.label("expand_u_last_borrow"); a.cp_n(129); a.jr("expand_u_last_own", "c")
-    a.label("expand_u_last_pull"); a.add_a_n(2); a.cb("sra", "a"); a.cb("sra", "a"); a.add_a_r("c"); a.jr("expand_u_last_store")
+    a.add_a_n(2); a.cb("sra", "a"); a.cb("sra", "a"); a.add_a_r("c"); a.jr("expand_u_last_store")
     a.label("expand_u_last_own"); a.ld_r_r("a", "c")
     a.label("expand_u_last_store"); a.ld_mem_rr_a("de"); a.inc_rr("de")
     a.ld_r_r("a", "c"); a.ld_mem_rr_a("de")

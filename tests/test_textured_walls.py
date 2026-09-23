@@ -40,6 +40,7 @@ class TexturedWallsLane(unittest.TestCase):
             self.assertTrue(checks['passed'])
             self.assertTrue(checks['configuration']['textured_walls'])
             for name in ('texture_window_blocks_and_directory', 'texture_sets_per_episode',
+                         'pixel_u_expansion_every_difference',
                          'textured_blind_composition_ring_lap_and_vram_half',
                          'publication_cpu_and_dma_windows', 'hblank_streaming_bank_isolation_and_chaining',
                          'geometry_and_all_published_rows'):
