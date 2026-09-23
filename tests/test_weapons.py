@@ -128,6 +128,15 @@ class WeaponSwapTests(unittest.TestCase):
         self.assertLessEqual(recovery, self.rom[self.asm.labels["weapon_stats"]
                                                 + br.WEAPON_STAT_BYTES + COOLDOWN])
 
+    def test_a_swap_keeps_the_recovery_the_last_shot_started(self):
+        # Recovery belongs to the shot, not to the weapon in hand: a swap that
+        # cleared it would let the slug rifle fire and swap away its cost.
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.write8(br.WEAPON_COOLDOWN, 5)
+        cgb.call_subroutine("swap_weapon", max_steps=10_000)
+        self.assertEqual(cgb.read8(br.WEAPON_INDEX), 1)
+        self.assertEqual(cgb.read8(br.WEAPON_COOLDOWN), 5)
+
     def test_the_arsenal_follows_the_sector_and_select_skips_what_is_not_owned(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         # Sector 1 owns the first two weapons: SELECT cycles between them.

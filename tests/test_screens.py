@@ -372,10 +372,21 @@ class ResultsStatisticsTests(unittest.TestCase):
         cgb = self._world()
         cgb.io[br.SVBK & 0x7F] = 2
         cgb.write8(br.SECTOR_KILLS, 9)
+        # The previous sector's clock ran on. load_level used to take it as the
+        # new sector's start, and init_simulation then reset the clock under
+        # it, so the first sector time after a load was measured from the
+        # wrong origin. Every load reaches init_simulation (enter_world), which
+        # arms the baseline from the clock it has just reset.
+        cgb.write8(br.SIM_CLOCK, 0x34); cgb.write8(br.SIM_CLOCK + 1, 0x12)
         cgb.call_subroutine("load_level", max_steps=4_000_000)
         self.assertEqual(cgb.read8(br.SECTOR_KILLS), 0)
-        self.assertEqual(cgb.read8(br.SECTOR_START) | cgb.read8(br.SECTOR_START + 1) << 8,
-                         cgb.read8(br.SIM_CLOCK) | cgb.read8(br.SIM_CLOCK + 1) << 8)
+        cgb.call_subroutine("init_simulation", max_steps=4_000_000)
+        live = cgb.wramx[2]
+        start = live[br.SECTOR_START - 0xD000] | live[br.SECTOR_START + 1 - 0xD000] << 8
+        clock = cgb.read8(br.SIM_CLOCK) | cgb.read8(br.SIM_CLOCK + 1) << 8
+        # The clock restarts from zero; a VBlank may tick it during the call.
+        self.assertLessEqual(start, clock)
+        self.assertLess(clock, 16)
 
     def test_clearing_a_sector_folds_it_into_the_run(self):
         cgb = self._world()
