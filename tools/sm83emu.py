@@ -108,11 +108,14 @@ class CGB:
         # published and still checked for publication safety, but it is not
         # the presentation a diagnostic waits for (stale_commit_events).
         self.main_loop_pc = self.symbols.get("main_loop")
-        self.snapshot_pc = self.symbols.get("begin_frame_snapshot")
-        self.snapshot_serial = 0
-        self.stale_snapshot = -1
+        self.handoff_serial = 0
+        self.stale_handoff = 0
         self.stale_commit_events: list[dict[str, object]] = []
         self._barrier_ready = False
+        # Right after a presentation the host sees the state that packet was
+        # built from, until the CPU steps again or the host writes.
+        self._viewing = None      # the live (wram0, wramx, hram, svbk) while viewing
+        self._view_pending = False
         self.main_iterations = 0
         self.buttons = 0  # active-high standard bit layout
         self.button_provider: Callable[[int, int], int] | None = None
@@ -219,6 +222,8 @@ class CGB:
         return self.ie
 
     def write8(self, addr: int, value: int) -> None:
+        if self._viewing is not None:
+            self._end_view()   # a host write belongs to the live machine
         addr &= 0xFFFF
         value &= 0xFF
         if addr < 0x8000:
@@ -342,9 +347,10 @@ class CGB:
         # HBlank transfers legitimately span frames: they stream hidden
         # resources while the previous frame is displayed. Only the general
         # purpose transfers of the VBlank tail have to share the flip's frame.
+        # A packet handed off before a diagnostic barrier is stale; one
+        # published synchronously (a reused wall view) never is.
         handoff = self._handoff_state
-        packet_snapshot = handoff[3] if handoff is not None else self.snapshot_serial
-        stale = self.handoff_pc is not None and packet_snapshot <= self.stale_snapshot
+        stale = handoff is not None and handoff[3] <= self.stale_handoff
         vblank_events = [event for event in events if event.get("kind") != "hdma"]
         hblank_events = [event for event in events if event.get("kind") == "hdma"]
         same_frame = not vblank_events or all(event["frame"] == vblank_events[0]["frame"] for event in vblank_events)
@@ -364,6 +370,7 @@ class CGB:
         ))
         self._pending_commit_event_indexes.clear()
         self.presented_state = None if stale or handoff is None else handoff[:3]
+        self._view_pending = self.presented_state is not None
         self._handoff_state = None
 
     def diagnostic_barrier(self) -> None:
@@ -375,7 +382,7 @@ class CGB:
             return
         if self.pc != self.main_loop_pc:
             self.run(until_pc=self.main_loop_pc, max_steps=20_000_000)
-        self.stale_snapshot = self.snapshot_serial
+        self.stale_handoff = self.handoff_serial
         self._barrier_ready = True
 
     # Variables the interrupt tail itself writes when it publishes: the view
@@ -386,8 +393,9 @@ class CGB:
     def presented_view(self):
         """WRAM and HRAM as they were when the presented packet was handed
         off (overlapped publication); the live state otherwise. VRAM, OAM,
-        palettes and I/O are always live."""
-        if self.presented_state is None:
+        palettes and I/O are always live. Right after a presentation the
+        machine already shows this view (see step); this is for later reads."""
+        if self.presented_state is None or self._viewing is not None:
             yield self
             return
         live = (self.wram0, self.wramx, self.hram)
@@ -667,12 +675,43 @@ class CGB:
 
     # ----- instruction execution ----------------------------------------
     def step(self) -> int:
+        if self._viewing is not None:
+            self._end_view()
+        cycles = self._step()
+        if self._view_pending:
+            self._view_pending = False
+            self._begin_view()
+        return cycles
+
+    def _begin_view(self) -> None:
+        live = (self.wram0, self.wramx, self.hram, self.io[0x70])
+        wram0, wramx, hram = self.presented_state
+        self.wram0, self.wramx, self.hram = bytearray(wram0), [bytearray(b) for b in wramx], bytearray(hram)
+        for address, bank in self.PUBLISHED_LIVE.items():
+            if address >= 0xD000:
+                self.wramx[bank][address - 0xD000] = live[1][bank][address - 0xD000]
+            else:
+                self.wram0[address - 0xC000] = live[0][address - 0xC000]
+        self.io[0x70] = 1
+        self._viewing = live
+
+    @property
+    def live_wramx(self) -> list[bytearray]:
+        """The WRAM banks as the running machine holds them, whatever the
+        host is currently shown: a controller steering by the live world
+        (the route) reads these, never the presented view."""
+        return self._viewing[1] if self._viewing is not None else self.wramx
+
+    def _end_view(self) -> None:
+        self.wram0, self.wramx, self.hram, self.io[0x70] = self._viewing
+        self._viewing = None
+
+    def _step(self) -> int:
         self._barrier_ready = False
-        if self.pc == self.snapshot_pc:
-            self.snapshot_serial += 1
         if self.pc == self.handoff_pc:
+            self.handoff_serial += 1
             self._handoff_state = (bytes(self.wram0), [bytes(bank) for bank in self.wramx], bytes(self.hram),
-                                   self.snapshot_serial)
+                                   self.handoff_serial)
         pending = self.ie & self.io[IF & 0x7F] & 0x1F
         if self.halted:
             if pending:

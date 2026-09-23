@@ -32,8 +32,9 @@ DEFAULTS = {"compact_strips", "camera_setup", "narrow_yields", "attribute_paddin
 # HBlank-streamed publication follows the display profile: it is the compact
 # and slim production path, and the legacy profile keeps its staged VBlank
 # packets byte for byte. Textured walls are the slim Sable default wherever
-# they can run. Both are resolved after the display, below.
-PROFILE_DEFAULTS = {"hdma_streaming", "textured_walls"}
+# they can run, and so is overlapped publication. All three are resolved
+# after the display, below.
+PROFILE_DEFAULTS = {"hdma_streaming", "textured_walls", "overlap_publication"}
 
 
 def resolve(environ=None):
@@ -104,6 +105,17 @@ def resolve(environ=None):
         raise ValueError("Textured walls exclude physical depth, anchor packets and the unfolded diagnostic")
     # Overlapped publication hands the streamed VBlank tail to the VBlank
     # interrupt so the next update casts while it waits (docs/PERFORMANCE_PHASE5.md).
+    # It is the slim default; compact keeps the synchronous tail unless asked,
+    # physical depth and anchor packets (which republish from their own paths)
+    # adapt the default off, and LUPINE3D_OVERLAP_PUBLICATION=0 opts out.
+    overlap_default = (display == "slim" and result["hdma_streaming"]
+                       and not result["physical_depth"] and not result["anchor_packets"])
+    overlap = env.get("LUPINE3D_OVERLAP_PUBLICATION", "1" if overlap_default else "0")
+    if overlap not in ("0", "1"):
+        raise ValueError("LUPINE3D_OVERLAP_PUBLICATION must be 0 or 1")
+    result["overlap_publication"] = overlap == "1"
+    if result["overlap_publication"] and (result["physical_depth"] or result["anchor_packets"]):
+        raise ValueError("Overlapped publication excludes physical depth and anchor packets")
     if result["overlap_publication"] and not result["hdma_streaming"]:
         raise ValueError("Overlapped publication hands off the streamed tail; it requires HBlank streaming")
     if result["compact_strips"] and env.get("LUPINE3D_FOLDED", "1") == "0":

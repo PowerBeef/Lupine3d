@@ -188,7 +188,14 @@ def check(output,snapshot_mode='check'):
             hidden=old_page^1;offset=0x1800+hidden*0x400
             assert bytes(c.vram[0][offset:offset+b.VIEW_MAP_BYTES])==bytes(c.read8(b.VIEW_MAP+i) for i in range(b.VIEW_MAP_BYTES))
             assert hidden_patterns(c,hidden,dyn)==expected_patterns(c,dyn)
-        c.run(until_presentations=1);event=c.commit_events[-1]
+        if b.OVERLAP_PUBLICATION:
+            # The packet is handed to the VBlank interrupt; wait_tail is the
+            # ROM's own path to its publication (and publishes it itself if
+            # the interrupt is off).
+            c.run(until_pc=a.labels['publication_handoff']);c.step();c.call_subroutine('wait_tail')
+        else:
+            c.run(until_presentations=1)
+        event=c.commit_events[-1]
         map_blocks=b.VIEW_MAP_BYTES//16
         if b.HDMA_STREAMING:
             # HBlank: dynamic patterns and the map. VBlank: masks and attributes.
@@ -243,6 +250,7 @@ def check(output,snapshot_mode='check'):
         chained=[e for e in c.gdma_events[transfers:] if e.get('kind')=='hdma']
         assert chained and sum(e['blocks'] for e in chained)==c.read8(b.DYN_STREAMED)<=c.read8(b.DYN_COUNT)
         c.call_subroutine('upload_hidden_page')
+        if b.OVERLAP_PUBLICATION:c.call_subroutine('wait_tail')
         event=c.commit_events[-1];assert event['vblank_safe'] and event['hblank_blocks']==c.read8(b.DYN_COUNT)+b.VIEW_MAP_BYTES//16
         checks['hblank_streaming_bank_isolation_and_chaining']=True
     output.mkdir(parents=True,exist_ok=True)

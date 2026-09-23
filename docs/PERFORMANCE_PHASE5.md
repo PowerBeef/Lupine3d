@@ -97,10 +97,16 @@ The quality-budget gate (`tools/sable_quality_budget.py`) is unchanged and
 still records its original failure; its B/P inputs were measured on the old
 first sector, so it is not a like-for-like comparison.
 
-## Overlapped publication (opt-in prototype)
+## Overlapped publication (the slim default)
 
-`LUPINE3D_OVERLAP_PUBLICATION=1` (streamed profiles only; `make overlap
-playtest-overlap`) hands the streamed VBlank tail to the VBlank interrupt.
+The slim build hands the streamed VBlank tail to the VBlank interrupt; the
+owner made it the default after the prototype's measurements, setting the
+Phase 5 targets aside. `LUPINE3D_OVERLAP_PUBLICATION=0` (`make sync
+playtest-sync`) builds the synchronous tail, which CI's `profiles` job keeps
+verified. The v0.8 audit built the same idea (`docs/PERFORMANCE_AUDIT_V08.md`,
+3.1) and reverted it because the validator could no longer see the frame on
+screen and the frozen pixel oracles moved; the hand-off capture answers the
+first and reviewable snapshots the second.
 The main loop completes the hidden page as before, settles what the tail
 used to read from the render snapshot (the muzzle flash, which the next
 snapshot copy overwrites, and the wall cache's validity), sets
@@ -119,13 +125,21 @@ lives in the fixed half and never writes the bank register; `bank_safety`
 proves both. To fit, the shift-add reference multiply (called by nothing)
 moves to a cold section under this flag.
 
-Results, 60-second trials on the textured slim ROM with every frame checked:
+Results, all eight 60-second trials on the default slim ROM (textured walls
+and overlapped publication, candidate `0f3bcb50…`) with every frame checked,
+zero game-RAM writes after trial start, zero input-queue overflows and zero
+unsafe GDMA starts:
 
-| Scenario | Textured default | Overlapped | Target |
+| Scenario | Synchronous tail | Overlapped | Target |
 | --- | ---: | ---: | ---: |
 | walking | 6.85 | **7.45** (1124k) | 9.0 |
 | turning | 9.08 | **9.89** (848k) | 11.0 |
+| walking turning | 8.85 | **9.58** (874k) | - |
+| moving fire | 8.85 | **9.55** (876k) | - |
+| open door | 7.83 | **8.08** (1026k) | - |
+| closed door | 6.83 | **7.23** (1151k) | - |
 | two actor corner | 6.65 | **7.12** (1178k) | 7.5 |
+| opening door | 0.08 | 0.08 (1068k) | - |
 
 Publication waits fall from 53-78k T to about 0.1k T per presentation: an
 update is now bound by its own work. The targets are still not met.
@@ -136,6 +150,9 @@ at its hand-off, not the live state the next update has already changed,
 and a diagnostic write waits for a frame boundary so no packet mixes old
 and new state. With those, the coherence tour matches eight of nine
 textured goldens exactly (the ninth differs by the helmet blink's 6 pixels).
-Timing moves which simulation ticks are rendered, so making it the default
-means accepting the timing-shifted goldens and adapting the remaining
-diagnostic producers; that is the owner's decision.
+Making it the default moved captures to other accepted ticks in the
+living-world suites of both slim profiles and the flat art tour (door panels
+a step further open, actor and beacon frames, the helmet blink, a drop a
+tick apart); each was reviewed by eye and accepted with a note, and every
+frame check, both pinned cores, the witness corpus, the conformance lane and
+the full eighteen-sector route pass on it.

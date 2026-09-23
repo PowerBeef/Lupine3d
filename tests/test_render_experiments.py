@@ -133,7 +133,7 @@ class ObservationContracts(unittest.TestCase):
     def test_production_defaults_preserve_historical_diagnostic_commands(self):
         self.assertEqual({k for k,v in resolve({}).items() if v is True},
                          {"compact_strips", "camera_setup", "narrow_yields", "attribute_padding", "art_animation", "hdma_streaming",
-                          "textured_walls"})
+                          "textured_walls", "overlap_publication"})
         # Textured walls are the slim Sable default; legacy and compact stay
         # flat, the unfolded oracle adapts the implicit default, 0 opts out,
         # and an explicit request that cannot run fails.
@@ -141,11 +141,19 @@ class ObservationContracts(unittest.TestCase):
         self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["textured_walls"])
         self.assertFalse(resolve({"LUPINE3D_TEXTURED_WALLS": "0"})["textured_walls"])
         self.assertFalse(resolve({"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"})["textured_walls"])
-        # Overlapped publication is opt-in and hands off the streamed tail.
-        self.assertFalse(resolve({})["overlap_publication"])
-        self.assertTrue(resolve({"LUPINE3D_OVERLAP_PUBLICATION": "1"})["overlap_publication"])
-        with self.assertRaises(ValueError):
-            resolve({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy", "LUPINE3D_OVERLAP_PUBLICATION": "1"})
+        # Overlapped publication is the slim default and hands off the
+        # streamed tail: compact keeps the synchronous tail unless asked, 0
+        # opts out, and it cannot run without streaming or with the
+        # experiments that republish from their own paths.
+        self.assertTrue(resolve({})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_OVERLAP_PUBLICATION": "0"})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_DISPLAY": "compact"})["overlap_publication"])
+        self.assertTrue(resolve({"LUPINE3D_DISPLAY": "compact", "LUPINE3D_OVERLAP_PUBLICATION": "1"})["overlap_publication"])
+        self.assertFalse(resolve({"LUPINE3D_PHYSICAL_DEPTH": "1"})["overlap_publication"])
+        for conflict in ({"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy"}, {"LUPINE3D_HDMA_STREAMING": "0"},
+                         {"LUPINE3D_PHYSICAL_DEPTH": "1"}):
+            with self.assertRaises(ValueError):
+                resolve({**conflict, "LUPINE3D_OVERLAP_PUBLICATION": "1"})
         for conflict in ({"LUPINE3D_DISPLAY": "compact"}, {"LUPINE3D_HDMA_STREAMING": "0"},
                          {"LUPINE3D_FOLDED": "0", "LUPINE3D_COMPACT_STRIPS": "0"}):
             with self.assertRaises(ValueError):

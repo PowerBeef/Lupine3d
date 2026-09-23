@@ -1507,5 +1507,14 @@ def emit_overlap_tail(a: Assembler) -> None:
     a.xor_r("a"); a.ld_abs_a(TAIL_PENDING)
     a.pop("af"); a.ldh_n_a(VBK); a.pop("af"); a.ldh_n_a(SVBK)
     a.pop("de"); a.ret()
+    # wait_tail: returns once the handed-off packet is published. The next
+    # VBlank's interrupt publishes it at the VBlank's first instruction
+    # boundary, so a flag still set once LY enters VBlank means interrupts
+    # are off (a diagnostic that froze the machine): the main loop then
+    # publishes it itself, at the same point in the same VBlank. Preserves
+    # BC, DE and HL.
     a.label("wait_tail")
-    a.ld_a_abs(TAIL_PENDING); a.or_r("a"); a.jr("wait_tail", "nz"); a.ret()
+    a.ld_a_abs(TAIL_PENDING); a.or_r("a"); a.ret("z")
+    a.call("wait_vblank")
+    a.ld_a_abs(TAIL_PENDING); a.or_r("a"); a.ret("z")
+    a.push("bc"); a.push("hl"); a.call("vblank_tail"); a.pop("hl"); a.pop("bc"); a.ret()

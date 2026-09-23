@@ -1,9 +1,12 @@
 # Unreleased — after v0.11
 
-- **Overlapped publication** (opt-in, `LUPINE3D_OVERLAP_PUBLICATION=1`): the
-  VBlank interrupt publishes the streamed tail while the next update casts.
-  Textured walking 6.85 to 7.45/s, turning 9.08 to 9.89/s, two-actor 6.65
-  to 7.12/s (`docs/PERFORMANCE_PHASE5.md`).
+- **Overlapped publication is the slim default.** The VBlank interrupt
+  publishes the streamed tail while the next update casts, so an update is
+  bound by its own work instead of waiting for VBlank: textured walking
+  6.85 to 7.45/s, turning 9.08 to 9.89/s, two-actor 6.65 to 7.12/s
+  (`docs/PERFORMANCE_PHASE5.md`). `LUPINE3D_OVERLAP_PUBLICATION=0` (`make
+  sync`) builds the synchronous tail. The harness validates a presented
+  frame against the state it was handed off with (`docs/VERIFICATION.md`).
 - **Textured walls are the slim default.** The slim Sable build composes
   every wall from its episode's textures; `LUPINE3D_TEXTURED_WALLS=0`
   (`make flat`) builds the flat compositor, which legacy and compact keep.
@@ -22,7 +25,11 @@
 - **The route** stops a close-in walk that is costing health once a step has
   put it beside the actor with a line, instead of walking on past it, and
   counts an exchange's contacts from its first shot, so hits taken turning
-  to face a chaser no longer send it away to a firing position.
+  to face a chaser no longer send it away to a firing position. It gives up
+  a walk to a firing position after two contacts, steers by the live world
+  rather than the presented frame, and shoots a target all but on its own
+  row or column straight down the axis while that keeps it near the
+  crosshair, so a one-step-off heading no longer grazes the next row's wall.
 
 # Lupine 3D v0.11 — Three episodes
 

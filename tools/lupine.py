@@ -6,7 +6,7 @@ process with the profile flags set from the options, because the build
 flags are read at import time (AGENTS.md). Nothing here changes what the
 tools do; it only spares the reader the flag spelling and the script names.
 
-    lupine build [--flat] [--display slim|compact|legacy] [--output-dir DIR]
+    lupine build [--flat] [--sync] [--display slim|compact|legacy] [--output-dir DIR]
     lupine run   [--scenario FILE] [--flat] [--snapshot-mode check|record|none]
     lupine snapshot diff|accept|list ... (tools/snapshot.py)
     lupine level check FILE...        compile a level and print its certificate
@@ -40,6 +40,8 @@ def profile_env(args) -> dict[str, str]:
             env.update(LUPINE3D_ART="legacy", LUPINE3D_ART_ANIMATION="0")
     if getattr(args, "flat", False):
         env["LUPINE3D_TEXTURED_WALLS"] = "0"
+    if getattr(args, "sync", False):
+        env["LUPINE3D_OVERLAP_PUBLICATION"] = "0"
     return env
 
 
@@ -51,7 +53,9 @@ def run(command: list[str], env: dict[str, str]) -> int:
 def output_dir(args) -> Path:
     if getattr(args, "output_dir", None):
         return Path(args.output_dir)
-    return ROOT / "build" / ("flat" if getattr(args, "flat", False) else "")
+    if getattr(args, "flat", False) and getattr(args, "sync", False):
+        return ROOT / "build" / "flat-sync"
+    return ROOT / "build" / ("flat" if getattr(args, "flat", False) else "sync" if getattr(args, "sync", False) else "")
 
 
 def rom_args(args) -> list[str]:
@@ -176,6 +180,7 @@ def main(argv: list[str] | None = None) -> int:
 
     def profile_options(p):
         p.add_argument("--flat", action="store_true", help="the flat-walled slim profile (LUPINE3D_TEXTURED_WALLS=0); textured walls are the slim default")
+        p.add_argument("--sync", action="store_true", help="the synchronous publication tail (LUPINE3D_OVERLAP_PUBLICATION=0); overlapped publication is the slim default")
         p.add_argument("--display", choices=PROFILES, help="display profile; legacy implies legacy art")
 
     p = sub.add_parser("build", help="build the ROM, listing, symbols, map and manifest"); profile_options(p)

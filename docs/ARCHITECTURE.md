@@ -327,6 +327,11 @@ patterns over as it finishes them; `upload_hidden_page` streams the remainder
 and the map, builds the attribute packet underneath the transfer, then uses
 **one VBlank** for the banked tail: masked OBJ patterns and the attribute
 packet by GDMA (at most 62 blocks), the HUD map cells, OAM DMA and the flip.
+On slim that tail is run by the VBlank interrupt (**overlapped
+publication**): the main loop hands the packet over at `publication_handoff`
+and goes straight on to the next snapshot and its casts, and waits for the
+tail (`wait_tail`) only before it touches a publication buffer again
+([performance after textures](PERFORMANCE_PHASE5.md)).
 HBlank sources are fixed WRAM because a block reads through SVBK and a
 simulation yield may have bank 2 mapped; VBK belongs to the transfer for its
 whole life; nothing streams with the LCD off. See

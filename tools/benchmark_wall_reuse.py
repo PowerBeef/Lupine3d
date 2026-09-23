@@ -22,6 +22,7 @@ def boot(rom, labels, *, full=False):
 
 
 def frame(c):
+    c.diagnostic_barrier()   # host writes land between frames (docs/VERIFICATION.md)
     c.write8(br.INPUT_QUEUE_TAIL, c.read8(br.INPUT_QUEUE_HEAD))
     before = c.cycles
     c.run(until_presentations=c.presentations+1)
@@ -40,7 +41,13 @@ def packet(c):
     data = b"".join(read_block(c,*span) for span in spans)
     # The BG page may differ by design; compare its palette/flip semantics.
     data += bytes(value & ~8 for value in read_block(c,br.VIEW_ATTRIBUTES,br.VIEW_MAP_BYTES))
-    data += bytes(c.oam)
+    # So may the OBJ page the masked patterns went to (it alternates with every
+    # publication, and overlapped publication shifts the two machines'
+    # parity): the world objects' bank bit is compared as a page, the rest exactly.
+    oam = bytearray(c.oam)
+    for index in range(br.ENTITY_OAM_FIRST, 40):
+        oam[index * 4 + 3] &= ~8
+    data += bytes(oam)
     return dict(packet_sha256=hashlib.sha256(data).hexdigest(),
                 rgb_sha256=hashlib.sha256(c.render_screen().tobytes()).hexdigest())
 
@@ -50,6 +57,7 @@ def frozen(rom, labels):
     rows = []
     for scene in scenes():
         for c in (cached,full):
+            c.diagnostic_barrier()
             c.write8(br.WALL_CACHE_VALID,0)
             apply_diagnostic_camera(c,scene)
             for i in range(len(br.ACTIVE_LEVEL.doors)):
@@ -72,6 +80,7 @@ def live(rom, labels, case, *, full=False):
     c = boot(rom,labels,full=full)
     if case == "combat": apply_diagnostic_camera(c,dict(pose=[2176,2176,0]))
     frame(c)
+    c.diagnostic_barrier()
     # Identical initial world, followed solely by timed controller signals.
     for addr in (br.INPUT_QUEUE_HEAD,br.INPUT_QUEUE_TAIL,br.INPUT_QUEUE_OVERFLOW,
                  br.SIM_CLOCK,br.SIM_CLOCK+1,br.SIM_TICK,br.SIM_TICK+1): c.write8(addr,0)

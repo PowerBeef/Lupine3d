@@ -107,19 +107,21 @@ sable-check-flat:
 snapshot-diff-flat:
 	$(FLAT) $(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable
 
-# Overlapped publication (docs/PERFORMANCE_PHASE5.md) is opt-in: the VBlank
-# interrupt publishes the streamed tail while the next update casts. Its ROM
-# builds into build/overlap; the driven tour and a walking replay check every
-# presented frame against the state it was handed off with.
-OVERLAP := LUPINE3D_OVERLAP_PUBLICATION=1
-OVERLAP_ROM := --rom build/overlap/lupine3d.gb --symbols build/overlap/lupine3d.sym
+# Overlapped publication (docs/PERFORMANCE_PHASE5.md) is the slim default:
+# the VBlank interrupt publishes the streamed tail while the next update
+# casts. The synchronous tail it replaced (LUPINE3D_OVERLAP_PUBLICATION=0)
+# builds into build/sync and keeps its frame checks and a motion replay;
+# its captures land on other ticks than the default goldens, so the tour
+# checks frames, not snapshots.
+SYNC := LUPINE3D_OVERLAP_PUBLICATION=0
+SYNC_ROM := --rom build/sync/lupine3d.gb --symbols build/sync/lupine3d.sym
 
-overlap:
-	$(OVERLAP) $(PYTHON) tools/build_rom.py --output-dir build/overlap
+sync:
+	$(SYNC) $(PYTHON) tools/build_rom.py --output-dir build/sync
 
-playtest-overlap: overlap
-	$(OVERLAP) $(PYTHON) tools/playtest.py $(OVERLAP_ROM) --snapshot-mode none --output-dir build/playtest/overlap/coherence_tour
-	$(OVERLAP) $(PYTHON) tools/benchmark_motion.py --duration 10 --scenario walking --scenario turning --output-dir build/overlap/motion
+playtest-sync: sync
+	$(SYNC) $(PYTHON) tools/playtest.py $(SYNC_ROM) --snapshot-mode none --output-dir build/playtest/sync/coherence_tour
+	$(SYNC) $(PYTHON) tools/benchmark_motion.py --duration 10 --scenario walking --scenario turning --output-dir build/sync/motion
 
 # Build SameBoy's lib target first. The core is external and revision-pinned
 # by CI; it is not vendored into the source/release bundle.

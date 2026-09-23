@@ -92,19 +92,38 @@ not a defect.
 
 ## Overlapped publication
 
-With `LUPINE3D_OVERLAP_PUBLICATION=1` a packet is published by the VBlank
-interrupt after the main loop has already taken the next render snapshot.
-The harness (`tools/sm83emu.py`) therefore captures WRAM and HRAM when the
-main loop reaches `publication_handoff`, and `presented_view()` shows that
-capture to anything that checks a presented frame (`validate_frame`,
-`benchmark_motion`), with VRAM, OAM, palettes, I/O and the variables the
-tail itself writes kept live. A diagnostic write (`set_test_world_byte`,
-`apply_diagnostic_camera`) first calls `diagnostic_barrier()`, which runs
-to the top of `main_loop`, where the packet in flight is fully composed and
-the next snapshot not yet taken; packets from earlier snapshots are stale,
-still published and recorded in `stale_commit_events`, but not the
-presentation a diagnostic waits for. On a ROM without the hand-off every
-one of these is a no-op.
+On the slim default a packet is published by the VBlank interrupt after the
+main loop has already taken the next render snapshot, so the live WRAM no
+longer describes the frame on screen. The harness (`tools/sm83emu.py`)
+therefore captures WRAM and HRAM when the main loop reaches
+`publication_handoff`:
+
+* **Right after a presentation** the machine shows that capture to the host
+  until the CPU steps again or the host writes: a producer that runs to a
+  presentation and then reads state (a validator, an OAM budget, a wall key)
+  reads the state the presented packet was built from. VRAM, OAM, palettes,
+  I/O and the variables the tail itself writes (the pages, the presentation
+  serial) stay live. A packet published synchronously (a reused wall view)
+  has no hand-off and is read live, as before. `presented_view()` gives the
+  same view later.
+* **A host write to a running machine** belongs between frames:
+  `set_test_world_byte` and `apply_diagnostic_camera` first call
+  `diagnostic_barrier()`, which runs to the top of `main_loop`, where the
+  packet in flight is fully composed and the next snapshot not yet taken.
+  Tools that write RAM directly (the witness setup, the wall-reuse
+  benchmark, the door action of the folding variant, the motion replay's
+  clock reset) call it themselves. Packets handed off before a barrier are
+  stale: still published, still checked for publication safety and recorded
+  in `stale_commit_events`, but not the presentation the diagnostic waits
+  for.
+* **A producer that freezes the machine with interrupts off** still gets its
+  frames: `wait_tail` publishes a pending packet itself at the next VBlank's
+  entry, the same point the interrupt would have.
+
+On a ROM without the hand-off (the legacy and compact profiles, and
+`LUPINE3D_OVERLAP_PUBLICATION=0`) every one of these is a no-op. The
+wall-reuse benchmark compares the masked OBJ page as a page, like the BG
+page: publication parity differs between a cached and a full machine.
 
 ## The host harness and hardware conformance
 

@@ -42,12 +42,12 @@
       "note": "Weapons are now rendered from 3D models (tools/render_weapons.py) into a 40x32 window right of centre with four cels, in one palette (a second colour could only fill whole 8x16 sprites, which showed as rectangles over the diagonal, sliding pump), with lit gloves: every scene showing the weapon changes inside the weapon's objects (x 64-107, y 88-120) and nowhere else; every frame check, the Sable checks and the HUD fixture are unchanged."
     },
     "06_sentinel": {
-      "rgb_sha256": "906a356e7a80cdf252ac5afaf2b05d2ead4649549df63ac922cdd58d3412d678",
-      "rom_sha256": "76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a",
-      "configuration_id": "56a701b066a7cc35d0dd8e5502c8a63e3e5dbd2e09270dc0295cd1b77620c812",
-      "accepted_at": "2026-09-23T07:17:42+00:00",
+      "rgb_sha256": "005cb559a83ca5ec7f2c0049389fc57cb802dfa38dd1f2e59019152f805df1b5",
+      "rom_sha256": "dfeefa5dce21c0601d0629f89a95cd99e014c74f7ca5da5fe3f3e2902336b315",
+      "configuration_id": "28edd131ba3350a1c1d2fc51718086011880e36bf5c3a1148c9a95add4781679",
+      "accepted_at": "2026-09-23T19:20:50+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Overlapped publication is the slim default, so updates finish sooner and the art tour's Sentinel is captured on another cel of its walk cycle. Reviewed by eye; every frame check passes."
     }
   }
 }

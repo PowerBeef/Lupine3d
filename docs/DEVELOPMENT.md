@@ -17,7 +17,7 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
-`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--flat] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--flat] [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
 
 | Profile | World / HUD | Default art |
 |---|---|---|
@@ -122,7 +122,16 @@ make snapshot-diff-flat    # its own suites under snapshots/slim-sable-v2/
 ```
 
 `tests/test_textured_walls.py` runs the Sable checks under the flag in a
-fresh process, and the CI slow lane runs the flat tours and checks above.
+fresh process, and CI's `profiles` job runs the flat tours and checks above.
+
+The slim build also publishes each frame's tail from the VBlank interrupt
+(overlapped publication, `docs/PERFORMANCE_PHASE5.md`).
+`LUPINE3D_OVERLAP_PUBLICATION=0` builds the synchronous tail:
+
+```sh
+make sync                  # build/sync/lupine3d.gb, .sym, manifest
+make playtest-sync         # the coherence tour's frame checks and a motion replay
+```
 
 ## Measurement
 

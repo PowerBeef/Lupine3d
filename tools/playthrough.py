@@ -109,7 +109,9 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
     replay={}
 
     def live8(address):
-        return cgb.wramx[2][address - 0xD000] if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000 else cgb.read8(address)
+        # The live world, not the presented frame the harness shows right
+        # after a presentation (overlapped publication, docs/VERIFICATION.md).
+        return cgb.live_wramx[2][address - 0xD000] if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000 else cgb.read8(address)
 
     def live16(address):
         return live8(address) | live8(address + 1) << 8
@@ -370,6 +372,17 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         px, py, angle = pose()
         dx, dy = target["x"] - px, target["y"] - py
         heading = round(math.atan2(dy, dx) * 256 / math.tau) & 255
+        # A target all but on the route's own row or column is shot straight
+        # down the axis: a heading one step off it drifts into the next row
+        # and grazes a wall the line itself clears. Antenna Base's warden, on
+        # its row's very edge, took ninety shots into a corner that way. Only
+        # while the axis keeps it within six pixels of the crosshair (focal
+        # 137 px, so 23 units along per unit across): further off, the axis
+        # shot leaves the aim window, as Coolant Dark's Sentinel showed.
+        if abs(dy) * 23 < abs(dx):
+            heading = 0 if dx > 0 else 128
+        elif abs(dx) * 23 < abs(dy):
+            heading = 64 if dy > 0 else 192
         delta = (heading - angle + 128) % 256 - 128
         # Keep steering to the target rather than parking one degree away:
         # at close range the legacy Q4 transform can put that pose outside
@@ -544,7 +557,12 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 if cell is not None:
                     record["decision"] = f"firing position {cell}"
                     fruitless[target["slot"]] = max(fruitless.get(target["slot"], 0), 2)
-                    navigate(cell)
+                    # Two contacts taken on the way means the actor is in the
+                    # way or on the route's heels: turn and fight it where the
+                    # route stands. Antenna Base's warden, blocking the walk,
+                    # took the whole bar while the route kept walking into it.
+                    walk_health = live8(br.PLAYER_HEALTH)
+                    navigate(cell, stop=lambda: live8(br.PLAYER_HEALTH) <= walk_health - 2 * contact_damage(after))
                     chaser = next((a for a in living() if a["slot"] == target["slot"]), None)
                     if chaser is not None:
                         face(chaser)

@@ -141,11 +141,10 @@ synchronous scheme can remove. The sustained sixty-second results are in
 
 ## What it does not do
 
-* It does not shorten the alignment wait. Removing that as well means
-  committing the tail from the VBlank interrupt while the next frame's
-  snapshot is taken, which is the audit's staged publication and its
-  verification-vantage decision; this change leaves that decision open and
-  makes it smaller.
+* It does not shorten the alignment wait by itself. Overlapped publication
+  (the slim default since Phase 5, `docs/PERFORMANCE_PHASE5.md`) does: the
+  VBlank interrupt commits this tail while the next frame is already
+  casting.
 * It does not raise the GDMA time spent in any VBlank. The tail carries 62
   blocks where the staged final VBlank carried 48 blocks plus 64 CPU bytes;
   measured against line 153 it finishes earlier.
