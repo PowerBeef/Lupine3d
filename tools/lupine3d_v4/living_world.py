@@ -208,31 +208,11 @@ def emit_door_system(a: Assembler) -> None:
         a.label(next_label)
     a.label("door_update_all_done"); a.ret()
 
-    a.label("sound_swap")
-    # A short mechanical clack: something heavy seating, not a reader beeping.
-    a.xor_r("a"); a.ldh_n_a(NR10)
-    a.ld_r_n("a", 0x40); a.ldh_n_a(NR11)
-    a.ld_r_n("a", 0x91); a.ldh_n_a(NR12)
-    a.ld_r_n("a", 0x60); a.ldh_n_a(NR13)
-    a.ld_r_n("a", 0xC4); a.ldh_n_a(NR14)
-    a.ret()
-
-    a.label("sound_keycard")
-    # Two short high blips: a reader refusing, not a bolt holding.
-    a.xor_r("a"); a.ldh_n_a(NR10)
-    a.ld_r_n("a", 0xC0); a.ldh_n_a(NR11)
-    a.ld_r_n("a", 0x63); a.ldh_n_a(NR12)
-    a.ld_r_n("a", 0xC0); a.ldh_n_a(NR13)
-    a.ld_r_n("a", 0xC6); a.ldh_n_a(NR14)
-    a.ret()
-
-    a.label("sound_locked")
-    a.xor_r("a"); a.ldh_n_a(NR10)
-    a.ld_r_n("a", 0x80); a.ldh_n_a(NR11)
-    a.ld_r_n("a", 0x72); a.ldh_n_a(NR12)
-    a.ld_r_n("a", 0x20); a.ldh_n_a(NR13)
-    a.ld_r_n("a", 0xC2); a.ldh_n_a(NR14)
-    a.ret()
+    # The swap (a short mechanical clack, in the showcase), keycard refusal
+    # and locked-door effects, from the game's sound presets.
+    from .music import emit_effect
+    for name in ("swap", "keycard", "locked"):
+        emit_effect(a, name)
 
 
 def emit_signed_math(a: Assembler) -> None:

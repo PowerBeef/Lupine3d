@@ -5,6 +5,10 @@
   "profiles": ["slim", "compact", "legacy"],
   "rom": {"header_title": "LUPINE3D", "version": 6},
   "screens": "screens.json",
+  "audio": {
+    "songs": {"title": "audio/title.json", "world": "audio/world.json", "victory": "audio/victory.json"},
+    "sound": "audio/sound.json"
+  },
   "actor_palettes": ["sentinel", "warden", "skirmisher"],
   "kinds": [
     {"name": "sentinel", "contact_damage": 8, "recovery_ticks": 8, "step_q8": 8, "palette": "sentinel", "drop": "medkit"},

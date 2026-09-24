@@ -17,11 +17,12 @@ the rows it reads. On a frame that is not a row boundary it only decrements a
 counter in fixed WRAM.
 """
 from .layout import *  # noqa: F401,F403
+from .game import (DRUMS, EFFECTS, HOLD_STEP, LOWEST_OCTAVE, MUSIC_ROW_LIMIT, NOTE_COUNT, NOTE_NAMES,  # noqa: F401
+                   REST_STEP, SONG_ROLES)
 
-# 64 periods: five octaves of twelve semitones from C2, then four spare slots.
-NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
-NOTE_COUNT = 64
-LOWEST_OCTAVE = 2
+# 64 periods: five octaves of twelve semitones from C2, then four spare slots
+# (NOTE_NAMES, NOTE_COUNT and LOWEST_OCTAVE are the song format's, game.py).
+assert MUSIC_ROW_LIMIT == MUSIC_ROW_CAPACITY
 
 # Row byte vocabulary. 0 holds the previous note; 1 releases the channel.
 HOLD, REST = 0, 1
@@ -31,17 +32,13 @@ KICK, SNARE, HAT = 2, 3, 4
 
 PULSE, WAVE, NOISE = range(3)
 
-# A soft asymmetric wave: quiet in the low half, full in the upper, which gives
-# the bass a hollow industrial body rather than a clean square.
-WAVE_PATTERN = (0x02, 0x46, 0x8A, 0xCD, 0xEF, 0xFE, 0xDC, 0xA8,
-                0x64, 0x21, 0x02, 0x46, 0x8A, 0xCD, 0xFE, 0xA8)
-
-# Noise presets: NR41 length, NR42 envelope, NR43 polynomial, NR44 trigger.
-NOISE_VOICES = {
-    KICK:  (0x20, 0xC2, 0x55, 0xC0),
-    SNARE: (0x30, 0xA2, 0x33, 0xC0),
-    HAT:   (0x3C, 0x61, 0x22, 0xC0),
-}
+# The game's instruments (its sound file, game.json `audio.sound`): the wave
+# RAM the bass plays (the showcase's is a soft asymmetric wave, quiet in the
+# low half and full in the upper, a hollow industrial body rather than a
+# clean square) and the drum presets, NR41 length, NR42 envelope, NR43
+# polynomial, NR44 trigger.
+WAVE_PATTERN = GAME.sound.wave_pattern
+NOISE_VOICES = {KICK + index: GAME.sound.drums[drum] for index, drum in enumerate(DRUMS)}
 
 
 def note_periods() -> list[int]:
@@ -68,60 +65,24 @@ def note(name: str, octave: int) -> int:
     return NOTE_BASE + index
 
 
-def _voices(pulse, wave, noise) -> list[tuple[int, int, int]]:
-    """Zip three equal-length channel strings into rows."""
-    if not len(pulse) == len(wave) == len(noise):
-        raise ValueError("song channels must have the same number of rows")
-    return list(zip(pulse, wave, noise))
+def _row_byte(step: int, first: int) -> int:
+    """A song step as a row byte: hold, release, or `first` plus the note or drum."""
+    return HOLD if step == HOLD_STEP else REST if step == REST_STEP else first + step
 
 
-def _line(pattern: str, notes: dict[str, int]) -> list[int]:
-    """One channel line. '.' holds, '-' releases, any other key is a note."""
-    return [HOLD if step == "." else REST if step == "-" else notes[step]
-            for step in pattern]
+def _game_song(role: str):
+    def build() -> tuple[int, int, list[tuple[int, int, int]]]:
+        song = GAME.songs[role]
+        rows = [(_row_byte(pulse, NOTE_BASE), _row_byte(wave, NOTE_BASE), _row_byte(noise, KICK))
+                for pulse, wave, noise in zip(song.pulse, song.wave, song.noise)]
+        return song.speed, song.loop_row, rows
+    return build
 
 
-def _title_song() -> tuple[int, int, list[tuple[int, int, int]]]:
-    lead = {"a": note("A", 4), "c": note("C", 5), "d": note("D", 5),
-            "e": note("E", 5), "f": note("F", 4), "g": note("G", 4)}
-    bass = {"A": note("A", 2), "F": note("F", 2), "D": note("D", 2), "E": note("E", 2)}
-    drum = {"k": KICK, "s": SNARE, "h": HAT}
-    pulse = _line("a...c...d...c..."  "f...a...c...a..."
-                  "d...f...g...f..."  "a...g...e...-...", lead)
-    wave = _line("A.......F......."  "D.......A......."
-                 "F.......E......."  "A.......E.......", bass)
-    noise = _line("k.h.s.h.k.h.s.h."  "k.h.s.h.k.h.s.h."
-                  "k.h.s.h.k.h.s.h."  "k.h.s.h.k.h.s.h.", drum)
-    return 8, 0, _voices(pulse, wave, noise)
-
-
-def _world_song() -> tuple[int, int, list[tuple[int, int, int]]]:
-    """A darker, sparser loop: the lead stays out of the way of gunfire."""
-    lead = {"d": note("D", 4), "f": note("F", 4), "g": note("G", 4),
-            "a": note("A", 4), "c": note("C", 5), "b": note("A#", 4)}
-    bass = {"D": note("D", 2), "C": note("C", 2), "B": note("A#", 2), "G": note("G", 2)}
-    drum = {"k": KICK, "s": SNARE, "h": HAT}
-    pulse = _line("d.......a......."  "f.......c......."
-                  "g.......b......."  "a.......g.......", lead)
-    wave = _line("D...D...D...C..."  "D...D...G...G..."
-                 "C...C...B...B..."  "D...D...G...C...", bass)
-    noise = _line("k...s...k...s..."  "k...s...k.k.s..."
-                  "k...s...k...s..."  "k...s...k.s.s.h.", drum)
-    return 10, 0, _voices(pulse, wave, noise)
-
-
-def _victory_song() -> tuple[int, int, list[tuple[int, int, int]]]:
-    lead = {"c": note("C", 5), "e": note("E", 5), "g": note("G", 5), "a": note("A", 5)}
-    bass = {"C": note("C", 3), "G": note("G", 2), "F": note("F", 2)}
-    drum = {"k": KICK, "s": SNARE, "h": HAT}
-    pulse = _line("c.e.g...a...g..."  "e...c...g.......", lead)
-    wave = _line("C.......G......."  "F.......C.......", bass)
-    noise = _line("k.h.s.h.k.h.s.h."  "k.h.s.h.k.s.k.s.", drum)
-    return 9, 0, _voices(pulse, wave, noise)
-
-
+# The game's songs (game.json `audio.songs`), in the sequencer's order.
 SONG_TITLE, SONG_WORLD, SONG_VICTORY = range(3)
-SONG_SOURCES = (("title", _title_song), ("world", _world_song), ("victory", _victory_song))
+assert SONG_ROLES == ("title", "world", "victory")
+SONG_SOURCES = tuple((role, _game_song(role)) for role in SONG_ROLES)
 
 
 def songs() -> list[tuple[str, int, int, bytes]]:
@@ -165,6 +126,32 @@ def music_payload() -> bytes:
     for period in note_periods():
         table.extend((period & 255, period >> 8))
     return bytes(records) + bytes(table) + b"".join(payloads)
+
+
+def emit_effect(a: Assembler, name: str) -> None:
+    """`sound_<name>`: one write of NR10..NR14 from the game's effect preset.
+
+    Clobbers A. A zero register value is `xor a`, anything else `ld a,n`."""
+    a.label(f"sound_{name}")
+    for register, value in zip((NR10, NR11, NR12, NR13, NR14), GAME.sound.effects[name]):
+        if value:
+            a.ld_r_n("a", value)
+        else:
+            a.xor_r("a")
+        a.ldh_n_a(register)
+    a.ret()
+
+
+def emit_audio(a: Assembler) -> None:
+    """Sound on, both terminals, and the shot and door effects (the section
+    the engine's first version emitted; same order, same bytes)."""
+    a.label("init_audio")
+    a.ld_r_n("a", 0x80); a.ldh_n_a(NR52)
+    a.ld_r_n("a", 0x77); a.ldh_n_a(NR50)
+    a.ld_r_n("a", 0x11); a.ldh_n_a(NR51)
+    a.ret()
+    emit_effect(a, "shoot")
+    emit_effect(a, "door")
 
 
 def emit_music(a: Assembler) -> None:
@@ -240,19 +227,8 @@ def emit_music(a: Assembler) -> None:
     # saved here, because neither caller saves it.
     # Effects own CH1 alone, so none of them can silence a bar of music.
     # Each is a sweep/envelope preset: one trigger, no per-frame service.
-    for name, (sweep, duty, envelope, period, control) in (
-        ("sound_hurt",     (0x36, 0x40, 0xD4, 0x30, 0xC5)),
-        ("sound_kill",     (0x47, 0x80, 0xF3, 0x60, 0xC6)),
-        ("sound_pickup",   (0x13, 0x80, 0xA2, 0xC0, 0xC6)),
-        ("sound_complete", (0x14, 0x80, 0xB4, 0x90, 0xC6)),
-    ):
-        a.label(name)
-        a.ld_r_n("a", sweep); a.ldh_n_a(NR10)
-        a.ld_r_n("a", duty); a.ldh_n_a(NR11)
-        a.ld_r_n("a", envelope); a.ldh_n_a(NR12)
-        a.ld_r_n("a", period); a.ldh_n_a(NR13)
-        a.ld_r_n("a", control); a.ldh_n_a(NR14)
-        a.ret()
+    for name in ("hurt", "kill", "pickup", "complete"):
+        emit_effect(a, name)
 
     a.label("music_tick")
     a.ld_a_abs(MUSIC_ENABLED); a.or_r("a"); a.ret("z")
@@ -308,8 +284,8 @@ def emit_music(a: Assembler) -> None:
     a.xor_r("a"); a.ldh_n_a(NR22); a.ld_r_n("a", 0x80); a.ldh_n_a(NR24); a.ret()
     a.label("music_pulse_note")
     a.call("music_note_period")
-    a.ld_r_n("a", 0x80); a.ldh_n_a(NR21)       # 50% duty, no length counter
-    a.ld_r_n("a", 0x97); a.ldh_n_a(NR22)       # decaying envelope
+    a.ld_r_n("a", GAME.sound.pulse_duty); a.ldh_n_a(NR21)       # duty (the showcase: 50%, no length counter)
+    a.ld_r_n("a", GAME.sound.pulse_envelope); a.ldh_n_a(NR22)   # envelope (the showcase: decaying)
     a.ld_r_r("a", "e"); a.ldh_n_a(NR23)
     a.ld_r_r("a", "d"); a.and_n(7); a.or_n(0x80); a.ldh_n_a(NR24)
     a.ret()
@@ -322,7 +298,7 @@ def emit_music(a: Assembler) -> None:
     a.call("music_note_period")
     a.ld_r_n("a", 0x80); a.ldh_n_a(NR30)       # DAC on
     a.xor_r("a"); a.ldh_n_a(NR31)
-    a.ld_r_n("a", 0x20); a.ldh_n_a(NR32)       # full volume
+    a.ld_r_n("a", GAME.sound.wave_volume); a.ldh_n_a(NR32)      # output level (the showcase: full)
     a.ld_r_r("a", "e"); a.ldh_n_a(NR33)
     a.ld_r_r("a", "d"); a.and_n(7); a.or_n(0x80); a.ldh_n_a(NR34)
     a.ret()

@@ -34,7 +34,7 @@ from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
                                  SCREEN_INTERMISSION, SCREEN_PASSWORD,
                                  continue_codes, emit_screens, screen_directory)
 from lupine3d_v4.music import (SONG_TITLE, SONG_WORLD, SONG_VICTORY,
-                               emit_music, music_payload)
+                               emit_audio, emit_music, music_payload)
 from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
 from lupine3d_v4.artwork import hud_assets
 from lupine3d_v4.world_decor import emit_world_decor, fixture_records
@@ -287,7 +287,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("copy_bulk", emit_copy_bulk), ("wait_vblank", v1.emit_wait_vblank),
         ("level_loader", emit_level_loader), ("vram_init", emit_vram_init),
         ("oam_system", emit_oam_system), ("door_system", emit_door_system),
-        ("audio", v1.emit_audio), ("input_system", emit_input_system),
+        ("audio", emit_audio), ("input_system", emit_input_system),
         # Legacy quarter-step helpers are retained only for the two-step door interaction.
         ("ray_helpers", v1.emit_ray_helpers),
         ("mul_u8", emit_mul_u8), ("div_u16_u8_sat", emit_div_u16_u8_sat),

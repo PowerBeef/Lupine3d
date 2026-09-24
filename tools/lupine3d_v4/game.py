@@ -61,6 +61,19 @@ SCREEN_FIELDS = {
     "password": {"code": 4},
 }
 SCREENS_FORMAT = "lupine-screens-v1"
+# Music: the sequencer plays three songs (title, world, victory) on CH2
+# (pulse lead), CH3 (wave bass) and CH4 (noise drums); CH1 is the effects'.
+SONG_ROLES = ("title", "world", "victory")
+SONG_FORMAT = "lupine-song-v1"
+SOUND_FORMAT = "lupine-sound-v1"
+NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+LOWEST_OCTAVE = 2        # note 0 is C2
+NOTE_COUNT = 64          # C2 .. D#7
+DRUMS = ("kick", "snare", "hat")
+HOLD_STEP, REST_STEP = -1, -2     # '.' holds the previous note, '-' releases the channel
+# The CH1 effects the engine triggers, each one write of NR10..NR14.
+EFFECTS = ("shoot", "door", "swap", "keycard", "locked", "hurt", "kill", "pickup", "complete")
+MUSIC_ROW_LIMIT = 1322   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
 
 
 class GameError(ValueError):
@@ -120,6 +133,27 @@ class ScreenLine:
 
 
 @dataclass(frozen=True)
+class Song:
+    speed: int                                   # frames per row
+    loop_row: int                                # where the song restarts when it ends
+    # Per channel, one value per row: a note index (pulse, wave: 0 is C2) or
+    # a drum index (noise: kick, snare, hat), or HOLD_STEP / REST_STEP.
+    pulse: tuple[int, ...]
+    wave: tuple[int, ...]
+    noise: tuple[int, ...]
+
+
+@dataclass(frozen=True)
+class Sound:
+    pulse_duty: int                              # NR21: the lead's duty cycle
+    pulse_envelope: int                          # NR22: the lead's envelope
+    wave_volume: int                             # NR32: the bass's output level
+    wave_pattern: tuple[int, ...]                # the 16 bytes of wave RAM (32 four-bit samples)
+    drums: dict[str, tuple[int, int, int, int]]  # drum -> NR41..NR44
+    effects: dict[str, tuple[int, ...]]          # effect -> NR10..NR14
+
+
+@dataclass(frozen=True)
 class Game:
     root: Path
     id: str
@@ -135,6 +169,8 @@ class Game:
     screens: dict[str, tuple[ScreenLine, ...]]   # in runtime order: FIXED_SCREENS, then the episode screens
     rom_title: str                               # the cartridge header title
     rom_version: int                             # the cartridge header's mask ROM version byte
+    songs: dict[str, Song]                       # by role: title, world, victory
+    sound: Sound
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -466,6 +502,111 @@ def _rom(data: object, root: Path) -> tuple[str, int]:
     return title, _integer(data, "version", 0, 255, root, "rom")
 
 
+def _json_file(path: Path, root: Path, fmt: str) -> dict:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise GameError(_where(root, f"{path.name} is not valid JSON ({error})")) from None
+    if not isinstance(data, dict) or data.get("format") != fmt:
+        raise GameError(_where(root, f"{path.name} must be a {fmt!r} file (its \"format\")"))
+    return data
+
+
+def _byte(value: object, root: Path, context: str) -> int:
+    """A register byte: a whole number or a "0x.." string, 0..255."""
+    if isinstance(value, str) and value.lower().startswith("0x"):
+        try:
+            value = int(value, 16)
+        except ValueError:
+            pass
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 255:
+        raise GameError(_where(root, f"{context} must be a byte, 0..255 or \"0x00\"..\"0xFF\""))
+    return value
+
+
+def _bytes(value: object, count: int, root: Path, context: str) -> tuple[int, ...]:
+    if not isinstance(value, list) or len(value) != count:
+        raise GameError(_where(root, f"{context} must list {count} bytes"))
+    return tuple(_byte(v, root, f"{context}[{n}]") for n, v in enumerate(value))
+
+
+def _note(spec: object, root: Path, context: str) -> int:
+    if isinstance(spec, str) and len(spec) >= 2 and spec[:-1] in NOTE_NAMES and spec[-1].isdigit():
+        index = (int(spec[-1]) - LOWEST_OCTAVE) * 12 + NOTE_NAMES.index(spec[:-1])
+        if 0 <= index < NOTE_COUNT:
+            return index
+    raise GameError(_where(root, f"{context} {spec!r} is not a note from C2 to D#7 (e.g. \"A4\", \"F#3\")"))
+
+
+def _song(path: Path, root: Path, role: str) -> Song:
+    data = _json_file(path, root, SONG_FORMAT)
+    data = _keys(data, {"$schema", "format", "speed", "loop_row", "pulse", "wave", "noise"},
+                 {"format", "speed", "loop_row", "pulse", "wave", "noise"}, root, path.name)
+    channels = {}
+    for channel in ("pulse", "wave", "noise"):
+        where = f"{path.name} {channel}"
+        raw = _keys(data[channel], {"notes", "rows"}, {"notes", "rows"}, root, where)
+        notes = raw["notes"]
+        if not isinstance(notes, dict):
+            raise GameError(_where(root, f"{where}.notes must map one-letter keys to notes"))
+        values = {}
+        for key, spec in notes.items():
+            if len(key) != 1 or key in ".-":
+                raise GameError(_where(root, f"{where}.notes key {key!r} must be one character other than . and -"))
+            if channel == "noise":
+                if spec not in DRUMS:
+                    raise GameError(_where(root, f"{where}.notes {key!r} must be one of {', '.join(DRUMS)}"))
+                values[key] = DRUMS.index(spec)
+            else:
+                values[key] = _note(spec, root, f"{where}.notes {key!r}")
+        rows = raw["rows"]
+        if not isinstance(rows, list) or not all(isinstance(r, str) for r in rows):
+            raise GameError(_where(root, f"{where}.rows must be a list of strings"))
+        steps = []
+        for step in "".join(rows):
+            if step == ".":
+                steps.append(HOLD_STEP)
+            elif step == "-":
+                steps.append(REST_STEP)
+            elif step in values:
+                steps.append(values[step])
+            else:
+                raise GameError(_where(root, f"{where}.rows uses {step!r}, which its notes do not define"))
+        channels[channel] = tuple(steps)
+    if not len(channels["pulse"]) == len(channels["wave"]) == len(channels["noise"]):
+        raise GameError(_where(root, f"{path.name}: the three channels must have the same number of rows "
+                                     f"({len(channels['pulse'])}, {len(channels['wave'])}, {len(channels['noise'])})"))
+    length = len(channels["pulse"])
+    if not 1 <= length <= MUSIC_ROW_LIMIT:
+        raise GameError(_where(root, f"{path.name} has {length} rows; a song holds 1 to {MUSIC_ROW_LIMIT}"))
+    speed = _integer(data, "speed", 1, 255, root, path.name)
+    loop = _integer(data, "loop_row", 0, length - 1, root, path.name)
+    return Song(speed=speed, loop_row=loop, **channels)
+
+
+def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, Song], Sound]:
+    data = _keys(data, {"songs", "sound"}, {"songs", "sound"}, root, "audio")
+    songs_raw = _keys(data["songs"], set(SONG_ROLES), set(SONG_ROLES), root, "audio.songs")
+    songs = {role: _song(_game_file(root, songs_raw[role], f"audio.songs.{role}", files), root, role)
+             for role in SONG_ROLES}
+    path = _game_file(root, data["sound"], "audio.sound", files)
+    sound = _keys(_json_file(path, root, SOUND_FORMAT), {"$schema", "format", "instruments", "effects"},
+                  {"format", "instruments", "effects"}, root, path.name)
+    instruments = _keys(sound["instruments"], {"pulse", "wave", "noise"}, {"pulse", "wave", "noise"}, root,
+                        f"{path.name} instruments")
+    pulse = _keys(instruments["pulse"], {"duty", "envelope"}, {"duty", "envelope"}, root, f"{path.name} pulse")
+    wave = _keys(instruments["wave"], {"volume", "pattern"}, {"volume", "pattern"}, root, f"{path.name} wave")
+    noise = _keys(instruments["noise"], set(DRUMS), set(DRUMS), root, f"{path.name} noise")
+    effects = _keys(sound["effects"], set(EFFECTS), set(EFFECTS), root, f"{path.name} effects")
+    return songs, Sound(
+        pulse_duty=_byte(pulse["duty"], root, f"{path.name} pulse.duty"),
+        pulse_envelope=_byte(pulse["envelope"], root, f"{path.name} pulse.envelope"),
+        wave_volume=_byte(wave["volume"], root, f"{path.name} wave.volume"),
+        wave_pattern=_bytes(wave["pattern"], 16, root, f"{path.name} wave.pattern"),
+        drums={drum: _bytes(noise[drum], 4, root, f"{path.name} noise.{drum}") for drum in DRUMS},
+        effects={name: _bytes(effects[name], 5, root, f"{path.name} effects.{name}") for name in EFFECTS})
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -478,7 +619,7 @@ def load_game(directory: Path) -> Game:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
     keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
-            "shared_palettes", "screens", "rom"}
+            "shared_palettes", "screens", "rom", "audio"}
     data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
@@ -492,9 +633,11 @@ def load_game(directory: Path) -> Game:
     textures = _textures(data["textures"], root, files)
     episodes = _episodes(data["episodes"], root, files)
     rom_title, rom_version = _rom(data["rom"], root)
+    songs, sound = _audio(data["audio"], root, files)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=episodes,
                 screens=_screens(data["screens"], episodes, root, files), rom_title=rom_title, rom_version=rom_version,
+                songs=songs, sound=sound,
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
                 weapons=_weapons(data["weapons"], root, 0), textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
