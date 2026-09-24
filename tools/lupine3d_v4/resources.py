@@ -793,4 +793,16 @@ def make_top_depth_lut() -> bytes:
     result = bytearray(256)
     for top, depths in enumerate(buckets):
         result[top] = min(255, min(depths)) if depths else 255
+    if COMPACT_DISPLAY:
+        # Close to a wall the half-height jumps several pixels a Q5 step, so
+        # some tops belong to no depth. A reconstructed midpoint lands on them
+        # (anchors two pixels apart), and 255 there read the wall as infinitely
+        # far: any billboard behind it showed through. An empty top takes the
+        # depth of the nearest class on the near side, which is still no
+        # farther than the wall. The legacy profile keeps its bytes (a
+        # contract); its gaps are characterised in docs/explanation/architecture.md.
+        farthest = max(top for top, depths in enumerate(buckets) if depths)
+        for top in range(1, farthest):
+            if not buckets[top]:
+                result[top] = result[top - 1]
     return bytes(result)

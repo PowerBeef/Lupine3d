@@ -1,5 +1,13 @@
 # Unreleased — after v0.12
 
+- **Enemies no longer show through near walls.** A reconstructed sample
+  between two cast rays takes its occlusion depth from its projected top,
+  and close to a wall some tops belong to no depth: they read 255, as if
+  the wall were infinitely far, and an enemy behind it was drawn through it.
+  In 150 random poses in the first sector, 63 had such a sample; now none
+  do. Each empty top takes the nearest class on the near side
+  (`tests/test_top_depth_lut.py`). No golden moves: none showed an enemy
+  behind such a wall. The legacy profile keeps its bytes.
 - **Wall signs stay on their walls.** A fixture was centred at `64 - B/2`
   (B the wall's projected half-height): 64 is the legacy horizon plus the
   OBJ offset, fixed in. On the slim horizon (60) every sign drew 12 pixels

@@ -58,6 +58,16 @@ panel, at least half a cell further, is not. Collision, wall rays, LOS and hitsc
 geometry. Physical-depth and higher-precision actor experiments remain disabled;
 production height-derived mask depth is not labelled a continuous geometric query.
 
+A reconstructed midpoint's mask depth comes from its projected top through
+`top_depth_lut`: the nearest depth that projects to that top. Near a wall the
+half-height jumps several pixels a Q5 step, so some tops have no depth; on
+the compact and slim profiles such a top takes the depth of the nearest
+class on the near side, which is never farther than the wall
+(`tests/test_top_depth_lut.py`). Before that, an empty top read 255 and an
+enemy behind a wall within about a cell and a half showed through it at
+that sample. The legacy profile keeps its table byte for byte, gaps included,
+as the contract it is.
+
 Slim builds compose every wall with the textured row-window kernel
 (`textured.py`, [textured walls](textured-walls.md)): textures are mirrored
 about the horizon, so the lower half is the upper half's Y-flipped patterns,
