@@ -4,7 +4,7 @@
   "snapshot_suite": "tour",
   "actions": [
     {"pose": [640, 3456, 192], "updates": 1, "capture": "spawn_room"},
-    {"pose": [640, 3072, 192], "updates": 1, "capture": "airlock_approach"},
+    {"pose": [640, 2880, 192], "updates": 1, "capture": "airlock_approach"},
     {"buttons": ["b"], "updates": 2, "capture": "airlock_open"},
     {"pose": [896, 2432, 0], "updates": 1, "capture": "corridor_turn"},
     {"pose": [1920, 1920, 192], "updates": 1, "capture": "drone_room_entry"},

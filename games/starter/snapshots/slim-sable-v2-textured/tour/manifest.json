@@ -10,20 +10,20 @@
       "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
     },
     "02_airlock_approach": {
-      "rgb_sha256": "aaa4a05f1f9855d095226a9b0edcdae96f66a6f7c20d6a616dc1327029288320",
-      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "rgb_sha256": "1189d00f99de246823b2f15d9bf8bc8b566913716223f563b94998a65796bf03",
+      "rom_sha256": "ea4fed9f85262d5366d5b64d2af11be8737fce017313adfdc7a6574b129506d4",
       "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
-      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_at": "2026-09-24T02:21:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+      "note": "The approach pose stands within the airlock's reach again, so pressing B opens it: airlock_open now shows the corridor beyond the open door, as its name says."
     },
     "03_airlock_open": {
-      "rgb_sha256": "aaa4a05f1f9855d095226a9b0edcdae96f66a6f7c20d6a616dc1327029288320",
-      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "rgb_sha256": "95fd9f62ab7977d5b5b579049fdede88e79cf15df31eb004166208de7e1ce1cc",
+      "rom_sha256": "ea4fed9f85262d5366d5b64d2af11be8737fce017313adfdc7a6574b129506d4",
       "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
-      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_at": "2026-09-24T02:21:48+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+      "note": "The approach pose stands within the airlock's reach again, so pressing B opens it: airlock_open now shows the corridor beyond the open door, as its name says."
     },
     "04_corridor_turn": {
       "rgb_sha256": "b6e8a41ceffbbe26251021413146ea144954af80a756804a44d72973545b4f0c",

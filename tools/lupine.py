@@ -237,6 +237,18 @@ def cmd_new_game(args) -> int:
     manifest["rom"]["version"] = 0
     manifest["profiles"] = ["slim"]     # the historical profiles build only the showcase
     manifest_path.write_text(compact_json(manifest) + "\n", encoding="utf-8")
+    shown_source = source.relative_to(ROOT).as_posix() if source.is_relative_to(ROOT) else str(source)
+    # The source's README describes the source; the copy starts its own.
+    (destination / "README.md").write_text(
+        f"# {title}\n\nA game made with Lupine 3D, started from `{shown_source}` with "
+        "`python tools/lupine.py new-game`.\n\n"
+        "```sh\n"
+        f"python tools/lupine.py game check --game {destination.as_posix()}\n"
+        f"python tools/lupine.py build --game {destination.as_posix()}\n"
+        f"python tools/lupine.py run --game {destination.as_posix()}\n"
+        "```\n\n"
+        "The handbook is in the engine's `docs/` directory: start with "
+        "`docs/tutorials/first-game.md`.\n", encoding="utf-8")
     sys.path.insert(0, str(TOOLS))
     from lupine3d_v4.game import load_game
     try:
@@ -245,7 +257,7 @@ def cmd_new_game(args) -> int:
         print(f"copied {source} to {destination}, but the copy does not load: {exc}")
         return 1
     shown = destination if not destination.is_absolute() else destination.resolve()
-    print(f"Created {shown}: {game.title} ({game.id}), copied from {source.relative_to(ROOT) if source.is_relative_to(ROOT) else source}.")
+    print(f"Created {shown}: {game.title} ({game.id}), copied from {shown_source}.")
     print("Next:")
     print(f"  python tools/lupine.py game check --game {shown}")
     print(f"  python tools/lupine.py build --game {shown}      # {game.build_dir(Path('build'))}/lupine3d.gb")
