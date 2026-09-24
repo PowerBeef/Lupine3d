@@ -64,12 +64,12 @@ texture (`docs/explanation/textured-walls.md`).
 | `entities` | yes | one to six actors (see below) |
 | `pickups` | yes | the drops the level fields (see below) |
 | `exit` | yes | `x`, `y` of the exit cell (walkable); `marker` is retained but not read |
-| `palette_profile` | yes | `outpost`, `reactor` or `spire`: the palette set every entry into this level uploads (`docs/reference/asset-formats.md`); levels of one campaign may differ |
+| `palette_profile` | yes | one of the game's themes (`game.json` `themes`; the showcase's are `outpost`, `reactor` and `spire`): its palettes and textures are what every entry into this level uses ([palettes](palettes.md)); levels of one campaign may differ |
 | `vram_profile` | yes | `renderer-heavy` or `entity-heavy` (the resident atlas; every campaign level must agree) |
 | `readability` | no (v2) | per-level certificate limits; defaults below |
 | `fixtures` | no | up to sixteen wall-mounted landmarks |
 | `surfaces` | no | per-face presentation overrides |
-| `triggers` | no | retained for authoring intent; the v2 rule (one Sentinel-locked exit door) is what the compiler enforces |
+| `triggers` | no | retained for authoring intent; the v2 rule (one exit door that opens when the enemies are cleared) is what the compiler enforces |
 
 Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 
@@ -77,7 +77,7 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 
 ```json
 {"id": "exit_lock", "x": 9, "y": 11, "orientation": "horizontal",
- "kind": "exit", "unlock": "sentinel_dead"}
+ "kind": "exit", "unlock": "enemies_cleared"}
 ```
 
 - Every material-3 cell has exactly one door record and every door sits on a
@@ -86,9 +86,10 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
   sit in an east-west wall (solid west and east, open north and south);
   `vertical` doors the other way round. A v2 level is refused when the frame
   does not match.
-- `kind` is `standard` or `exit`. `unlock` is `none`, `sentinel_dead` (opens
-  once every actor is dead) or `keycard` (opens once the player holds the
-  card). A v2 level has exactly one `exit` door, and it is `sentinel_dead`.
+- `kind` is `standard` or `exit`. `unlock` is `none`, `enemies_cleared`
+  (opens once every actor is dead; the showcase writes `sentinel_dead`, the
+  same thing) or `keycard` (opens once the player holds the card). A v2
+  level has exactly one `exit` door, and it is `enemies_cleared`.
 - The record compiles to six bytes: x, y, orientation, flags (`0x01` exit,
   `0x02` locked until the actors are dead, `0x04` keycard), state, fraction.
   Up to six doors ride the wall key and the snapshot copy, so the limit is an
@@ -97,21 +98,22 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 ### Entities
 
 ```json
-{"kind": "warden", "x_q8": 2688, "y_q8": 2176, "health": 3, "activation_radius_q4": 96}
+{"kind": "drone", "x_q8": 2688, "y_q8": 2176, "health": 3, "activation_radius_q4": 96}
 ```
 
-- One to six actors, all of a known kind: `sentinel`, `skirmisher`, `warden`,
-  `boss` (the Sentinel's look with the heaviest contact damage; give it the
-  health the fight deserves, and field one in an episode's last sector). Each
-  stands on a walkable cell the spawn can reach with the Sentinel-locked
-  doors shut; an actor in a wall or in the exit room is refused.
-  Kinds share the Sentinel's cels and differ by stats and OBJ palette
-  (`AGENTS.md`, "Enemies and skill"). Six are simulated, but the renderer
+- One to six actors, each of a kind the game defines (`game.json` `kinds`;
+  [enemies](../how-to/enemies.md)). Each stands on a walkable cell the spawn
+  can reach with the enemies-cleared doors shut; an actor in a wall or in the
+  exit room is refused. Every kind uses the game's actor frames and differs
+  by stats and OBJ palette. Six are simulated, but the renderer
   admits at most four per frame (sixteen world objects, four per scanline,
   32 masked patterns), so keep at most four actors on any one sightline; the
   fifth and sixth belong elsewhere in the sector.
 - `health` is 1..255 hit points before difficulty scaling, which changes
   contact damage only.
+- `activation_radius_q4` is how near the player must come before the actor
+  wakes, in sixteenths of a cell (1..127). Today the level header carries the
+  first actor's radius, folded to whole cells, for every actor.
 - The first entity is the level's headline actor: its cell is the critical
   path's target in the certificate and its position rides the level header.
 - The spawn must keep every actor at least `safe_radius_cells` walking steps
@@ -121,13 +123,14 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 ### Pickups (drops)
 
 ```json
-{"kind": "medkit", "source": "sentinel_drop", "value": 25}
+{"kind": "medkit", "source": "drop", "value": 25}
 ```
 
 Nothing is placed on the map: a pickup is what a dead actor leaves, selected
-by the actor's kind (`KIND_DROPS`: sentinels, wardens and bosses leave a
-medkit, skirmishers a keycard). A level declares which drops it fields, one record per
-kind, `source` is always `sentinel_drop`, and the medkit's `value` (1..255,
+by the actor's kind (its `drop` in `game.json`: a `medkit` or a `keycard`).
+A level declares which drops it fields, one record per kind, `source` is
+always `drop` (the showcase writes `sentinel_drop`, the same thing), and the
+medkit's `value` (1..255,
 health restored) is the only per-level number. The compiler refuses a declared
 drop no actor leaves, a keycard drop that opens nothing, a keycard door with no
 declared card, and a keycard door whose only card-carrying actor is behind it.
@@ -138,7 +141,9 @@ declared card, and a keycard door whose only card-carrying actor is behind it.
 {"x": 4, "y": 11, "side": "south", "kind": "access"}
 ```
 
-Up to sixteen wall-mounted landmarks (`vent`, `light`, `access`, `sector`),
+Up to sixteen wall-mounted landmarks, each of one of the game's four
+`fixture_kinds` (the showcase's and the starter's are `vent`, `light`,
+`access` and `sector`), drawn from its fixture sheet,
 each on an interior wall face that is exposed to a walkable or door cell. A
 fixture on a door cell must face the moving panel. Duplicates are refused.
 Fixtures are rendered as masked objects, so they share the world OBJ budget

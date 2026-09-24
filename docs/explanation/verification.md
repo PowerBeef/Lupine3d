@@ -90,11 +90,15 @@ not a defect.
 - `make playthrough SECTORS=A-B` — the controller route, one chunk of
   `tools/ci_lanes.py` per CI `route` job; `make playtest-sync` — the
   synchronous publication tail (CI `profiles` job).
-- `make identity` (`tools/rom_identity.py`) — every configuration the project
-  builds (default, sync, compact, legacy, the A/B variants, the level
-  fixtures) byte-identical to a recorded ROM, or to a git ref with
-  `compare --base`; the gate of refactors meant to change no behaviour (CI
-  `identity` job while the game/engine separation is under way).
+- `make limits`, `make scaffold-check` and the starter's build, tour, route
+  and SameBoy run — a game other than the showcase, the generated game at
+  every content limit, and a new game scaffolded from the starter (CI
+  `starter` job).
+- `make identity BASE=ref` (`tools/rom_identity.py compare`) — every
+  configuration the project builds (default, sync, compact, legacy, the A/B
+  variants, the level fixtures) byte-identical to the same build of a git
+  ref: the proof a refactor meant to change no behaviour needs. The
+  game/engine separation was proven this way on every commit.
 - `python tools/ci_local.py` — all of CI's lanes locally, in parallel, each
   in its own copy of the working tree; `--changed` picks the lanes a change
   needs, `--list` prints them.

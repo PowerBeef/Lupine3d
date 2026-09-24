@@ -469,7 +469,7 @@ def _validate_keycard_gates(
         if grid[cell[1] * width + cell[0]] != 0:
             raise ValueError(f"actor at cell {cell} is not on a walkable cell")
         if cell not in engageable:
-            raise ValueError(f"actor at cell {cell} is behind a Sentinel-locked door or unreachable")
+            raise ValueError(f"actor at cell {cell} is behind a door that opens only when the enemies are cleared, or unreachable")
     if not keyed:
         if "keycard" in declared:
             raise ValueError("a declared keycard drop opens nothing in this level")
@@ -725,7 +725,7 @@ def compile_level(path: Path) -> CompiledLevel:
     if level_format == "lupine-level-v2":
         exit_doors = [door for door in doors if door.flags & DOOR_FLAG_EXIT]
         if len(exit_doors) != 1 or not (exit_doors[0].flags & DOOR_FLAG_LOCK_SENTINEL):
-            raise ValueError("v2 gameplay levels require one Sentinel-locked exit door")
+            raise ValueError("v2 gameplay levels require exactly one exit door (\"kind\": \"exit\") that opens when the enemies are cleared (\"unlock\": \"enemies_cleared\")")
     _validate_keycard_gates(grid, width, height,
                             (player_x_q8 >> 8, player_y_q8 >> 8), entities, doors, pickups)
     readability = analyze_level_readability(

@@ -66,11 +66,6 @@ LANES: dict[str, list[list[str]]] = {
     "profiles": [
         ["make", "playtest-sync"],
     ],
-    # Every configuration's ROM byte-identical to the record taken before the
-    # game/engine separation (tools/rom_identity.py); retired when it ends.
-    "identity": [
-        ["make", "identity"],
-    ],
     # The starter game (games/starter): a game other than the showcase built,
     # checked, played through on controller input and restarted; the limits
     # game at every maximum; and a new game scaffolded from the starter.

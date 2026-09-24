@@ -17,10 +17,11 @@ ROOT = Path(__file__).resolve().parents[1]
 HISTORICAL = ("docs/archive/", "milestones/", "research/results/", "games/sable_outpost/playtests/archive/",
               "RELEASE_NOTES.md", "tests/fixtures/", "tests/test_no_stale_paths.py", ".render-baselines/")
 TEXT = {".py", ".md", ".json", ".yml", ".yaml", ".txt", ".toml", ".cfg", ""}
-# Files whose paths are relative to a game directory (a game's own files, and
-# the tools and tests that write or edit one), where levels/ and playtests/
-# are the game's.
-GAME_RELATIVE = ("games/", "tests/test_game_loader.py", "tests/test_game_selection.py", "tools/make_limits_game.py")
+# Files whose paths are relative to a game directory (a game's own files, the
+# tools and tests that write or edit one, and the handbook pages that teach a
+# game's layout), where levels/ and playtests/ are the game's.
+GAME_RELATIVE = ("games/", "tests/test_game_loader.py", "tests/test_game_selection.py", "tools/make_limits_game.py",
+                 "docs/tutorials/", "docs/how-to/", "docs/reference/")
 # (pattern, why, whether a game-relative file may use it). A moved path is one
 # not preceded by a path segment, so games/sable_outpost/levels/ and
 # tests/levels/ are fine.

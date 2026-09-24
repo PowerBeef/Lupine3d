@@ -28,12 +28,12 @@ docs-check: build
 memory-map: build
 	$(PYTHON) tools/memory_map.py
 
-# Every configuration's ROM against the record taken before the game/engine
-# separation (tools/rom_identity.py): a refactor that changes no behaviour
-# changes no ROM byte.
-IDENTITY_RECORD ?= tests/fixtures/rom_identity_pre_separation.json
+# A refactor that changes no behaviour changes no ROM byte: every
+# configuration built here and at BASE (default origin/main), compared
+# (tools/rom_identity.py). make identity BASE=HEAD~1
+BASE ?= origin/main
 identity:
-	$(PYTHON) tools/rom_identity.py check $(IDENTITY_RECORD)
+	$(PYTHON) tools/rom_identity.py compare --base $(BASE)
 
 # CI's jobs locally, each lane in its own copy of the working tree, in
 # parallel (tools/ci_local.py): make ci-local ARGS="--changed"
@@ -111,10 +111,10 @@ playtest-world:
 
 .PHONY: playthrough sameboy mgba variants wall-reuse motion snapshot snapshot-diff snapshot-accept
 # The whole campaign by default; SECTORS=A-B plays one range (an episode in
-# CI's matrix, one sector to reproduce a failure) into ROUTE_DIR.
-ROUTE_DIR ?= build/playthrough
+# CI's matrix, one sector to reproduce a failure) into ROUTE_DIR (default the
+# game's build directory's playthrough/).
 playthrough: build
-	$(PYTHON) tools/playthrough.py --output-dir $(ROUTE_DIR) $(if $(SECTORS),--sectors $(SECTORS)) $(if $(RESTART),--restart)
+	$(PYTHON) tools/playthrough.py $(if $(ROUTE_DIR),--output-dir $(ROUTE_DIR)) $(if $(SECTORS),--sectors $(SECTORS)) $(if $(RESTART),--restart)
 
 # Golden-image snapshots (tools/snapshot.py). `snapshot` runs the fast suites
 # in check mode; `snapshot-diff` summarises the last run; `snapshot-accept`
@@ -196,6 +196,13 @@ qa: build test playtest playtest-world research-v3
 
 preview: build
 	$(PYTHON) tools/make_preview.py
+
+# The README's images, captured from the emitted ROMs (never generated): the
+# showcase's still and its three episodes, and the starter's still.
+.PHONY: readme-images
+readme-images:
+	$(PYTHON) tools/make_preview.py --episodes episodes_2x.png
+	LUPINE3D_GAME=games/starter $(PYTHON) tools/make_preview.py --docs-image starter_preview_4x.png
 
 package:
 	$(PYTHON) tools/package_release.py --output-dir dist

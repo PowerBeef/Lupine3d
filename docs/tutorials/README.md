@@ -1,51 +1,28 @@
-# Developer guide
+# Tutorials
 
-Lupine 3D is a first-person engine for the Game Boy Color: Python emits SM83
-machine code, tables, levels and art into a deterministic 4 MiB MBC5 ROM, and
-a host harness plus two pinned emulator cores prove every frame. This guide
-is for building a first-person game on it, or changing the engine itself.
+Lessons, in order, each built on the last. Every command and output in them
+is real; follow them literally from the repository root.
 
-| Page | Read it when |
-|---|---|
-| [Hardware primer](../explanation/hardware.md) | you want to know what the console gives the engine and which rules the engine treats as invariants |
-| [Engine tour](../explanation/engine-tour.md) | you want the path from a button press to a published VRAM page, with the module that owns each step |
-| [Memory map](../reference/memory-map.md) | you need an address: generated from the machine-checked allocation ledger of the current build |
-| [How-tos](../how-to/README.md) | you are adding a level, an enemy kind, a weapon, a texture, a screen or a check |
-| [Debugging](../how-to/debug-a-build.md) | something is wrong and you want to look inside the ROM in the harness, a debugger or a core |
+| Tutorial | You will | Time |
+|---|---|---|
+| [Your first game](first-game.md) | make a game from the starter: retitle it, recolour it, add an enemy kind, approve its goldens and play it through | 30 minutes |
+| [Your first level](first-level.md) | draw a level from a blank grid, fix what the compiler refuses, edit it in Tiled, watch it being finished | 30 minutes |
+| [Your first engine change](first-engine-change.md) | change the SM83 the engine emits, see a test catch it, see which ROMs move, prove nothing else did | 30 minutes |
 
-## Five-minute start
-
-```sh
-python3 tools/dev_setup.py && source .venv/bin/activate
-make build test                                   # the ROM, its exports and the regression suite
-python tools/lupine.py game check                # the game's manifest and every level's certificate
-python tools/lupine.py run                        # the coherence tour, every frame checked
-python tools/lupine.py symbols                    # where the debugger exports are
-```
-
-`build/lupine3d.gb` runs in any CGB-capable emulator; SameBoy and mGBA are
-the pinned ones. That is the showcase, `games/sable_outpost`; every command
-takes `--game DIR` for another game (`make … GAME=DIR`), which builds into
-`build/games/<id>/`, and `python tools/lupine.py new-game DIR --from GAME`
-starts one as a copy. There is no cartridge RAM: progress is a four-digit
-continue code shown after each sector.
+The first two need only Python, Make and an emulator to play the result.
+The third is for contributors to the engine itself.
 
 ## The contracts in one paragraph
 
-Simulation runs at cooperative yields in WRAM bank 2 on a fixed tick and
-renders from an immutable snapshot in bank 1. A frame is cast with forty-one
-prepared rays and reconstructed to 160 columns, composed into a ring of
-dynamic patterns, and published to the hidden VRAM page by HBlank DMA during
-composition plus one VBlank tail. Everything the console draws is predicted
-byte for byte by a Python model, and every invariant (geometry, publication
-safety, the MBC5 bank rule, the resident reserve, core agreement) is a hard
-gate; pictures are golden snapshots with an explicit acceptance path. The
-[architecture](../explanation/architecture.md) page states these contracts precisely and
-[verification](../explanation/verification.md) says how each one is checked.
-
-## Content reference
-
-- [Level format](../reference/level-format.md) and [certificate](../reference/level-certificate.md)
-- [Art pipeline](../reference/asset-formats.md)
-- [Textured walls](../explanation/textured-walls.md), the slim default
-- [Development](../engine/development.md): commands, cores, releases
+For when you want to know what the engine promises before you start:
+simulation runs on a fixed tick in WRAM bank 2 while each frame renders
+from an immutable snapshot in bank 1. A frame is cast with forty-one
+prepared rays and reconstructed to 160 columns, its walls textured and
+composed into a ring of dynamic tiles, and published to the hidden VRAM page
+by HBlank DMA during composition plus one VBlank tail. Everything the
+console draws is predicted byte for byte by a Python model, and every
+invariant (geometry, publication safety, the MBC5 bank rule, the memory
+reserves, agreement between cores) is a hard gate; pictures are golden
+snapshots with an explicit acceptance path. [Architecture](../explanation/architecture.md)
+states these contracts precisely and [verification](../explanation/verification.md)
+says how each is checked.

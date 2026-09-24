@@ -8,10 +8,13 @@ A/B variants and the single-level fixtures. Identical ROM bytes also keep
 every piece of retained evidence valid, because the route, core, witness and
 sustained reports are bound to the ROM's SHA-256.
 
-    python tools/rom_identity.py record --output tests/fixtures/rom_identity_pre_separation.json \\
-        --source /path/to/clean/copy
-    python tools/rom_identity.py check tests/fixtures/rom_identity_pre_separation.json
-    python tools/rom_identity.py compare --base origin/main
+    python tools/rom_identity.py compare --base origin/main      # make identity BASE=…
+    python tools/rom_identity.py record --output build/identity.json --source /path/to/clean/copy
+    python tools/rom_identity.py check build/identity.json
+
+`compare` builds a git ref in a clean copy and this checkout; `record` and
+`check` pin a set of ROMs across a longer series of changes (the game/engine
+separation was proven that way, commit by commit).
 
 Each configuration builds in a fresh process (flags are read at import time)
 with every inherited `LUPINE3D_*` variable removed, through

@@ -5,7 +5,7 @@ and the nearest slot for a proposed indexed PNG.
     python tools/palette_plan.py                  # owners and RGB555 values, every set
     python tools/palette_plan.py --swatches out.png  # a swatch sheet (an authoring aid, never a build input)
     python tools/palette_plan.py --propose sprite.png  # nearest OBJ (or BG) palette to the PNG's colours
-    python tools/palette_plan.py --set 1 --propose sprite.png  # against the reactor set
+    python tools/palette_plan.py --set 1 --propose sprite.png  # against the second theme
 
 The values come from a fresh in-memory build of the current configuration,
 read back from the `bg_palettes` table (128 bytes per set, BG then OBJ), so
@@ -20,11 +20,15 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_rom as br  # noqa: E402
 
-BG_OWNERS = {0: "structure walls, upper half (colour 0 is the ceiling)", 1: "HUD",
+# docs/reference/palettes.md: the same table, for people.
+BG_OWNERS = {0: "structure walls, upper half (colour 0 is the ceiling)", 1: "HUD and the full-screen modes",
              2: "structure walls, lower half (colour 0 is the floor)", 3: "door faces, upper",
-             4: "door faces, lower", 5: "machinery faces, upper", 6: "machinery faces, lower", 7: "screens"}
-OBJ_OWNERS = {0: "weapon", 1: "Sentinel", 2: "drops", 3: "muzzle flash and decor", 4: "decor and the reticle",
-              5: "the weapon's second palette", 6: "warden", 7: "skirmisher"}
+             4: "door faces, lower", 5: "machinery faces, upper", 6: "machinery faces, lower", 7: "reserved"}
+OBJ_OWNERS = {0: "weapon", 1: "enemy palette 1", 2: "drops", 3: "muzzle flash and decor", 4: "decor and the reticle",
+              5: "the weapon's second palette", 6: "enemy palette 2", 7: "enemy palette 3"}
+# The game's own names for its enemy palettes (OBJ 1, 6 and 7, in order).
+for _name, _slot in zip(br.GAME.actor_palettes, (1, 6, 7)):
+    OBJ_OWNERS[_slot] = f"enemies: {_name}"
 
 
 def rgb555_to_rgb(value: int) -> tuple[int, int, int]:

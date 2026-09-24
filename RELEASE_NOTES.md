@@ -1,5 +1,38 @@
 # Unreleased — after v0.11
 
+- **Lupine 3D is an engine; games are data.** A game is a folder with a
+  `game.json` (`docs/reference/game-manifest.md`): its levels in episodes,
+  enemy kinds, weapons and unlocks, themes and textures, sprite sheets and
+  HUD words, screens, songs and sound effects, and the cartridge header.
+  Sable Outpost moved into `games/sable_outpost` and is the showcase; every
+  ROM it builds, in all ten configurations, stayed byte for byte identical
+  through the separation. `--game` (`make … GAME=`, `LUPINE3D_GAME`) builds
+  any game, into `build/games/<id>/`.
+- **A starter game** (`games/starter`): two levels, two kinds, one theme,
+  songs and screens of its own. `lupine new-game DIR` copies it into a new
+  game; `lupine game check` loads a game and certifies every level. CI's new
+  `starter` job builds it, tours it against its goldens, plays it to its
+  ending and restarts it, runs it in SameBoy, builds a game at every content
+  limit, and scaffolds a new game from it.
+- **Limits a creator can read.** `tools/lupine3d_v4/limits.py` states every
+  content limit with the engine fact behind it (20 levels, 3 episodes, 4
+  kinds, 4 themes, 7 textures, 128 patterns a screen, …), the loader refuses
+  a game past one in those words, and `make limits` proves them together.
+  JSON Schemas for every game file are in `docs/schema/`.
+- **Fixes found on the way.** A screen held 128 patterns, not the world's
+  238 (`show_screen` copies to the map at `$9800`); episode screen indices
+  assumed three episodes, so a two-episode game showed the wrong screen; a
+  screen character the font lacked drew nothing instead of being refused.
+  The fonts gain punctuation and the whole HUD alphabet.
+- **The handbook.** The README leads with the engine, and `docs/` is a
+  handbook: tutorials (your first game, level and engine change, run
+  literally), how-to guides, reference pages checked against the code by
+  `make docs-check`, explanation, and a contributor's guide. Pages moved:
+  `docs/guide/` and the top-level engine pages to `docs/reference/`,
+  `docs/explanation/`, `docs/how-to/` and `docs/engine/`; the test report
+  and Phase 5 measurements to `docs/evidence/`; the v0.8 performance audit
+  to `docs/archive/`; the campaign, art and steel HUD pages, with the HUD
+  design references, to `games/sable_outpost/docs/`.
 - **Overlapped publication is the slim default.** The VBlank interrupt
   publishes the streamed tail while the next update casts, so an update is
   bound by its own work instead of waiting for VBlank: textured walking

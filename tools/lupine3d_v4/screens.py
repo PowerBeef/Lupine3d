@@ -143,8 +143,8 @@ SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWO
 # then every opening but the first's (the title opens episode one, the ending
 # closes the last). EPISODE_STARTS in layout.py names the levels they sit
 # before; with three episodes these are screens 5, 6 and 7, 8.
-SCREEN_EPISODE_CLOSINGS = tuple(5 + n for n in range(len(EPISODE_STARTS)))
-SCREEN_EPISODE_OPENINGS = tuple(5 + len(EPISODE_STARTS) + n for n in range(len(EPISODE_STARTS)))
+SCREEN_EPISODE_CLOSINGS = tuple(len(FIXED_SCREENS) + n for n in range(len(EPISODE_STARTS)))
+SCREEN_EPISODE_OPENINGS = tuple(len(FIXED_SCREENS) + len(EPISODE_STARTS) + n for n in range(len(EPISODE_STARTS)))
 
 # The game's screens (games/<id>/screens.json, loaded by game.py), in
 # runtime order: the five fixed modes, then the episode screens its episodes

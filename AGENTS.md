@@ -86,9 +86,10 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Debugger exports, Tiled levels | `symbols.py`, `tmx_import.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
-| A game's manifest, its palettes and the engine fonts | `game.py` (the loader, `GAME`), `palettes.py`, `fonts.py` |
+| A game's manifest, its limits, its palettes and the engine fonts | `game.py` (the loader, `GAME`, `KEYS`), `limits.py`, `palettes.py`, `fonts.py` |
 | The showcase game (a game package) | `games/sable_outpost/`: its `game.json` and `screens.json`, and its levels, art, textures, audio, playtests and snapshots directories |
 | Game selection and creator commands | `tools/lupine.py` (`--game`, `new-game`, `game check`), `LUPINE3D_GAME`, `make … GAME=` |
+| The starter game and the limits game | `games/starter/` (copied by `lupine new-game`), `tools/make_limits_game.py` |
 | Engine assets and tests | `assets/` (the historical atlases), `tests/` (engine level fixtures in `tests/levels/`) |
 | Research and retained evidence | `research/`, `milestones/`, `.render-baselines/` |
 
@@ -429,6 +430,8 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Geometry/composition/cache/timing | `make variants wall-reuse motion`; `make research-tail` for traversal/projection |
 | CPU/banks/interrupts/DMA/publication | Both pinned `make sameboy` and `make mgba`; `tools/independent_witnesses.py` |
 | Assembler or harness opcode/flag semantics | `make conformance SAMEBOY_DIR=…` (`tools/harness_conformance.py`): every emitted form, harness vs SameBoy |
+| The game loader, limits, game tooling or any game's content | `make game-check GAME=…`; the starter lane (`make playtest playthrough GAME=games/starter RESTART=1`, `make limits scaffold-check`); `tests/test_game_*.py` |
+| A refactor meant to change no ROM byte | `make identity BASE=origin/main` (`tools/rom_identity.py compare`): ten configurations, byte for byte |
 
 Visual verification is **golden-image snapshots** (`tools/snapshot.py`,
 `docs/explanation/verification.md`): goldens under `games/<id>/snapshots/<profile>/<suite>/` with a
@@ -466,9 +469,17 @@ batches: `python tools/ci_local.py` (`make ci-local`, `lupine ci`) runs CI's
 lanes from `tools/ci_lanes.py` in parallel, each in its own copy of the working
 tree, and `--changed` runs only `docs-check` for a documentation-only change. Reports must identify ROM/configuration and actual checks run.
 Documentation-only edits need link/command/diff checks, not a ROM test rerun:
-`make docs-check` (`tools/check_docs.py`) verifies every link and command and
-that `docs/reference/memory-map.md` matches the manifest (regenerate it with
-`make memory-map`, never by hand). Historical documents live in
+`make docs-check` (`tools/check_docs.py`) verifies every link, anchor and
+command, that `docs/reference/memory-map.md` matches the manifest (regenerate
+it with `make memory-map`, never by hand), and that the reference pages say
+what the code does: every `lupine` subcommand (`reference/cli.md`), every
+`LUPINE3D_*` variable (`reference/build-flags.md`), the loader's keys
+(`reference/game-manifest.md`), the limits table and every
+`N<!-- limit:name -->` number, the theme palettes, and every backticked
+repository path or `file.py:symbol`. The handbook is Diátaxis-shaped:
+`docs/tutorials/` (followed literally, outputs real), `docs/how-to/`,
+`docs/reference/`, `docs/explanation/`, `docs/engine/` (contributors) and
+`docs/evidence/`; a game's own documents live in its directory. Historical documents live in
 `docs/archive/` with an index; `python tools/lupine.py` is the one entry
 point for build, run, snapshot, level, profile and verification commands.
 

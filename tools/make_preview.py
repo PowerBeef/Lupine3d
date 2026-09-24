@@ -7,6 +7,7 @@ image. The GIF walks the first level's start. Both land in the game's build
 directory; images are captures of the emitted ROM, never generated."""
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -43,7 +44,36 @@ def nearest(image: Image.Image, scale: int = 4) -> Image.Image:
     return image.resize((image.width * scale, image.height * scale), Image.Resampling.NEAREST)
 
 
+def episode_strip(rom: bytes, labels: dict[str, int]) -> Image.Image:
+    """Each episode's first level as a player enters it (by continue code),
+    side by side at 2x: the spawn view or the view after turning right for
+    eight updates, whichever shows more colours, so every theme is seen."""
+    from playthrough import enter_sector
+    views = []
+    for start in (0, *v2.EPISODE_STARTS):
+        cgb = CGB(rom, labels)
+        if start:
+            enter_sector(cgb, start)
+        run_to_world(cgb)
+        candidates = []
+        for presses in (0, 8):
+            cgb.button_provider = (lambda *_: 0x01) if presses else (lambda *_: 0)
+            cgb.run(until_presentations=cgb.presentations + max(presses, 1), max_steps=30_000_000)
+            image = cgb.render_screen()
+            world = image.crop((0, 0, 160, v2.VIEW_HEIGHT))
+            candidates.append((len(set(world.getdata())), -presses, image))
+        views.append(max(candidates)[2])
+    strip = Image.new("RGB", (160 * len(views) + 4 * (len(views) - 1), 144), (13, 17, 23))
+    for index, image in enumerate(views):
+        strip.paste(image, (index * 164, 0))
+    return nearest(strip, 2)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--docs-image", help="also save the still as docs/images/NAME (any game)")
+    parser.add_argument("--episodes", help="save each episode's first level, side by side, as docs/images/NAME")
+    args = parser.parse_args()
     v2_rom, v2_assembler, _ = v2.make_rom()
     v2.GAME_BUILD.mkdir(parents=True, exist_ok=True)
 
@@ -91,6 +121,14 @@ def main() -> None:
         disposal=2,
     )
 
+    if args.docs_image:
+        path = ROOT / "docs" / "images" / args.docs_image
+        hero_image.save(path, optimize=True)
+        written.append(path)
+    if args.episodes:
+        path = ROOT / "docs" / "images" / args.episodes
+        episode_strip(v2_rom, v2_assembler.labels).save(path, optimize=True)
+        written.append(path)
     for path in written:
         print(f"Wrote {path}")
 
