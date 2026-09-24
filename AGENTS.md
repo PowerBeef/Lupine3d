@@ -86,8 +86,10 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Debugger exports, Tiled levels | `symbols.py`, `tmx_import.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
-| The showcase game (a game package) | `games/sable_outpost/` (`game.json`, levels), loaded by `game.py` |
-| Assets, scenarios and tests | `assets/`, `playtests/`, `tests/` (engine level fixtures in `tests/levels/`) |
+| A game's manifest, its palettes and the engine fonts | `game.py` (the loader, `GAME`), `palettes.py`, `fonts.py` |
+| The showcase game (a game package) | `games/sable_outpost/`: `game.json`, `levels/`, `art/`, `textures/`, `audio/`, `screens.json`, `playtests/`, `snapshots/` |
+| Game selection and creator commands | `tools/lupine.py` (`--game`, `new-game`, `game check`), `LUPINE3D_GAME`, `make … GAME=` |
+| Engine assets and tests | `assets/` (the historical atlases), `tests/` (engine level fixtures in `tests/levels/`) |
 | Research and retained evidence | `research/`, `milestones/`, `.render-baselines/` |
 
 `lupine3d_v4` remains the active package despite its historical name. Preserve
@@ -97,6 +99,14 @@ regression contract.
 
 ## Production configuration
 
+- A build makes one game: `LUPINE3D_GAME` (`make … GAME=`, `lupine … --game`,
+  `build_rom.py --game`) names its directory, read at import like every flag;
+  the showcase, `games/sable_outpost`, is the default and builds into
+  `build/`, any other game into `build/games/<id>/` (`layout.GAME_BUILD`).
+  Only the showcase builds the compact/legacy profiles or legacy art, and the
+  engine's qualification tools (`check_sable.py`, the witnesses,
+  `release_check.py`) qualify the showcase alone. The manifest's `game`
+  record names every file the build read, with its hash.
 - Default `LUPINE3D_DISPLAY=slim`: 160×120 world, horizon 60, 24-pixel HUD,
   15 world tile rows, eight folded composition rows and STAT switch at 120.
   `compact` retains 112/32; `legacy` retains 96/48. Extend vertical visibility;
@@ -124,7 +134,7 @@ regression contract.
   oracle, physical depth or anchor packets on slim Sable are refused.
   `texture_reference.compose_kernel` is the kernel's byte-exact model and
   `docs/TEXTURED_WALLS.md` the contract; the goldens live under
-  `snapshots/slim-sable-v2-textured/`. The flat microstrip compositor
+  `games/sable_outpost/snapshots/slim-sable-v2-textured/`. The flat microstrip compositor
   remains only as the renderer of the historical legacy and compact
   profiles and their research lanes (the fold identity in `make variants`
   runs on compact); do not reintroduce a flat slim build.
@@ -421,7 +431,7 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Assembler or harness opcode/flag semantics | `make conformance SAMEBOY_DIR=…` (`tools/harness_conformance.py`): every emitted form, harness vs SameBoy |
 
 Visual verification is **golden-image snapshots** (`tools/snapshot.py`,
-`docs/VERIFICATION.md`): goldens under `snapshots/<profile>/<suite>/` with a
+`docs/VERIFICATION.md`): goldens under `games/<id>/snapshots/<profile>/<suite>/` with a
 manifest binding each scene to the ROM, configuration, author, date and a
 note. Every producer (`playtest`, `check_sable`, `independent_witnesses`)
 checks its captures against them and fails naming the scene; the route only
@@ -430,7 +440,7 @@ records. The evidence (`actual`, `expected`, `diff`, `report.html`) lands in
 change is accepted with `python tools/snapshot.py accept --suite … --scene …
 --note "why"` and committed with its PNG so the PR shows the diff; nothing
 in CI accepts, and an empty note is refused. The retired hash oracles live in
-`playtests/archive/oracles/` as evidence only. Engine invariants (model
+`games/sable_outpost/playtests/archive/oracles/` as evidence only. Engine invariants (model
 equality, publication safety, the bank contract, reserves, A/B equality,
 core agreement, the v1 hash) are hard gates, never snapshots: **never weaken
 a check to pass.**

@@ -42,7 +42,7 @@ def main() -> None:
         raise RuntimeError("measured profile did not select the candidate atlas")
     cgb = CGB(rom, assembler.labels)
     run_to_world(cgb)
-    scenario = json.loads((ROOT / "playtests" / "coherence_tour.json").read_text(encoding="utf-8"))
+    scenario = json.loads((ROOT / "games" / "sable_outpost" / "playtests" / "coherence_tour.json").read_text(encoding="utf-8"))
     world_mode = str(scenario.get("world_mode", "empty")).lower()
     set_test_world_byte(cgb, br.WORLD_MODE, br.WORLD_MODE_EMPTY if world_mode == "empty" else br.WORLD_MODE_LIVING)
     masks = {"right": 0x01, "left": 0x02, "up": 0x04, "down": 0x08, "a": 0x10, "b": 0x20}

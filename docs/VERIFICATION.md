@@ -6,7 +6,7 @@ legitimately alter; a failure is a bug and is never accepted. **Snapshots**
 are what frames looked like; a difference is reviewed as an image and either
 accepted with a note or fixed. Hash oracles used to conflate the two, so a
 deliberate pixel change and a broken compositor failed the same way. They no
-longer gate anything (the files are retained under `playtests/archive/oracles/`).
+longer gate anything (the files are retained under `games/sable_outpost/playtests/archive/oracles/`).
 
 ## Hard gates
 
@@ -28,7 +28,7 @@ them has a bug; find which.
 ## Snapshots
 
 `tools/snapshot.py` keeps one golden PNG per scene under
-`snapshots/<profile>/<suite>/` with a `manifest.json` that records, per scene,
+`games/<id>/snapshots/<profile>/<suite>/` with a `manifest.json` that records, per scene,
 the RGB SHA-256, the ROM SHA-256 and configuration it was accepted on, who
 accepted it, when, and **why**. The profile is the display/art pair, with
 `-textured` for textured walls (`slim-sable-v2-textured` for the production
@@ -36,7 +36,7 @@ build).
 
 | Suite | Producer | Scenes |
 | --- | --- | --- |
-| `tour` | `make playtest` (`playtests/sable_v10_coherence_tour.json`) | 9 |
+| `tour` | `make playtest` (`games/sable_outpost/playtests/sable_v10_coherence_tour.json`) | 9 |
 | `world` | `make playtest-world` | 14 |
 | `art` | `make playtest-art` | 6 |
 | `sable` | `tools/check_sable.py` (six diagnostic poses) | 6 |
@@ -59,7 +59,7 @@ python tools/snapshot.py diff --suite tour
 open build/snapshots/slim-sable-v2-textured/tour/report.html
 python tools/snapshot.py accept --suite tour --scene 09_exit_approach \
     --note "streamed publication presents one interval earlier; helmet blink phase moves"
-git add snapshots/ && git commit
+git add games/sable_outpost/snapshots/ && git commit
 ```
 
 `accept` refuses an empty note, refuses scenes the last run did not produce,

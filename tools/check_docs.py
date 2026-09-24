@@ -22,7 +22,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_DIRS = {".venv", "build", "dist", ".git", "node_modules", "__pycache__"}
-HISTORICAL = ("docs/archive/", "milestones/", "research/", "playtests/archive/")
+HISTORICAL = ("docs/archive/", "milestones/", "research/", "games/sable_outpost/playtests/archive/")
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)")
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.S)

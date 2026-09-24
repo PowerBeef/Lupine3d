@@ -113,7 +113,7 @@ six pixels on HUD row 131. They are the helmet portrait's blink, which uses
 accepted snapshot ticks 62–63 modulo 64; that update now completes in five LCD
 intervals instead of six, so the accepted tick lands on the blink window
 differently. No world pixel, sprite or packet differs. v0.10 therefore
-carries its own oracle, `playtests/archive/oracles/sable_v10_capture_pixels.json` (retired since for golden snapshots), with the
+carries its own oracle, `games/sable_outpost/playtests/archive/oracles/sable_v10_capture_pixels.json` (retired since for golden snapshots), with the
 other eight hashes identical to v0.9, and the v0.9 oracle is retained.
 
 The controller route died once on the faster ROM, in Coolant Spine, standing

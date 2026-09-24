@@ -5,6 +5,8 @@ Historical arithmetic/image tests intentionally use the original 96-line
 profile. test_sable_v2 launches separate clean processes for the current
 production defaults, emitted HUD/animation/publication and both display modes.
 No test process changes the caller's build configuration or output ROM.
+Every LUPINE3D_* variable is dropped first, LUPINE3D_GAME included, so the
+suite always tests the engine on the showcase game.
 """
 import os
 from pathlib import Path

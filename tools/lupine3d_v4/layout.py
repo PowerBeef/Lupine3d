@@ -25,9 +25,14 @@ from lupine3d_v4.game import GAME  # noqa: E402
 if RENDER_CONFIG["display"] not in GAME.profiles:
     raise ValueError(f"{GAME.id} is made for the {', '.join(GAME.profiles)} display profile(s), "
                      f"not {RENDER_CONFIG['display']!r}")
+if not GAME.is_showcase and (RENDER_CONFIG["display"] != "slim" or RENDER_CONFIG["art"] != "sable-v2"):
+    raise ValueError(f"{GAME.id}: the historical display profiles and the legacy art build only the showcase "
+                     "(games/sable_outpost); a game builds on the slim display with its own art")
 
 BUILD = ROOT / "build"
 BUILD.mkdir(parents=True, exist_ok=True)
+# This game's outputs: build/ for the showcase, build/games/<id>/ otherwise.
+GAME_BUILD = GAME.build_dir(BUILD)
 ASSETS = ROOT / "assets"
 TILE_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_TILE_ATLAS_DIR", ASSETS))
 ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / "entity_atlas_80"))

@@ -443,7 +443,7 @@ pay (`docs/archive/RESEARCH_AND_DECISIONS.md`):
    attribute the gain to the stage that changed. Expect the frame mean to move
    only when the saving crosses an LCD interval (§1).
 3. Exactness: `make playtest playtest-world playtest-art` against the nine-image
-   oracle `playtests/archive/oracles/sable_objective_spaced_capture_pixels.json`, plus
+   oracle `games/sable_outpost/playtests/archive/oracles/sable_objective_spaced_capture_pixels.json`, plus
    `make variants`. Never adjust a fixture to make a change pass.
 4. Budgets: `tools/release_check.py` — resident reserve, `$4000` ceiling,
    publication ceiling, dynamic pattern cap.

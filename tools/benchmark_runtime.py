@@ -19,7 +19,7 @@ from sm83emu import CGB, parse_symbols, run_to_world
 def scenes():
     result = []
     for name in ("coherence_tour", "sable_art_tour"):
-        for action in json.loads((br.ROOT / "playtests" / (name + ".json")).read_text())["actions"]:
+        for action in json.loads((br.GAME.root / "playtests" / (name + ".json")).read_text())["actions"]:
             if "pose" in action:
                 result.append(dict(name=name + ":" + action.get("capture", str(len(result))),
                                    pose=action["pose"], fraction=0))

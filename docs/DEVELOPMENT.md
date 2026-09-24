@@ -90,7 +90,7 @@ python tools/snapshot.py diff --suite tour
 python tools/snapshot.py accept --suite tour --scene 09_exit_approach --note "why the frame changed"
 ```
 
-See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `playtests/archive/oracles/`.
+See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `games/sable_outpost/playtests/archive/oracles/`.
 
 ```sh
 make playthrough variants wall-reuse motion
@@ -108,7 +108,7 @@ Controller completion uses no game-RAM writes, but reads live state to steer; it
 
 The engine and its showcase are textured: every slim Sable build composes its
 walls with the row-window kernel of `docs/TEXTURED_WALLS.md`, and its goldens
-live under `snapshots/slim-sable-v2-textured/`. The flat slim profile was
+live under `games/sable_outpost/snapshots/slim-sable-v2-textured/`. The flat slim profile was
 removed; the flat microstrip compositor is kept only as the renderer of the
 historical legacy and compact profiles, whose research lanes (the unfolded
 oracle, physical depth, anchor packets) run there. `tests/test_textured_walls.py`

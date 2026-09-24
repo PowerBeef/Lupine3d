@@ -61,7 +61,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     result = {"folded": br.FOLDED_COMPOSITOR, "atlas_patterns": br.TILE_ATLAS_COUNT,
               "rom_sha256": hashlib.sha256(br.make_rom()[0]).hexdigest(),
-              "routes": {name: profile(br.ROOT / "playtests" / name)
+              "routes": {name: profile(br.GAME.root / "playtests" / name)
                          for name in ("coherence_tour.json", "living_world.json")}}
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

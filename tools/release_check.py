@@ -115,6 +115,8 @@ def measure_routines(rom: bytes, symbols: dict[str, int], routines: tuple[str, s
 
 
 def main() -> None:
+    if not v2.GAME.is_showcase:
+        raise SystemExit(f"release_check qualifies the engine on the showcase, not {v2.GAME.id}")
     v2_rom, v2_assembler, v2_manifest = v2.make_rom()
     v1_rom, v1_assembler, v1_manifest = v1.make_rom()
     v2.BUILD.mkdir(parents=True, exist_ok=True)
@@ -155,7 +157,7 @@ def main() -> None:
     if not world_playtest_path.exists():
         raise SystemExit("missing Living World playtest report; run `make playtest-world`")
     world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
-    art_playtest = json.loads((v2.BUILD / "playtest/sable_art_tour/report.json").read_text())
+    art_playtest = json.loads((v2.BUILD / "playtest/art_tour/report.json").read_text())
     current_sha = hashlib.sha256(v2_rom).hexdigest()
     # The route plays the campaign in episodes (CI's matrix); every report for
     # the current ROM contributes its sectors, and together they must cover

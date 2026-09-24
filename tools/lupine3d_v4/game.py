@@ -88,6 +88,10 @@ SPRITE_ROLES = ("actor_near", "actor_mid", "actor_far", "reticle", "muzzle_flash
 FIXTURE_KINDS = 4
 SPRITE_SCHEMAS = ("lupine-sprites-v1", "sable.native.v1")
 MUSIC_ROW_LIMIT = 1322   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
+# A game's driven playtests (tools/playtest.py): the tour every build runs,
+# and optionally a living-world run and an art tour. Each scenario may name
+# a snapshot suite; its goldens live in the game's snapshots/ directory.
+PLAYTEST_ROLES = ("tour", "world", "art")
 
 
 class GameError(ValueError):
@@ -189,9 +193,35 @@ class Game:
     sprite_manifest: Path                        # the game's sprite manifest (records of indexed PNG sheets)
     sprites: dict[str, str]                      # SPRITE_ROLES -> sprite record name
     fixture_kinds: tuple[str, ...]               # the names a level's fixtures use, in sheet order
+    playtests: dict[str, Path] = field(default_factory=dict)   # PLAYTEST_ROLES -> scenario (tools only)
+    # The pose `tools/make_preview.py` films: Q8.8 position and the angle byte.
+    preview: tuple[int, int, int] | None = None
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
+
+    @property
+    def is_showcase(self) -> bool:
+        """The game the engine's own evidence is recorded on (games/sable_outpost)."""
+        return self.root == DEFAULT_GAME_DIR.resolve()
+
+    @property
+    def snapshot_root(self) -> Path:
+        """The game's golden images: snapshots/<profile>/<suite>/ (tools/snapshot.py)."""
+        return self.root / "snapshots"
+
+    def build_dir(self, build: Path) -> Path:
+        """Where this game's ROM is built: build/ for the showcase, so every
+        existing tool and report keeps its paths, build/games/<id>/ otherwise."""
+        return build if self.is_showcase else build / "games" / self.id
+
+    def record(self) -> dict:
+        """The build manifest's account of the game: what a ROM was built from."""
+        try:
+            directory = self.root.relative_to(ROOT).as_posix()
+        except ValueError:
+            directory = str(self.root)
+        return {"id": self.id, "title": self.title, "directory": directory, "files": dict(sorted(self.files.items()))}
 
     @property
     def level_paths(self) -> tuple[Path, ...]:
@@ -280,7 +310,8 @@ def _string(value: object, root: Path, context: str) -> str:
     return value
 
 
-def _game_file(root: Path, relative: object, context: str, files: dict[str, str]) -> Path:
+def _game_file(root: Path, relative: object, context: str, files: dict[str, str] | None) -> Path:
+    """A file the manifest names; recorded in `files` (with its hash) when the build reads it."""
     relative = _string(relative, root, context)
     path = (root / relative).resolve()
     if not path.is_relative_to(root.resolve()):
@@ -288,7 +319,8 @@ def _game_file(root: Path, relative: object, context: str, files: dict[str, str]
                                      "a game's files live inside its folder so the folder can be copied"))
     if not path.is_file():
         raise GameError(_where(root, f"{context} {relative!r} does not exist"))
-    files[path.relative_to(root.resolve()).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    if files is not None:
+        files[path.relative_to(root.resolve()).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return path
 
 
@@ -672,6 +704,29 @@ def _fixture_kinds(data: object, root: Path) -> tuple[str, ...]:
     return _names(data, root, "fixture_kinds", FIXTURE_KINDS)
 
 
+def _playtests(data: object, root: Path) -> dict[str, Path]:
+    if data is None:
+        return {}
+    data = _keys(data, set(PLAYTEST_ROLES), {"tour"}, root, "playtests")
+    # Scenarios drive the built ROM; they are not build inputs, so they are
+    # not recorded among the files the ROM was built from.
+    return {role: _game_file(root, data[role], f"playtests.{role}", None) for role in PLAYTEST_ROLES if role in data}
+
+
+def _preview(data: object, root: Path) -> tuple[int, int, int] | None:
+    if data is None:
+        return None
+    data = _keys(data, {"x", "y", "angle"}, {"x", "y", "angle"}, root, "preview")
+    position = []
+    for axis in ("x", "y"):
+        value = data[axis]
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or not 0 < value < 64:
+            raise GameError(_where(root, f"preview.{axis} must be a position in cells, above 0 and below 64"))
+        position.append(round(value * 256))
+    angle = _integer(data, "angle", 0, 255, root, "preview")
+    return position[0], position[1], angle
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -685,7 +740,7 @@ def load_game(directory: Path) -> Game:
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
     keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
             "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds"}
-    data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
+    data = _keys(data, keys | {"$schema", "profiles", "playtests", "preview"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
     game_id = _string(data["id"], root, "id")
@@ -710,12 +765,20 @@ def load_game(directory: Path) -> Game:
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
                 weapons=weapons, textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
-                shared_palettes=_shared_palettes(data["shared_palettes"], root), files=files)
+                shared_palettes=_shared_palettes(data["shared_palettes"], root),
+                playtests=_playtests(data.get("playtests"), root), preview=_preview(data.get("preview"), root),
+                files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:
+    """`LUPINE3D_GAME`: a game directory, or the name of one under games/."""
     configured = environ.get("LUPINE3D_GAME")
-    return Path(configured).resolve() if configured else DEFAULT_GAME_DIR
+    if not configured:
+        return DEFAULT_GAME_DIR
+    path = Path(configured)
+    if not path.is_dir() and not path.is_absolute() and (GAMES / configured).is_dir():
+        path = GAMES / configured
+    return path.resolve()
 
 
 GAME = load_game(resolve_game_dir())

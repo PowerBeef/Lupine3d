@@ -8,7 +8,7 @@ from sm83emu import CGB, run_to_world
 from playtest import validate_frame,apply_diagnostic_camera,oam_budget
 from lupine3d_v4.sprite_assets import evidence,compile_sheet,compile_frame,frames
 
-FIXTURES=Path(__file__).resolve().parents[1]/'playtests'/'fixtures'
+FIXTURES=b.GAME.root/'playtests'/'fixtures'
 
 def hud_fixture():
     """The HUD art contract for this profile: selection tables and pinned pixels.
@@ -25,6 +25,8 @@ def hud_fixture():
             'status':{'cases':[[99,0,0,'LOCK'],[99,0,1,'OPEN'],[0,0,1,'DEAD'],[99,1,1,'DONE']]}}
 
 def check(output,snapshot_mode='check'):
+    # The showcase's qualification: its HUD fixture pins the showcase's pixels.
+    if not b.GAME.is_showcase:raise SystemExit(f'check_sable qualifies the showcase, not {b.GAME.id}: use `lupine run` and `lupine game check`')
     assert b.COMPACT_DISPLAY and b.SABLE_ART
     rom,a,meta=b.make_rom(); checks={}; captures=[]
     from snapshot import Suite
@@ -53,7 +55,7 @@ def check(output,snapshot_mode='check'):
         # reference composed from the same set, pattern for pattern.
         from playthrough import enter_sector
         from lupine3d_v4.texture_reference import TEXTURE_SETS
-        for level in (b.EPISODE_STARTS[0], b.EPISODE_STARTS[1]):
+        for level in b.EPISODE_STARTS:
             e=CGB(rom,a.labels);enter_sector(e,level);run_to_world(e)
             palette_set=b.CAMPAIGN[level].palette_profile
             assert e.read8(b.PALETTE_SET)==palette_set,(level,palette_set)

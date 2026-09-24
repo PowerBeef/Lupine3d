@@ -16,8 +16,8 @@ PINNED_CORE = "507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", type=Path, required=True)
-    parser.add_argument("--rom",type=Path,default=br.BUILD/"lupine3d.gb")
-    parser.add_argument("--output-dir",type=Path,default=br.BUILD)
+    parser.add_argument("--rom",type=Path,default=br.GAME_BUILD/"lupine3d.gb")
+    parser.add_argument("--output-dir",type=Path,default=br.GAME_BUILD)
     args=parser.parse_args();core=args.core.resolve()
     args.output_dir.mkdir(parents=True,exist_ok=True)
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=core, text=True).strip()

@@ -108,8 +108,8 @@ jobs:
             build/playtest/coherence_tour/contact_sheet.png
             build/playtest/living_world/report.json
             build/playtest/living_world/contact_sheet.png
-            build/playtest/sable_art_tour/report.json
-            build/playtest/sable_art_tour/contact_sheet.png
+            build/playtest/art_tour/report.json
+            build/playtest/art_tour/contact_sheet.png
 
       - name: Upload ROM and manifest
         uses: actions/upload-artifact@v4

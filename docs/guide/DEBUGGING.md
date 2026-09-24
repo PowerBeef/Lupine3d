@@ -18,7 +18,7 @@ and check uses, so a bug that shows in an emulator can usually be reduced to
 a harness script:
 
 ```sh
-python tools/lupine.py run --scenario playtests/sable_v10_coherence_tour.json
+python tools/lupine.py run --scenario games/sable_outpost/playtests/sable_v10_coherence_tour.json
 python tools/lupine.py profile           # T-cycles by main-loop stage on the tour
 ```
 

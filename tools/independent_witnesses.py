@@ -27,6 +27,8 @@ def main():
     p.add_argument('--snapshot-mode',choices=('check','record','none'),default='check',
                    help='compare the host images with the witnesses goldens (a partial --scene run only records)')
     args=p.parse_args()
+    # The frozen scenes are poses in the showcase's sectors (quality_witnesses.scene_corpus).
+    if not br.GAME.is_showcase:raise SystemExit(f'the witness scenes are the showcase\'s, not {br.GAME.id}\'s')
     provenance={}
     for core,executable,pinned in (("SameBoy",args.sameboy,"213a12ce93d66b105a113debd9396306066a7cfc"),
                                    ("mGBA",args.mgba,"507061afd70489a0c2ffc8ba26d8f9b53d6cf7d6")):

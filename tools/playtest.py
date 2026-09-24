@@ -256,12 +256,27 @@ def make_contact_sheet(frames: list[tuple[str, Image.Image]], output: Path) -> N
     sheet.save(output)
 
 
+# Where each playtest role writes its report, contact sheet and GIF, under the
+# game's build directory.
+ROLE_OUTPUTS = {"tour": "coherence_tour", "world": "living_world", "art": "art_tour"}
+
+
+def scenario_for(role: str) -> Path:
+    """The game's scenario for a playtest role (game.json `playtests`)."""
+    if role not in br.GAME.playtests:
+        raise SystemExit(f"{br.GAME.id} declares no '{role}' playtest (game.json playtests: "
+                         f"{', '.join(br.GAME.playtests) or 'none'})")
+    return br.GAME.playtests[role]
+
+
 def default_scenario() -> Path:
-    """The coherence tour that matches the build configuration."""
-    name = ("sable_v10_coherence_tour.json" if br.SLIM_DISPLAY and br.SABLE_ART
-            else "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART
-            else "coherence_tour.json")
-    return ROOT / "playtests" / name
+    """The coherence tour that matches the build configuration: the game's
+    own on the slim display; the showcase keeps a tour for each historical
+    profile (the only game those profiles build)."""
+    if br.SLIM_DISPLAY and br.SABLE_ART:
+        return scenario_for("tour")
+    name = "sable_hud_coherence_tour.json" if br.COMPACT_DISPLAY and br.SABLE_ART else "coherence_tour.json"
+    return br.GAME.root / "playtests" / name
 
 
 def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str | None,
@@ -453,14 +468,20 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--rom", type=Path, default=ROOT / "build" / "lupine3d.gb")
-    parser.add_argument("--symbols", type=Path, default=ROOT / "build" / "lupine3d.sym")
-    parser.add_argument("--scenario", type=Path, default=default_scenario())
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "build" / "playtest" / "coherence_tour")
+    parser.add_argument("--rom", type=Path, default=br.GAME_BUILD / "lupine3d.gb")
+    parser.add_argument("--symbols", type=Path, default=br.GAME_BUILD / "lupine3d.sym")
+    parser.add_argument("--role", choices=tuple(ROLE_OUTPUTS), default="tour",
+                        help="which of the game's playtests to run (game.json playtests); default the tour")
+    parser.add_argument("--scenario", type=Path, help="a scenario file instead of the role's")
+    parser.add_argument("--output-dir", type=Path, help="default <build>/playtest/<role's directory>")
     parser.add_argument("--record-all", action="store_true")
     parser.add_argument("--snapshot-mode", choices=("check", "record", "none"), default="check",
                         help="check: a changed golden fails; record: write the evidence only; none: no snapshots")
     args = parser.parse_args()
+    if args.scenario is None:
+        args.scenario = default_scenario() if args.role == "tour" else scenario_for(args.role)
+    if args.output_dir is None:
+        args.output_dir = br.GAME_BUILD / "playtest" / ROLE_OUTPUTS[args.role]
     mode = None if args.snapshot_mode == "none" else args.snapshot_mode
     report = run_scenario(args.rom, args.symbols, args.scenario, args.output_dir, args.record_all, snapshot_mode=mode)
     print(json.dumps(report["summary"], indent=2))

@@ -77,8 +77,8 @@ def enter_sector(cgb, level: int) -> None:
 def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapshot_mode="record",
         sectors=None):
     output.mkdir(parents=True, exist_ok=True)
-    rom = (rom_path or br.BUILD / "lupine3d.gb").read_bytes()
-    cgb = CGB(rom, parse_symbols(symbols_path or br.BUILD / "lupine3d.sym"))
+    rom = (rom_path or br.GAME_BUILD / "lupine3d.gb").read_bytes()
+    cgb = CGB(rom, parse_symbols(symbols_path or br.GAME_BUILD / "lupine3d.sym"))
     # The route follows the ROM under test, not the build-time source: a
     # pinned baseline carries one compile-time level and no results screens.
     campaign = br.CAMPAIGN if "select_level" in cgb.symbols else br.CAMPAIGN[:1]
@@ -726,7 +726,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=br.BUILD / "playthrough")
+    parser.add_argument("--output-dir", type=Path, default=br.GAME_BUILD / "playthrough")
     parser.add_argument("--rom",type=Path);parser.add_argument("--symbols",type=Path)
     parser.add_argument("--restart",action="store_true")
     parser.add_argument("--snapshot-mode",choices=("check","record","none"),default="record")

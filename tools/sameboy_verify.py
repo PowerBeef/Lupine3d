@@ -16,8 +16,8 @@ PINNED_CORE = "213a12ce93d66b105a113debd9396306066a7cfc"
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--core", type=Path, required=True)
-    parser.add_argument("--rom",type=Path,default=br.BUILD/"lupine3d.gb")
-    parser.add_argument("--output-dir",type=Path,default=br.BUILD)
+    parser.add_argument("--rom",type=Path,default=br.GAME_BUILD/"lupine3d.gb")
+    parser.add_argument("--output-dir",type=Path,default=br.GAME_BUILD)
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True,exist_ok=True)
     core = args.core.resolve()

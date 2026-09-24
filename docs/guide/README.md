@@ -18,13 +18,16 @@ is for building a first-person game on it, or changing the engine itself.
 ```sh
 python3 tools/dev_setup.py && source .venv/bin/activate
 make build test                                   # the ROM, its exports and the regression suite
-python tools/lupine.py level check games/sable_outpost/levels/*.json  # every level's certificate
+python tools/lupine.py game check                # the game's manifest and every level's certificate
 python tools/lupine.py run                        # the coherence tour, every frame checked
 python tools/lupine.py symbols                    # where the debugger exports are
 ```
 
 `build/lupine3d.gb` runs in any CGB-capable emulator; SameBoy and mGBA are
-the pinned ones. There is no cartridge RAM: progress is a four-digit
+the pinned ones. That is the showcase, `games/sable_outpost`; every command
+takes `--game DIR` for another game (`make … GAME=DIR`), which builds into
+`build/games/<id>/`, and `python tools/lupine.py new-game DIR --from GAME`
+starts one as a copy. There is no cartridge RAM: progress is a four-digit
 continue code shown after each sector.
 
 ## The contracts in one paragraph

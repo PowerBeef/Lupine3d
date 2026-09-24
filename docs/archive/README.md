@@ -30,4 +30,4 @@ manifest and `docs/TEST_REPORT.md` to resolve any conflict with a page here.
 | [Slim display contract](SLIM_HUD.md) | v0.8 | Viewport expansion and publication design for the 160×120 profile |
 
 Milestone evidence bound to specific ROMs lives in [`milestones/`](../../milestones/),
-and the retired pixel-hash oracles in [`playtests/archive/oracles/`](../../playtests/archive/oracles/).
+and the retired pixel-hash oracles in [`playtests/archive/oracles/`](../../games/sable_outpost/playtests/archive/oracles/).

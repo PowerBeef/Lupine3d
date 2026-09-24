@@ -95,7 +95,7 @@ PROFILE_TEXTURE = {0: 0, 1: 1, 2: 2}   # surface profile structure/machinery/doo
 
 def tour_poses():
     for name in ("sable_v10_coherence_tour.json", "living_world.json"):
-        scenario = json.loads((ROOT / "playtests" / name).read_text())
+        scenario = json.loads((ROOT / "games" / "sable_outpost" / "playtests" / name).read_text())
         for index, action in enumerate(scenario["actions"]):
             if "pose" in action:
                 yield f"{name.split('.')[0]}:{index:02d}", tuple(action["pose"]), None, None
@@ -246,7 +246,7 @@ def golden_world(name: str) -> Image.Image | None:
     suite = {"sable_v10_coherence_tour": "tour", "living_world": "world"}.get(suite)
     if suite is None:
         return None
-    scenario = json.loads((ROOT / "playtests" / ("sable_v10_coherence_tour.json" if suite == "tour" else "living_world.json")).read_text())
+    scenario = json.loads((ROOT / "games" / "sable_outpost" / "playtests" / ("sable_v10_coherence_tour.json" if suite == "tour" else "living_world.json")).read_text())
     captures = [a for a in scenario["actions"] if "capture" in a]
     action = scenario["actions"][int(index)]
     if "capture" not in action:

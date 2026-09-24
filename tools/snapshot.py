@@ -37,11 +37,27 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
+from lupine3d_v4.game import GAME  # noqa: E402  (the loader alone: no build)
+
 SCHEMA = "lupine3d.snapshots.v1"
-SNAPSHOT_ROOT = ROOT / "snapshots"
+# Goldens belong to the game they picture: games/<id>/snapshots/<profile>/<suite>/.
+SNAPSHOT_ROOT = GAME.snapshot_root
+# The showcase's suites. `tour`, `world` and `art` are the game's playtests
+# (game.json `playtests`); `sable` and `witnesses` are the showcase's own
+# qualification producers; `route` is the controller playthrough.
 FAST_SUITES = ("tour", "world", "art", "sable", "witnesses")
 ALL_SUITES = FAST_SUITES + ("route",)
+PLAYTEST_SUITES = ("tour", "world", "art")
 MODES = ("check", "record")
+
+
+def game_suites(*, fast: bool = True) -> tuple[str, ...]:
+    """The suites the selected game has: every one for the showcase, its
+    declared playtests (and the route) for any other game."""
+    if GAME.is_showcase:
+        return FAST_SUITES if fast else ALL_SUITES
+    suites = tuple(s for s in PLAYTEST_SUITES if s in GAME.playtests)
+    return suites if fast else suites + ("route",)
 
 
 def rgb_sha256(image: Image.Image) -> str:
@@ -64,7 +80,7 @@ def build_identity(build_dir: Path | None = None) -> tuple[str, str]:
     """ROM SHA-256 and configuration id of a build: the default build, or
     the one whose manifest sits in `build_dir` (a profile built elsewhere)."""
     import build_rom as br
-    manifest_path = (build_dir or br.BUILD) / "build_manifest.json"
+    manifest_path = (build_dir or br.GAME_BUILD) / "build_manifest.json"
     if manifest_path.is_file():
         manifest = json.loads(manifest_path.read_text())
         return manifest["sha256"], manifest["configuration_id"]
@@ -153,7 +169,7 @@ class Suite:
         self.manifest = self.load_manifest(self.manifest_path)
         if output_dir is None:
             import build_rom as br
-            output_dir = br.BUILD / "snapshots" / self.profile / suite
+            output_dir = br.GAME_BUILD / "snapshots" / self.profile / suite
         self.output_dir = output_dir
         if rom_sha256 is None or configuration_id is None:
             rom_sha256, configuration_id = build_identity()
@@ -299,7 +315,7 @@ def accept(suite: str, scenes: list[str] | None, note: str, *, profile: str | No
     root = root or SNAPSHOT_ROOT
     if output_dir is None:
         import build_rom as br
-        output_dir = br.BUILD / "snapshots" / profile / suite
+        output_dir = br.GAME_BUILD / "snapshots" / profile / suite
     report_path = output_dir / "report.json"
     if not report_path.is_file():
         raise SystemExit(f"no snapshot run to accept: {report_path} is missing; run the suite first")
@@ -339,9 +355,9 @@ def status_table(profile: str | None = None, root: Path | None = None) -> list[d
     profile = profile or profile_name()
     root = root or SNAPSHOT_ROOT
     rows = []
-    for suite in ALL_SUITES:
+    for suite in game_suites(fast=False):
         manifest = Suite.load_manifest(root / profile / suite / "manifest.json")
-        report_path = br.BUILD / "snapshots" / profile / suite / "report.json"
+        report_path = br.GAME_BUILD / "snapshots" / profile / suite / "report.json"
         report = json.loads(report_path.read_text()) if report_path.is_file() else None
         rows.append({"suite": suite, "goldens": len(manifest["scenes"]),
                      "last_run": None if report is None else report["counts"],
@@ -352,13 +368,16 @@ def status_table(profile: str | None = None, root: Path | None = None) -> list[d
 def run_suite(suite: str, mode: str) -> dict[str, Any]:
     """Drive the producer that owns a suite; the producer feeds the Suite."""
     import build_rom as br
-    if suite in ("tour", "world", "art"):
-        from playtest import run_scenario, default_scenario
-        scenario = {"tour": default_scenario(), "world": ROOT / "playtests" / "living_world.json",
-                    "art": ROOT / "playtests" / "sable_art_tour.json"}[suite]
-        output = {"tour": "coherence_tour", "world": "living_world", "art": "sable_art_tour"}[suite]
-        return run_scenario(br.BUILD / "lupine3d.gb", br.BUILD / "lupine3d.sym", scenario,
-                            br.BUILD / "playtest" / output, snapshot_mode=mode)["snapshot"]
+    if suite not in game_suites(fast=False):
+        raise SystemExit(f"{GAME.id} has no '{suite}' suite (it has {', '.join(game_suites(fast=False))})")
+    if suite in PLAYTEST_SUITES:
+        from playtest import ROLE_OUTPUTS, default_scenario, run_scenario, scenario_for
+        scenario = default_scenario() if suite == "tour" else scenario_for(suite)
+        report = run_scenario(br.GAME_BUILD / "lupine3d.gb", br.GAME_BUILD / "lupine3d.sym", scenario,
+                              br.GAME_BUILD / "playtest" / ROLE_OUTPUTS[suite], snapshot_mode=mode)
+        if report.get("snapshot") is None:
+            raise SystemExit(f"{scenario.name} declares no snapshot_suite; add \"snapshot_suite\": \"{suite}\"")
+        return report["snapshot"]
     if suite == "sable":
         from check_sable import check
         return check(br.BUILD / "sable-v2" / "checks", snapshot_mode=mode)["snapshot"]
@@ -372,8 +391,8 @@ def run_suite(suite: str, mode: str) -> dict[str, Any]:
         return session.finish()
     if suite == "route":
         from playthrough import run
-        run(br.BUILD / "playthrough", snapshot_mode=mode)
-        return json.loads((br.BUILD / "snapshots" / profile_name() / "route" / "report.json").read_text())
+        run(br.GAME_BUILD / "playthrough", snapshot_mode=mode)
+        return json.loads((br.GAME_BUILD / "snapshots" / profile_name() / "route" / "report.json").read_text())
     raise SystemExit(f"unknown suite: {suite}")
 
 
@@ -381,7 +400,8 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
     run_p = sub.add_parser("run", help="run a producer and compare its captures with the goldens")
-    run_p.add_argument("--suite", action="append", required=True, help=f"one of {', '.join(ALL_SUITES)} or 'all' (the fast suites)")
+    run_p.add_argument("--suite", action="append", required=True,
+                       help=f"one of {', '.join(game_suites(fast=False))} or 'all' (the fast suites)")
     run_p.add_argument("--mode", choices=MODES, default="check")
     diff_p = sub.add_parser("diff", help="summarise the last run of a suite")
     diff_p.add_argument("--suite", action="append", required=True)
@@ -395,7 +415,7 @@ def main(argv: list[str] | None = None) -> None:
     lst.add_argument("--profile")
     args = parser.parse_args(argv)
     if args.command == "run":
-        suites = [s for name in args.suite for s in (FAST_SUITES if name == "all" else (name,))]
+        suites = [s for name in args.suite for s in (game_suites() if name == "all" else (name,))]
         failures = []
         for suite in suites:
             try:
@@ -409,7 +429,7 @@ def main(argv: list[str] | None = None) -> None:
         import build_rom as br
         profile = args.profile or profile_name()
         for suite in args.suite:
-            path = br.BUILD / "snapshots" / profile / suite / "report.json"
+            path = br.GAME_BUILD / "snapshots" / profile / suite / "report.json"
             if not path.is_file():
                 raise SystemExit(f"no run recorded for suite '{suite}' ({profile}); run it first")
             report = json.loads(path.read_text())

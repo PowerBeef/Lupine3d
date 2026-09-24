@@ -26,7 +26,7 @@ def main():
         # Freeze simulation: a representation-only A/B must compare the same
         # world, even when its two implementations take different cycle counts.
         set_test_world_byte(c, br.WORLD_MODE, 0)
-        for action in json.loads((br.ROOT / "playtests/coherence_tour.json").read_text())["actions"]:
+        for action in json.loads((br.GAME.root / "playtests" / "coherence_tour.json").read_text())["actions"]:
             if "pose" in action: pose(*action["pose"])
             if "b" in action.get("buttons", []):
                 c.diagnostic_barrier()   # the door opens between frames, never inside one

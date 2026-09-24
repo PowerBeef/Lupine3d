@@ -1,6 +1,14 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test docs-check memory-map lupine ci-local identity research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+# The game to build and run: a directory with a game.json, or a name under
+# games/ (make build GAME=games/starter). The showcase, games/sable_outpost,
+# is the default. Every tool reads it as LUPINE3D_GAME; a game other than the
+# showcase builds into build/games/<id>/.
+ifdef GAME
+export LUPINE3D_GAME := $(GAME)
+endif
+
+.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -31,6 +39,11 @@ identity:
 # parallel (tools/ci_local.py): make ci-local ARGS="--changed"
 ci-local:
 	$(PYTHON) tools/ci_local.py $(ARGS)
+
+# The selected game's content without a build: its manifest and every level's
+# certificate (make game-check GAME=games/starter).
+game-check:
+	$(PYTHON) tools/lupine.py game check
 
 # The `lupine` CLI: make lupine ARGS="level check games/sable_outpost/levels/*.json"
 lupine:
@@ -71,11 +84,11 @@ playtest:
 	$(PYTHON) tools/playtest.py
 
 playtest-art: build
-	$(PYTHON) tools/playtest.py --scenario playtests/sable_art_tour.json --output-dir build/playtest/sable_art_tour
+	$(PYTHON) tools/playtest.py --role art
 
 playtest-world:
 	$(PYTHON) tools/build_rom.py
-	$(PYTHON) tools/playtest.py --scenario playtests/living_world.json --output-dir build/playtest/living_world
+	$(PYTHON) tools/playtest.py --role world
 
 .PHONY: playthrough sameboy mgba variants wall-reuse motion snapshot snapshot-diff snapshot-accept
 # The whole campaign by default; SECTORS=A-B plays one range (an episode in

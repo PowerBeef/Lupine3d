@@ -9,8 +9,24 @@ from __future__ import annotations
 import hashlib
 import json
 import argparse
+import os
+import sys
 
-from lupine3d_v4.layout import *  # noqa: F401,F403
+
+def _select_game(argv: list[str]) -> None:
+    """`--game DIR` has to reach LUPINE3D_GAME before the layout import
+    below reads it: a build's game, like every build flag, is fixed at import."""
+    for index, arg in enumerate(argv):
+        if arg == "--game" and index + 1 < len(argv):
+            os.environ["LUPINE3D_GAME"] = argv[index + 1]
+        elif arg.startswith("--game="):
+            os.environ["LUPINE3D_GAME"] = arg.split("=", 1)[1]
+
+
+if __name__ == "__main__":
+    _select_game(sys.argv[1:])
+
+from lupine3d_v4.layout import *  # noqa: E402,F401,F403
 from lupine3d_v4.resources import *  # noqa: F401,F403
 from lupine3d_v4.reference import *  # noqa: F401,F403
 from lupine3d_v4.emitter import *  # noqa: F401,F403
@@ -818,6 +834,7 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     total = sum(rom) & 0xFFFF
     rom[0x014E] = (total >> 8) & 0xFF; rom[0x014F] = total & 0xFF
     metadata.update({
+        "game": GAME.record(),
         "header_checksum": chk, "global_checksum": total, "title": GAME.rom_title,
         "cgb_flag": "0xC0 (CGB-only)", "rom_size_bytes": len(rom),
         "sha256": hashlib.sha256(rom).hexdigest(),
@@ -854,11 +871,14 @@ def write_outputs(output: Path, rom: bytes, assembler, metadata: dict) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=BUILD)
+    parser.add_argument("--game", help="the game directory to build (default games/sable_outpost; "
+                                       "also LUPINE3D_GAME); read before the engine is imported")
+    parser.add_argument("--output-dir", type=Path, default=GAME_BUILD,
+                        help="default build/ for the showcase, build/games/<id>/ for any other game")
     output = parser.parse_args().output_dir
     rom, assembler, metadata = make_rom()
     rom_path = write_outputs(output, rom, assembler, metadata)
-    print(f"Built {rom_path} ({len(rom)} bytes)")
+    print(f"Built {rom_path} ({len(rom)} bytes): {GAME.title} ({GAME.id})")
     print(f"Engine: {metadata['engine_size']} bytes, end={metadata['engine_end']:#06x}")
     print(f"Header checksum: {metadata['header_checksum']:#04x}; global: {metadata['global_checksum']:#06x}")
 

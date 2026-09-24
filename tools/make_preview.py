@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Render current Living World still and GIF previews."""
+"""A still and a GIF of the built game, rendered by the host harness.
+
+The still is filmed from the game's `preview` pose (game.json: a position in
+cells and the angle byte); the showcase's still is also the README's hero
+image. The GIF walks the first level's start. Both land in the game's build
+directory; images are captures of the emitted ROM, never generated."""
 from __future__ import annotations
 
 import sys
@@ -40,7 +45,7 @@ def nearest(image: Image.Image, scale: int = 4) -> Image.Image:
 
 def main() -> None:
     v2_rom, v2_assembler, _ = v2.make_rom()
-    v2.BUILD.mkdir(parents=True, exist_ok=True)
+    v2.GAME_BUILD.mkdir(parents=True, exist_ok=True)
 
     cgb = CGB(v2_rom, v2_assembler.labels)
     # The campaign holds the world behind a title screen, so the preview has
@@ -53,24 +58,28 @@ def main() -> None:
         raw = cgb.render_screen()
         frames.append(nearest(raw))
 
-    # A separate authored pose makes the main project image describe the
-    # current engine: wall composition, the 16x32 Sentinel and foreground UI.
+    # A separate authored pose makes the still describe the game: the
+    # showcase stands beside the comms room's vent wall facing the Sentinel,
+    # so its hero image shows textured walls near and far, an enemy and the
+    # HUD, not an empty start wall.
     hero = CGB(v2_rom, v2_assembler.labels)
     run_to_world(hero)
-    # Stand beside the comms room's vent wall facing the Sentinel, so the
-    # repository hero image shows textured walls near and far, an enemy and
-    # the HUD, not an empty start wall.
-    for address, value in ((v2.PLAYER_XL, 102), (v2.PLAYER_XH, 8),
-                           (v2.PLAYER_YL, 179), (v2.PLAYER_YH, 8), (v2.ANGLE, 12)):
-        set_test_world_byte(hero, address, value)
+    if v2.GAME.preview is not None:
+        x_q8, y_q8, angle = v2.GAME.preview
+        for address, value in ((v2.PLAYER_XL, x_q8 & 0xFF), (v2.PLAYER_XH, x_q8 >> 8),
+                               (v2.PLAYER_YL, y_q8 & 0xFF), (v2.PLAYER_YH, y_q8 >> 8), (v2.ANGLE, angle)):
+            set_test_world_byte(hero, address, value)
     hero.run(until_presentations=1, max_steps=3_000_000)
     hero_image = nearest(hero.render_screen())
 
-    still_path = v2.BUILD / "lupine3d_preview_4x.png"
-    docs_still_path = ROOT / "docs" / "images" / "lupine3d_preview_4x.png"
-    gif_path = v2.BUILD / "lupine3d_preview.gif"
+    still_path = v2.GAME_BUILD / "lupine3d_preview_4x.png"
+    gif_path = v2.GAME_BUILD / "lupine3d_preview.gif"
     hero_image.save(still_path, optimize=True)
-    hero_image.save(docs_still_path, optimize=True)
+    written = [still_path, gif_path]
+    if v2.GAME.is_showcase:
+        docs_still_path = ROOT / "docs" / "images" / "lupine3d_preview_4x.png"
+        hero_image.save(docs_still_path, optimize=True)
+        written.insert(1, docs_still_path)
     paletted = [frame.quantize(colors=64) for frame in frames]
     paletted[0].save(
         gif_path,
@@ -82,9 +91,8 @@ def main() -> None:
         disposal=2,
     )
 
-    print(f"Wrote {still_path}")
-    print(f"Wrote {docs_still_path}")
-    print(f"Wrote {gif_path}")
+    for path in written:
+        print(f"Wrote {path}")
 
 
 if __name__ == "__main__":

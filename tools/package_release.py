@@ -47,7 +47,7 @@ TOP_LEVEL_FILES = (
     "VERSION",
     "requirements.txt",
 )
-TOP_LEVEL_DIRS = (".github", "assets", "docs", "games", "milestones", "playtests", "research", "snapshots", "tests", "tools")
+TOP_LEVEL_DIRS = (".github", "assets", "docs", "games", "milestones", "research", "tests", "tools")
 BUILD_FILES = (
     "atlas_verification.json",
     "static_geometry/rendering_v3_results.json",
@@ -67,8 +67,8 @@ BUILD_FILES = (
     "playtest/living_world/contact_sheet.png",
     "playtest/living_world/playtest.gif",
     "playtest/living_world/report.json",
-    "playtest/sable_art_tour/contact_sheet.png",
-    "playtest/sable_art_tour/report.json",
+    "playtest/art_tour/contact_sheet.png",
+    "playtest/art_tour/report.json",
     "verification_report.json",
     "playthrough/report.json",
     "playthrough/contact_sheet.png",
@@ -221,18 +221,14 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     run([python, "tools/build_rom.py"], ROOT)
     run([python, "tools/playtest.py"], ROOT)
     run([python, "tools/build_rom.py"], ROOT)
-    run([
-        python, "tools/playtest.py", "--scenario", "playtests/living_world.json",
-        "--output-dir", "build/playtest/living_world",
-    ], ROOT)
+    run([python, "tools/playtest.py", "--role", "world"], ROOT)
     # The campaign route runs in CI's chunks (tools/ci_lanes.py): the first
     # from the title, the rest from their continue codes, the last restarting
     # the campaign. Give each an hour and keep every controller-only check.
     for chunk in ROUTE_CHUNKS:
         run([python, "tools/playthrough.py", "--sectors", chunk.sectors, "--output-dir", chunk.directory]
             + (["--restart"] if chunk.restart else []), ROOT, timeout=3600)
-    run([python, "tools/playtest.py", "--scenario", "playtests/sable_art_tour.json",
-         "--output-dir", "build/playtest/sable_art_tour"], ROOT)
+    run([python, "tools/playtest.py", "--role", "art"], ROOT)
     run(["make", "variants"], ROOT)
     run(["make", "wall-reuse"], ROOT)
     run(["make", "motion"], ROOT)
