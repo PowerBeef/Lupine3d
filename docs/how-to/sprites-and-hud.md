@@ -43,10 +43,19 @@ or whose file is not in the game.
 ## The enemy
 
 One set of twelve frames (idle, walk, attack, hurt and death) at three
-distances (`actor_near` 16×32, `actor_mid` 16×16, `actor_far` 8×16) draws
-every enemy kind; each kind has its own palette. The runtime picks the
-distance from the enemy's projected height and the frame from its state and
-the frame's ticks.
+distances (`actor_near` 16×32; `actor_mid` 8×16 or 16×16; `actor_far` 8×16)
+draws every enemy kind; each kind has its own palette. The runtime picks the
+distance from how far the enemy is and the frame from its state and the
+frame's ticks.
+
+Draw the three so each figure is about half the height of the one before,
+as the starter and the showcase do: the near figure 32 pixels tall, the
+middle one a half-scale 8×16, the far one a quarter-scale figure at the foot
+of its 8×16 cel. The engine measures the drawn figures and switches where
+the two neighbouring sizes are equally wrong for the distance, with the near
+figure at its true size one cell away, so an enemy grows steadily as it
+comes closer. Two sizes of the same height make it stop growing between
+them, and look as if it shrinks next to the walls.
 
 ## The HUD
 

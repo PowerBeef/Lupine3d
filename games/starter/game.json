@@ -8,8 +8,8 @@
   "sprites": {
     "manifest": "art/sprites.json",
     "actor_near": "sentinel_near",
-    "actor_mid": "sentinel_mid",
-    "actor_far": "sentinel_far",
+    "actor_mid": "sentinel_far",
+    "actor_far": "sentinel_distant",
     "reticle": "reticle",
     "muzzle_flash": "flash",
     "hud": "hud_steel",

@@ -67,6 +67,28 @@
       "palette": [[0, 0, 0], [39, 28, 32], [170, 53, 50], [238, 218, 175]],
       "sha256": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64"
     },
+    "sentinel_distant": {
+      "file": "native/sentinel_distant.png",
+      "size": [8, 16],
+      "frames": [
+        "idle_a",
+        "idle_b",
+        "walk_left",
+        "walk_pass_a",
+        "walk_right",
+        "walk_pass_b",
+        "attack_raise",
+        "attack_fire",
+        "hurt",
+        "death_kneel",
+        "death_fall",
+        "death_down"
+      ],
+      "ticks": [32, 32, 8, 8, 8, 8, 4, 4, 8, 12, 12, 12],
+      "anchor": [4, 16],
+      "palette": [[0, 0, 0], [39, 28, 32], [170, 53, 50], [238, 218, 175]],
+      "sha256": "479dc4624edc3fe829651ebced4def200cba86fe1f67480e0849a7e7a74caa6d"
+    },
     "reticle": {
       "file": "native/reticle.png",
       "size": [8, 16],

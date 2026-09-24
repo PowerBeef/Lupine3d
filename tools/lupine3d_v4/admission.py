@@ -67,7 +67,9 @@ def emit_admission(a: Assembler):
     a.call("preflight_actor"); a.or_r("a"); a.jr("admission_commit","nz")
     a.label("admission_capacity_rejected")
     a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jr("admission_restore_lod","z")
-    a.inc_r("a"); a.ld_abs_a(SENTINEL_LOD); a.cp_n(2); a.jr("admission_retry_lod","nz")
+    a.inc_r("a"); a.ld_abs_a(SENTINEL_LOD)
+    # A coarser cel that is one column wide needs the one-strip mask.
+    if SENTINEL_MID_COLUMNS == 2: a.cp_n(2); a.jr("admission_retry_lod","nz")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(ENTITY_SCREEN_LEFT)
     a.jr("admission_retry_lod")
     a.label("admission_commit")

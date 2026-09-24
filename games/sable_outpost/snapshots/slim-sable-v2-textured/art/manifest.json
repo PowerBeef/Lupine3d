@@ -42,12 +42,12 @@
       "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "06_sentinel": {
-      "rgb_sha256": "3a23cb1ea8e35688a2e848e87fcc3f12d2dfbfdfeee365abfeca919c696dd23c",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "18981d6d0c62c8666293a36d2173926d8406baba98084e3d0e46d28abadd47eb",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     }
   }
 }

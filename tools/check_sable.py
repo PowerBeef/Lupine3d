@@ -38,7 +38,7 @@ def check(output,snapshot_mode='check'):
     assert b.STRIP_SCRATCH==(0xC8E0 if b.SLIM_DISPLAY else 0xC7C0)
     assert bytes(c.vram[1][0x200:0x700])==compile_sheet(b.GAME.weapons[0].sprite,paired=True)
     assert bytes(c.vram[1][0x700:0x760])==compile_sheet(b.GAME.sprites['reticle'])+compile_sheet(b.GAME.sprites['muzzle_flash'])
-    assert len(b.make_entity_tiles())==242*16 and len(b.hud_assets()[0])<=96*16
+    assert len(b.make_entity_tiles())==218*16 and len(b.hud_assets()[0])<=96*16
     checks['cold_art_and_raster_boundary']=True
     if b.TEXTURED_WALLS:
         # The kernel's window blocks and their directory are the reference's
@@ -275,7 +275,7 @@ def check(output,snapshot_mode='check'):
     c=boot();c.ime=False;c.write8(0xff40,0);c.write8(b.SIM_READY,0)
     # Force all twelve source frames through all three emitted LOD paths and
     # verify actual masked WRAM bytes rather than merely host frame indexing.
-    for lod,name,base in ((0,'sentinel_near',b.SENTINEL_NEAR_TILE_BASE),(1,'sentinel_mid',b.SENTINEL_MID_TILE_BASE),(2,'sentinel_far',b.SENTINEL_FAR_TILE_BASE)):
+    for lod,name,base in ((0,b.GAME.sprites['actor_near'],b.SENTINEL_NEAR_TILE_BASE),(1,b.GAME.sprites['actor_mid'],b.SENTINEL_MID_TILE_BASE),(2,b.GAME.sprites['actor_far'],b.SENTINEL_FAR_TILE_BASE)):
         for frame in range(12):
             c.call_subroutine('clear_entity_oam_shadow');c.write8(b.SENTINEL_LOD,lod);c.write8(b.SENTINEL_ANIM,frame)
             c.write8(b.ENTITY_FOOT_Y,88);c.write8(b.SENTINEL_SCREEN_X,72);c.write8(b.ENTITY_SCREEN_LEFT,255);c.write8(b.ENTITY_SCREEN_RIGHT,255)

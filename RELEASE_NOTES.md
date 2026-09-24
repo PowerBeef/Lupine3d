@@ -1,5 +1,24 @@
 # Unreleased — after v0.12
 
+- **Enemies grow as they come closer.** The middle and far cels were both
+  16 pixels tall, so from about 1¾ cells out an enemy stayed one size while
+  the walls around it grew: it looked twice a wall's height at six cells and
+  seemed to shrink as the player approached. The three sizes now halve: the
+  near 16×32, the 8×16 far art (its half-scale) for the middle distance, and
+  a quarter-scale 4×8 figure derived from it
+  (`art/tools/derive_distant_sentinel.py`) for the far one. The engine
+  measures the drawn figures and switches where neighbouring sizes are
+  equally wrong (near below 1.3 cells, far from 3 cells), with the near
+  figure true one cell away. The middle cel may now be one column (8×16) or
+  two; one column frees 24 dictionary patterns (218 of 256) and one object
+  per enemy. The squat 16×16 middle cel stays in the art folder, unused.
+  The starter game uses the same ladder. The legacy profile is unchanged.
+- **The route stops a reposition that is costing it.** Moving away from
+  an awake actor that follows now ends once the walk has cost two contacts
+  and turns to fight, as the walk to a firing position already did: with
+  the ladder's cheaper middle-distance cels shifting the timing, the first
+  sector's Sentinel took seven contacts off a 130-update reposition and
+  killed the route.
 - **Enemies no longer show through near walls.** A reconstructed sample
   between two cast rays takes its occlusion depth from its projected top,
   and close to a wall some tops belong to no depth: they read 255, as if

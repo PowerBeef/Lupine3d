@@ -404,8 +404,9 @@ def make_entity_tiles() -> bytes:
         out.extend(tile_from_pixels(cel))
         out.extend(bytes(16))
 
-    # Medium 16x16 LOD keeps width while reducing height. Derived from the
-    # same authored cels; adjacent vertical tiles are paired for 8x16 mode.
+    # The middle LOD: the game's sheet, one or two 8x16 columns (Sable's is
+    # the far art, 8x16). The legacy one is 16x16, derived from the near cel.
+    # Adjacent vertical tiles are paired for 8x16 mode.
     for frame in range(SENTINEL_MID_FRAMES):
         if SABLE_ART:
             from .sprite_assets import compile_frame
@@ -420,7 +421,7 @@ def make_entity_tiles() -> bytes:
         tiles = _split_pixels(px, 16, 16)
         out.extend(b"".join(tiles[i * 16:(i + 1) * 16] for i in (0, 2, 1, 3)))
 
-    expected_tiles = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * 4 - ENTITY_TILE_BASE
+    expected_tiles = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * SENTINEL_MID_TILES_PER_FRAME - ENTITY_TILE_BASE
     assert len(out) == expected_tiles * 16
     from .artwork import make_fixture_tiles
     out.extend(make_fixture_tiles())

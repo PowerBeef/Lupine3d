@@ -24,7 +24,7 @@ Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame m
 |---|---|---:|
 | Shotgun | 40×32 | 4: idle, recoil, pump back, pump forward (rendered from a 3D model, `docs/reference/asset-formats.md`) |
 | Muzzle flash | 8×16 | 2 |
-| Sentinel | 16×32, 16×16, 8×16 | 12 per size: idle, walk, attack, hurt, death |
+| Sentinel | 16×32, 8×16, and a 4×8 figure in an 8×16 cel | 12 per size: idle, walk, attack, hurt, death. Each size is half the one before, so an enemy grows steadily as it approaches; the smallest is derived from the 8×16 by `art/tools/derive_distant_sentinel.py`. The earlier 16×16 middle cel (`native/sentinel_mid.png`) is kept but no longer drawn: at the height of the 8×16 it stopped enemies growing between 1¾ and 4 cells. |
 | Player helmet | 16×16 | 4: normal, blink, hurt, dead |
 | Reticle | 8×16 | 1 |
 | Steel panel | 160×24 | Static base with dynamic tile regions |
@@ -44,7 +44,7 @@ Death animation is cosmetic: enemy death, pickup availability and exit activatio
 | World / HUD | 160×120 / 160×24; horizon 60, STAT split at line 120 |
 | HUD patterns | 94 of 96, bank 0 $8200–$87DF |
 | Weapon, reticle and flash | 86 preloaded patterns, bank 1 $8200–$875F |
-| Enemy and fixture ROM dictionary | 242 source patterns, before runtime masks |
+| Enemy and fixture ROM dictionary | 218 source patterns, before runtime masks |
 | Masked world OBJ patterns | 32 per VRAM bank, $8000–$81FF |
 | World admission | 16 objects; four per scanline; hardware limit ten per line |
 | Dynamic BG patterns | 96 |

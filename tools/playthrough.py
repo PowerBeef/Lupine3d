@@ -585,7 +585,19 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                            for a in actors()) and not survives_contact(survivor):
                         collect_drops()
                     else:
-                        navigate(reposition(survivor))
+                        # The actor is awake and follows: a walk it keeps
+                        # striking is contacts taken for nothing. Two of them
+                        # on the way means it is on the route's heels, so turn
+                        # and fight it where the route stands, as the walk to
+                        # a firing position does. Sable Outpost's Sentinel took
+                        # seven contacts off a 130-update reposition that way
+                        # once cheaper middle-distance cels shifted the timing.
+                        walk_health = live8(br.PLAYER_HEALTH)
+                        navigate(reposition(survivor),
+                                 stop=lambda: live8(br.PLAYER_HEALTH) <= walk_health - 2 * contact_damage(survivor))
+                        chaser = next((a for a in living() if a["slot"] == survivor["slot"]), None)
+                        if chaser is not None:
+                            face(chaser)
                 elif count >= 4:
                     # Nothing shot from anywhere nearby has reached a dormant
                     # or patrolling actor: walk onto its own cell, where no

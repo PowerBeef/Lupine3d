@@ -141,7 +141,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert l.HUD_PACKET + l.HUD_PACKET_BYTES <= 0xD400
     assert l.WEAPON_TILE_BASE >= 32
     assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128
-    assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*4 + 64 <= 256
+    assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*l.SENTINEL_MID_TILES_PER_FRAME + 64 <= 256
     # The copy is a contract: the map, the camera, the world window and every
     # actor slot, and nothing else. A change here changes what the renderer
     # can see of the simulation.

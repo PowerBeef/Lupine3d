@@ -1066,6 +1066,43 @@ EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 4
 EXIT_BEACON_FRAMES = 2
 SENTINEL_MID_TILE_BASE = EXIT_BEACON_TILE + EXIT_BEACON_FRAMES * 2
 SENTINEL_MID_FRAMES = 12 if SABLE_ART else 2
+
+
+def _actor_figure_heights():
+    """The drawn height of each distance's figure: its tallest inked rows."""
+    from .sprite_assets import frames, manifest
+    heights, widths = [], []
+    for role in ("actor_near", "actor_mid", "actor_far"):
+        name = GAME.sprites[role]
+        rows = [y for cel in frames(name) for y, row in enumerate(cel) if any(row)]
+        heights.append(max(rows) - min(rows) + 1)
+        widths.append(manifest()["assets"][name]["size"][0])
+    return heights, widths
+
+
+# The middle distance's cel is one 8x16 column or two, as the game draws it.
+# Sable Outpost's is the far art (8x16, the near cel at half scale) and its far
+# cel a quarter-scale figure, so the three sizes halve as an enemy recedes.
+if SABLE_ART:
+    _heights, _widths = _actor_figure_heights()
+    if _widths[1] not in (8, 16):
+        raise ValueError("actor_mid must be 8 or 16 pixels wide")
+    SENTINEL_MID_COLUMNS = _widths[1] // 8
+    # A wall one cell away projects 960/16 = 60 pixels; the near figure is
+    # drawn at its true size one cell (forward 16, Q4) away, so a figure of
+    # height h is true at forward 16 * near/h. Each switch sits where the two
+    # neighbouring figures are equally wrong (the geometric mean), with a
+    # tenth either side of hysteresis so a figure on the line does not flicker.
+    _near, _mid, _far = _heights
+    _near_switch = 16 * (_near / _mid) ** 0.5
+    _far_switch = 16 * _near / (_mid * _far) ** 0.5
+    LOD_NEAR_ENTER, LOD_NEAR_HOLD = round(_near_switch * 0.93), round(_near_switch * 1.1)
+    LOD_FAR_ENTER, LOD_FAR_HOLD = round(_far_switch * 1.07), round(_far_switch * 0.93)
+    assert 5 < LOD_NEAR_ENTER < LOD_NEAR_HOLD < LOD_FAR_HOLD < LOD_FAR_ENTER < 128, _heights
+else:
+    SENTINEL_MID_COLUMNS = 2
+    LOD_NEAR_ENTER, LOD_NEAR_HOLD, LOD_FAR_ENTER, LOD_FAR_HOLD = 28, 36, 68, 60
+SENTINEL_MID_TILES_PER_FRAME = SENTINEL_MID_COLUMNS * 2
 ENTITY_TILE_LIMIT = 256 if SABLE_ART else WEAPON_TILE_BASE
 if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")

@@ -6,11 +6,11 @@ def emit_masked_entities(a: Assembler) -> None:
     a.label("choose_entity_lod")
     a.ld_a_abs(ENTITY_SLOT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", LOD_HISTORY); a.add_hl_rr("de")
     a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_a_abs(ENTITY_FORWARD)
-    a.cp_n(28); a.jr("lod_near", "c"); a.cp_n(68); a.jr("lod_far", "nc")
+    a.cp_n(LOD_NEAR_ENTER); a.jr("lod_near", "c"); a.cp_n(LOD_FAR_ENTER); a.jr("lod_far", "nc")
     a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.or_r("a"); a.jr("lod_not_near", "nz")
-    a.ld_r_r("a", "c"); a.cp_n(36); a.jr("lod_near", "c")
+    a.ld_r_r("a", "c"); a.cp_n(LOD_NEAR_HOLD); a.jr("lod_near", "c")
     a.label("lod_not_near"); a.ld_r_r("a", "b"); a.cp_n(2); a.jr("lod_mid", "nz")
-    a.ld_r_r("a", "c"); a.cp_n(60); a.jr("lod_far", "nc")
+    a.ld_r_r("a", "c"); a.cp_n(LOD_FAR_HOLD); a.jr("lod_far", "nc")
     a.label("lod_mid"); a.ld_r_n("a", 1); a.jr("lod_store")
     a.label("lod_near"); a.xor_r("a"); a.jr("lod_store")
     a.label("lod_far"); a.ld_r_n("a", 2)
@@ -99,6 +99,13 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
             a.ld_a_abs(ACTOR_PALETTE); a.ld_r_r("e", "a"); a.call("submit_masked_oam")
     a.ret()
     a.label("render_medium_pairs")
+    if SENTINEL_MID_COLUMNS == 1:
+        # One 8x16 column, drawn and masked like the far cel (one strip).
+        a.ld_a_abs(ENTITY_SCREEN_LEFT); a.ld_abs_a(MASK_BITS)
+        a.ld_a_abs(SENTINEL_ANIM); a.and_n(15); a.add_a_r("a"); a.add_a_n(SENTINEL_MID_TILE_BASE); a.ld_r_r("d", "a")
+        a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(16); a.ld_r_r("b", "a")
+        a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
+        a.ld_a_abs(ACTOR_PALETTE); a.ld_r_r("e", "a"); a.jp("submit_masked_oam")
     a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 1); a.add_a_r("a"); a.add_a_r("a"); a.add_a_n(SENTINEL_MID_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)
     for col, visible in ((0, ENTITY_SCREEN_LEFT), (1, ENTITY_SCREEN_RIGHT)):
         a.ld_a_abs(visible); a.ld_abs_a(MASK_BITS)

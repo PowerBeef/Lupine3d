@@ -2,12 +2,12 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "actor_covered_discontinuity": {
-      "rgb_sha256": "05706643680d5ea3faf26b05da7b9be78d16beeb2f1e86e32cb59d4248ef9d95",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "1173873d0de726f76ac8e99937920459dc8ee6c126d23af3a17a5239660ac45d",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "close_clipped_wall": {
       "rgb_sha256": "1f5d597100227f8990b491ec898569fa7cd59d9020fb9f2c19c227679e4a64a2",
@@ -26,28 +26,28 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_128": {
-      "rgb_sha256": "f95831b668874a6272a9512a46133d5ea888a34808f864264cddeed02232a4bc",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "b3270df8859b565c915dba527ac7f29bb5d3ad97d73e6e3cba933a54df5db745",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "finite_door_192": {
-      "rgb_sha256": "a116460b671820e5155fd9a37585c059436ef140a38fef39c6c17ed470111053",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "5b0852aace7723137ff644cf4672b06d4d79be2aa587f3ddac1c7888325fed2e",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "finite_door_224": {
-      "rgb_sha256": "8ca82f9abcad2aa2aa0070b790e4ac6e7c2c09d5ba3043a783dd9feef92c8b80",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f39bbcae3f303f1cbd0e81d25a7cb438d30dcb2f26009c18bd4c11968c7baeca",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "finite_door_64": {
       "rgb_sha256": "73ebef4a9b08a5e290be5868e89ecc529784df6d5360f3095e0ec139b29fe8ad",
@@ -66,140 +66,140 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "fractional_actor_00": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_01": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_02": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_03": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_04": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_05": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_06": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_07": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_08": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_09": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_10": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_11": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_12": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_13": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_14": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "fractional_actor_15": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "height_class_occlusion": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0064": {
       "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
@@ -250,60 +250,60 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0447": {
-      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0448": {
-      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0449": {
-      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0575": {
-      "rgb_sha256": "bb73dae95d6d3b7eb2d24b436ce7d84016757bd67156f353b2ad4cdee8de5d10",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "8c5e3213b39b0414d69caa80d486750d30ffc034bbb8b0c062e3a836296b3d26",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0576": {
-      "rgb_sha256": "4205dd889048ea8daa2d987b77bb2523d20cea97c7fc0e645044e7d85cc04f78",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "8c5e3213b39b0414d69caa80d486750d30ffc034bbb8b0c062e3a836296b3d26",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0959": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_0960": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "near_lod_1087": {
       "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
@@ -426,100 +426,100 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_mid_00": {
-      "rgb_sha256": "41b794b54ace62ec890686e049c4f57610d341ba6b551b708c6859b1d7c7869e",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "564d8fe605c02d94b5eb8475874788b5e91597788f2b46c4e59132adc428dd36",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_01": {
-      "rgb_sha256": "0bc4a8627fe2df7601a73d993be156e4fca0fd4dc54c146ee150d758e18941d6",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3f1c1fb7da685ba83a41273c89ba750c5e7de58564e2acd2c4a6128ec4e0abf3",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_02": {
-      "rgb_sha256": "ba7e97438ff9d6cdbc15beb3007a31f86490142b2b2c00cc7d6d5a6c17c8464d",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3c1862e9015017bd1b83de08072d6035e18d2c50536ba318bff48a0a27201b8d",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_03": {
-      "rgb_sha256": "03e5cedc9118cf1d809f1ab56be87990a8d02764595ee1925c1fc38f393a0a3d",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "77794bbd58df47c9c92ce6ec74b2e8dee23ede1dcd56a2d06b1e3ef10e31e0e2",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_04": {
-      "rgb_sha256": "28d098dccfdb4b1751413a681e8418949a4a6e7a786cd0f3914cd3ae46e407d7",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "516305ef41bf9523f9c18d8074a022003d016513fc6de2d6bc19d946274f85c0",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_05": {
-      "rgb_sha256": "63610c019570828bd08f420b2af10d4a1b9dee5ec6e6ef12b193b5bb9b621968",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "306d819c84619c4f2b6dc9dc54fb75970a29701b31977604234c98c297e83d21",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_06": {
-      "rgb_sha256": "a32a2297d2089b847e97619c0234e2e9ecb1275bbdb654278666a8483a595120",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "2124648f9e92c8e6037b82a509421a2028ac0031156b2c05d307df12eb89e845",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_07": {
-      "rgb_sha256": "55cff91d29b5cd75fde481bd5c5a9415aa827562ba6387cc6ea8cb41b4f993e5",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "22938978136cbad3eaa0e751e99e45c99d1daed7140a15fac6602d9682ffed2a",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_08": {
-      "rgb_sha256": "2e3b51b306ee22bd11fdd484cdcb0528f33cc64f8a6f5f95fed33cb90d32ff42",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "ff493dcd4cd8570cc9b1dd91e812c4a4047c8036d965c100b8412101d6a271e8",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_09": {
-      "rgb_sha256": "b563e1103c14321b8c7bf1162d80febc8eb8d37caf42b9951b4832122b6720b1",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "7d80d2705a9bd06ca71bac4867c1ac147c7aef4aafd9137bbbb65ab3c08baa84",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_10": {
-      "rgb_sha256": "fe751ef986ae220b43b6b437fc8df9c70176fce23c119dfaf61cd5036600526b",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "de883910ac1f63fd939a8f2ac29bbc12ca97b518f873fb9a3d4f5885a651cabe",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_11": {
-      "rgb_sha256": "afd339d47f35a738a10aa13faf9d55ba20d495b1dd1c18e12bd1ba989c53fb0b",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "6788e90a0aacdb738436196f0020eb38ac4e084b89201fbccb91e6ec0c0842c7",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_near_00": {
       "rgb_sha256": "f4e6da5f543c0bdd012199adbd9d457cb5160017def7702f880fbef36327b644",
@@ -618,12 +618,12 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "shallow_angle": {
-      "rgb_sha256": "d605476bd8c6ad9885c2a34c4149e5f3107cb675b98049759ebd44c24de3870f",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "a739d517d0660a009571816398f2d98c75b0144b2fb7d3244d02de811ed014df",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "thin_occluder": {
       "rgb_sha256": "e9e72dceea8613a510b26e8d523bda7f6db575d33396c55e11be91443bb803a6",
@@ -634,68 +634,68 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "touching_doors_axis_0": {
-      "rgb_sha256": "a329eee73b41518b87d423741b2c4e5f96043cd0513ddf247e9623951caecc7c",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "514bba97f4773c29836ebe0e45dd1dd82e0af7a164f45287dd2100c0e3661ea9",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "touching_doors_axis_1": {
-      "rgb_sha256": "63af698fb82df1594fa91026dc8663ae42940a8f9e06060632adf00979b0c4b3",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "e09014382b1fe92417ef1ccad1c69fd2dce8d9fbe2f44910d936f5aedf8d8260",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "two_actor_corner": {
-      "rgb_sha256": "0905759c17b41dbf9dc9509c3a60fbd41c4e720b22f81bc6a8fe1c58af66aed8",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "bcfa02ae8154b6abc8b4097632483aa63f2e9bb4a4e9882b4d610e58ab6649d6",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "yaw_wrap_000": {
-      "rgb_sha256": "12955f6e39b16a83f26a69ba3e70aa848c06c6fcd1fbf4e4a728fcb1eba5de03",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "yaw_wrap_001": {
-      "rgb_sha256": "0095bbffbc5a554ebf7ed34f07dd1bcbee2b909249163cb155b2720c755b8160",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "46fc0fa8365514014db44f66eea54e5db701e980a98e76e672be0a76d303d440",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "yaw_wrap_002": {
-      "rgb_sha256": "8141c6425dd36f68569a56ec9e24def68f717b077eeeda4fe040abe19e4af90c",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "303508768866b93eaf2c2494d48da7dc1f52c30e7a7fe6b3f52cb27cfc7ee55e",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "yaw_wrap_254": {
-      "rgb_sha256": "5189559c2da5228ed62fa1fdd9e1217e8e444fcc86c5527faa235fce5c2bdebd",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "d714576bf5b2c70f3095e9b4ff002a37811e09a3e25739fdbd4481474eb98728",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "yaw_wrap_255": {
-      "rgb_sha256": "4af20808334403cba5f4f08362fb2a4a0de4c2da0fc9e3c0f6968c3f63bb21f5",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "d80263d65a71419d7f4958c4f15e64619c6193c82ed781b8fc57c1fd36563ede",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T20:18:30+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     }
   }
 }

@@ -1,7 +1,7 @@
 """Sparse wall-mounted fixtures, clipped by physical face/cell certificates."""
 from .layout import *
 
-FIXTURE_TILE_BASE = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * 4
+FIXTURE_TILE_BASE = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * SENTINEL_MID_TILES_PER_FRAME
 
 def fixture_records(level=None):
     level = level or ACTIVE_LEVEL

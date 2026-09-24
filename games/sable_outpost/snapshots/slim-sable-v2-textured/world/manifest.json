@@ -50,44 +50,44 @@
       "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "07_sentinel_encounter": {
-      "rgb_sha256": "248a7fd1ca15c9db721eaf40967cab992f3935c0e5b4ee9b0e31b705c0f11ecf",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "b3696d3c27af9f5ede9040d39f277bee2cfb23d19763eaf786839b410a0f5bf2",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "6a5471a6e4ebdd5acd4a270bd2cafc7229580ea9a286d33be5b335a508017610",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "484f60c5303737b3473a7ecfb22d20264b44bbeac0b178bd2dc8f6d8b2de5cf7",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "94486941ca9b9a88758086c6108544340066bafb979dd00db73c5cc0d65fdd68",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "646a3c59a7cff7e54ba965bfadd18704918262758b435234599580f49f1416fe",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "11a63fbd65aea1708845b5401c411625b51b0d73b3f2f9f7d56975d91249e030",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "c30ca46555b49b198de8c4e30b59fc528980d8066801d5451eb26e501b032286",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "11_pickup_collected": {
-      "rgb_sha256": "3819060db04dc63d8f88cdf2fbbfa80653201bfaa42098acc64eabb6f51f94ab",
-      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "rgb_sha256": "c431fe980ee09d16cf126d84768e263669727cb0131e0085a3db71999f8802b4",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T17:30:39+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "12_exit_unlocking": {
       "rgb_sha256": "8304a1a67743f2ac3527aa497712603b50ada3cd5d67e6bfe80656fd7a65629b",
@@ -98,12 +98,12 @@
       "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "e53e03f3a19c92cab1632aca2d476b4480b43619ce3900edfb6d080ddf9d72dc",
-      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "rgb_sha256": "1d0a5fdee18673fe321982af3b3c4e596c99cebad0dcb9bd5f285a61f6763746",
+      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_at": "2026-09-24T20:15:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "14_level_complete": {
       "rgb_sha256": "67ddcbabd93fad19b642b7cb1709d768246bc1ccdf748e7662a5e092602d509a",
