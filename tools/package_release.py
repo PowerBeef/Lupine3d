@@ -109,7 +109,7 @@ def sha256_file(path: Path) -> str:
 
 def run(
     command: list[str], cwd: Path, *, capture: bool = False,
-    timeout: int = 180, env_overrides: dict[str, str] | None = None,
+    timeout: int = 1800, env_overrides: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     print(f"+ ({cwd}) {' '.join(command)}", flush=True)
     result = subprocess.run(
@@ -214,7 +214,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
         env_overrides={"LUPINE3D_DISPLAY": "legacy", "LUPINE3D_ART": "legacy",
                        "LUPINE3D_ART_ANIMATION": "0"})
     run([python, "tools/build_rom.py"], ROOT)
-    run([python, "tools/run_tests.py"], ROOT, timeout=600)
+    run([python, "tools/run_tests.py"], ROOT, timeout=3600)
     run([python, "tools/check_sable.py", "--output-dir", f"build/{EVIDENCE_DIR}/art-checks"], ROOT)
     # Versioned research/results files are retained historical evidence.
     # Current comparisons write separately and use identical oracle geometry.
@@ -237,7 +237,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     run(["make", "variants"], ROOT)
     run(["make", "wall-reuse"], ROOT)
     run(["make", "motion"], ROOT)
-    run(["make", "research-tail"], ROOT, timeout=600)
+    run(["make", "research-tail"], ROOT, timeout=1800)
     run([python, "tools/release_check.py"], ROOT)
     if regenerate_previews:
         run([python, "tools/make_preview.py"], ROOT)
@@ -312,7 +312,8 @@ def build_and_compare(
             [python, "tools/run_tests.py"],
             root,
             capture=True,
-            timeout=600,
+            # The suite takes about nine minutes here and longer on a CI runner.
+            timeout=3600,
         )
     rebuilt_path = root / "build" / "lupine3d.gb"
     rebuilt = rebuilt_path.read_bytes()
