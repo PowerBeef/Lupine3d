@@ -75,9 +75,8 @@ BUILD_FILES = (
     "playtest/art_tour/contact_sheet.png",
     "playtest/art_tour/report.json",
     "verification_report.json",
-    "playthrough/report.json",
-    "playthrough/contact_sheet.png",
     "folded_pixels.json",
+    "folded_compact_pixels.json",
     "unfolded_pixels.json",
     "q14_tail.json",
     "q14_tail.csv",
@@ -89,6 +88,12 @@ BUILD_FILES = (
     "wall_reuse.json",
     "motion_benchmark.json",
     "prepared_disabled_pixels.json",
+) + tuple(
+    # The route runs in CI's chunks, each into its own directory; the release
+    # carries every chunk's report and contact sheet, never a single-route
+    # directory an earlier build left behind.
+    f"{chunk.directory.removeprefix('build/')}/{name}"
+    for chunk in ROUTE_CHUNKS for name in ("report.json", "contact_sheet.png")
 )
 IGNORED_PARTS = {".git", "__pycache__", ".pytest_cache", "dist"}
 IGNORED_SUFFIXES = {".pyc", ".pyo", ".DS_Store"}
