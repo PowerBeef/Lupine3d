@@ -79,7 +79,8 @@ class PaletteSetTests(unittest.TestCase):
                 self.assertEqual(level.palette_profile, index)
                 self.assertEqual(level.header_bytes()[3], index)
             path.write_text(json.dumps(dict(source, palette_profile="lunar")))
-            with self.assertRaises(KeyError):
+            # An unknown theme names the game's themes, so the fix is in the message.
+            with self.assertRaisesRegex(ValueError, "not a theme of sable_outpost \\(outpost, reactor, spire"):
                 levels.compile_level(path)
         # The loader copies header byte 3 straight into the fixed-WRAM scalar.
         cgb = run_to_world(CGB(self.rom, self.asm.labels))

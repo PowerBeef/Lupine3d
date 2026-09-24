@@ -66,7 +66,7 @@ top (and, mirrored, the bottom) of every face, panels whose seams meet
 the neighbouring face's to make a two-texel joint, and a centre feature the
 mirror doubles at eye height (the outpost's panel seam, the door's and the
 reactor plate's hazard chevrons, the spire's rib). The PNGs under
-`assets/textures/` are the source of record, drawn with indices 1..3 only.
+`games/sable_outpost/textures/` (a game names its textures in `game.json`) are the source of record, drawn with indices 1..3 only.
 
 **Two compositions, one result.** `compose_pixels` is the semantics: for
 every wall pixel, which texel, which shade. `compose_windows` is what the

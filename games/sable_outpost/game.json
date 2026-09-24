@@ -10,6 +10,71 @@
     {"name": "warden", "contact_damage": 14, "recovery_ticks": 12, "step_q8": 5, "palette": "warden", "drop": "medkit"},
     {"name": "boss", "contact_damage": 20, "recovery_ticks": 10, "step_q8": 6, "palette": "sentinel", "drop": "medkit"}
   ],
+  "textures": {
+    "steel_panel": "textures/steel_panel.png",
+    "machinery_grille": "textures/machinery_grille.png",
+    "door_plate": "textures/door_plate.png",
+    "reactor_plate": "textures/reactor_plate.png",
+    "reactor_pipes": "textures/reactor_pipes.png",
+    "spire_hull": "textures/spire_hull.png",
+    "spire_array": "textures/spire_array.png"
+  },
+  "themes": [
+    {
+      "name": "outpost",
+      "textures": {"structure": "steel_panel", "machinery": "machinery_grille", "door": "door_plate"},
+      "colours": {
+        "ceiling": [1, 2, 3], "floor": [5, 6, 7],
+        "structure": [[14, 17, 18], [6, 9, 11]],
+        "door": [[3, 13, 16], [15, 27, 25]],
+        "machinery": [[10, 14, 12], [4, 8, 7]]
+      },
+      "actors": {
+        "sentinel": [[0, 0, 0], [5, 3, 4], [21, 6, 6], [29, 27, 21]],
+        "warden": [[0, 0, 0], [4, 3, 1], [17, 12, 3], [29, 23, 9]],
+        "skirmisher": [[0, 0, 0], [2, 4, 7], [6, 17, 25], [22, 29, 31]]
+      }
+    },
+    {
+      "name": "reactor",
+      "textures": {"structure": "reactor_plate", "machinery": "reactor_pipes", "door": "door_plate"},
+      "colours": {
+        "ceiling": [1, 1, 2], "floor": [4, 3, 3],
+        "structure": [[13, 11, 10], [5, 4, 5]],
+        "door": [[14, 8, 2], [28, 20, 6]],
+        "machinery": [[4, 13, 15], [2, 6, 8]]
+      },
+      "actors": {
+        "sentinel": [[0, 0, 0], [3, 2, 2], [22, 10, 3], [30, 22, 12]],
+        "warden": [[0, 0, 0], [2, 3, 2], [8, 16, 6], [22, 28, 12]],
+        "skirmisher": [[0, 0, 0], [3, 1, 3], [17, 6, 20], [29, 20, 31]]
+      }
+    },
+    {
+      "name": "spire",
+      "textures": {"structure": "spire_hull", "machinery": "spire_array", "door": "door_plate"},
+      "colours": {
+        "ceiling": [2, 3, 7], "floor": [5, 6, 9],
+        "structure": [[16, 18, 23], [7, 9, 14]],
+        "door": [[12, 5, 18], [26, 19, 31]],
+        "machinery": [[17, 12, 4], [8, 5, 2]]
+      },
+      "actors": {
+        "sentinel": [[0, 0, 0], [2, 2, 4], [9, 12, 22], [24, 26, 31]],
+        "warden": [[0, 0, 0], [4, 1, 1], [26, 6, 4], [31, 22, 18]],
+        "skirmisher": [[0, 0, 0], [1, 3, 3], [5, 20, 18], [20, 31, 28]]
+      }
+    }
+  ],
+  "shared_palettes": {
+    "hud": [[2, 3, 4], [12, 14, 15], [29, 28, 24], [10, 16, 16]],
+    "reserved_bg": [[7, 8, 9], [12, 10, 7], [14, 17, 18], [6, 9, 11]],
+    "weapon": [[0, 0, 0], [4, 4, 5], [13, 16, 17], [29, 28, 24]],
+    "drops": [[0, 0, 0], [2, 5, 4], [5, 18, 11], [27, 29, 23]],
+    "effects": [[0, 0, 0], [2, 3, 4], [8, 12, 14], [30, 22, 8]],
+    "decor": [[0, 0, 0], [2, 5, 6], [5, 15, 18], [16, 29, 27]],
+    "weapon_alt": [[0, 0, 0], [3, 3, 3], [13, 8, 5], [22, 16, 10]]
+  },
   "weapons": [
     {"name": "shotgun", "sprite": "shotgun", "damage": 1, "recovery_ticks": 0, "from_level": 1},
     {"name": "slug rifle", "sprite": "slug_rifle", "damage": 2, "recovery_ticks": 15, "from_level": 1},

@@ -27,6 +27,7 @@ from fractions import Fraction
 from functools import lru_cache
 from typing import Sequence
 
+from .game import GAME
 from .layout import (FOLDED_ROWS, HORIZON, PHYSICAL_COLUMNS, RAYS, VIEW_HEIGHT, VIEW_MAP_BYTES,
                      VIEW_ROWS, TEXTURED_CEILING_TILE, TEXTURED_FLOOR_TILE, TEXTURED_DYNAMIC_TILE_CAPACITY)
 
@@ -79,7 +80,8 @@ SHADE_REMAP_LIGHT_THREE: tuple[dict[int, int], ...] = (
     {1: 1, 2: 2, 3: 2},
     {1: 1, 2: 2, 3: 2},
 )
-LIGHT_THREE_TEXTURES = frozenset({"door_plate"})
+# Door textures take the door's shade ladder (the game's door role).
+LIGHT_THREE_TEXTURES = GAME.door_textures
 
 
 def shade_remap(texture: "Texture") -> tuple[dict[int, int], ...]:
@@ -236,9 +238,9 @@ def texel_column(u_q8: int) -> Fraction:
 # The kernel's stride classes in Q8 along-face units: a texel is 16 units.
 DELTA_Q8 = tuple(int(delta * TEXELS) for delta in DELTA_CLASSES)   # 2, 4, 8, 16, 32
 # A pixel's surface profile picks one texture of its level's set:
-# structure, machinery, door. The set is the level's palette set (outpost,
-# reactor, spire); every episode shares the door plate.
-TEXTURE_SETS = ((0, 1, 2), (3, 4, 2), (5, 6, 2))
+# structure, machinery, door. The set is the level's theme (game.json
+# `themes`; the showcase's outpost, reactor and spire share the door plate).
+TEXTURE_SETS = GAME.texture_sets
 PROFILE_TEXTURE = TEXTURE_SETS[0]
 
 

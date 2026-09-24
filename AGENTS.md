@@ -131,7 +131,7 @@ regression contract.
 - Every cast records its along-face coordinate (`RAY_U`, `PIXEL_U`), oriented
   so texture columns never decrease across the view: the console negates the
   east and north faces. Textures are authored 16x8 indexed PNGs under
-  `assets/textures/`, mirrored about the horizon by construction; builds
+  `games/<id>/textures/` (the game names them in `game.json`), mirrored about the horizon by construction; builds
   compile them into row-window blocks (`TEXTURE_WINDOW_BANKS`: 248-255,
   246, 155) and never generate images. Each episode has its own texture set,
   selected by the level's palette set: `load_level` points `TEX_DIRECTORY`

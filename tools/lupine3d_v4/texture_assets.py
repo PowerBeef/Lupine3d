@@ -1,6 +1,7 @@
 """Authored wall textures and the ROM tables the textured kernel reads.
 
-A texture is an indexed 16x8 PNG under `assets/textures/` whose pixel values
+A texture is an indexed 16x8 PNG a game names (game.json `textures`, the
+showcase's under `games/sable_outpost/textures/`) whose pixel values
 are colour indices 1..3 (2 lit, 3 shaded, 1 deep); index 0 is the outside
 and never appears in a texture. The compiler mirrors every texture about
 the horizon by construction (docs/TEXTURED_WALLS.md), so nothing here is
@@ -17,22 +18,23 @@ from pathlib import Path
 
 from PIL import Image
 
+from .game import GAME
+
 from .texture_reference import (DELTA_CLASSES, PHASE_STEPS, SHADE_SETS, TEXEL_ROWS, TEXELS, TEXTURE_SETS, Texture,
                                 make_row_windows, window_planes)
 
-TEXTURE_DIR = Path(__file__).resolve().parents[2] / "assets" / "textures"
-# Texture indices. `texture_reference.TEXTURE_SETS` maps each palette set's
-# surface profiles (structure, machinery, door) onto these: Sable Outpost
-# 0 1 2, Reactor Deep 3 4 2, Signal Spire 5 6 2. The first three keep their
-# indices and banks, so the first episode's windows never move.
-TEXTURE_NAMES = ("steel_panel", "machinery_grille", "door_plate",
-                 "reactor_plate", "reactor_pipes", "spire_hull", "spire_array")
+# Texture indices: every texture the game's themes use, in first-use order
+# (lupine3d_v4/game.py), which fixes each one's ROM bank.
+# `texture_reference.TEXTURE_SETS` maps each theme's surface profiles
+# (structure, machinery, door) onto these: in the showcase, Sable Outpost
+# 0 1 2, Reactor Deep 3 4 2, Signal Spire 5 6 2.
+TEXTURE_NAMES = GAME.texture_names
 BLOCK_BYTES = len(DELTA_CLASSES) * TEXELS * PHASE_STEPS * TEXEL_ROWS * 2   # 5,120
 BLOCKS_PER_BANK = 3
 
 
 def load_texture(name: str) -> Texture:
-    path = TEXTURE_DIR / f"{name}.png"
+    path = GAME.textures[name]
     image = Image.open(path)
     if image.mode != "P":
         raise ValueError(f"{path}: textures are indexed PNGs")

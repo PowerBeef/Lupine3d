@@ -41,6 +41,13 @@ MAX_KINDS = 4
 ACTOR_PALETTE_SLOTS = (1, 6, 7)
 # The weapon index is masked, so the arsenal is exactly this many weapons.
 WEAPON_COUNT = 4
+# The roles a wall face can have; a theme gives each a texture.
+TEXTURE_ROLES = ("structure", "machinery", "door")
+# The palettes that are the same in every theme (docs/ART_PIPELINE.md):
+# BG 1 (the HUD and the full-screen modes), BG 7, and OBJ 0 and 2-5.
+SHARED_PALETTES = ("hud", "reserved_bg", "weapon", "drops", "effects", "decor", "weapon_alt")
+
+Colour = tuple[int, int, int]     # RGB555 components, 0..31 each, exactly what the console stores
 
 
 class GameError(ValueError):
@@ -75,6 +82,22 @@ class Weapon:
 
 
 @dataclass(frozen=True)
+class Theme:
+    """A level's look: its wall textures and the world's colours.
+
+    A level names its theme (`palette_profile`); every world entry uploads
+    the theme's palettes and points the textured kernel at its textures."""
+    name: str
+    textures: dict[str, str]                 # role (structure, machinery, door) -> texture name
+    ceiling: Colour
+    floor: Colour
+    structure: tuple[Colour, Colour]         # the structure faces' two tones
+    door: tuple[Colour, Colour]
+    machinery: tuple[Colour, Colour]
+    actors: dict[str, tuple[Colour, ...]]    # actor palette name -> four colours (colour 0 is transparent)
+
+
+@dataclass(frozen=True)
 class Game:
     root: Path
     id: str
@@ -84,6 +107,9 @@ class Game:
     actor_palettes: tuple[str, ...]
     kinds: tuple[Kind, ...]
     weapons: tuple[Weapon, ...]
+    textures: dict[str, Path]                # texture name -> indexed 16x8 PNG
+    themes: tuple[Theme, ...]
+    shared_palettes: dict[str, tuple[Colour, ...]]
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -112,6 +138,33 @@ class Game:
 
     def actor_palette_slot(self, name: str) -> int:
         return ACTOR_PALETTE_SLOTS[self.actor_palettes.index(name)]
+
+    @property
+    def theme_ids(self) -> dict[str, int]:
+        """Theme name to the level header's palette-set byte: declaration order."""
+        return {theme.name: index for index, theme in enumerate(self.themes)}
+
+    @property
+    def texture_names(self) -> tuple[str, ...]:
+        """Every texture the themes use, in first-use order (structure,
+        machinery, door, theme by theme): the order fixes each one's ROM bank."""
+        names: list[str] = []
+        for theme in self.themes:
+            for role in TEXTURE_ROLES:
+                if theme.textures[role] not in names:
+                    names.append(theme.textures[role])
+        return tuple(names)
+
+    @property
+    def texture_sets(self) -> tuple[tuple[int, int, int], ...]:
+        """Per theme, the texture index of each role."""
+        index = {name: n for n, name in enumerate(self.texture_names)}
+        return tuple(tuple(index[theme.textures[role]] for role in TEXTURE_ROLES) for theme in self.themes)
+
+    @property
+    def door_textures(self) -> frozenset[str]:
+        """Textures drawn on doors, which take the door's shade ladder."""
+        return frozenset(theme.textures["door"] for theme in self.themes)
 
     @property
     def episode_screen_names(self) -> tuple[str, ...]:
@@ -265,6 +318,68 @@ def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
     return tuple(weapons)
 
 
+def _colour(value: object, root: Path, context: str) -> Colour:
+    if (not isinstance(value, list) or len(value) != 3
+            or any(not isinstance(c, int) or isinstance(c, bool) or not 0 <= c <= 31 for c in value)):
+        raise GameError(_where(root, f"{context} must be [red, green, blue] with each from 0 to 31 (RGB555)"))
+    return tuple(value)
+
+
+def _colours(value: object, count: int, root: Path, context: str) -> tuple[Colour, ...]:
+    if not isinstance(value, list) or len(value) != count:
+        raise GameError(_where(root, f"{context} must list {count} colours"))
+    return tuple(_colour(c, root, f"{context}[{n}]") for n, c in enumerate(value))
+
+
+def _textures(data: object, root: Path, files: dict[str, str]) -> dict[str, Path]:
+    if not isinstance(data, dict) or not data:
+        raise GameError(_where(root, "textures must map texture names to PNG files"))
+    return {_string(name, root, "a texture name"): _game_file(root, path, f"textures.{name}", files)
+            for name, path in data.items()}
+
+
+def _themes(data: object, textures: dict[str, Path], palettes: tuple[str, ...], root: Path) -> tuple[Theme, ...]:
+    if not isinstance(data, list) or not data:
+        raise GameError(_where(root, "themes must be a non-empty list"))
+    themes = []
+    for index, raw in enumerate(data):
+        context = f"themes[{index}]"
+        raw = _keys(raw, {"name", "textures", "colours", "actors"}, {"name", "textures", "colours", "actors"}, root, context)
+        roles = _keys(raw["textures"], set(TEXTURE_ROLES), set(TEXTURE_ROLES), root, f"{context}.textures")
+        for role, name in roles.items():
+            if name not in textures:
+                raise GameError(_where(root, f"{context}.textures.{role} {name!r} is not in textures "
+                                             f"({', '.join(textures)})"))
+        colours = _keys(raw["colours"], {"ceiling", "floor", "structure", "door", "machinery"},
+                        {"ceiling", "floor", "structure", "door", "machinery"}, root, f"{context}.colours")
+        actors = _keys(raw["actors"], set(palettes), set(palettes), root, f"{context}.actors")
+        themes.append(Theme(
+            name=_string(raw["name"], root, f"{context}.name"), textures=dict(roles),
+            ceiling=_colour(colours["ceiling"], root, f"{context}.colours.ceiling"),
+            floor=_colour(colours["floor"], root, f"{context}.colours.floor"),
+            structure=_colours(colours["structure"], 2, root, f"{context}.colours.structure"),
+            door=_colours(colours["door"], 2, root, f"{context}.colours.door"),
+            machinery=_colours(colours["machinery"], 2, root, f"{context}.colours.machinery"),
+            actors={name: _colours(actors[name], 4, root, f"{context}.actors.{name}") for name in palettes}))
+    if len({theme.name for theme in themes}) != len(themes):
+        raise GameError(_where(root, "theme names must be distinct"))
+    used = {theme.textures[role] for theme in themes for role in TEXTURE_ROLES}
+    for name in textures:
+        if name not in used:
+            raise GameError(_where(root, f"texture {name!r} is not used by any theme"))
+    doors = {theme.textures["door"] for theme in themes}
+    walls = {theme.textures[role] for theme in themes for role in ("structure", "machinery")}
+    if doors & walls:
+        raise GameError(_where(root, f"texture {sorted(doors & walls)[0]!r} is used both on doors and on walls; "
+                                     "doors take their own shade ladder, so give them their own texture"))
+    return tuple(themes)
+
+
+def _shared_palettes(data: object, root: Path) -> dict[str, tuple[Colour, ...]]:
+    data = _keys(data, set(SHARED_PALETTES), set(SHARED_PALETTES), root, "shared_palettes")
+    return {name: _colours(data[name], 4, root, f"shared_palettes.{name}") for name in SHARED_PALETTES}
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -276,8 +391,9 @@ def load_game(directory: Path) -> Game:
     except json.JSONDecodeError as error:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
-    data = _keys(data, {"$schema", "format", "id", "title", "profiles", "episodes", "actor_palettes", "kinds", "weapons"},
-                 {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons"}, root, "the manifest")
+    keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
+            "shared_palettes"}
+    data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
     game_id = _string(data["id"], root, "id")
@@ -287,10 +403,13 @@ def load_game(directory: Path) -> Game:
     if not isinstance(profiles, list) or not profiles or any(p not in DISPLAY_PROFILES for p in profiles):
         raise GameError(_where(root, f"profiles must be a non-empty list drawn from {', '.join(DISPLAY_PROFILES)}"))
     actor_palettes = _names(data["actor_palettes"], root, "actor_palettes", len(ACTOR_PALETTE_SLOTS))
+    textures = _textures(data["textures"], root, files)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=_episodes(data["episodes"], root, files),
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
-                weapons=_weapons(data["weapons"], root, 0), files=files)
+                weapons=_weapons(data["weapons"], root, 0), textures=textures,
+                themes=_themes(data["themes"], textures, actor_palettes, root),
+                shared_palettes=_shared_palettes(data["shared_palettes"], root), files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:

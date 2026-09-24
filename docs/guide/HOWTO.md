@@ -71,12 +71,12 @@ walks to the next owned one with the LCD off. The count is a power of two
 ## Add a wall texture
 
 1. Author a 16×8 indexed PNG (the upper half of a 16×16 face; the compiler
-   mirrors it) using indices 1..3 only, under `assets/textures/`.
-2. Add its name to `TEXTURE_NAMES` in `texture_assets.py` and use its index
-   in a set of `TEXTURE_SETS` in `texture_reference.py`: a set is the
-   (structure, machinery, door) textures of one palette set, so an episode's
-   levels get it through their `palette_profile`, and a level chooses
-   per-face profiles with `surfaces`. Each texture is four 5 KiB shade
+   mirrors it) using indices 1..3 only, under your game's `textures/`.
+2. Name it in `game.json` `textures` and give it a role (structure,
+   machinery or door) in a theme's `textures`: a theme is the (structure,
+   machinery, door) textures and the colours of one palette set, so a
+   level gets it through its `palette_profile`, and a level chooses per-face
+   profiles with `surfaces`. Each texture is four 5 KiB shade
    blocks, three blocks to a bank, in the order `TEXTURE_WINDOW_BANKS`
    gives; the build refuses more blocks than those banks hold.
 3. `make build playtest playtest-world playtest-art sable-check` (textured

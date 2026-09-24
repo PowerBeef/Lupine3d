@@ -18,10 +18,11 @@ PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # bytes rather than VRAM patterns; the kind byte is masked to two bits, so a
 # game has at most four.
 ENTITY_KIND_IDS = _GAME.kind_ids
-# Palette sets: one per episode. The header byte selects the 128-byte set
-# `init_palettes` uploads at every world entry, so levels of one campaign may
-# differ; the order is the ROM table index and the runtime clamp, keep it.
-PALETTE_IDS = {"outpost": 0, "reactor": 1, "spire": 2}
+# Themes are the game's (game.json `themes`): a level's `palette_profile`
+# names one, and its declaration order is the header byte that selects the
+# 128-byte palette set `init_palettes` uploads at every world entry and the
+# texture set the textured kernel reads, so levels of one campaign may differ.
+PALETTE_IDS = _GAME.theme_ids
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 6
 DOOR_RECORD_BYTES = 6
@@ -596,6 +597,13 @@ def build_surface_table(grid: bytes, overrides: list[dict[str, Any]], width: int
     return bytes(result)
 
 
+def _theme_id(name: str) -> int:
+    if name not in PALETTE_IDS:
+        raise ValueError(f"palette_profile {name!r} is not a theme of {_GAME.id} "
+                         f"({', '.join(PALETTE_IDS)}; game.json `themes`)")
+    return PALETTE_IDS[name]
+
+
 def compile_level(path: Path) -> CompiledLevel:
     source = json.loads(path.read_text(encoding="utf-8"))
     level_format = str(source.get("format"))
@@ -788,7 +796,7 @@ def compile_level(path: Path) -> CompiledLevel:
         player_angle=_bounded_int(spawn, "angle", 0, 255),
         safe_radius_cells=safe_radius_cells,
         doors=doors, entities=entities, pickups=pickups, exit=exit_spec,
-        palette_profile=PALETTE_IDS[str(source["palette_profile"])],
+        palette_profile=_theme_id(str(source["palette_profile"])),
         vram_profile=PROFILE_IDS[str(source["vram_profile"])],
         readability=readability,
         fixtures=tuple(fixtures),
