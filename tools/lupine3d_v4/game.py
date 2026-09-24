@@ -26,6 +26,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .fonts import FONT, HUD_FONT
+
 ROOT = Path(__file__).resolve().parents[2]
 GAMES = ROOT / "games"
 DEFAULT_GAME_DIR = GAMES / "sable_outpost"
@@ -73,6 +75,10 @@ DRUMS = ("kick", "snare", "hat")
 HOLD_STEP, REST_STEP = -1, -2     # '.' holds the previous note, '-' releases the channel
 # The CH1 effects the engine triggers, each one write of NR10..NR14.
 EFFECTS = ("shoot", "door", "swap", "keycard", "locked", "hurt", "kill", "pickup", "complete")
+# The HUD's objective panel: a small caption over a status word. The caption
+# reads while enemies remain or the exit is open (GOAL over HUNT or EXIT in
+# the showcase); DEAD and DONE replace both. Each is at most four characters.
+HUD_WORDS = ("caption", "hunt", "exit", "dead", "done")
 MUSIC_ROW_LIMIT = 1322   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
 
 
@@ -171,6 +177,7 @@ class Game:
     rom_version: int                             # the cartridge header's mask ROM version byte
     songs: dict[str, Song]                       # by role: title, world, victory
     sound: Sound
+    hud_words: dict[str, str]                    # HUD_WORDS -> the text shown
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -607,6 +614,23 @@ def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, S
         effects={name: _bytes(effects[name], 5, root, f"{path.name} effects.{name}") for name in EFFECTS})
 
 
+def _hud(data: object, root: Path) -> dict[str, str]:
+    data = _keys(data, {"words"}, {"words"}, root, "hud")
+    words = _keys(data["words"], set(HUD_WORDS), set(HUD_WORDS), root, "hud.words")
+    out = {}
+    for name in HUD_WORDS:
+        text = _string(words[name], root, f"hud.words.{name}")
+        font, face = (FONT, "the 3x5 caption font") if name == "caption" else (HUD_FONT, "the HUD status font")
+        if len(text) > 4:
+            raise GameError(_where(root, f"hud.words.{name} {text!r} is longer than the panel's four characters"))
+        missing = sorted({c for c in text if c not in font})
+        if missing:
+            raise GameError(_where(root, f"hud.words.{name} {text!r} uses {', '.join(repr(c) for c in missing)}, "
+                                         f"which {face} lacks (it has {''.join(sorted(font))})"))
+        out[name] = text
+    return out
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -619,7 +643,7 @@ def load_game(directory: Path) -> Game:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
     keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
-            "shared_palettes", "screens", "rom", "audio"}
+            "shared_palettes", "screens", "rom", "audio", "hud"}
     data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
@@ -637,7 +661,7 @@ def load_game(directory: Path) -> Game:
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=episodes,
                 screens=_screens(data["screens"], episodes, root, files), rom_title=rom_title, rom_version=rom_version,
-                songs=songs, sound=sound,
+                songs=songs, sound=sound, hud_words=_hud(data["hud"], root),
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
                 weapons=_weapons(data["weapons"], root, 0), textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
