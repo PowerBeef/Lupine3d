@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from lupine3d_v4.game import GAME as _GAME, Game
+
 
 PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
 # Enemy kinds share the Sentinel's cels and differ by stats and OBJ palette,
@@ -91,16 +93,13 @@ def level_rom_offset(index: int) -> int:
     """Absolute ROM offset of the level's slot (its `$4000`)."""
     bank, page = level_location(index)
     return bank * 0x4000 + (page << 8)
-# The campaign, in order. LUPINE3D_LEVEL still selects a single level for
-# diagnostic and research builds; that build is a one-level campaign.
-# Three episodes of six sectors: Sable Outpost, Reactor Deep, Signal Spire.
-# The order is the campaign, the continue-code table and the level directory.
-CAMPAIGN_ORDER = ("living_world.json", "coolant_spine.json", "reactor_gate.json",
-                  "vent_stacks.json", "signal_deck.json", "cryo_vault.json",
-                  "coolant_intake.json", "pump_gallery.json", "turbine_hall.json",
-                  "coolant_dark.json", "control_gallery.json", "reactor_heart.json",
-                  "antenna_base.json", "relay_deck.json", "hull_walk.json",
-                  "signal_vault.json", "transmitter_ring.json", "spire_crown.json")
+# The campaign is the game's: its manifest's episodes list the level files in
+# order (lupine3d_v4/game.py), and that order is the campaign, the
+# continue-code table and the level directory. LUPINE3D_LEVEL still selects a
+# single level for diagnostic and research builds, a one-level campaign.
+# CAMPAIGN_ORDER is the file names of the game's campaign, kept for tools
+# that name levels by file.
+CAMPAIGN_ORDER = tuple(path.name for path in _GAME.level_paths)
 
 
 @dataclass(frozen=True)
@@ -797,13 +796,13 @@ def compile_level(path: Path) -> CompiledLevel:
     )
 
 
-def campaign(root: Path) -> tuple[CompiledLevel, ...]:
-    """The ordered campaign, or the single level a diagnostic build selected."""
+def campaign(game: Game | None = None) -> tuple[CompiledLevel, ...]:
+    """The game's ordered campaign, or the single level a diagnostic build selected."""
     configured = os.environ.get("LUPINE3D_LEVEL")
     if configured:
         return (compile_level(Path(configured).resolve()),)
-    return tuple(compile_level((root / "levels" / name).resolve()) for name in CAMPAIGN_ORDER)
+    return tuple(compile_level(path) for path in (game or _GAME).level_paths)
 
 
-def active_level(root: Path) -> CompiledLevel:
-    return campaign(root)[0]
+def active_level(game: Game | None = None) -> CompiledLevel:
+    return campaign(game)[0]

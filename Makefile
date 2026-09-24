@@ -32,7 +32,7 @@ identity:
 ci-local:
 	$(PYTHON) tools/ci_local.py $(ARGS)
 
-# The `lupine` CLI: make lupine ARGS="level check levels/*.json"
+# The `lupine` CLI: make lupine ARGS="level check games/sable_outpost/levels/*.json"
 lupine:
 	$(PYTHON) tools/lupine.py $(ARGS)
 
@@ -40,7 +40,7 @@ research:
 	$(PYTHON) research/geometry_v2_lab.py
 
 research-v3:
-	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/rendering_v3_lab.py --output-dir build/static_geometry --accuracy-only
+	LUPINE3D_LEVEL=$(CURDIR)/tests/levels/renderer_benchmark.json $(PYTHON) research/rendering_v3_lab.py --output-dir build/static_geometry --accuracy-only
 
 research-atlas:
 	$(PYTHON) research/build_tile_atlas_v4.py
@@ -61,7 +61,7 @@ research-atlas-pareto:
 	$(PYTHON) research/build_tile_atlas_v4.py --pareto
 
 research-tail:
-	LUPINE3D_LEVEL=$(CURDIR)/levels/renderer_benchmark.json $(PYTHON) research/tail_failure_lab.py --output-prefix build/q14_tail --angle-step 4
+	LUPINE3D_LEVEL=$(CURDIR)/tests/levels/renderer_benchmark.json $(PYTHON) research/tail_failure_lab.py --output-prefix build/q14_tail --angle-step 4
 
 verify: build test research research-v3
 	$(PYTHON) tools/release_check.py
@@ -134,7 +134,7 @@ conformance:
 
 variants:
 	LUPINE3D_REPROJECTION=1 LUPINE3D_NARROW_YIELDS=0 $(PYTHON) tools/verify_variants.py reprojection --output build/reprojection.json
-	LUPINE3D_LEVEL=levels/two_sentinels.json $(PYTHON) tools/verify_variants.py two-actors --output build/two_sentinels.json
+	LUPINE3D_LEVEL=tests/levels/two_sentinels.json $(PYTHON) tools/verify_variants.py two-actors --output build/two_sentinels.json
 	$(PYTHON) tools/verify_variants.py folding --output build/folded_pixels.json
 	# Folding is a property of the flat microstrip compositor, which only the
 	# historical compact and legacy profiles keep: the unfolded oracle has no

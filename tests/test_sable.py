@@ -62,8 +62,8 @@ class SableTests(unittest.TestCase):
                 self.assertEqual(list(c.vram[0][p:p+3]), hud_assets()[3][label])
 
     def test_fixture_compiler_rejects_unmounted_or_wrong_facing_art(self):
-        source = json.loads((br.ROOT/'levels/living_world.json').read_text())
-        self.assertEqual(len(compile_level(br.ROOT/'levels/living_world.json').fixtures), 16)
+        source = json.loads((br.ROOT/"games/sable_outpost/levels/living_world.json").read_text())
+        self.assertEqual(len(compile_level(br.ROOT/"games/sable_outpost/levels/living_world.json").fixtures), 16)
         for fixture in ({'x':4,'y':13,'side':'north','kind':'vent'},
                         {'x':4,'y':11,'side':'west','kind':'access'},
                         {'x':0,'y':0,'side':'north','kind':'light'}):

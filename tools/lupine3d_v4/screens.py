@@ -200,8 +200,9 @@ SCREEN_SOURCES = (
         ("PRESS START", 118, 2, 1),
      ), ()),
 )
-assert tuple(name for name, _, _ in SCREEN_SOURCES[5:]) == (
-    "episode_one_closing", "episode_two_closing", "episode_two_opening", "episode_three_opening")
+# The game's episodes name these screens (game.json, closings then openings).
+assert tuple(name for name, _, _ in SCREEN_SOURCES[5:]) == GAME.episode_screen_names, (
+    f"the game's episode screens {GAME.episode_screen_names} are not the authored ones")
 
 
 @lru_cache(maxsize=1)

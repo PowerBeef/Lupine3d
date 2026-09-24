@@ -77,7 +77,7 @@ class CompilerRefusalTests(unittest.TestCase):
 
     @staticmethod
     def _source(name="vent_stacks.json"):
-        return json.loads((ROOT / "levels" / name).read_text())
+        return json.loads((ROOT / "games" / "sable_outpost" / "levels" / name).read_text())
 
     def _compile(self, source):
         # compile_level reads a path, so round-trip the edited source through

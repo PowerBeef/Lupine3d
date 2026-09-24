@@ -13,7 +13,9 @@ from lupine3d_v4 import levels, tmx_import  # noqa: E402
 
 class TmxRoundTripTests(unittest.TestCase):
     def test_every_authored_level_round_trips_exactly(self):
-        for path in sorted((ROOT / "levels").glob("*.json")):
+        paths = sorted((ROOT / "games" / "sable_outpost" / "levels").glob("*.json")) + sorted((ROOT / "tests" / "levels").glob("*.json"))
+        self.assertEqual(len(paths), 20)
+        for path in paths:
             with self.subTest(level=path.name):
                 source = json.loads(path.read_text(encoding="utf-8"))
                 restored = tmx_import.import_tmx(tmx_import.export_tmx(source))
@@ -23,7 +25,7 @@ class TmxRoundTripTests(unittest.TestCase):
 
     def test_round_tripped_level_compiles_to_the_same_payload(self):
         for name in levels.CAMPAIGN_ORDER:
-            path = ROOT / "levels" / name
+            path = ROOT / "games" / "sable_outpost" / "levels" / name
             with tempfile.TemporaryDirectory() as directory:
                 tmx = Path(directory) / "level.tmx"
                 back = Path(directory) / "level.json"
@@ -37,7 +39,7 @@ class TmxRoundTripTests(unittest.TestCase):
                 self.assertEqual(restored.fixtures, original.fixtures, name)
 
     def test_tmx_is_a_tiled_map_at_32_pixel_cells(self):
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())
         root = ET.fromstring(tmx_import.export_tmx(source))
         self.assertEqual((root.get("orientation"), root.get("width"), root.get("tilewidth")), ("orthogonal", "16", "32"))
         layer = next(l for l in root.findall("layer") if l.get("name") == "materials")
@@ -50,14 +52,14 @@ class TmxRoundTripTests(unittest.TestCase):
         self.assertEqual(names, {"spawn", "doors", "entities", "fixtures", "surfaces", "exit"})
 
     def test_unknown_keys_and_surfaces_survive(self):
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())
         source["surfaces"] = [{"x": 5, "y": 6, "side": "south", "profile": "machinery"}]
         source["designer_notes"] = {"author": "test", "revision": 3}
         restored = tmx_import.import_tmx(tmx_import.export_tmx(source))
         self.assertEqual(restored, source)
 
     def test_importer_refuses_misaligned_and_foreign_tiles(self):
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())
         text = tmx_import.export_tmx(source)
         with self.assertRaises(ValueError):
             tmx_import.import_tmx(text.replace('name="exit"', 'name="exit" ', 1).replace('x="320" y="416" width="32"', 'x="321" y="416" width="32"'))

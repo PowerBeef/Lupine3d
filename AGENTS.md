@@ -86,7 +86,8 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Debugger exports, Tiled levels | `symbols.py`, `tmx_import.py` |
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
-| Content, assets, scenarios and tests | `levels/`, `assets/`, `playtests/`, `tests/` |
+| The showcase game (a game package) | `games/sable_outpost/` (`game.json`, levels), loaded by `game.py` |
+| Assets, scenarios and tests | `assets/`, `playtests/`, `tests/` (engine level fixtures in `tests/levels/`) |
 | Research and retained evidence | `research/`, `milestones/`, `.render-baselines/` |
 
 `lupine3d_v4` remains the active package despite its historical name. Preserve
@@ -197,7 +198,8 @@ regression contract.
   weapon, drop, flash, decor and reticle palettes are identical in every set
   because screens never rewrite palettes. Set 0 is byte-identical to the
   original table, so the outpost goldens do not move.
-- Episodes are `EPISODE_SECTORS` (six) sectors. The title opens episode one;
+- Episodes are the game's (`game.json` `episodes`; Sable's are six sectors
+  each, `EPISODE_LENGTHS`). The title opens episode one;
   when `LEVEL_INDEX` is one of `EPISODE_STARTS` (6, 12) the episode's opening
   screen shows before its first sector loads (`show_episode_opening`, from
   the title start, so a continue code opens its episode), and the intermission
@@ -462,7 +464,9 @@ point for build, run, snapshot, level, profile and verification commands.
 
 ## Documentation and release hygiene
 
-Author gameplay in the campaign levels `levels.py:CAMPAIGN_ORDER` names:
+Author gameplay in the campaign levels the game's `game.json` episodes list
+(`games/sable_outpost/`; `lupine3d_v4/game.py` loads it, and the build never
+imports anything from a game directory):
 three episodes of six sectors (`docs/CAMPAIGN.md`, "Three episodes"). The
 full controller route plays every sector, so it is run in chunks: CI's `route`
 matrix gives each chunk of `tools/ci_lanes.py:ROUTE_CHUNKS` its own runner,

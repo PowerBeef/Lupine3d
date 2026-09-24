@@ -1,10 +1,10 @@
 # Level format (`lupine-level-v2`)
 
-A level is one JSON file under `levels/`. `tools/lupine3d_v4/levels.py`
+A level is one JSON file in a game's directory (the showcase's are under `games/sable_outpost/levels/`). `tools/lupine3d_v4/levels.py`
 (`compile_level`) is the validator of record: this page documents what it
 accepts and why, and `docs/schema/level-v2.schema.json` describes the same
 shape for editors. When the two disagree, the compiler wins and the
-documentation is wrong. `python tools/lupine.py level check levels/*.json`
+documentation is wrong. `python tools/lupine.py level check games/sable_outpost/levels/*.json`
 compiles a level and prints its certificate (`docs/LEVEL_CERTIFICATE.md`).
 
 Authoring in [Tiled](https://www.mapeditor.org/) is supported through

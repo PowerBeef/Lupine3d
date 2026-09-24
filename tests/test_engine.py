@@ -32,7 +32,7 @@ class Lupine3DTests(unittest.TestCase):
         cls.rom, cls.assembler, cls.manifest = br.make_rom()
         cls.symbols = cls.assembler.labels
         cls.grid = br.make_map()
-        cls.renderer_level = compile_level(ROOT / "levels" / "renderer_benchmark.json")
+        cls.renderer_level = compile_level(ROOT / "tests" / "levels" / "renderer_benchmark.json")
 
     def boot_to_main(self) -> CGB:
         cgb = CGB(self.rom, self.symbols)
@@ -390,7 +390,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(report.material_singleton_runs, 4)
 
     def test_level_v2_rejects_unsafe_spawns_bad_door_frames_and_missing_exit_lock(self) -> None:
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text(encoding="utf-8"))
         mutations = []
         unsafe = json.loads(json.dumps(source))
         unsafe["player_spawn"]["x_q8"] = unsafe["entities"][0]["x_q8"]
@@ -411,7 +411,7 @@ class Lupine3DTests(unittest.TestCase):
                     compile_level(path)
 
     def test_level_v2_readability_gates_reject_voids_bypasses_and_long_sightlines(self) -> None:
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text(encoding="utf-8"))
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text(encoding="utf-8"))
         cases = []
 
         sealed_void = json.loads(json.dumps(source))

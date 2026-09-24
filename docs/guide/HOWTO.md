@@ -7,14 +7,15 @@ ROM.
 
 ## Add a campaign level
 
-1. Copy a sector under `levels/` (or export one to Tiled: `python
-   tools/lupine.py level export-tmx levels/vent_stacks.json build/vent.tmx
+1. Copy a sector under `games/sable_outpost/levels/` (or export one to
+   Tiled: `python tools/lupine.py level export-tmx
+   games/sable_outpost/levels/vent_stacks.json build/vent.tmx
    --swatch`, edit, then `lupine level import-tmx`). The format, units and
    limits are in `docs/LEVEL_FORMAT.md`.
-2. `python tools/lupine.py level check levels/new.json` until the
+2. `python tools/lupine.py level check games/sable_outpost/levels/new.json` until the
    certificate passes (`docs/LEVEL_CERTIFICATE.md`). Fix the level, never
    the limits.
-3. Add the file name to `CAMPAIGN_ORDER` in `tools/lupine3d_v4/levels.py`.
+3. Add the file to an episode's `levels` in `games/sable_outpost/game.json`.
    Levels are packed five to a ROM bank from 241 (a resident directory gives
    the loader each one's bank and slot page), and every campaign level must
    share the first level's `vram_profile`; `palette_profile` names the

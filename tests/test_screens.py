@@ -429,7 +429,8 @@ class EpisodeScreenTests(unittest.TestCase):
         self.assertEqual(len(SCREEN_EPISODE_OPENINGS), len(br.EPISODE_STARTS))
         for index in SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS:
             self.assertLess(index, len(SCREEN_SOURCES))
-        self.assertEqual(br.EPISODE_STARTS, tuple(br.EPISODE_SECTORS * n for n in range(1, len(br.EPISODE_STARTS) + 1)))
+        # Each later episode starts where the ones before it end.
+        self.assertEqual(br.EPISODE_STARTS, tuple(sum(br.EPISODE_LENGTHS[:n]) for n in range(1, len(br.EPISODE_LENGTHS))))
 
     def test_no_episode_screen_shows_inside_an_episode(self):
         from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS

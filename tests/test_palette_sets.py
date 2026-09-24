@@ -70,7 +70,7 @@ class PaletteSetTests(unittest.TestCase):
         self.assertEqual(self.rom[entry:entry + 6], bytes((0xCD, lcd_off & 255, lcd_off >> 8, 0xCD, init & 255, init >> 8)))
 
     def test_the_loader_stores_the_header_set_a_level_names(self):
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())
         with tempfile.TemporaryDirectory() as directory:
             for name, index in levels.PALETTE_IDS.items():
                 path = Path(directory) / f"{name}.json"

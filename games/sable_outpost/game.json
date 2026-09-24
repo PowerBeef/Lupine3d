@@ -1,0 +1,45 @@
+{
+  "format": "lupine-game-v1",
+  "id": "sable_outpost",
+  "title": "Sable Outpost",
+  "profiles": ["slim", "compact", "legacy"],
+  "episodes": [
+    {
+      "name": "Sable Outpost",
+      "levels": [
+        "levels/living_world.json",
+        "levels/coolant_spine.json",
+        "levels/reactor_gate.json",
+        "levels/vent_stacks.json",
+        "levels/signal_deck.json",
+        "levels/cryo_vault.json"
+      ],
+      "closing": "episode_one_closing"
+    },
+    {
+      "name": "Reactor Deep",
+      "levels": [
+        "levels/coolant_intake.json",
+        "levels/pump_gallery.json",
+        "levels/turbine_hall.json",
+        "levels/coolant_dark.json",
+        "levels/control_gallery.json",
+        "levels/reactor_heart.json"
+      ],
+      "opening": "episode_two_opening",
+      "closing": "episode_two_closing"
+    },
+    {
+      "name": "Signal Spire",
+      "levels": [
+        "levels/antenna_base.json",
+        "levels/relay_deck.json",
+        "levels/hull_walk.json",
+        "levels/signal_vault.json",
+        "levels/transmitter_ring.json",
+        "levels/spire_crown.json"
+      ],
+      "opening": "episode_three_opening"
+    }
+  ]
+}

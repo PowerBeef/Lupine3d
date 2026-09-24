@@ -18,7 +18,7 @@ is for building a first-person game on it, or changing the engine itself.
 ```sh
 python3 tools/dev_setup.py && source .venv/bin/activate
 make build test                                   # the ROM, its exports and the regression suite
-python tools/lupine.py level check levels/*.json  # every level's certificate
+python tools/lupine.py level check games/sable_outpost/levels/*.json  # every level's certificate
 python tools/lupine.py run                        # the coherence tour, every frame checked
 python tools/lupine.py symbols                    # where the debugger exports are
 ```

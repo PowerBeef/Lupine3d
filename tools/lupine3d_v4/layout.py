@@ -17,13 +17,21 @@ from sm83 import Assembler  # noqa: E402
 import build_rom_v1 as v1  # noqa: E402
 from lupine3d_v4 import levels as level_codec  # noqa: E402
 from lupine3d_v4.configuration import RENDER_CONFIG  # noqa: E402
+from lupine3d_v4.game import GAME  # noqa: E402
+
+# The game this build makes (games/<id>/game.json, lupine3d_v4/game.py). A
+# game names the display profiles its art and screens were made for; the
+# historical compact and legacy profiles build only the showcase.
+if RENDER_CONFIG["display"] not in GAME.profiles:
+    raise ValueError(f"{GAME.id} is made for the {', '.join(GAME.profiles)} display profile(s), "
+                     f"not {RENDER_CONFIG['display']!r}")
 
 BUILD = ROOT / "build"
 BUILD.mkdir(parents=True, exist_ok=True)
 ASSETS = ROOT / "assets"
 TILE_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_TILE_ATLAS_DIR", ASSETS))
 ENTITY_ATLAS_ASSETS = Path(os.environ.get("LUPINE3D_ENTITY_ATLAS_DIR", ASSETS / "entity_atlas_80"))
-CAMPAIGN = level_codec.campaign(ROOT)
+CAMPAIGN = level_codec.campaign(GAME)
 ACTIVE_LEVEL = CAMPAIGN[0]
 LEVEL_COUNT = len(CAMPAIGN)
 # The resident wall atlas is chosen once, at build time: the VRAM profile
@@ -395,12 +403,14 @@ WEAPON_SHEET_LABELS = ("weapon_tiles", "slug_tiles", "arc_tiles", "pulse_tiles")
 # WEAPONS_OWNED from the index, so a continue code restores the arsenal for
 # free and a code that moves backwards can take a weapon away.
 WEAPON_UNLOCK_SECTORS = (0, 0, 6, 12)
-# Episodes are six sectors each. The title is the first episode's opening;
-# reaching the first sector of a later episode (by clearing the one before or
-# by a continue code) shows that episode's opening, and clearing an episode
-# shows its closing before the next opening.
-EPISODE_SECTORS = 6
-EPISODE_STARTS = (6, 12)
+# Episodes are the game's (game.json). The title is the first episode's
+# opening; reaching the first sector of a later episode (by clearing the one
+# before or by a continue code) shows that episode's opening, and clearing an
+# episode shows its closing before the next opening. EPISODE_STARTS is the
+# level index each later episode begins at. It comes from the game even in a
+# single-level build (LUPINE3D_LEVEL), which keeps the episode screens.
+EPISODE_LENGTHS = GAME.episode_lengths
+EPISODE_STARTS = GAME.episode_starts
 assert len(WEAPON_UNLOCK_SECTORS) == WEAPON_COUNT == len(WEAPON_SHEET_LABELS) and WEAPON_COUNT & (WEAPON_COUNT - 1) == 0
 # Runtime screen digits and the map cells they land in, plus the code-entry
 # cursor. A screen with no slots leaves all of this untouched.

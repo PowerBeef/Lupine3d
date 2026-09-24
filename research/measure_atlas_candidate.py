@@ -21,10 +21,10 @@ def main() -> None:
     args = parser.parse_args()
     if args.profile == "renderer-heavy":
         os.environ["LUPINE3D_TILE_ATLAS_DIR"] = str(args.atlas_dir.resolve())
-        os.environ["LUPINE3D_LEVEL"] = str((ROOT / "levels" / "renderer_benchmark.json").resolve())
+        os.environ["LUPINE3D_LEVEL"] = str((ROOT / "tests" / "levels" / "renderer_benchmark.json").resolve())
     else:
         os.environ["LUPINE3D_ENTITY_ATLAS_DIR"] = str(args.atlas_dir.resolve())
-        os.environ["LUPINE3D_LEVEL"] = str((ROOT / "levels" / "living_world.json").resolve())
+        os.environ["LUPINE3D_LEVEL"] = str((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").resolve())
         os.environ["LUPINE3D_COMPACT_ATLAS"] = "1"
     # Compare compositor cost on every diagnostic update. A cached wall view
     # does not exercise the candidate atlas and may never flip its BG page.

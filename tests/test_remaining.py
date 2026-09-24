@@ -49,7 +49,7 @@ class RemainingTests(unittest.TestCase):
 
     def test_all_64_retained_tail_rays_select_the_float_oracle_face_in_rom(self):
         c = self.boot(); c.write8(br.SIM_READY, 0); c.write8(br.WORLD_MODE, 0)
-        grid = compile_level(br.ROOT / "levels/renderer_benchmark.json").grid
+        grid = compile_level(br.ROOT / "tests/levels/renderer_benchmark.json").grid
         for i, value in enumerate(grid): c.write8(br.MAP + i, value)
         records = json.loads((br.ROOT / "research/results/tail_failures_v4.json").read_text())["records"]
         self.assertEqual(len(records), 64)

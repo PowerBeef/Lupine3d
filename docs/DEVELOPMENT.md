@@ -81,7 +81,7 @@ OAM) that the host harness can replay; every adapter failure reports its seed.
 
 ## Content and diagnostics
 
-Author gameplay in the eighteen campaign levels `levels.py:CAMPAIGN_ORDER` names (sector 1 is `levels/living_world.json`; [campaign](CAMPAIGN.md)); use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `levels/two_sentinels.json` is the bounded multi-actor scene; `levels/renderer_benchmark.json` is the research corpus.
+Author gameplay in the eighteen campaign levels the showcase's `games/sable_outpost/game.json` lists by episode (sector 1 is `games/sable_outpost/levels/living_world.json`; [campaign](CAMPAIGN.md)); use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `tests/levels/two_sentinels.json` is the bounded multi-actor scene; `tests/levels/renderer_benchmark.json` is the research corpus.
 
 `tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. Its captures are checked against the golden snapshots under `snapshots/` (suites `tour`, `world`, `art`); a changed frame fails naming the scene and writes `build/snapshots/<profile>/<suite>/report.html` for review. Accept a deliberate change with a note:
 

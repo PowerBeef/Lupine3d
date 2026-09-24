@@ -47,7 +47,7 @@ TOP_LEVEL_FILES = (
     "VERSION",
     "requirements.txt",
 )
-TOP_LEVEL_DIRS = (".github", "assets", "docs", "levels", "milestones", "playtests", "research", "snapshots", "tests", "tools")
+TOP_LEVEL_DIRS = (".github", "assets", "docs", "games", "milestones", "playtests", "research", "snapshots", "tests", "tools")
 BUILD_FILES = (
     "atlas_verification.json",
     "static_geometry/rendering_v3_results.json",
@@ -214,7 +214,7 @@ def run_working_tree_gates(*, regenerate_previews: bool) -> dict[str, object]:
     # Versioned research/results files are retained historical evidence.
     # Current comparisons write separately and use identical oracle geometry.
     benchmark_env = {
-        "LUPINE3D_LEVEL": str((ROOT / "levels" / "renderer_benchmark.json").resolve()),
+        "LUPINE3D_LEVEL": str((ROOT / "tests" / "levels" / "renderer_benchmark.json").resolve()),
     }
     run([python, "research/rendering_v3_lab.py", "--output-dir", "build/static_geometry", "--accuracy-only"],
         ROOT, env_overrides=benchmark_env)

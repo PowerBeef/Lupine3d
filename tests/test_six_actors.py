@@ -29,7 +29,7 @@ class SixActorTests(unittest.TestCase):
         self.assertEqual(br.LEVEL_ACTOR_OFFSET + 96, br.LEVEL_FIXTURE_OFFSET)
 
     def test_a_level_may_field_six_actors_and_the_compiler_refuses_seven(self):
-        source = json.loads((ROOT / "levels" / "cryo_vault.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "cryo_vault.json").read_text())
         walkable = [(x, y) for y, row in enumerate(source["rows"]) for x, cell in enumerate(row) if cell == "0"]
         spawn = (source["player_spawn"]["x_q8"] >> 8, source["player_spawn"]["y_q8"] >> 8)
         far = sorted(walkable, key=lambda c: -(abs(c[0] - spawn[0]) + abs(c[1] - spawn[1])))

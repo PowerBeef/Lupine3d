@@ -102,7 +102,7 @@ class EnemyKindTests(unittest.TestCase):
         self.assertEqual(kinds, set(ENTITY_KIND_IDS))
 
     def test_a_level_may_field_a_boss_and_it_leaves_a_medkit(self):
-        source = json.loads((ROOT / "levels" / "cryo_vault.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "cryo_vault.json").read_text())
         # Make the first actor that does not carry the card a boss, so the
         # vault's card door stays openable.
         first = next(i for i, e in enumerate(source["entities"]) if levels.KIND_DROPS[e["kind"]] != "keycard")

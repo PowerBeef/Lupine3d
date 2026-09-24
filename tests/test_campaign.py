@@ -10,22 +10,27 @@ import build_rom as br  # noqa: E402
 from lupine3d_v4 import levels  # noqa: E402
 
 
+# The showcase's episodes are six sectors each (games/sable_outpost/game.json).
+SECTORS = 6
+
+
 class CampaignTests(unittest.TestCase):
     def test_three_episodes_of_six_sectors(self):
-        self.assertEqual(len(br.CAMPAIGN), 3 * br.EPISODE_SECTORS)
-        self.assertEqual(br.EPISODE_STARTS, (br.EPISODE_SECTORS, 2 * br.EPISODE_SECTORS))
+        self.assertEqual(br.EPISODE_LENGTHS, (SECTORS, SECTORS, SECTORS))
+        self.assertEqual(len(br.CAMPAIGN), 3 * SECTORS)
+        self.assertEqual(br.EPISODE_STARTS, (SECTORS, 2 * SECTORS))
         # The level directory reaches every sector and the banks stay below the weapon bank.
         self.assertLess(br.level_location(len(br.CAMPAIGN) - 1)[0], br.WEAPON_ROM_BANK)
 
     def test_every_sector_wears_its_episodes_palette_set(self):
         names = {v: k for k, v in levels.PALETTE_IDS.items()}
         for index, level in enumerate(br.CAMPAIGN):
-            episode = index // br.EPISODE_SECTORS
+            episode = index // SECTORS
             self.assertEqual(names[level.palette_profile], ("outpost", "reactor", "spire")[episode], level.name)
 
     def test_the_last_sector_of_every_episode_fields_a_boss(self):
-        for episode in range(len(br.CAMPAIGN) // br.EPISODE_SECTORS):
-            last = br.CAMPAIGN[(episode + 1) * br.EPISODE_SECTORS - 1]
+        for episode in range(len(br.CAMPAIGN) // SECTORS):
+            last = br.CAMPAIGN[(episode + 1) * SECTORS - 1]
             kinds = {entity.kind for entity in last.entities}
             if episode == 0:
                 # Episode one predates the boss and keeps its shipped sector.
@@ -59,7 +64,7 @@ class CampaignRulesTests(unittest.TestCase):
 
     def test_an_actor_inside_a_wall_is_refused(self):
         import json, tempfile
-        source = json.loads((ROOT / "levels" / "antenna_base.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "antenna_base.json").read_text())
         rows = source["rows"]
         actor = source["entities"][0]
         # The cell north of the actor is a wall in this sector? Find any wall
@@ -77,7 +82,7 @@ class CampaignRulesTests(unittest.TestCase):
         # Sable Outpost's exit cell lies behind its Sentinel-locked door, which
         # opens only once every actor is dead: an actor parked there could
         # never be engaged.
-        source = json.loads((ROOT / "levels" / "living_world.json").read_text())
+        source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())
         exit_cell = source["exit"]
         moved = dict(source["entities"][0], x_q8=exit_cell["x"] * 256 + 128, y_q8=exit_cell["y"] * 256 + 128)
         with tempfile.TemporaryDirectory() as directory:
