@@ -1,5 +1,36 @@
-# Unreleased — after v0.11
+# Sable Outpost v0.12 — The engine and its game
 
+Sable Outpost, the showcase game of the Lupine 3D engine, is released under
+its own name: the cartridge header reads `SABLE OUTPOST` (mask ROM version
+7, from 6) and the download is `SableOutpost_v0.12.gb`. Lupine 3D is the
+engine that builds it, and this release separates the two. It is the first
+release published on GitHub since v0.9, so it also carries v0.10's streamed
+renderer and v0.11's three episodes (their sections follow in
+`RELEASE_NOTES.md`).
+
+**ROM SHA-256:** `9707e90eea9c51fe73dcf1a6517b639d785ab914a82f66fac763c984941b0fa4`.
+Emulator-qualified ([test report](docs/evidence/TEST_REPORT.md)): 322 tests
+and 90 release checks pass; the controller route clears all eighteen sectors
+in 24,198 verified updates and restarts the campaign; pinned SameBoy (CGB-0,
+CGB-E) and mGBA pass, with 87 frozen scenes byte-identical across the host
+and every core. Full geometry updates run at 7.1 to 9.9 a second over
+sixty-second replays. Not tested on physical hardware or with an original
+boot ROM.
+
+- **The release is the game's.** The packager names every asset after the
+  showcase (`SableOutpost_v0.12_*`), its manifests name the game and the
+  engine, and the release workflow titles the release with the game's name.
+  The header title and version are the game's own (`games/sable_outpost/game.json`
+  `rom`), so no engine code changed for it.
+- **Release tooling.** The release job had an hour, which v0.9's five
+  sectors fitted and the eighteen-sector route on one runner does not; it
+  has five and a half. `release_check.py` still held the slim capture equal
+  to the compact unfolded oracle, a comparison textured walls ended; it now
+  checks the fold identity on compact, as `make variants` does, and keeps
+  the slim capture as the reference the other slim variants must equal.
+  The stale-path test asked Git for the files to read, and the release
+  archive's extracted tree has no Git; it walks the tree when there is none,
+  so the clean-room suite runs it too.
 - **Lupine 3D is an engine; games are data.** A game is a folder with a
   `game.json` (`docs/reference/game-manifest.md`): its levels in episodes,
   enemy kinds, weapons and unlocks, themes and textures, sprite sheets and
@@ -37,15 +68,15 @@
   publishes the streamed tail while the next update casts, so an update is
   bound by its own work instead of waiting for VBlank: textured walking
   6.85 to 7.45/s, turning 9.08 to 9.89/s, two-actor 6.65 to 7.12/s
-  (`docs/PERFORMANCE_PHASE5.md`). `LUPINE3D_OVERLAP_PUBLICATION=0` (`make
+  (`docs/evidence/PERFORMANCE_PHASE5.md`). `LUPINE3D_OVERLAP_PUBLICATION=0` (`make
   sync`) builds the synchronous tail. The harness validates a presented
-  frame against the state it was handed off with (`docs/VERIFICATION.md`).
+  frame against the state it was handed off with (`docs/explanation/verification.md`).
 - **The engine is textured.** Every slim Sable build composes every wall
   from its episode's textures; the flat slim profile, its goldens, make
   targets and CLI flag were removed. The flat compositor remains only as the
   renderer of the historical legacy and compact profiles, and the fold
   identity in `make variants` now runs on compact.
-- **Exact performance round** (`docs/PERFORMANCE_PHASE5.md`). The textured
+- **Exact performance round** (`docs/evidence/PERFORMANCE_PHASE5.md`). The textured
   kernel composes rows under one texel row in 76 T instead of 104 and drops
   its per-tile bookkeeping on one-face columns; every profile gets a leaner
   16x16 multiply, a twelve-step door-panel divide and the crossing
@@ -79,6 +110,8 @@
   rather than the presented frame, and shoots a target all but on its own
   row or column straight down the axis while that keeps it near the
   crosshair, so a one-step-off heading no longer grazes the next row's wall.
+
+---
 
 # Lupine 3D v0.11 — Three episodes
 
@@ -149,6 +182,8 @@ verification, an opt-in textured-wall profile, and an SDK.
   `$4000`, so the first weapon loaded as blank patterns there. It is now read
   with bank 1 mapped, as the swap already did.
 
+---
+
 # Lupine 3D v0.10 — The renderer streams
 
 v0.9 spent a whole LCD interval idle inside every full geometry update: the
@@ -201,6 +236,8 @@ doorway firing at a Sentinel pressed against a wall corner that its sampled
 sight test cleared and the ROM's exact centre ray did not. It now kites from
 contact range and moves one cell when an exchange settles nothing; the
 gameplay it exercises is unchanged.
+
+---
 
 # Lupine 3D v0.9 — The campaign
 

@@ -26,7 +26,7 @@ Full geometry updates per second (mean full update in thousands of T):
 | opening door | 0.08 (1180k) | 0.08 (1152k) | 0.10 | 0.10 (937k) |
 
 "Textured before" is the textured ROM of commit 8c8e446 (candidate
-`2eebf745…`); "Default v0.11" is `docs/evidence/TEST_REPORT.md` (ROM `76b6f974…`),
+`2eebf745…`); "Default v0.11" is the [v0.11 test report](../archive/TEST_REPORT_V11.md) (ROM `76b6f974…`),
 which predates the conditional map copy of the render snapshot as well. The
 targets are **not met**: the textured ROM gained 5-9%, and walking needs
 about 330k T less per update to reach 9.0/s.

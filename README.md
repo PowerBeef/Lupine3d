@@ -68,8 +68,8 @@ builds it, plays it to its ending and restarts it on every change.
 episodes, from a surface outpost into the reactor and up the signal spire:
 four enemy kinds and a boss, four weapons, three themes, keycards, screens
 and music. It is the game the engine's evidence is recorded on, and it uses
-everything a game can. [Download the v0.11 ROM](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.11)
-or build it with `python tools/lupine.py build` (the showcase is the
+everything a game can. [Download Sable Outpost v0.12](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.12)
+(`SableOutpost_v0.12.gb`) or build it with `python tools/lupine.py build` (the showcase is the
 default game).
 
 ## Documentation
@@ -90,8 +90,8 @@ frozen scenes compared across all three. It has not been tested on physical
 hardware or with an original boot ROM. On the showcase, full geometry
 updates run at 7.1 to 9.9 a second over sixty-second replays; sprites and
 the HUD update between them ([performance](docs/explanation/performance.md)).
-The released version is [v0.11](RELEASE_NOTES.md); `main` adds the
-engine/game separation, the starter game and this handbook.
+The released version is [v0.12](RELEASE_NOTES.md), the first released
+under the showcase's own name.
 
 ## Build from source
 

@@ -183,6 +183,11 @@ def main() -> None:
         "reports": len(route_reports),
     }
     folded = json.loads((v2.BUILD / "folded_pixels.json").read_text())
+    # Folding is a property of the flat microstrip compositor, which only the
+    # compact and legacy profiles keep: the unfolded oracle has no textured
+    # kernel, so `make variants` proves the fold identity on compact, and the
+    # slim capture above is the reference the other slim variants must equal.
+    folded_compact = json.loads((v2.BUILD / "folded_compact_pixels.json").read_text())
     unfolded = json.loads((v2.BUILD / "unfolded_pixels.json").read_text())
     reuse_disabled = json.loads((v2.BUILD / "reuse_disabled_pixels.json").read_text())
     wall_reuse = json.loads((v2.BUILD / "wall_reuse.json").read_text())
@@ -223,7 +228,9 @@ def main() -> None:
         "fixed_tick_and_snapshot_enabled": v2_manifest["fixed_tick_simulation"] and v2_manifest["live_world_wram_bank"] != v2_manifest["render_snapshot_wram_bank"],
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
         "masked_8x16_six_actor_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == v2.MAX_ACTORS == 6,
-        "folded_rgb_exact": folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9 and folded["checks"] == unfolded["checks"],
+        "folded_rgb_exact": (folded["passed"] and folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9
+                             and folded_compact["passed"] and unfolded["passed"]
+                             and len(folded_compact["checks"]) == 9 and folded_compact["checks"] == unfolded["checks"]),
         "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == v2.WALL_KEY_BYTES and v2_manifest["independent_obj_page"],
         "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
         "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],

@@ -5,10 +5,11 @@ current engine. They are kept verbatim as evidence, with their links
 rewritten to this directory: numbers in them measure the ROM they name, not
 the current one, and commands in them may name tooling that has since
 changed. `docs/README.md` lists the current guides; use source, the build
-manifest and `docs/TEST_REPORT.md` to resolve any conflict with a page here.
+manifest and `docs/evidence/TEST_REPORT.md` to resolve any conflict with a page here.
 
 | Document | Release | What it records |
 |---|---|---|
+| [Test report v0.11](TEST_REPORT_V11.md) | v0.11 | The three-episode, eighteen-sector campaign, before the engine and its game separated |
 | [Test report v0.10](TEST_REPORT_V10.md) | v0.10 | HBlank-streamed publication and the six-sector campaign |
 | [Test report v0.9](TEST_REPORT_V09.md) | v0.9 | ROM-bound qualification and performance of the v0.9 campaign build |
 | [Test report v0.8](TEST_REPORT_V08.md) | v0.8 | The first steel-HUD, six-cel-weapon release |

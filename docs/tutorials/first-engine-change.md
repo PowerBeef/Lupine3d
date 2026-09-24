@@ -83,8 +83,8 @@ python tools/rom_identity.py compare --base HEAD --only default,legacy
 ```
 
 ```text
-  CHANGED   default: ROM ca10f97a427d -> f2b0d6085135
-  CHANGED   legacy: ROM 621110d62f93 -> 4530d25d8c30
+  CHANGED   default: ROM 9707e90eea9c -> 2e07c0c36300
+  CHANGED   legacy: ROM de3841cc467e -> 61254fb0e2d2
 FAILED: a ROM changed
 ```
 

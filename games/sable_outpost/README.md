@@ -9,9 +9,9 @@ exit. It is the game the engine's evidence (the regression suite, the
 controller route, the pinned emulator cores, the performance measurements)
 is recorded on, and it uses every feature a game can use.
 
-**Download:** the released ROM is on the
-[releases page](https://github.com/PowerBeef/Lupine3d/releases). To build
-it: `python tools/lupine.py build` writes `build/lupine3d.gb` (the showcase
+**Download:** `SableOutpost_v0.12.gb` from the
+[v0.12 release](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.12)
+(its cartridge header reads `SABLE OUTPOST`). To build it: `python tools/lupine.py build` writes `build/lupine3d.gb` (the showcase
 is the engine's default game).
 
 ## How to play

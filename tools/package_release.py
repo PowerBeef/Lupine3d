@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create and clean-room verify the Lupine 3D release bundle.
+"""Create and clean-room verify the Sable Outpost release bundle, built by Lupine 3D.
 
 The packager intentionally performs the release gates twice:
 
@@ -30,7 +30,12 @@ sys.path.insert(0, str(ROOT / "tools"))
 from ci_lanes import ROUTE_CHUNKS  # noqa: E402
 
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-PROJECT_SLUG = "Lupine3D"
+# A release is the showcase game's: its assets carry the game's name (the
+# ROM header's title too, from its game.json), and the manifests name the
+# engine that built it.
+GAME_TITLE = json.loads((ROOT / "games" / "sable_outpost" / "game.json").read_text(encoding="utf-8"))["title"]
+ENGINE = "Lupine 3D"
+PROJECT_SLUG = "".join(GAME_TITLE.split())
 ARCHIVE_ROOT = f"{PROJECT_SLUG}_v{VERSION}"
 # Evidence for this release, not the last one: build/v09 for VERSION 0.9.
 EVIDENCE_DIR = "v" + VERSION.replace(".", "")
@@ -427,7 +432,8 @@ def package(
 
         staged_check = build_and_compare(stage_root, expected_rom, run_tests=False)
         internal_release_manifest = {
-            "project": "Lupine 3D",
+            "project": GAME_TITLE,
+        "engine": ENGINE,
             "version": VERSION,
             "archive_root": ARCHIVE_ROOT,
             "rom": {
@@ -447,7 +453,8 @@ def package(
 
         source_manifest_path = stage_root / "SOURCE_MANIFEST.json"
         source_manifest = {
-            "project": "Lupine 3D",
+            "project": GAME_TITLE,
+        "engine": ENGINE,
             "version": VERSION,
             "archive_root": ARCHIVE_ROOT,
             "files": file_manifest(stage_root, exclude={Path("SOURCE_MANIFEST.json")}),
@@ -467,7 +474,8 @@ def package(
         extracted_check = build_and_compare(extracted_root, expected_rom, run_tests=True)
 
     clean_room_evidence = {
-        "project": "Lupine 3D",
+        "project": GAME_TITLE,
+        "engine": ENGINE,
         "version": VERSION,
         "archive": names["archive"],
         "archive_sha256": sha256_file(output_dir / names["archive"]),
@@ -517,7 +525,8 @@ def package(
         output_dir / names["clean_room"],
     ]
     external_manifest = {
-        "project": "Lupine 3D",
+        "project": GAME_TITLE,
+        "engine": ENGINE,
         "version": VERSION,
         "publication_status": "emulator-qualified package; physical hardware unavailable",
         "physical_hardware_tested": False,

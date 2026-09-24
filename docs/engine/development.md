@@ -96,10 +96,10 @@ See [Verification](../explanation/verification.md) for what is a hard gate and w
 make playthrough variants wall-reuse motion
 python tools/playthrough.py --restart
 python tools/playthrough.py --sectors 3-3 --output-dir build/playthrough_s3  # one sector, entered by its continue code
-python tools/check_sable.py --output-dir build/v011/art-checks
-python tools/check_display.py --output-dir build/v011/display
+python tools/check_sable.py --output-dir build/v012/art-checks
+python tools/check_display.py --output-dir build/v012/display
 make preview
-python tools/preview_sable.py --scene combat --output-dir build/v011/motion-preview
+python tools/preview_sable.py --scene combat --output-dir build/v012/motion-preview
 ```
 
 Controller completion uses no game-RAM writes, but reads live state to steer; it is functional verification, not blind human navigation. Variants cover two actors, folded/unfolded, wall reuse, prepared rays and reprojection diagnostics. Wall-reuse testing includes 53 frozen comparisons. Current capture previews are emulator output; generated masters are design references only.
@@ -152,7 +152,7 @@ workflow's matrix and commands to the table.
 
 ```sh
 make sustained
-python tools/sable_sustained.py --workers 4 --output-dir build/v011/sustained
+python tools/sable_sustained.py --workers 4 --output-dir build/v012/sustained
 make research-v3 research-tail
 make atlas-check
 ```
@@ -167,21 +167,23 @@ The original B/P quality gate remains `Q <= (B + P) / 2` for mean and p95. v0.8'
 
 ## Releasing
 
-Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.11 for this release). Evidence directories follow `VERSION` too, so `build/v011` here and `build/v012` next time; the tooling derives them rather than pinning one. Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
+Update `VERSION`, release notes and current documentation. Use the exact tag `v` plus `VERSION` (v0.12 for this release). Evidence directories follow `VERSION` too, so `build/v012` here and `build/v013` next time; the tooling derives them rather than pinning one. Run the complete CI sequence and release-specific art/display, geometry, atlas, independent-witness and sustained checks. Regenerate previews from the candidate ROM. All reports must match its SHA and configuration.
 
 ```sh
-python tools/run_tests.py > build/v011/tests.log 2>&1
+python tools/run_tests.py > build/v012/tests.log 2>&1
 python tools/release_check.py
-python tools/qualify_sable_release.py --inputs build/v011 --tests build/v011/tests.log
+python tools/qualify_sable_release.py --inputs build/v012 --tests build/v012/tests.log
 python tools/package_release.py --output-dir dist --reuse-verified-working-tree
 ```
 
-Run the art/display checks into `build/v011/art-checks` and `build/v011/display`, sustained scenarios into `build/v011/sustained`, and the budget into `build/v011/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
+Run the art/display checks into `build/v012/art-checks` and `build/v012/display`, sustained scenarios into `build/v012/sustained`, and the budget into `build/v012/quality-budget.json` before assembling evidence. A failed budget returns exit status 1; retain that report and the explicit visual acceptance. Do not suppress failures from the safety/emulator checks.
 
 Archive the resulting `build/rendering_qualification/` under `milestones/v<VERSION>/qualification/`. Release CI reruns short gates and clean-room tests, and may reuse that sustained/core evidence only after verifying the exact ROM/version and every evidence hash. Compressed motion JSON retains all raw samples; its uncompressed hash binds the budget. A changed ROM requires fresh qualification.
 
 After manually running the same gates, `--reuse-verified-working-tree` can reuse current reports. The packager still stages allow-listed sources, rebuilds, writes a deterministic archive, extracts it, rebuilds again and executes the full test suite. It emits the ROM, complete source/evidence ZIP, previews, reports and checksums. Keep ROMs and archives out of Git.
 
-Commit on `main`, push, and tag the reviewed commit. The release workflow validates the tag/version and packages it. Never replace an existing release's assets silently. Describe releases as emulator-qualified, with hardware and original-boot-ROM flags false. The [physical checklist](hardware-checklist.md) is retained for possible future access.
+A release is the showcase game's. Its cartridge header is the game's `rom` record (`games/sable_outpost/game.json`; bump `version` for each release), the packager names every asset after the game's title (`SableOutpost_v0.12.gb`, `SableOutpost_v0.12_complete.zip`, …) and names the engine in its manifests, and the workflow titles the release with the game's name.
+
+Commit on `main`, push, and tag the reviewed commit, or push a commit whose subject is exactly `release: v<VERSION>` and let the workflow create the tag on it. The release workflow validates the tag/version and packages it. Never replace an existing release's assets silently. Describe releases as emulator-qualified, with hardware and original-boot-ROM flags false. The [physical checklist](hardware-checklist.md) is retained for possible future access.
 
 The static geometry report compares the historical >20% mean-error improvement gate over the common central 96-pixel window. It also reports the complete current viewport separately, including newly exposed clipped edges. Both references use the appropriate horizon; neither the threshold nor the archived research is changed.

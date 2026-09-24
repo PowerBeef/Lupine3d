@@ -26,7 +26,10 @@ jobs:
       (github.ref == 'refs/heads/main' &&
        startsWith(github.event.head_commit.message, 'release: v'))
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The packager plays the whole eighteen-sector route on one runner (CI
+    # spreads it over eight), then builds, extracts and tests the archive
+    # twice: hours, not the one v0.9's five sectors fitted in.
+    timeout-minutes: 330
     concurrency:
       group: lupine3d-release
       cancel-in-progress: false
@@ -126,11 +129,15 @@ jobs:
           PY
             release_args=()
             if [[ "$RELEASE_TAG" == *-* ]]; then release_args+=(--prerelease); fi
-            asset_base="dist/Lupine3D_${RELEASE_TAG}"
+            # The release is the showcase game's, named as the packager named
+            # its assets: the game's title, built with the Lupine 3D engine.
+            game_title="$(python -c 'import sys; sys.path.insert(0, "tools"); import package_release as p; print(p.GAME_TITLE)')"
+            asset_slug="$(python -c 'import sys; sys.path.insert(0, "tools"); import package_release as p; print(p.PROJECT_SLUG)')"
+            asset_base="dist/${asset_slug}_${RELEASE_TAG}"
             gh release create "$RELEASE_TAG" \
               "${asset_base}.gb" "${asset_base}"_* \
               --verify-tag \
               --notes-file build/current_release_notes.md \
-              --title "Lupine 3D $RELEASE_TAG" \
+              --title "$game_title $RELEASE_TAG" \
               "${release_args[@]}"
           fi

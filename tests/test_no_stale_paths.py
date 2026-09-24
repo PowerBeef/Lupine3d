@@ -40,9 +40,18 @@ STALE = [
 ]
 
 
+# Directories a checkout never commits, skipped when there is no Git to ask:
+# the release archive's extracted tree is checked without its history.
+UNTRACKED = {".git", ".venv", "build", "dist", "node_modules", "__pycache__"}
+
+
 def tracked_files() -> list[Path]:
-    listed = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=ROOT,
-                            check=True, capture_output=True, text=True).stdout.split("\0")
+    try:
+        listed = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=ROOT,
+                                check=True, capture_output=True, text=True).stdout.split("\0")
+    except (OSError, subprocess.CalledProcessError):
+        listed = [path.relative_to(ROOT).as_posix() for path in ROOT.rglob("*")
+                  if not UNTRACKED.intersection(path.relative_to(ROOT).parts)]
     return [ROOT / name for name in listed
             if name and not name.startswith(HISTORICAL) and Path(name).suffix in TEXT and (ROOT / name).is_file()]
 
