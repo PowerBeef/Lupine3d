@@ -78,6 +78,12 @@ START on the title screen and time out (about one run in 150). For
 reproduction, `LUPINE3D_SAMEBOY_SEED=<n>` fixes the seed and
 `LUPINE3D_DUMP_RAM=<path>` writes the power-on image (WRAM, HRAM, VRAM,
 OAM) that the host harness can replay; every adapter failure reports its seed.
+The conformance adapter (`tools/sameboy_dump.c`) follows the same rule: a
+micro-program is finished when the hook sees it write `$A5` to `$C0FF`, not
+when that byte reads `$A5`, which about one power-on image in 250 already
+holds. Before this rule a run that met such an image in a given second
+compared twelve programs against random RAM; `LUPINE3D_SAMEBOY_SEED` fixes
+its seed too.
 
 ## Content and diagnostics
 

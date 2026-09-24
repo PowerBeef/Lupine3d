@@ -1,3 +1,14 @@
+# Unreleased — after v0.12
+
+- **The conformance adapter waits for the program.** `tools/sameboy_dump.c`
+  took a micro-program as finished when `$C0FF` read `$A5`, which SameBoy's
+  random power-on RAM already holds about one time in 250: CI #86 compared
+  twelve programs against random memory. It now waits for the ROM's own
+  write, as the smoke adapters wait for world entry, and takes
+  `LUPINE3D_SAMEBOY_SEED`.
+
+---
+
 # Sable Outpost v0.12 — The engine and its game
 
 Sable Outpost, the showcase game of the Lupine 3D engine, is released under
