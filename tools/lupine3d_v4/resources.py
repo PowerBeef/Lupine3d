@@ -288,13 +288,13 @@ def make_arc_tiles() -> bytes:
     """The third weapon, the arc lance: its rendered sheet; the legacy
     profile carries the centre of its first cel alone."""
     from .sprite_assets import compile_sheet, compile_frame
-    return compile_sheet('arc_lance', paired=True) if SABLE_ART else legacy_weapon_cel('arc_lance')
+    return compile_sheet(GAME.weapons[2].sprite, paired=True) if SABLE_ART else legacy_weapon_cel(GAME.weapons[2].sprite)
 
 
 def make_pulse_tiles() -> bytes:
     """The fourth weapon, the pulse carbine, likewise."""
     from .sprite_assets import compile_sheet, compile_frame
-    return compile_sheet('pulse_carbine', paired=True) if SABLE_ART else legacy_weapon_cel('pulse_carbine')
+    return compile_sheet(GAME.weapons[3].sprite, paired=True) if SABLE_ART else legacy_weapon_cel(GAME.weapons[3].sprite)
 
 
 def make_slug_tiles() -> bytes:
@@ -304,7 +304,7 @@ def make_slug_tiles() -> bytes:
     `tools/render_weapons.py`; the legacy profile keeps its single drawn cel."""
     if SABLE_ART:
         from .sprite_assets import compile_sheet
-        return compile_sheet('slug_rifle', paired=True)
+        return compile_sheet(GAME.weapons[1].sprite, paired=True)
     out = bytearray()
     for cel in SLUG_CELS[:1]:
         px = [[0] * 32 for _ in range(32)]
@@ -459,7 +459,7 @@ def make_entity_tiles() -> bytes:
     return bytes(out)
 
 
-WEAPON_SHEETS = ("shotgun", "slug_rifle", "arc_lance", "pulse_carbine")
+WEAPON_SHEETS = tuple(weapon.sprite for weapon in GAME.weapons)
 
 
 def weapon_object_palettes() -> list[list[int]]:

@@ -172,7 +172,7 @@ class WeaponSwapTests(unittest.TestCase):
         # and the fourth weapon in hand is put down.
         self.assertEqual(cgb.read8(br.WEAPONS_OWNED), 0b0011)
         self.assertEqual(cgb.read8(br.WEAPON_INDEX), 0)
-        self.assertEqual(br.WEAPON_UNLOCK_SECTORS, (0, 0, 6, 12))
+        self.assertEqual(br.WEAPON_UNLOCK_SECTORS, (0, 0, 6, 12))  # the showcase arsenal (game.json `weapons`)
 
     def test_the_weapon_stays_in_hand_across_a_level_load(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))

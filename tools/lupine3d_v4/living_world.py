@@ -69,8 +69,14 @@ def emit_level_loader(a: Assembler) -> None:
     # The arsenal follows the sector (WEAPON_UNLOCK_SECTORS), so a continue
     # code restores it for free and one that moves backwards takes a weapon
     # away; a weapon in hand that is no longer owned drops to the first.
-    a.ld_a_abs(LEVEL_INDEX); a.ld_r_n("b", 0b0011)
-    for index in range(2, WEAPON_COUNT):
+    # Weapons are listed in the order they are owned: the ones owned from the
+    # first level form the starting mask, each later one is a compare, and a
+    # weapon never owned (255) emits nothing.
+    owned_from_start = sum(1 for sector in WEAPON_UNLOCK_SECTORS if sector == 0)
+    a.ld_a_abs(LEVEL_INDEX); a.ld_r_n("b", (1 << owned_from_start) - 1)
+    for index in range(owned_from_start, WEAPON_COUNT):
+        if WEAPON_UNLOCK_SECTORS[index] == 255:
+            break
         a.cp_n(WEAPON_UNLOCK_SECTORS[index]); a.jr("weapons_owned_ready", "c"); a.ld_r_n("b", (2 << index) - 1)
     a.label("weapons_owned_ready"); a.ld_r_r("a", "b"); a.ld_abs_a(WEAPONS_OWNED)
     a.ld_a_abs(WEAPON_INDEX); a.and_n(WEAPON_COUNT - 1); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)

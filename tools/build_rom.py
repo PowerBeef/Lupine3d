@@ -409,7 +409,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # The shotgun (1, 0) is the engine's original behaviour and every
     # measurement's baseline; the slug rifle trades time for damage; the arc
     # lance is the heavy, slow discharge; the pulse carbine a quick double hit.
-    a.label("weapon_stats"); a.bytes(bytes((1, 0, 2, 15, 4, 40, 2, 6)), "damage and cooldown per weapon")
+    a.label("weapon_stats"); a.bytes(bytes(value for w in GAME.weapons for value in (w.damage, w.recovery_ticks)),
+                                     "damage and cooldown per weapon")
     a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
     # Per weapon, the attribute byte of each of its objects (VRAM bank 1,
     # OBJ palette 0 or 5), as tools/render_weapons.py fitted them.

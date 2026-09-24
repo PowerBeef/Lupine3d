@@ -39,6 +39,8 @@ MAX_KINDS = 4
 # Enemy colours: OBJ palettes 1, 6 and 7 are the actors'; the others belong
 # to the weapon, drops, effects and decor (docs/ART_PIPELINE.md).
 ACTOR_PALETTE_SLOTS = (1, 6, 7)
+# The weapon index is masked, so the arsenal is exactly this many weapons.
+WEAPON_COUNT = 4
 
 
 class GameError(ValueError):
@@ -64,6 +66,15 @@ class Kind:
 
 
 @dataclass(frozen=True)
+class Weapon:
+    name: str
+    sprite: str              # the weapon's cel sheet in the game's sprite manifest
+    damage: int              # health a hit takes off an actor
+    recovery_ticks: int      # simulation ticks before it can fire again (kept across a swap)
+    from_level: int | None   # the first level (1-based) that owns it; None: never owned
+
+
+@dataclass(frozen=True)
 class Game:
     root: Path
     id: str
@@ -72,6 +83,7 @@ class Game:
     episodes: tuple[Episode, ...]
     actor_palettes: tuple[str, ...]
     kinds: tuple[Kind, ...]
+    weapons: tuple[Weapon, ...]
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -226,6 +238,33 @@ def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, .
     return tuple(kinds)
 
 
+def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
+    if not isinstance(data, list) or len(data) != WEAPON_COUNT:
+        raise GameError(_where(root, f"weapons must list exactly {WEAPON_COUNT} weapons "
+                                     "(the weapon index is masked to two bits)"))
+    weapons = []
+    for index, raw in enumerate(data):
+        context = f"weapons[{index}]"
+        fields = {"name", "sprite", "damage", "recovery_ticks", "from_level"}
+        raw = _keys(raw, fields, fields, root, context)
+        from_level = raw["from_level"]
+        if from_level is not None:
+            from_level = _integer(raw, "from_level", 1, 255, root, context)
+        weapons.append(Weapon(
+            name=_string(raw["name"], root, f"{context}.name"),
+            sprite=_string(raw["sprite"], root, f"{context}.sprite"),
+            damage=_integer(raw, "damage", 1, 255, root, context),
+            recovery_ticks=_integer(raw, "recovery_ticks", 0, 255, root, context),
+            from_level=from_level))
+    if weapons[0].from_level != 1:
+        raise GameError(_where(root, "weapons[0].from_level must be 1: the player starts every level with the first weapon"))
+    owned = [w.from_level for w in weapons if w.from_level is not None]
+    if owned != sorted(owned) or any(w.from_level is not None for w in weapons[len(owned):]):
+        raise GameError(_where(root, "weapons must be listed in the order the player gets them: "
+                                     "from_level never decreases, and weapons never owned (null) come last"))
+    return tuple(weapons)
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -237,8 +276,8 @@ def load_game(directory: Path) -> Game:
     except json.JSONDecodeError as error:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
-    data = _keys(data, {"$schema", "format", "id", "title", "profiles", "episodes", "actor_palettes", "kinds"},
-                 {"format", "id", "title", "episodes", "actor_palettes", "kinds"}, root, "the manifest")
+    data = _keys(data, {"$schema", "format", "id", "title", "profiles", "episodes", "actor_palettes", "kinds", "weapons"},
+                 {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons"}, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
     game_id = _string(data["id"], root, "id")
@@ -251,7 +290,7 @@ def load_game(directory: Path) -> Game:
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=_episodes(data["episodes"], root, files),
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
-                files=files)
+                weapons=_weapons(data["weapons"], root, 0), files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:

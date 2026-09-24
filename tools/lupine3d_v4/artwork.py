@@ -297,7 +297,7 @@ _legacy_obj_ui_tiles=make_obj_ui_tiles
 def make_weapon_tiles():
     if not SABLE_ART:return _legacy_weapon_tiles()
     from .sprite_assets import compile_sheet
-    return compile_sheet('shotgun',paired=True)
+    return compile_sheet(GAME.weapons[0].sprite,paired=True)
 
 def _sentinel_near_frame(frame):
     if not SABLE_ART:return _legacy_near_frame(frame)

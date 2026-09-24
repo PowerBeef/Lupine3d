@@ -10,6 +10,12 @@
     {"name": "warden", "contact_damage": 14, "recovery_ticks": 12, "step_q8": 5, "palette": "warden", "drop": "medkit"},
     {"name": "boss", "contact_damage": 20, "recovery_ticks": 10, "step_q8": 6, "palette": "sentinel", "drop": "medkit"}
   ],
+  "weapons": [
+    {"name": "shotgun", "sprite": "shotgun", "damage": 1, "recovery_ticks": 0, "from_level": 1},
+    {"name": "slug rifle", "sprite": "slug_rifle", "damage": 2, "recovery_ticks": 15, "from_level": 1},
+    {"name": "arc lance", "sprite": "arc_lance", "damage": 4, "recovery_ticks": 40, "from_level": 7},
+    {"name": "pulse carbine", "sprite": "pulse_carbine", "damage": 2, "recovery_ticks": 6, "from_level": 13}
+  ],
   "episodes": [
     {
       "name": "Sable Outpost",

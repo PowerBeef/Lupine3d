@@ -389,7 +389,7 @@ MAP_GENERATION_END = SNAP_MAP_GEN + 1
 TAIL_PENDING = MAP_GENERATION_END
 TAIL_PENDING_END = TAIL_PENDING + 1
 assert TAIL_PENDING_END <= 0xC800, "campaign scalars overrun the OAM shadow"
-WEAPON_COUNT = 4                        # a power of two: the index is masked
+WEAPON_COUNT = len(GAME.weapons)        # a power of two: the index is masked (game.py WEAPON_COUNT)
 WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
 WEAPON_CELS = WEAPON_TILE_BYTES // (WEAPON_CEL_PATTERNS * 16)   # Sable 4, legacy 1
@@ -399,10 +399,11 @@ WEAPON_PATTERNS = WEAPON_TILE_BYTES // 16
 # the swap and init_vram a pointer into it, and both map it only for the copy.
 WEAPON_ROM_BANK = 245
 WEAPON_SHEET_LABELS = ("weapon_tiles", "slug_tiles", "arc_tiles", "pulse_tiles")
-# The sector (LEVEL_INDEX) from which each weapon is owned: load_level derives
+# The level index (LEVEL_INDEX, 0-based) from which each weapon is owned, from
+# the game's `from_level` (1-based; 255 for never): load_level derives
 # WEAPONS_OWNED from the index, so a continue code restores the arsenal for
 # free and a code that moves backwards can take a weapon away.
-WEAPON_UNLOCK_SECTORS = (0, 0, 6, 12)
+WEAPON_UNLOCK_SECTORS = tuple(255 if w.from_level is None else w.from_level - 1 for w in GAME.weapons)
 # Episodes are the game's (game.json). The title is the first episode's
 # opening; reaching the first sector of a later episode (by clearing the one
 # before or by a continue code) shows that episode's opening, and clearing an
