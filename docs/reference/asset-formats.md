@@ -83,6 +83,14 @@ The twelve enemy frames are, in order: `idle_a`, `idle_b`, `walk_left`,
 All three distances carry the same twelve; the runtime chooses a distance
 from projected height. Every enemy kind uses these frames in its own palette.
 
+A fixture is centred on its face three quarters of the way up the wall, a
+fixed world height, so it stays put on the wall as the player moves. It is
+drawn from its three sizes, never scaled: 16 pixels tall where the wall's
+projected half-height is at least 24, 8 from 12, 4 from 6, and not at all
+below that. Each step keeps it between a sixth and a third of the wall's
+height, except close up: once the wall is taller than 96 pixels the
+16-pixel size, the largest there is, falls below a sixth.
+
 A weapon sheet must compile to exactly `WEAPON_TILE_BYTES` (1,280 bytes,
 eighty patterns) in the 8×16 pair order the weapon window expects: ten
 objects, five across and two down, in four cels (idle, the kick, the action

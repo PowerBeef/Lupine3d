@@ -64,9 +64,14 @@ def emit_world_decor(a: Assembler):
     a.label("fixture_door_y"); a.ld_a_abs(ENTITY_WORLD_YL); a.add_a_r("b"); a.ld_abs_a(ENTITY_WORLD_YL)
     a.label("fixture_project"); a.call("project_entity")
     a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.jp("fixture_advance","z")
+    # B = the wall's projected half-height at the fixture (the foot line less
+    # the horizon, both in OAM space). A fixture sits at a fixed world height,
+    # three quarters up its wall: centred at horizon - B/2. The horizon is the
+    # profile's own; a fixed 64 (legacy's 48 + 16) put slim fixtures 12 pixels
+    # high, so a distant sign rose off its wall into the ceiling.
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(HORIZON + 16); a.cp_n(6); a.jp("fixture_advance","c")
     a.ld_r_r("b","a"); a.cb("srl","a"); a.ld_r_r("c","a")
-    a.ld_r_n("a",64); a.sub_r("c"); a.ld_abs_a(DECAL_Y)
+    a.ld_r_n("a",HORIZON + 16); a.sub_r("c"); a.ld_abs_a(DECAL_Y)
     a.ld_r_n("d",16); a.ld_r_n("e",0)
     a.ld_r_r("a","b"); a.cp_n(24); a.jr("fixture_size_ready","nc")
     a.ld_r_n("d",8); a.ld_r_n("e",4); a.cp_n(12); a.jr("fixture_size_ready","nc")

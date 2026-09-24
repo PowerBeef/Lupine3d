@@ -1,5 +1,13 @@
 # Unreleased — after v0.12
 
+- **Wall signs stay on their walls.** A fixture was centred at `64 - B/2`
+  (B the wall's projected half-height): 64 is the legacy horizon plus the
+  OBJ offset, fixed in. On the slim horizon (60) every sign drew 12 pixels
+  high, so walking back from one it climbed off its wall into the ceiling
+  (8 pixels on compact). It now uses the profile's horizon and sits three
+  quarters up its wall at every distance. Only fixture pixels move: the
+  tour, world, art and sable goldens that show a sign are re-accepted with a
+  note, and the legacy ROM is byte-identical.
 - **The conformance adapter waits for the program.** `tools/sameboy_dump.c`
   took a micro-program as finished when `$C0FF` read `$A5`, which SameBoy's
   random power-on RAM already holds about one time in 250: CI #86 compared

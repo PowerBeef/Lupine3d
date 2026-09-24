@@ -2,44 +2,44 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "01_protected_start": {
-      "rgb_sha256": "fbb64e9ecebc686fc43d0bc5a5c2fc9beb245a2954283de5eeec5e62295946b0",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:22:29+00:00",
+      "rgb_sha256": "4ab3b2fed0876ccfba891155ffacc845498d23d2ef8d107cf3b1791faedb3348",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "02_airlock_approach": {
-      "rgb_sha256": "85b83a27a6968b0b2ae0f89c83d7f304f4882e739aa5f456d24b29405ab3a828",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:22:29+00:00",
+      "rgb_sha256": "93bf9bdf57f4e712d01ffd433339bad67e546ea8b5d6f0f522e6383405a6ecd8",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "03_airlock_open": {
-      "rgb_sha256": "a0328ee4b49e1043b2f11635e8c54877735e0c127f793f7a1876de8d17529e6c",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:14:50+00:00",
+      "rgb_sha256": "a1d497cfa3c0ec1d5e875d8e7655f90fffbe63737a367020fcebdaa83bf6f50b",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "04_corridor_turn": {
-      "rgb_sha256": "289a3ce4480c0d73479c04bc3f7770f12e1b95db9242d8811fcc4d46b1ace543",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:14:50+00:00",
+      "rgb_sha256": "76d2f6da19a2c6b632611d03730e36f58fcbe89877d1f855e361fe4411aee70e",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "05_mess_hatch": {
-      "rgb_sha256": "85b83a27a6968b0b2ae0f89c83d7f304f4882e739aa5f456d24b29405ab3a828",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:14:50+00:00",
+      "rgb_sha256": "93bf9bdf57f4e712d01ffd433339bad67e546ea8b5d6f0f522e6383405a6ecd8",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "06_mess_open": {
       "rgb_sha256": "3b380f10ba9d036857595baba9d3acfb4ebd8ce21f7b617112d22550ea3a806b",
@@ -58,20 +58,20 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "08_comms_room": {
-      "rgb_sha256": "11ca26879b5faebb61a0ca729042d010287677a5b25e2ca4a8702f0b0ae6d742",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:14:50+00:00",
+      "rgb_sha256": "82f396669d8aeaeb7fb50dc01b61b7ffa15a2334ca322b8d9e6152341f4645ab",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "09_exit_approach": {
-      "rgb_sha256": "2a18257ac9039cbd7d5e2fa40a5d8ab9abf12d58a172b1a364b5116cf386361f",
-      "rom_sha256": "0f3bcb50cd002381a623cac52194becd344532c7f8469b640d1841d40c923eec",
+      "rgb_sha256": "02f6d6cdc6f77682bc809fc521cdb021f71b1d563f17fc9b890646dd71542cb3",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-23T19:20:20+00:00",
+      "accepted_at": "2026-09-24T17:30:39+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Overlapped publication is the slim default: the VBlank interrupt publishes the tail while the next update casts, so updates finish sooner and this living-world capture lands on another accepted simulation tick (a door panel a step further open, an actor or beacon animation frame, the helmet blink, a drop a tick apart). Reviewed by eye; every frame check passes against the state the packet was handed off with."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     }
   }
 }

@@ -2,36 +2,36 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "pose-0": {
-      "rgb_sha256": "8d0c8713984aa1340be0896d15f4e2988a591e0c0310284ce676ba3384d9140c",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:27:52+00:00",
+      "rgb_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:37:46+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "pose-1": {
-      "rgb_sha256": "f8ee80afaa17c4c1620c84c80b527122e1b8c366dc996193083cb33928695004",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:27:52+00:00",
+      "rgb_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:37:46+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "pose-2": {
-      "rgb_sha256": "4a830519d10d3a71b7603ad6d47e9435d1ba7ce3fe95fe1d28e6fdbce85b73d6",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:27:52+00:00",
+      "rgb_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:37:46+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "pose-3": {
-      "rgb_sha256": "74ada14414b1675c4fc17c16218915237282c9d2618769829794b771b672220c",
-      "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
-      "configuration_id": "2702db41d79eeb54888aae273e272bd4ad610387eb4a1ef4eabdfd308b4f25f3",
-      "accepted_at": "2026-09-23T05:27:52+00:00",
+      "rgb_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+      "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-24T17:37:46+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+      "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "pose-4": {
       "rgb_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",

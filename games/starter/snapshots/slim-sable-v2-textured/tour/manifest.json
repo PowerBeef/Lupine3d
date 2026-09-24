@@ -50,12 +50,12 @@
       "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
     },
     "07_exit_corridor": {
-      "rgb_sha256": "5f9db283aaf76a42d0a00e65856041125e91f319eefecb2a51f41c4becf37e8f",
-      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "rgb_sha256": "24fb2907e6ca0db68d5ea0a09fb7517fb720c4394caa8afc396ec4919a8e8a16",
+      "rom_sha256": "44d2f01ef79f44041b4798fa36fc96cb707d189f8c209d61c73cbe87308f9149",
       "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
-      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_at": "2026-09-24T18:01:34+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+      "note": "Wall fixtures sit on their walls: the engine centred a fixture at the legacy horizon (64) instead of the slim one (76 in OBJ space), so this distant sign drew 12 px high, in the ceiling above the corridor wall. Only the sign moves."
     }
   }
 }
