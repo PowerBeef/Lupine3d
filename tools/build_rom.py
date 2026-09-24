@@ -531,7 +531,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         "folded_compositor": FOLDED_COMPOSITOR,
         "composited_tile_rows": FOLDED_ROWS if FOLDED_COMPOSITOR else VIEW_ROWS,
         "obj_only_patterns_per_bank": 128,
-        "art_direction": "Sable Outpost",
+        "art_direction": GAME.title,
         "display_configuration": {"name": RENDER_CONFIG["display"], "viewport": list(VIEWPORT),
                                   "horizon": HORIZON, "hud_height": HUD_HEIGHT, "map_bytes": VIEW_MAP_BYTES,
                                   "hud_theme": "steel-objective-spaced-v1" if SLIM_DISPLAY else "sable-strip" if COMPACT_DISPLAY else "legacy",
@@ -738,9 +738,9 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     rom = bytearray([0xFF] * ROM_BYTES)
     rom[0x0100:0x0104] = bytes((0x00, 0xC3, 0x50, 0x01))
     rom[0x0104:0x0134] = NINTENDO_LOGO
-    rom[0x0134:0x0143] = b"LUPINE3D".ljust(15, b"\0")
+    rom[0x0134:0x0143] = GAME.rom_title.encode("ascii").ljust(15, b"\0")
     rom[0x0143] = 0xC0; rom[0x0144:0x0146] = b"00"; rom[0x0146] = 0
-    rom[0x0147] = 0x19; rom[0x0148] = 0x07; rom[0x0149] = 0; rom[0x014A] = 1; rom[0x014B] = 0x33; rom[0x014C] = 6
+    rom[0x0147] = 0x19; rom[0x0148] = 0x07; rom[0x0149] = 0; rom[0x014A] = 1; rom[0x014B] = 0x33; rom[0x014C] = GAME.rom_version
     rom[0x0150:0x0150 + len(engine)] = engine
     if not FOLDED_COMPOSITOR:
         strips = make_microstrips() + make_pair_microstrips()
@@ -818,7 +818,7 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     total = sum(rom) & 0xFFFF
     rom[0x014E] = (total >> 8) & 0xFF; rom[0x014F] = total & 0xFF
     metadata.update({
-        "header_checksum": chk, "global_checksum": total, "title": "LUPINE3D",
+        "header_checksum": chk, "global_checksum": total, "title": GAME.rom_title,
         "cgb_flag": "0xC0 (CGB-only)", "rom_size_bytes": len(rom),
         "sha256": hashlib.sha256(rom).hexdigest(),
         "symbols": {k: f"0x{v:04X}" for k, v in sorted(assembler.labels.items(), key=lambda item: item[1])},

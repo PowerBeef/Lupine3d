@@ -12,6 +12,7 @@ write a level number or a count straight into a map cell without touching VRAM.
 """
 from .artwork import canvas, rect, text_pixels, tiles
 from .layout import *  # noqa: F401,F403
+from .game import FIXED_SCREENS, SCREEN_FIELDS
 
 SCREEN_COLUMNS = 20
 SCREEN_ROWS = 18
@@ -141,66 +142,17 @@ SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWO
 SCREEN_EPISODE_CLOSINGS = (5, 6)
 SCREEN_EPISODE_OPENINGS = (7, 8)
 
-SCREEN_SOURCES = (
-    # A field line is a label and the map cells the runtime writes after it;
-    # its cells become slots in the order the lines appear.
-    ("title", (
-        ("LUPINE", 28, 2, 3),
-        ("SABLE OUTPOST", 58, 3, 1),
-        ("PRESS START", 92, 2, 1),
-        ("SKILL", 114, 3, 1, 1),
-     ), ()),
-    ("gameover", (
-        ("SIGNAL LOST", 48, 3, 2),
-        ("THE OUTPOST HOLDS", 84, 1, 1),
-        ("PRESS START", 110, 2, 1),
-     ), ()),
-    ("ending", (
-        ("OUTPOST CLEARED", 34, 2, 2),
-        ("THE SABLE LINE IS OPEN", 66, 3, 1),
-        ("KILLS", 90, 1, 1, 3),
-        ("TIME", 106, 1, 1, 4),
-        ("PRESS START", 122, 2, 1),
-     ), ()),
-    ("intermission", (
-        ("SECTOR CLEAR", 28, 2, 2),
-        ("CODE", 58, 3, 1, PASSWORD_DIGITS),
-        ("KILLS", 82, 1, 1, 2),
-        ("TIME", 98, 1, 1, 3),
-        ("PRESS START", 118, 2, 1),
-     ), ()),
-    ("password", (
-        ("CONTINUE", 32, 2, 2),
-        ("CODE", 74, 3, 1, PASSWORD_DIGITS),
-        ("START ACCEPTS", 104, 1, 1),
-        ("SELECT CANCELS", 118, 1, 1),
-     ), ()),
-    ("episode_one_closing", (
-        ("OUTPOST SECURED", 30, 2, 2),
-        ("THE SIGNAL CAME", 62, 1, 1),
-        ("FROM BELOW", 76, 1, 1),
-        ("PRESS START", 118, 2, 1),
-     ), ()),
-    ("episode_two_closing", (
-        ("REACTOR SEALED", 30, 2, 2),
-        ("THE SPIRE STILL", 62, 1, 1),
-        ("TRANSMITS", 76, 1, 1),
-        ("PRESS START", 118, 2, 1),
-     ), ()),
-    ("episode_two_opening", (
-        ("EPISODE TWO", 26, 3, 2),
-        ("REACTOR DEEP", 58, 2, 2),
-        ("COOLANT DARK", 90, 1, 1),
-        ("PRESS START", 118, 2, 1),
-     ), ()),
-    ("episode_three_opening", (
-        ("EPISODE THREE", 26, 3, 2),
-        ("SIGNAL SPIRE", 58, 2, 2),
-        ("OPEN SKY", 90, 1, 1),
-        ("PRESS START", 118, 2, 1),
-     ), ()),
-)
-# The game's episodes name these screens (game.json, closings then openings).
+# The game's screens (games/<id>/screens.json, loaded by game.py), in
+# runtime order: the five fixed modes, then the episode screens its episodes
+# name. A field line is a label and the map cells the runtime writes after
+# it; its cells become slots in the order the lines appear.
+assert FIXED_SCREENS[:5] == ("title", "gameover", "ending", "intermission", "password")
+assert SCREEN_FIELDS["intermission"]["code"] == SCREEN_FIELDS["password"]["code"] == PASSWORD_DIGITS
+SCREEN_SOURCES = tuple(
+    (name, tuple((line.text, line.y, line.colour, line.scale) if line.field is None
+                 else (line.text, line.y, line.colour, line.scale, SCREEN_FIELDS[name][line.field])
+                 for line in lines), ())
+    for name, lines in GAME.screens.items())
 assert tuple(name for name, _, _ in SCREEN_SOURCES[5:]) == GAME.episode_screen_names, (
     f"the game's episode screens {GAME.episode_screen_names} are not the authored ones")
 

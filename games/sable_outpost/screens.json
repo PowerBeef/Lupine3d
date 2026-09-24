@@ -1,0 +1,60 @@
+{
+  "format": "lupine-screens-v1",
+  "screens": {
+    "title": [
+      {"text": "LUPINE", "y": 28, "colour": 2, "scale": 3},
+      {"text": "SABLE OUTPOST", "y": 58, "colour": 3, "scale": 1},
+      {"text": "PRESS START", "y": 92, "colour": 2, "scale": 1},
+      {"field": "skill", "label": "SKILL", "y": 114, "colour": 3, "scale": 1}
+    ],
+    "gameover": [
+      {"text": "SIGNAL LOST", "y": 48, "colour": 3, "scale": 2},
+      {"text": "THE OUTPOST HOLDS", "y": 84, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 110, "colour": 2, "scale": 1}
+    ],
+    "ending": [
+      {"text": "OUTPOST CLEARED", "y": 34, "colour": 2, "scale": 2},
+      {"text": "THE SABLE LINE IS OPEN", "y": 66, "colour": 3, "scale": 1},
+      {"field": "kills", "label": "KILLS", "y": 90, "colour": 1, "scale": 1},
+      {"field": "time", "label": "TIME", "y": 106, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 122, "colour": 2, "scale": 1}
+    ],
+    "intermission": [
+      {"text": "SECTOR CLEAR", "y": 28, "colour": 2, "scale": 2},
+      {"field": "code", "label": "CODE", "y": 58, "colour": 3, "scale": 1},
+      {"field": "kills", "label": "KILLS", "y": 82, "colour": 1, "scale": 1},
+      {"field": "time", "label": "TIME", "y": 98, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ],
+    "password": [
+      {"text": "CONTINUE", "y": 32, "colour": 2, "scale": 2},
+      {"field": "code", "label": "CODE", "y": 74, "colour": 3, "scale": 1},
+      {"text": "START ACCEPTS", "y": 104, "colour": 1, "scale": 1},
+      {"text": "SELECT CANCELS", "y": 118, "colour": 1, "scale": 1}
+    ],
+    "episode_one_closing": [
+      {"text": "OUTPOST SECURED", "y": 30, "colour": 2, "scale": 2},
+      {"text": "THE SIGNAL CAME", "y": 62, "colour": 1, "scale": 1},
+      {"text": "FROM BELOW", "y": 76, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ],
+    "episode_two_closing": [
+      {"text": "REACTOR SEALED", "y": 30, "colour": 2, "scale": 2},
+      {"text": "THE SPIRE STILL", "y": 62, "colour": 1, "scale": 1},
+      {"text": "TRANSMITS", "y": 76, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ],
+    "episode_two_opening": [
+      {"text": "EPISODE TWO", "y": 26, "colour": 3, "scale": 2},
+      {"text": "REACTOR DEEP", "y": 58, "colour": 2, "scale": 2},
+      {"text": "COOLANT DARK", "y": 90, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ],
+    "episode_three_opening": [
+      {"text": "EPISODE THREE", "y": 26, "colour": 3, "scale": 2},
+      {"text": "SIGNAL SPIRE", "y": 58, "colour": 2, "scale": 2},
+      {"text": "OPEN SKY", "y": 90, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ]
+  }
+}

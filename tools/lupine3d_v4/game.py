@@ -48,6 +48,19 @@ TEXTURE_ROLES = ("structure", "machinery", "door")
 SHARED_PALETTES = ("hud", "reserved_bg", "weapon", "drops", "effects", "decor", "weapon_alt")
 
 Colour = tuple[int, int, int]     # RGB555 components, 0..31 each, exactly what the console stores
+# The full-screen modes the engine shows, in runtime screen-index order; the
+# game's episodes name the rest. Each screen's runtime fields (numbers the
+# console writes after a label) are fixed by the code that writes them:
+# field name -> digits.
+FIXED_SCREENS = ("title", "gameover", "ending", "intermission", "password")
+SCREEN_FIELDS = {
+    "title": {"skill": 1},
+    "gameover": {},
+    "ending": {"kills": 3, "time": 4},
+    "intermission": {"code": 4, "kills": 2, "time": 3},
+    "password": {"code": 4},
+}
+SCREENS_FORMAT = "lupine-screens-v1"
 
 
 class GameError(ValueError):
@@ -98,6 +111,15 @@ class Theme:
 
 
 @dataclass(frozen=True)
+class ScreenLine:
+    text: str                # a text line's words, or a field's label
+    y: int                   # top pixel row
+    colour: int              # BG palette 1 colour index, 0..3
+    scale: int               # pixel size of the 3x5 font
+    field: str | None = None # a runtime field after the label (its digits come from SCREEN_FIELDS)
+
+
+@dataclass(frozen=True)
 class Game:
     root: Path
     id: str
@@ -110,6 +132,9 @@ class Game:
     textures: dict[str, Path]                # texture name -> indexed 16x8 PNG
     themes: tuple[Theme, ...]
     shared_palettes: dict[str, tuple[Colour, ...]]
+    screens: dict[str, tuple[ScreenLine, ...]]   # in runtime order: FIXED_SCREENS, then the episode screens
+    rom_title: str                               # the cartridge header title
+    rom_version: int                             # the cartridge header's mask ROM version byte
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -380,6 +405,67 @@ def _shared_palettes(data: object, root: Path) -> dict[str, tuple[Colour, ...]]:
     return {name: _colours(data[name], 4, root, f"shared_palettes.{name}") for name in SHARED_PALETTES}
 
 
+def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files: dict[str, str]) -> dict:
+    path = _game_file(root, relative, "screens", files)
+    context = path.name
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise GameError(_where(root, f"{context} is not valid JSON ({error})")) from None
+    data = _keys(data, {"$schema", "format", "screens"}, {"format", "screens"}, root, context)
+    if data["format"] != SCREENS_FORMAT:
+        raise GameError(_where(root, f"{context} format is {data['format']!r}; this engine reads {SCREENS_FORMAT!r}"))
+    episode_screens = tuple(e.closing for e in episodes[:-1]) + tuple(e.opening for e in episodes[1:])
+    wanted = FIXED_SCREENS + episode_screens
+    authored = data["screens"]
+    if not isinstance(authored, dict):
+        raise GameError(_where(root, f"{context} screens must map screen names to lines"))
+    for name in wanted:
+        if name not in authored:
+            raise GameError(_where(root, f"{context} has no {name!r} screen"
+                                         + ("" if name in FIXED_SCREENS else " (an episode names it)")))
+    for name in authored:
+        if name not in wanted:
+            raise GameError(_where(root, f"{context} screen {name!r} is never shown: the engine shows "
+                                         f"{', '.join(FIXED_SCREENS)} and the screens your episodes name"))
+    screens = {}
+    for name in wanted:
+        lines = authored[name]
+        if not isinstance(lines, list) or not lines:
+            raise GameError(_where(root, f"{context} screen {name!r} must be a non-empty list of lines"))
+        parsed = []
+        for n, raw in enumerate(lines):
+            where = f"{context} {name}[{n}]"
+            if isinstance(raw, dict) and "field" in raw:
+                raw = _keys(raw, {"field", "label", "y", "colour", "scale"}, {"field", "label", "y", "colour"}, root, where)
+                text, field_name = _string(raw["label"], root, f"{where}.label"), _string(raw["field"], root, f"{where}.field")
+            else:
+                raw = _keys(raw, {"text", "y", "colour", "scale"}, {"text", "y", "colour"}, root, where)
+                text, field_name = _string(raw["text"], root, f"{where}.text"), None
+            raw.setdefault("scale", 1)
+            parsed.append(ScreenLine(text=text, y=_integer(raw, "y", 0, 143, root, where),
+                                     colour=_integer(raw, "colour", 0, 3, root, where),
+                                     scale=_integer(raw, "scale", 1, 4, root, where), field=field_name))
+        fields = [line.field for line in parsed if line.field]
+        expected = list(SCREEN_FIELDS.get(name, {}))
+        if fields != expected:
+            shown = ", ".join(expected) if expected else "none"
+            raise GameError(_where(root, f"{context} screen {name!r} has fields {fields or 'none'}; the engine writes "
+                                         f"{shown} there, in that order"))
+        screens[name] = tuple(parsed)
+    return screens
+
+
+def _rom(data: object, root: Path) -> tuple[str, int]:
+    data = _keys(data, {"header_title", "version"}, {"header_title"}, root, "rom")
+    title = _string(data["header_title"], root, "rom.header_title")
+    if len(title) > 15 or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " for c in title):
+        raise GameError(_where(root, "rom.header_title must be at most 15 upper-case letters, digits or spaces "
+                                     "(the cartridge header's title field)"))
+    data.setdefault("version", 0)
+    return title, _integer(data, "version", 0, 255, root, "rom")
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -392,7 +478,7 @@ def load_game(directory: Path) -> Game:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
     keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
-            "shared_palettes"}
+            "shared_palettes", "screens", "rom"}
     data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
@@ -404,8 +490,11 @@ def load_game(directory: Path) -> Game:
         raise GameError(_where(root, f"profiles must be a non-empty list drawn from {', '.join(DISPLAY_PROFILES)}"))
     actor_palettes = _names(data["actor_palettes"], root, "actor_palettes", len(ACTOR_PALETTE_SLOTS))
     textures = _textures(data["textures"], root, files)
+    episodes = _episodes(data["episodes"], root, files)
+    rom_title, rom_version = _rom(data["rom"], root)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
-                profiles=tuple(profiles), episodes=_episodes(data["episodes"], root, files),
+                profiles=tuple(profiles), episodes=episodes,
+                screens=_screens(data["screens"], episodes, root, files), rom_title=rom_title, rom_version=rom_version,
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
                 weapons=_weapons(data["weapons"], root, 0), textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
