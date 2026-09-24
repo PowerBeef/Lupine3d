@@ -40,14 +40,14 @@ DROPS = ("medkit", "keycard")
 # The kind byte is masked to two bits, so the stat table has four records.
 MAX_KINDS = LIMITS["kinds"].maximum
 # Enemy colours: OBJ palettes 1, 6 and 7 are the actors'; the others belong
-# to the weapon, drops, effects and decor (docs/ART_PIPELINE.md).
+# to the weapon, drops, effects and decor (docs/reference/asset-formats.md).
 ACTOR_PALETTE_SLOTS = (1, 6, 7)
 assert len(ACTOR_PALETTE_SLOTS) == LIMITS["actor_palettes"].maximum
 # The weapon index is masked, so the arsenal is exactly this many weapons.
 WEAPON_COUNT = LIMITS["weapons"].maximum
 # The roles a wall face can have; a theme gives each a texture.
 TEXTURE_ROLES = ("structure", "machinery", "door")
-# The palettes that are the same in every theme (docs/ART_PIPELINE.md):
+# The palettes that are the same in every theme (docs/reference/asset-formats.md):
 # BG 1 (the HUD and the full-screen modes), BG 7, and OBJ 0 and 2-5.
 SHARED_PALETTES = ("hud", "reserved_bg", "weapon", "drops", "effects", "decor", "weapon_alt")
 
@@ -82,7 +82,7 @@ EFFECTS = ("shoot", "door", "swap", "keycard", "locked", "hurt", "kill", "pickup
 # the showcase); DEAD and DONE replace both. Each is at most four characters.
 HUD_WORDS = ("caption", "hunt", "exit", "dead", "done")
 # The sprite roles the engine draws, each a record of the game's sprite
-# manifest (docs/ART_PIPELINE.md gives each role's size and frames).
+# manifest (docs/reference/asset-formats.md gives each role's size and frames).
 SPRITE_ROLES = ("actor_near", "actor_mid", "actor_far", "reticle", "muzzle_flash", "hud", "portrait",
                 "drops", "hit_effect", "exit_beacon", "fixtures")
 # Wall fixtures: four families (the fixture record's kind is two bits), each

@@ -40,7 +40,7 @@ The **MBC5 rule** the engine proves with `tools/lupine3d_v4/bank_safety.py`:
 no code above `$4000` runs while a foreign bank is mapped, every bank-register
 write is below `$4000`, no section falls through into the next, and every
 banked lookup restores bank 1 unconditionally. The generated
-[memory map](MEMORY_MAP.md) lists what the engine put where.
+[memory map](../reference/memory-map.md) lists what the engine put where.
 
 ## PPU
 
@@ -50,13 +50,13 @@ banked lookup restores bank 1 unconditionally. The generated
 - Background: a 32×32 map of 8×8 tiles; two 256-pattern banks; per-tile
   attributes give palette, VRAM bank, X-flip, Y-flip and priority. The engine
   draws the lower half of every wall by **Y-flipping** the upper half's
-  patterns with a palette whose colour 0 is the floor (`docs/ARCHITECTURE.md`,
+  patterns with a palette whose colour 0 is the floor (`docs/explanation/architecture.md`,
   "Display and geometry").
 - Objects: 40, ten per line, 8×16 in this engine. The engine admits sixteen
   world objects and four per scanline and keeps ten for the weapon and UI.
 - Palettes: eight background and eight object palettes of four RGB555 colours.
   The palette registers cannot be written during mode 3; the engine writes
-  them with the LCD off. All sixteen are allocated (`docs/ART_PIPELINE.md`).
+  them with the LCD off. All sixteen are allocated (`docs/reference/asset-formats.md`).
 - VRAM is inaccessible in mode 3 and OAM in modes 2-3. The engine never writes
   either directly during a frame: every VRAM byte moves by DMA.
 
@@ -67,7 +67,7 @@ banked lookup restores bank 1 unconditionally. The generated
   weapon swaps) and for the VBlank tail of a publication (at most 62 blocks).
 - **HBlank DMA** (HDMA) copies one block in each visible line's HBlank and
   none during VBlank. The engine streams the hidden bank's patterns and map
-  this way while it is still composing (`docs/STREAMED_PUBLICATION.md`). The
+  this way while it is still composing (`docs/explanation/streamed-publication.md`). The
   rules it keeps: start only while `HDMA5` reads idle and the LCD is on, never
   terminate a transfer, never write VBK while one is active, and source only
   from fixed WRAM because a block reads through SVBK and a yield may have the
@@ -90,7 +90,7 @@ No cartridge RAM, no timers, no serial, no window layer, no mid-frame palette
 rewrites (rejected for horizontal banding, recorded in the manifest), no
 boot ROM (a synthetic bootstrap in the adapters). Hardware testing is not
 available to the project; qualification is the host harness plus pinned
-SameBoy CGB-0/E and mGBA cores (`docs/VERIFICATION.md`).
+SameBoy CGB-0/E and mGBA cores (`docs/explanation/verification.md`).
 
 ## Further reading
 

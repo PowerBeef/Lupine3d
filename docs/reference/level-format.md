@@ -5,7 +5,7 @@ A level is one JSON file in a game's directory (the showcase's are under `games/
 accepts and why, and `docs/schema/level-v2.schema.json` describes the same
 shape for editors. When the two disagree, the compiler wins and the
 documentation is wrong. `python tools/lupine.py level check games/sable_outpost/levels/*.json`
-compiles a level and prints its certificate (`docs/LEVEL_CERTIFICATE.md`).
+compiles a level and prints its certificate (`docs/reference/level-certificate.md`).
 
 Authoring in [Tiled](https://www.mapeditor.org/) is supported through
 `tools/lupine3d_v4/tmx_import.py` (`lupine level export-tmx` and
@@ -49,7 +49,7 @@ on the boundary is refused separately).
 cell must be solid, a face may be overridden once, and the `door` profile is
 allowed only on material-3 cells (and a door cell may not be painted as
 anything else). On slim builds (textured walls) the surface profile selects the
-texture (`docs/TEXTURED_WALLS.md`).
+texture (`docs/explanation/textured-walls.md`).
 
 ## Top-level keys
 
@@ -64,7 +64,7 @@ texture (`docs/TEXTURED_WALLS.md`).
 | `entities` | yes | one to six actors (see below) |
 | `pickups` | yes | the drops the level fields (see below) |
 | `exit` | yes | `x`, `y` of the exit cell (walkable); `marker` is retained but not read |
-| `palette_profile` | yes | `outpost`, `reactor` or `spire`: the palette set every entry into this level uploads (`docs/ART_PIPELINE.md`); levels of one campaign may differ |
+| `palette_profile` | yes | `outpost`, `reactor` or `spire`: the palette set every entry into this level uploads (`docs/reference/asset-formats.md`); levels of one campaign may differ |
 | `vram_profile` | yes | `renderer-heavy` or `entity-heavy` (the resident atlas; every campaign level must agree) |
 | `readability` | no (v2) | per-level certificate limits; defaults below |
 | `fixtures` | no | up to sixteen wall-mounted landmarks |
@@ -92,7 +92,7 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 - The record compiles to six bytes: x, y, orientation, flags (`0x01` exit,
   `0x02` locked until the actors are dead, `0x04` keycard), state, fraction.
   Up to six doors ride the wall key and the snapshot copy, so the limit is an
-  engine contract, not a style choice (`docs/ARCHITECTURE.md`).
+  engine contract, not a style choice (`docs/explanation/architecture.md`).
 
 ### Entities
 
@@ -142,11 +142,11 @@ Up to sixteen wall-mounted landmarks (`vent`, `light`, `access`, `sector`),
 each on an interior wall face that is exposed to a walkable or door cell. A
 fixture on a door cell must face the moving panel. Duplicates are refused.
 Fixtures are rendered as masked objects, so they share the world OBJ budget
-(`docs/ARCHITECTURE.md`, "Publication and timing").
+(`docs/explanation/architecture.md`, "Publication and timing").
 
 ### Readability limits
 
-The v2 certificate gates spatial legibility (`docs/LEVEL_CERTIFICATE.md`). A
+The v2 certificate gates spatial legibility (`docs/reference/level-certificate.md`). A
 level may tighten the defaults; it cannot loosen the fixed 4×4 room envelope
 or the reachability rule.
 
@@ -177,7 +177,7 @@ below are the first slot's:
 | `$4950` | 96 | six sixteen-byte actor slots |
 | `$49B0` | 256 | sixteen sixteen-byte fixture records |
 
-`levels.py` names these offsets; `docs/ARCHITECTURE.md` explains how
+`levels.py` names these offsets; `docs/explanation/architecture.md` explains how
 `LEVEL_INDEX`, `LEVEL_BANK` and `LEVEL_PAGE` select a level at runtime.
 
 ## Tiled (TMX) mapping

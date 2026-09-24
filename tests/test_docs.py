@@ -15,7 +15,7 @@ class DocumentationTests(unittest.TestCase):
     def test_checker_catches_a_broken_link_and_a_missing_target(self):
         problems: list[str] = []
         page = Path(check_docs.ROOT) / "docs" / "README.md"
-        check_docs.check_links(page, "[x](NO_SUCH_FILE.md) [ok](DEVELOPMENT.md)", problems)
+        check_docs.check_links(page, "[x](NO_SUCH_FILE.md) [ok](engine/development.md)", problems)
         self.assertEqual(len(problems), 1)
         check_docs.check_commands(page, ["make build no-such-target  # make believe"], {"build"}, problems)
         self.assertEqual(len(problems), 2)

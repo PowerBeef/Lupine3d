@@ -1,6 +1,6 @@
 # Whole-HUD steel-console direction
 
-This direction is now implemented in the [native steel HUD](../../STEEL_HUD.md).
+This direction is now implemented in the [native steel HUD](../../steel-hud.md).
 The generated boards below remain concept references, not ROM captures.
 The final portrait keeps the approved armoured helmet, recessed visor and
 respirator. An uncovered human-face revision was rejected. The owner clarified that the entire UI bar needs

@@ -7,8 +7,8 @@ code, lookup tables, levels and native art into a deterministic 4 MiB MBC5 ROM.
 Python is the build/test environment, not the console runtime. There is no
 framebuffer or cartridge RAM.
 
-Read `README.md`, `docs/DEVELOPMENT.md` and `docs/ARCHITECTURE.md`. `VERSION`
-identifies the release; `docs/TEST_REPORT.md` identifies its evidence. Use source,
+Read `README.md`, `docs/engine/development.md` and `docs/explanation/architecture.md`. `VERSION`
+identifies the release; `docs/evidence/TEST_REPORT.md` identifies its evidence. Use source,
 manifest and CI to resolve stale details in historical milestone documents.
 `docs/README.md` separates current guides from retained research.
 
@@ -58,7 +58,7 @@ experiments that change `build/`. `make clean` removes all of `build/`, includin
 locally compiled emulator dependencies; do not use it casually.
 
 Independent cores need a C compiler, Make, CMake and the commits in
-`docs/DEVELOPMENT.md`. SameBoy's `lib` target builds without `cppp`: only its
+`docs/engine/development.md`. SameBoy's `lib` target builds without `cppp`: only its
 generated public headers need it, and the adapter includes `Core/gb.h` from the
 core tree. mGBA must use the **Unix Makefiles** generator because its adapter
 reads `flags.make` to match the library ABI. Both adapters press START before
@@ -133,7 +133,7 @@ regression contract.
   slim profile was removed, and `LUPINE3D_TEXTURED_WALLS=0`, the unfolded
   oracle, physical depth or anchor packets on slim Sable are refused.
   `texture_reference.compose_kernel` is the kernel's byte-exact model and
-  `docs/TEXTURED_WALLS.md` the contract; the goldens live under
+  `docs/explanation/textured-walls.md` the contract; the goldens live under
   `games/sable_outpost/snapshots/slim-sable-v2-textured/`. The flat microstrip compositor
   remains only as the renderer of the historical legacy and compact
   profiles and their research lanes (the fold identity in `make variants`
@@ -145,7 +145,7 @@ regression contract.
   compile them into row-window blocks (`TEXTURE_WINDOW_BANKS`: 248-255,
   246, 155) and never generate images. Each episode has its own texture set,
   selected by the level's palette set: `load_level` points `TEX_DIRECTORY`
-  at the set's slice of `tex_block_directory` (`docs/TEXTURED_WALLS.md`,
+  at the set's slice of `tex_block_directory` (`docs/explanation/textured-walls.md`,
   "Texture sets per episode").
 - Dynamic patterns are numbered in composition order (ids 0..237: below 128
   at `$9000`, the rest at `$8800`; ceiling 238, floor 239) and composed into
@@ -162,7 +162,7 @@ regression contract.
 - Measured over every code region of the coherence tour, the kernel costs
   about 270k T per full update against the flat compositor's 60k (tour mean
   917k T against 675k) before Phase 5; the owner made it the default after
-  that round anyway. The numbers, the missed gate and what each part costs are in `docs/TEXTURED_WALLS.md` and
+  that round anyway. The numbers, the missed gate and what each part costs are in `docs/explanation/textured-walls.md` and
   `research/results/textured_walls_lab_v2.json`. One-face columns run
   `tex_column_single` with the accumulator, step and slot in registers
   across the column; seam columns run `tex_compose_tile` per tile. A run
@@ -302,7 +302,7 @@ regression contract.
 - Pattern IDs never change, only their contents, so no OAM is rewritten and the
   animation code is weapon-agnostic. Every weapon must compile to exactly
   `WEAPON_TILE_BYTES`; the sheets are rendered from 3D models by
-  `games/sable_outpost/art/tools/render_weapons.py` (`docs/ART_PIPELINE.md`, "Weapons are rendered
+  `games/sable_outpost/art/tools/render_weapons.py` (`docs/reference/asset-formats.md`, "Weapons are rendered
   from models") into a 40x32 window right of centre: ten objects
   (`WEAPON_OBJECTS`, OAM 0-9, then the reticle and muzzle), four cels of
   twenty patterns, and a per-weapon OBJ palette per object that
@@ -364,7 +364,7 @@ regression contract.
   16 world objects/four per scanline, 40 total objects/ten per scanline.
   Do not partially admit an actor or overwrite published patterns.
 - Compact/slim full packets are **HBlank-streamed** (`HDMA_STREAMING`, see
-  `docs/STREAMED_PUBLICATION.md`): dynamic patterns and the whole hidden map
+  `docs/explanation/streamed-publication.md`): dynamic patterns and the whole hidden map
   go by HBlank DMA during composition, from **fixed-WRAM sources only** (a
   block reads through SVBK and a yield may have bank 2 mapped); the tail is
   one VBlank of at most 62 banked GDMA blocks (masks + attributes) plus
@@ -386,7 +386,7 @@ regression contract.
   itself at the next VBlank's entry if the interrupt did not (interrupts
   off), and boot clears `TAIL_PENDING`. In the harness a presented frame is
   read as the state it was handed off with, and host writes to a running
-  machine must pass `diagnostic_barrier` (`docs/VERIFICATION.md`).
+  machine must pass `diagnostic_barrier` (`docs/explanation/verification.md`).
 - Physical depth validity means an actual query at that column and wall key.
   Same-key appearance refinement must promote a coherent full wall packet.
   Never relabel duplicated or height-class depths as physical measurements.
@@ -397,7 +397,7 @@ regression contract.
 
 ## HUD and animation contracts
 
-Read `docs/SABLE_OUTPOST.md` and `docs/STEEL_HUD.md` before changing art.
+Read `games/sable_outpost/docs/art.md` and `games/sable_outpost/docs/steel-hud.md` before changing art.
 Keep the approved **armoured helmet and respirator**; do not substitute an
 uncovered human face. The skull counts living enemies remaining. Slim reads
 GOAL/HUNT until enemies are defeated, then GOAL/EXIT; DEAD/DONE clear GOAL.
@@ -431,7 +431,7 @@ For runtime/content changes run `make test playtest playtest-world`; add:
 | Assembler or harness opcode/flag semantics | `make conformance SAMEBOY_DIR=…` (`tools/harness_conformance.py`): every emitted form, harness vs SameBoy |
 
 Visual verification is **golden-image snapshots** (`tools/snapshot.py`,
-`docs/VERIFICATION.md`): goldens under `games/<id>/snapshots/<profile>/<suite>/` with a
+`docs/explanation/verification.md`): goldens under `games/<id>/snapshots/<profile>/<suite>/` with a
 manifest binding each scene to the ROM, configuration, author, date and a
 note. Every producer (`playtest`, `check_sable`, `independent_witnesses`)
 checks its captures against them and fails naming the scene; the route only
@@ -467,7 +467,7 @@ lanes from `tools/ci_lanes.py` in parallel, each in its own copy of the working
 tree, and `--changed` runs only `docs-check` for a documentation-only change. Reports must identify ROM/configuration and actual checks run.
 Documentation-only edits need link/command/diff checks, not a ROM test rerun:
 `make docs-check` (`tools/check_docs.py`) verifies every link and command and
-that `docs/guide/MEMORY_MAP.md` matches the manifest (regenerate it with
+that `docs/reference/memory-map.md` matches the manifest (regenerate it with
 `make memory-map`, never by hand). Historical documents live in
 `docs/archive/` with an index; `python tools/lupine.py` is the one entry
 point for build, run, snapshot, level, profile and verification commands.
@@ -477,7 +477,7 @@ point for build, run, snapshot, level, profile and verification commands.
 Author gameplay in the campaign levels the game's `game.json` episodes list
 (`games/sable_outpost/`; `lupine3d_v4/game.py` loads it, and the build never
 imports anything from a game directory):
-three episodes of six sectors (`docs/CAMPAIGN.md`, "Three episodes"). The
+three episodes of six sectors (`games/sable_outpost/docs/campaign.md`, "Three episodes"). The
 full controller route plays every sector, so it is run in chunks: CI's `route`
 matrix gives each chunk of `tools/ci_lanes.py:ROUTE_CHUNKS` its own runner,
 entered by continue code (`make playthrough SECTORS=A-B ROUTE_DIR=…`,
@@ -494,7 +494,7 @@ alongside source. Historical experiments write new results under `build/` unless
 intentionally adding versioned evidence.
 
 Keep `.venv/`, `build/`, `dist/`, cores, ROMs and release archives out of commits.
-Use `make preview` for actual emulator images. Follow `docs/DEVELOPMENT.md` and
+Use `make preview` for actual emulator images. Follow `docs/engine/development.md` and
 `tools/package_release.py` for release qualification and clean-room packaging.
 The package uses explicit allowlists: include every required source input.
 Retained qualification evidence is reusable only for the identical ROM SHA;

@@ -159,7 +159,7 @@ def textured_columns(pose, grid, doors) -> tuple[list[tx.TexturedColumn], dict]:
 
 # Per-tile and per-column costs of the emitted kernel (tools/lupine3d_v4/
 # textured.py), measured by code region over every region of the coherence
-# tour with LUPINE3D_TEXTURED_WALLS=1 (docs/TEXTURED_WALLS.md, "Cost"):
+# tour with LUPINE3D_TEXTURED_WALLS=1 (docs/explanation/textured-walls.md, "Cost"):
 # an interior tile is its eight rows plus the column routine's per-tile
 # bookkeeping; a boundary tile adds the outline pass and the mask
 # application; a seam tile adds the per-run compose and merge; a column

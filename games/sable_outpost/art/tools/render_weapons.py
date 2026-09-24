@@ -11,7 +11,7 @@ committed indexed PNGs under `games/sable_outpost/art/native/` through
 `sprite_assets`, exactly as it does the enemy and HUD art.
 
 The technique is the one 3D-to-pixel-art pipelines use, fitted to the
-weapon's OBJ budget (`docs/ART_PIPELINE.md`, "Weapons are rendered from
+weapon's OBJ budget (`docs/reference/asset-formats.md`, "Weapons are rendered from
 models"):
 
 - Each weapon is a handful of signed-distance primitives in gun space

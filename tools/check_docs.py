@@ -7,7 +7,7 @@
   script that exists. Archived documents and milestones keep their links
   checked but are exempt from the command checks: they describe the tooling
   of their day.
-- `docs/guide/MEMORY_MAP.md` matches the current build manifest when one
+- `docs/reference/memory-map.md` matches the current build manifest when one
   exists (`tools/memory_map.py --check`).
 
     python tools/check_docs.py [--require-build]

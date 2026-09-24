@@ -23,23 +23,23 @@ Fight through three episodes of six sectors, from the surface outpost down into 
 
 Unreleased; the download above is v0.11.
 
-- **Textured walls are the engine's renderer.** Every slim build composes its walls from the episode's 16×8 textures with depth shading, byte-exact against a host model; the flat slim profile is gone ([textured walls](docs/TEXTURED_WALLS.md)).
-- **Overlapped publication.** The VBlank interrupt publishes each frame's tail while the main loop already casts the next one ([Phase 5](docs/PERFORMANCE_PHASE5.md)).
+- **Textured walls are the engine's renderer.** Every slim build composes its walls from the episode's 16×8 textures with depth shading, byte-exact against a host model; the flat slim profile is gone ([textured walls](docs/explanation/textured-walls.md)).
+- **Overlapped publication.** The VBlank interrupt publishes each frame's tail while the main loop already casts the next one ([Phase 5](docs/evidence/PERFORMANCE_PHASE5.md)).
 - **Faster verification.** CI plays the campaign route in eight parallel chunks, and `python tools/ci_local.py` runs every CI lane locally before a push.
 - **Fixes.** A weapon swap keeps the recovery the last shot started, sector times are measured from the clock the sector actually starts on, and the continue-code cursor no longer leaves a blinking digit blank.
 
 ## What's new in v0.11
 
-- **Three episodes, eighteen sectors.** Sable Outpost, Reactor Deep and Signal Spire, each with its own palette set, opening and closing screens, and a boss closing the later two. Every sector is a place with a purpose: an airlock and mess hall, a pump gallery, a turbine hall, flooded tunnels, a walk round the whole hull, a diamond ring round the transmitter ([campaign](docs/CAMPAIGN.md)).
+- **Three episodes, eighteen sectors.** Sable Outpost, Reactor Deep and Signal Spire, each with its own palette set, opening and closing screens, and a boss closing the later two. Every sector is a place with a purpose: an airlock and mess hall, a pump gallery, a turbine hall, flooded tunnels, a walk round the whole hull, a diamond ring round the transmitter ([campaign](games/sable_outpost/docs/campaign.md)).
 - **Four weapons**, rendered from 3D models into a 40×32 window; the arsenal grows by episode and a continue code restores it.
 - **Golden-image verification**, an **opt-in textured-wall profile** with a texture set per episode, and an **SDK**: exports for standard debuggers, one command line, the level format and certificate, a Tiled round trip and a developer guide ([docs](docs/README.md)).
 
 ## What's new in v0.10
 
-- **HBlank-streamed publication.** The dynamic patterns and the whole hidden tile-number map stream into the hidden bank by HBlank DMA as each column is composed, so the VBlank tail is only the banked masks, attributes, HUD and OAM. A full update no longer spends an LCD interval idle between its pattern stage and its map stage. Every descriptor, packet and VRAM byte is unchanged; see [streamed publication](docs/STREAMED_PUBLICATION.md).
+- **HBlank-streamed publication.** The dynamic patterns and the whole hidden tile-number map stream into the hidden bank by HBlank DMA as each column is composed, so the VBlank tail is only the banked masks, attributes, HUD and OAM. A full update no longer spends an LCD interval idle between its pattern stage and its map stage. Every descriptor, packet and VRAM byte is unchanged; see [streamed publication](docs/explanation/streamed-publication.md).
 - **Exact engine savings.** The folded compositor writes each column's fifteen map cells from one pointer instead of walking two per row; the column scan keeps its extremes in registers; the depth pass keeps each actor's projection for the draw pass; the wall-key compare and the snapshot copies run eight bytes per counter step. No pixel, packet or allocation order moves.
 - **A sixth sector.** Cryo Vault: a warden and a skirmisher above, a keycard hatch, and a sump with a Sentinel and a second skirmisher below, carrying the same compiler certificate as the other five.
-- **Measured.** The nine-image tour falls from 866,119 to 674,644 CPU T-cycles per update (−22.1%) and the living-world route from 719,567 to 632,973 (−12.0%) on the host harness; the sustained sixty-second results are in [the test report](docs/TEST_REPORT.md).
+- **Measured.** The nine-image tour falls from 866,119 to 674,644 CPU T-cycles per update (−22.1%) and the living-world route from 719,567 to 632,973 (−12.0%) on the host harness; the sustained sixty-second results are in [the test report](docs/evidence/TEST_REPORT.md).
 
 <img src="docs/images/sable_objective_spaced_states_4x.png" width="640" alt="HUD states: hunt with one enemy remaining, exit with zero enemies, dead and done">
 
@@ -60,7 +60,7 @@ The **skull counts living enemies remaining**, not kills. **GOAL / HUNT** means 
 
 ## Performance and qualification
 
-On main (textured walls with overlapped publication, ROM `0f3bcb50…`), active 60-second scenarios measure **7.12–9.89 full geometry updates/s**: walking 7.45, turning 9.89, two actors 7.12 ([Phase 5](docs/PERFORMANCE_PHASE5.md)). The released v0.11, with flat walls, measured 6.62–10.25 on the same replays ([test report](docs/TEST_REPORT.md)). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is not met in any scenario on main; textured walls cost more per update than the flat walls they replaced, and the owner accepted that trade.
+On main (textured walls with overlapped publication, ROM `0f3bcb50…`), active 60-second scenarios measure **7.12–9.89 full geometry updates/s**: walking 7.45, turning 9.89, two actors 7.12 ([Phase 5](docs/evidence/PERFORMANCE_PHASE5.md)). The released v0.11, with flat walls, measured 6.62–10.25 on the same replays ([test report](docs/evidence/TEST_REPORT.md)). Full geometry updates and cached sprite/HUD presentations run at different rates. The target of ten sustained full geometry updates per second is not met in any scenario on main; textured walls cost more per update than the flat walls they replaced, and the owner accepted that trade.
 
 v0.8 deliberately traded some geometry throughput for the larger viewport and animated art. The original half-gains performance criterion was not met; that visual tradeoff was explicitly accepted and still stands. Memory, graphics capacity and publication safety limits remain enforced.
 
@@ -97,14 +97,14 @@ For example, `LUPINE3D_DISPLAY=legacy make build` reproduces the beta.6 visual c
 | Guide | Contents |
 |---|---|
 | [Documentation index](docs/README.md) | Current guides and historical evidence |
-| [Development](docs/DEVELOPMENT.md) | Setup, emulator cores, diagnostics and releases |
-| [Architecture](docs/ARCHITECTURE.md) | Rendering, memory, simulation and publication |
-| [Campaign](docs/CAMPAIGN.md) | From demo to game: decisions, measured cost and evidence |
-| [Sable Outpost art](docs/SABLE_OUTPOST.md) | Visual language, animation sources and budgets |
-| [Steel HUD](docs/STEEL_HUD.md) | Layout, objective text and native tile contracts |
-| [Textured walls](docs/TEXTURED_WALLS.md) | The renderer: texture format, kernel, exactness and cost |
-| [Verification](docs/VERIFICATION.md) | Hard gates, golden snapshots, CI lanes and the local runner |
-| [Test report](docs/TEST_REPORT.md) | The v0.11 release ROM's hash, executed checks and performance |
+| [Development](docs/engine/development.md) | Setup, emulator cores, diagnostics and releases |
+| [Architecture](docs/explanation/architecture.md) | Rendering, memory, simulation and publication |
+| [Campaign](games/sable_outpost/docs/campaign.md) | From demo to game: decisions, measured cost and evidence |
+| [Sable Outpost art](games/sable_outpost/docs/art.md) | Visual language, animation sources and budgets |
+| [Steel HUD](games/sable_outpost/docs/steel-hud.md) | Layout, objective text and native tile contracts |
+| [Textured walls](docs/explanation/textured-walls.md) | The renderer: texture format, kernel, exactness and cost |
+| [Verification](docs/explanation/verification.md) | Hard gates, golden snapshots, CI lanes and the local runner |
+| [Test report](docs/evidence/TEST_REPORT.md) | The v0.11 release ROM's hash, executed checks and performance |
 | [Contributing](CONTRIBUTING.md) | Change requirements and development policy |
 | [Agent guidance](AGENTS.md) | Code map and implementation invariants |
 

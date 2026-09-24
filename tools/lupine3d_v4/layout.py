@@ -160,7 +160,7 @@ PACKET_WORKSPACE = 0xD2A0       # current packet plus two pending 32-byte siblin
 PHYSICAL_DEPTH = RENDER_CONFIG["physical_depth"]
 PIXEL_DEPTH_VALID = 0xDF42      # 160 validity bits for the current exact wall key
 PIXEL_DEPTH = 0xDF60            # 160 Q5 depths from actual physical-column queries
-# Textured walls (docs/TEXTURED_WALLS.md). Every cast records where along its
+# Textured walls (docs/explanation/textured-walls.md). Every cast records where along its
 # face it landed (RAY_U, Q8 within the cell); physical pixels take it by the
 # pair expansion (PIXEL_U, in the window physical depth would otherwise use:
 # the two are exclusive). Bank 247 holds the per-direction slopes the ROM

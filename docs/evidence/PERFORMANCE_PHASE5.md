@@ -26,7 +26,7 @@ Full geometry updates per second (mean full update in thousands of T):
 | opening door | 0.08 (1180k) | 0.08 (1152k) | 0.10 | 0.10 (937k) |
 
 "Textured before" is the textured ROM of commit 8c8e446 (candidate
-`2eebf745…`); "Default v0.11" is `docs/TEST_REPORT.md` (ROM `76b6f974…`),
+`2eebf745…`); "Default v0.11" is `docs/evidence/TEST_REPORT.md` (ROM `76b6f974…`),
 which predates the conditional map copy of the render snapshot as well. The
 targets are **not met**: the textured ROM gained 5-9%, and walking needs
 about 330k T less per update to reach 9.0/s.
@@ -55,7 +55,7 @@ of sight each tick.
 
 * **Texture kernel.** Rows whose step is under one texel row cost 76 T
   instead of 104; one-face columns lost their per-tile bookkeeping; the run
-  setup keeps its record in a register (`docs/TEXTURED_WALLS.md`, "Phase 5:
+  setup keeps its record in a register (`docs/explanation/textured-walls.md`, "Phase 5:
   exact savings").
 * **16x16 multiply** (`q14_multiply_u16`): the four table products
   accumulate through the stack, each product byte stored once - roughly 870 T
@@ -103,7 +103,7 @@ The slim build hands the streamed VBlank tail to the VBlank interrupt; the
 owner made it the default after the prototype's measurements, setting the
 Phase 5 targets aside. `LUPINE3D_OVERLAP_PUBLICATION=0` (`make sync
 playtest-sync`) builds the synchronous tail, which CI's `profiles` job keeps
-verified. The v0.8 audit built the same idea (`docs/PERFORMANCE_AUDIT_V08.md`,
+verified. The v0.8 audit built the same idea (`docs/archive/PERFORMANCE_AUDIT_V08.md`,
 3.1) and reverted it because the validator could no longer see the frame on
 screen and the frozen pixel oracles moved; the hand-off capture answers the
 first and reviewable snapshots the second.
@@ -144,7 +144,7 @@ unsafe GDMA starts:
 Publication waits fall from 53-78k T to about 0.1k T per presentation: an
 update is now bound by its own work. The targets are still not met.
 
-The harness had to learn two things (`docs/VERIFICATION.md`, "Overlapped
+The harness had to learn two things (`docs/explanation/verification.md`, "Overlapped
 publication"): a presented packet is validated against the state captured
 at its hand-off, not the live state the next update has already changed,
 and a diagnostic write waits for a frame boundary so no packet mixes old

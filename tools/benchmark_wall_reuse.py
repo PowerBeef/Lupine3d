@@ -22,7 +22,7 @@ def boot(rom, labels, *, full=False):
 
 
 def frame(c):
-    c.diagnostic_barrier()   # host writes land between frames (docs/VERIFICATION.md)
+    c.diagnostic_barrier()   # host writes land between frames (docs/explanation/verification.md)
     c.write8(br.INPUT_QUEUE_TAIL, c.read8(br.INPUT_QUEUE_HEAD))
     before = c.cycles
     c.run(until_presentations=c.presentations+1)

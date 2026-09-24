@@ -110,7 +110,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
 
     def live8(address):
         # The live world, not the presented frame the harness shows right
-        # after a presentation (overlapped publication, docs/VERIFICATION.md).
+        # after a presentation (overlapped publication, docs/explanation/verification.md).
         return cgb.live_wramx[2][address - 0xD000] if br.FIXED_SIMULATION and 0xD000 <= address < 0xE000 else cgb.read8(address)
 
     def live16(address):

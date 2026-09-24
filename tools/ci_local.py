@@ -23,7 +23,7 @@ Each lane stops at its first failing command. Logs and each lane's tree are
 under `build/ci-local/`; route reports are copied back into `build/` so
 `tools/release_check.py` can union them. The summary fails if any lane
 failed, if a lane was skipped (the slow lane needs the pinned cores under
-`build/deps`, docs/DEVELOPMENT.md), or if the lanes did not all build the
+`build/deps`, docs/engine/development.md), or if the lanes did not all build the
 same ROM.
 """
 

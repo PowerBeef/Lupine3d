@@ -3,7 +3,7 @@
 Candidate ROM SHA-256:
 `fd7c95e7f3237ca130d0fabe763190a1622d51dc7d49ff0c1fa7e704fb873f4c`.
 
-The portrait returns to the [approved helmet concept](../../docs/design/hud-steel/concept.png):
+The portrait returns to the [approved helmet concept](../../games/sable_outpost/docs/design/hud-steel/concept.png):
 an armoured shell, recessed brow, narrow visor and central respirator. The
 uncovered human portrait was rejected. The surrounding steel HUD layout stays
 unchanged. Native pixels live in `tools/lupine3d_v4/steel_hud.py`; builds load

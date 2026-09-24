@@ -1,6 +1,6 @@
 # v0.7.0-beta.4 — Wall reuse and combat presentation
 
-This document preserves the beta.4 milestone measurements. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md) and the [current test report](../TEST_REPORT.md) for the active candidate.
+This document preserves the beta.4 milestone measurements. See [streaming columns and prepared rays](COLUMN_PERFORMANCE.md) and the [current test report](../evidence/TEST_REPORT.md) for the active candidate.
 All four implementation steps are delivered. An unchanged wall view now remains in VRAM while actors, pickups, fixtures, weapon feedback and HUD are rendered from the next immutable world snapshot. Changing the camera or any wall input returns to the full renderer.
 
 Candidate ROM SHA-256: `8813ab38201f937c18c9b15e26d58c94fe2e873bbaf900a358fcf933fef34e0b`.
@@ -107,4 +107,4 @@ python3 tools/benchmark_wall_reuse.py \
 
 `LUPINE3D_WALL_REUSE=0` builds the full-render diagnostic variant. `WALL_CACHE_DISABLE` at $C8B7 provides a runtime A/B within the default ROM; it is a test switch, not a player setting. Matching host flags remain required for build variants.
 
-Candidate-bound evidence: [wall reuse measurements](../../research/results/wall_reuse_beta4.json) and [test report](../TEST_REPORT.md). The earlier arithmetic implementation remains documented separately in [runtime performance](RUNTIME_PERFORMANCE.md).
+Candidate-bound evidence: [wall reuse measurements](../../research/results/wall_reuse_beta4.json) and [test report](../evidence/TEST_REPORT.md). The earlier arithmetic implementation remains documented separately in [runtime performance](RUNTIME_PERFORMANCE.md).

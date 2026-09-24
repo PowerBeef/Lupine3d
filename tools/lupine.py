@@ -16,7 +16,7 @@ build/games/<id>/.
     lupine snapshot run|diff|accept|list ... (tools/snapshot.py)
     lupine level check FILE...        compile a level and print its certificate
     lupine level info FILE            the level's contents at a glance
-    lupine level export-tmx SRC DST   the level as a Tiled map (docs/LEVEL_FORMAT.md)
+    lupine level export-tmx SRC DST   the level as a Tiled map (docs/reference/level-format.md)
     lupine level import-tmx SRC DST   a Tiled map back to JSON, compiled to check it
     lupine profile [--sync]           cycles by main-loop stage on the coherence tour
     lupine test | witnesses | release-check | sable-check [--sync]

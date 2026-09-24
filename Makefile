@@ -21,7 +21,7 @@ build:
 test: build
 	$(PYTHON) tools/run_tests.py
 
-# Documentation: links, commands and the generated memory map (docs/guide/MEMORY_MAP.md).
+# Documentation: links, commands and the generated memory map (docs/reference/memory-map.md).
 docs-check: build
 	$(PYTHON) tools/check_docs.py --require-build
 
@@ -130,7 +130,7 @@ snapshot-accept:
 	test -n "$(SUITE)" && test -n "$(NOTE)"
 	$(PYTHON) tools/snapshot.py accept --suite "$(SUITE)" $(if $(SCENE),--scene "$(SCENE)",) --note "$(NOTE)"
 
-# Overlapped publication (docs/PERFORMANCE_PHASE5.md) is the slim default:
+# Overlapped publication (docs/evidence/PERFORMANCE_PHASE5.md) is the slim default:
 # the VBlank interrupt publishes the streamed tail while the next update
 # casts. The synchronous tail it replaced (LUPINE3D_OVERLAP_PUBLICATION=0)
 # builds into build/sync and keeps its frame checks and a motion replay;

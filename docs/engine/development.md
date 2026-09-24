@@ -17,7 +17,7 @@ Outputs are `build/lupine3d.gb`, `.sym`, `.lst` and `build/build_manifest.json`.
 
 `make test` runs the historical engine suite under explicit legacy settings and production art/display checks in fresh processes. Do not run historical image/arithmetic tests under the slim default by accident.
 
-`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `ci`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](guide/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](guide/MEMORY_MAP.md) matches the build (`make memory-map` regenerates it).
+`python tools/lupine.py` is one entry point for the everyday commands, each run in a fresh process with the right flags: `build [--sync] [--display …]`, `run [--scenario …]`, `snapshot …`, `level check|info|export-tmx|import-tmx`, `profile`, `test`, `witnesses`, `ci`, `release-check`, `sable-check` and `symbols`. `make lupine ARGS="…"` is the same through Make. The [developer guide](../tutorials/README.md) is the reading order for someone new to the engine; `make docs-check` verifies every documentation link and command and that the generated [memory map](../reference/memory-map.md) matches the build (`make memory-map` regenerates it).
 
 | Profile | World / HUD | Default art |
 |---|---|---|
@@ -30,7 +30,7 @@ LUPINE3D_DISPLAY=legacy make build
 make build  # Restore the default after the comparison.
 ```
 
-Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](archive/RENDERING_IMPLEMENTATION.md).
+Flags are read at import time. Use a fresh process and matching flags for the ROM and validator. `LUPINE3D_ART` and `LUPINE3D_ART_ANIMATION` select art and animation; explicit incompatible combinations fail. Other rendering experiments remain disabled unless their documented gates pass. See [the experiment ledger](../archive/RENDERING_IMPLEMENTATION.md).
 
 ### Debugger exports
 
@@ -81,7 +81,7 @@ OAM) that the host harness can replay; every adapter failure reports its seed.
 
 ## Content and diagnostics
 
-Author gameplay in the eighteen campaign levels the showcase's `games/sable_outpost/game.json` lists by episode (sector 1 is `games/sable_outpost/levels/living_world.json`; [campaign](CAMPAIGN.md)); use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `tests/levels/two_sentinels.json` is the bounded multi-actor scene; `tests/levels/renderer_benchmark.json` is the research corpus.
+Author gameplay in the eighteen campaign levels the showcase's `games/sable_outpost/game.json` lists by episode (sector 1 is `games/sable_outpost/levels/living_world.json`; [campaign](../../games/sable_outpost/docs/campaign.md)); use `LUPINE3D_LEVEL` for a different level. The compiler validates spawn clearance, reachability, door gates, surface faces, sightlines and room sizes. `tests/levels/two_sentinels.json` is the bounded multi-actor scene; `tests/levels/renderer_benchmark.json` is the research corpus.
 
 `tools/playtest.py` injects explicit diagnostic poses and validates the generated ROM, descriptors, complete map/attribute packets and published VRAM/OAM. Packet sizes are 480 bytes in slim, 448 compact and 384 legacy. Its captures are checked against the golden snapshots under `snapshots/` (suites `tour`, `world`, `art`); a changed frame fails naming the scene and writes `build/snapshots/<profile>/<suite>/report.html` for review. Accept a deliberate change with a note:
 
@@ -90,7 +90,7 @@ python tools/snapshot.py diff --suite tour
 python tools/snapshot.py accept --suite tour --scene 09_exit_approach --note "why the frame changed"
 ```
 
-See [Verification](VERIFICATION.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `games/sable_outpost/playtests/archive/oracles/`.
+See [Verification](../explanation/verification.md) for what is a hard gate and what is a snapshot. The retired hash oracles are archived under `games/sable_outpost/playtests/archive/oracles/`.
 
 ```sh
 make playthrough variants wall-reuse motion
@@ -107,7 +107,7 @@ Controller completion uses no game-RAM writes, but reads live state to steer; it
 ### Textured walls
 
 The engine and its showcase are textured: every slim Sable build composes its
-walls with the row-window kernel of `docs/TEXTURED_WALLS.md`, and its goldens
+walls with the row-window kernel of `docs/explanation/textured-walls.md`, and its goldens
 live under `games/sable_outpost/snapshots/slim-sable-v2-textured/`. The flat slim profile was
 removed; the flat microstrip compositor is kept only as the renderer of the
 historical legacy and compact profiles, whose research lanes (the unfolded
@@ -115,7 +115,7 @@ oracle, physical depth, anchor packets) run there. `tests/test_textured_walls.py
 runs the Sable checks in a fresh process.
 
 The slim build also publishes each frame's tail from the VBlank interrupt
-(overlapped publication, `docs/PERFORMANCE_PHASE5.md`).
+(overlapped publication, `docs/evidence/PERFORMANCE_PHASE5.md`).
 `LUPINE3D_OVERLAP_PUBLICATION=0` builds the synchronous tail:
 
 ```sh
@@ -182,6 +182,6 @@ Archive the resulting `build/rendering_qualification/` under `milestones/v<VERSI
 
 After manually running the same gates, `--reuse-verified-working-tree` can reuse current reports. The packager still stages allow-listed sources, rebuilds, writes a deterministic archive, extracts it, rebuilds again and executes the full test suite. It emits the ROM, complete source/evidence ZIP, previews, reports and checksums. Keep ROMs and archives out of Git.
 
-Commit on `main`, push, and tag the reviewed commit. The release workflow validates the tag/version and packages it. Never replace an existing release's assets silently. Describe releases as emulator-qualified, with hardware and original-boot-ROM flags false. The [physical checklist](HARDWARE_TEST_CHECKLIST.md) is retained for possible future access.
+Commit on `main`, push, and tag the reviewed commit. The release workflow validates the tag/version and packages it. Never replace an existing release's assets silently. Describe releases as emulator-qualified, with hardware and original-boot-ROM flags false. The [physical checklist](hardware-checklist.md) is retained for possible future access.
 
 The static geometry report compares the historical >20% mean-error improvement gate over the common central 96-pixel window. It also reports the complete current viewport separately, including newly exposed clipped edges. Both references use the appropriate horizon; neither the threshold nor the archived research is changed.

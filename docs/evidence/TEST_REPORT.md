@@ -5,7 +5,7 @@ This report describes the **eighteen-sector, three-episode campaign on the
 HBlank-streamed publication**, plus the opt-in textured-walls profile.
 Qualification is emulator-only. The owner has no physical CGB or flash
 cartridge; physical hardware and original Nintendo boot-ROM testing remain
-false. The previous release is retained in [the v0.10 report](archive/TEST_REPORT_V10.md).
+false. The previous release is retained in [the v0.10 report](../archive/TEST_REPORT_V10.md).
 
 **ROM SHA-256:**
 `76b6f974477021fd79c868643c16002006bd3ccf3690f20b95acdfd3dc16c58a`
@@ -17,17 +17,17 @@ ROM only).
 ## What changed
 
 - **Three episodes of six sectors**, every sector redrawn as a named place
-  ([campaign](CAMPAIGN.md), "Three episodes" and "Named places"), with a
+  ([campaign](../../games/sable_outpost/docs/campaign.md), "Three episodes" and "Named places"), with a
   level directory packing five levels to a ROM bank, six doors and six actor
   slots per level, a palette set per episode, four weapons owned by episode,
   a boss kind, and episode opening and closing screens.
-- **Golden-image verification** ([verification](VERIFICATION.md)) replaces
+- **Golden-image verification** ([verification](../explanation/verification.md)) replaces
   the pixel-hash oracles; engine invariants stay hard gates.
-- **The opt-in textured profile** ([textured walls](TEXTURED_WALLS.md)),
+- **The opt-in textured profile** ([textured walls](../explanation/textured-walls.md)),
   with a texture set per episode.
 - **The SDK**: RGBDS-form exports, `tools/lupine.py`, the level format and
   certificate, the Tiled round trip, the art pipeline and the developer
-  guide ([docs index](README.md)).
+  guide ([docs index](../README.md)).
 
 ## Executed checks
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/powerbeef/lupine3d/docs/schema/sprites-v1.schema.json",
   "title": "Lupine 3D sprite manifest (lupine-sprites-v1)",
-  "description": "The game's indexed PNG sheets. tools/lupine3d_v4/sprite_assets.py refuses a sheet whose mode, size, transparency, palette or SHA-256 disagrees with its record. See docs/ART_PIPELINE.md.",
+  "description": "The game's indexed PNG sheets. tools/lupine3d_v4/sprite_assets.py refuses a sheet whose mode, size, transparency, palette or SHA-256 disagrees with its record. See docs/reference/asset-formats.md.",
   "type": "object",
   "required": [
     "schema",

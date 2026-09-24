@@ -11,7 +11,7 @@ false. The previous release is retained in [the v0.9 report](TEST_REPORT_V09.md)
 
 ## What changed
 
-- **Publication streams** ([design and contracts](../STREAMED_PUBLICATION.md)):
+- **Publication streams** ([design and contracts](../explanation/streamed-publication.md)):
   hidden dynamic patterns and the hidden map go by HBlank DMA during
   composition; the tail is one VBlank of at most 62 banked GDMA blocks plus
   HUD, OAM and the flip. The staged two-or-three-VBlank packet is retained

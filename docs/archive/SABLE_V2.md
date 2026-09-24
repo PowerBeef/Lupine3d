@@ -1,6 +1,6 @@
 # Initial 32-pixel Sable Outpost candidate
 
-> Historical implementation record for the initial 32-pixel HUD/Sable candidate. For the shipped v0.8 layout and budgets, see [Sable Outpost](../SABLE_OUTPOST.md) and [architecture](../ARCHITECTURE.md).
+> Historical implementation record for the initial 32-pixel HUD/Sable candidate. For the shipped v0.8 layout and budgets, see [Sable Outpost](../../games/sable_outpost/docs/art.md) and [architecture](../explanation/architecture.md).
 
 **Historical qualification:** the current production defaults and 16-pixel HUD
 are documented in [SLIM_HUD.md](SLIM_HUD.md). The owner subsequently accepted
@@ -143,7 +143,7 @@ The independent witness corpus adds 36 frozen animation/LOD scenes. Exact RGB
 comparisons use identical frozen snapshots; normal controller smoke remains
 unpatched. This avoids treating different portrait sampling times as a
 rendering defect. SameBoy CGB-0/E and mGBA are pinned as documented in
-[DEVELOPMENT.md](../DEVELOPMENT.md); mGBA's adapter does not instrument DMA writes.
+[DEVELOPMENT.md](../engine/development.md); mGBA's adapter does not instrument DMA writes.
 
 ```sh
 make PYTHON=.venv/bin/python sable-sustained

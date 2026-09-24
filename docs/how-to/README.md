@@ -11,9 +11,9 @@ ROM.
    Tiled: `python tools/lupine.py level export-tmx
    games/sable_outpost/levels/vent_stacks.json build/vent.tmx
    --swatch`, edit, then `lupine level import-tmx`). The format, units and
-   limits are in `docs/LEVEL_FORMAT.md`.
+   limits are in `docs/reference/level-format.md`.
 2. `python tools/lupine.py level check games/sable_outpost/levels/new.json` until the
-   certificate passes (`docs/LEVEL_CERTIFICATE.md`). Fix the level, never
+   certificate passes (`docs/reference/level-certificate.md`). Fix the level, never
    the limits.
 3. Add the file to an episode's `levels` in `games/sable_outpost/game.json`.
    Levels are packed five to a ROM bank from 241 (a resident directory gives
@@ -37,7 +37,7 @@ Kinds share the Sentinel's cels; a kind is stats plus an OBJ palette.
    There are four records because the kind byte is masked to two bits, and
    all four are used (the fourth is the boss), so a fifth kind needs a wider
    kind mask, not another record.
-3. The palette: all eight OBJ palettes are allocated (`docs/ART_PIPELINE.md`).
+3. The palette: all eight OBJ palettes are allocated (`docs/reference/asset-formats.md`).
    A distinct look means re-planning owners, not adding a slot; run `python
    tools/palette_plan.py` and change `obj_palette_values` deliberately.
 4. Field it in a level's `entities`. `make test playtest-world playthrough`;
@@ -52,7 +52,7 @@ walks to the next owned one with the LCD off. The count is a power of two
 1. Art: a model function in `games/sable_outpost/art/tools/render_weapons.py` (parts with a
    material and a name, the moving ones marked `action`), added to `MODELS`
    and `WEAPONS`, rendered into `games/sable_outpost/art/native/` with
-   `python games/sable_outpost/art/tools/render_weapons.py --write` (`docs/ART_PIPELINE.md`,
+   `python games/sable_outpost/art/tools/render_weapons.py --write` (`docs/reference/asset-formats.md`,
    "Weapons are rendered from models"). It compiles to exactly
    `WEAPON_TILE_BYTES` in the 8×16 pair order, and its manifest record
    carries the fitted `object_palettes`.

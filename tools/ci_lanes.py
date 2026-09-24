@@ -56,7 +56,7 @@ MGBA_DIR = "build/deps/mgba"
 
 # The non-route jobs, command for command as ci.yml runs them (the core
 # checkout and build steps are CI plumbing: locally the cores must already be
-# under build/deps, docs/DEVELOPMENT.md "Pinned independent cores").
+# under build/deps, docs/engine/development.md "Pinned independent cores").
 LANES: dict[str, list[list[str]]] = {
     "fast": [
         ["make", "test"],

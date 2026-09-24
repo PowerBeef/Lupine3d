@@ -1,6 +1,6 @@
 # Sable Outpost: v0.8 art and animation
 
-The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. (The weapon cels were later replaced by renders of 3D models, `docs/ART_PIPELINE.md`; the generated shotgun master is retained as a design source.) The first sector is the outpost itself: a safe start in the landing airlock, a decon passage, the bunk room, the mess hall and the comms room where the Sentinel guards the lift, behind four sliding doors, with a healing pickup and a marked exit (`docs/CAMPAIGN.md`, "Named places"). Sixteen wall fixtures add landmarks without changing collision geometry.
+The environment, actors, shotgun and steel HUD share an industrial science-fiction direction. (The weapon cels were later replaced by renders of 3D models, `docs/reference/asset-formats.md`; the generated shotgun master is retained as a design source.) The first sector is the outpost itself: a safe start in the landing airlock, a decon passage, the bunk room, the mess hall and the comms room where the Sentinel guards the lift, behind four sliding doors, with a healing pickup and a marked exit (`games/sable_outpost/docs/campaign.md`, "Named places"). Sixteen wall fixtures add landmarks without changing collision geometry.
 
 ## Visual language
 
@@ -22,14 +22,14 @@ Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame m
 
 | Asset | Native size | Cels |
 |---|---|---:|
-| Shotgun | 40×32 | 4: idle, recoil, pump back, pump forward (rendered from a 3D model, `docs/ART_PIPELINE.md`) |
+| Shotgun | 40×32 | 4: idle, recoil, pump back, pump forward (rendered from a 3D model, `docs/reference/asset-formats.md`) |
 | Muzzle flash | 8×16 | 2 |
 | Sentinel | 16×32, 16×16, 8×16 | 12 per size: idle, walk, attack, hurt, death |
 | Player helmet | 16×16 | 4: normal, blink, hurt, dead |
 | Reticle | 8×16 | 1 |
 | Steel panel | 160×24 | Static base with dynamic tile regions |
 
-The current helmet is the armoured, narrow-visor portrait retained after review. Its authored source is `steel_hud.py`. Preserve that selected face when editing the interface. The skull counts **living enemies remaining**; the objective reads **GOAL/HUNT**, then **GOAL/EXIT**. DEAD/DONE clear GOAL. See [HUD implementation](STEEL_HUD.md).
+The current helmet is the armoured, narrow-visor portrait retained after review. Its authored source is `steel_hud.py`. Preserve that selected face when editing the interface. The skull counts **living enemies remaining**; the objective reads **GOAL/HUNT**, then **GOAL/EXIT**. DEAD/DONE clear GOAL. See [HUD implementation](steel-hud.md).
 
 ## Animation and gameplay
 
@@ -57,6 +57,6 @@ Fixtures project at the upper quarter of a wall, use discrete size levels, and r
 
 ## Verification and history
 
-The hash oracles are retired: the v0.9 oracle (`games/sable_outpost/playtests/archive/oracles/sable_v09_capture_pixels.json`) and the v0.8 fixture (`sable_objective_spaced_capture_pixels.json`) are kept as evidence, and current captures are golden snapshots ([verification](VERIFICATION.md)). Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
+The hash oracles are retired: the v0.9 oracle (`games/sable_outpost/playtests/archive/oracles/sable_v09_capture_pixels.json`) and the v0.8 fixture (`sable_objective_spaced_capture_pixels.json`) are kept as evidence, and current captures are golden snapshots ([verification](../../../docs/explanation/verification.md)). Asset checks cover all 36 enemy cels, weapon phases, portrait states, clocks, mask admission, both HUD maps, text spacing and maximal publication. Real ROM captures are reviewed separately from generated concepts.
 
-See [the current qualification](TEST_REPORT.md), [architecture](ARCHITECTURE.md), and the preserved [beta.6 art contract](archive/SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.
+See [the current qualification](../../../docs/evidence/TEST_REPORT.md), [architecture](../../../docs/explanation/architecture.md), and the preserved [beta.6 art contract](../../../docs/archive/SABLE_OUTPOST_BETA6.md). Physical hardware is unavailable; results are emulator-qualified.

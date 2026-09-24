@@ -4,7 +4,7 @@ A texture is an indexed 16x8 PNG a game names (game.json `textures`, the
 showcase's under `games/sable_outpost/textures/`) whose pixel values
 are colour indices 1..3 (2 lit, 3 shaded, 1 deep); index 0 is the outside
 and never appears in a texture. The compiler mirrors every texture about
-the horizon by construction (docs/TEXTURED_WALLS.md), so nothing here is
+the horizon by construction (docs/explanation/textured-walls.md), so nothing here is
 generated: builds read the checked-in PNGs and never call image generation.
 
 The tables are exactly the ones `texture_reference` defines: the row
@@ -55,7 +55,7 @@ def window_block(texture_index: int, shade: int) -> bytes:
     eight rows' plane-0 bytes, then their plane-1 bytes. Split by plane, the
     kernel's row accumulator addresses a row with its high byte alone: the
     cache sits at a sixteen-aligned address and row v's planes are at +v
-    and +8+v (docs/TEXTURED_WALLS.md)."""
+    and +8+v (docs/explanation/textured-walls.md)."""
     windows = make_row_windows(textures())
     out = bytearray()
     for k in range(len(DELTA_CLASSES)):

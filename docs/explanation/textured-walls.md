@@ -141,7 +141,7 @@ removed, and only the historical legacy and compact profiles keep the flat
 compositor. The contact sheet below is the coherence tour captured
 from the emitted ROM by the harness, not a host rendering.
 
-![The coherence tour on the textured ROM](images/textured_walls_rom_tour.png)
+![The coherence tour on the textured ROM](../images/textured_walls_rom_tour.png)
 
 ### The cast: `RAY_U` and `PIXEL_U`
 
@@ -263,7 +263,7 @@ walking 6.2/s and two-actor corner 5.6/s against v0.10's 10.27, 7.77 and
 estimates (700/1,300 T per tile, no column cost) were optimistic by about
 3x; the gate - +70k T mean, rates within 10% - is **not met**, and the
 profile stayed opt-in until the owner made it the slim default after the
-Phase 5 round (`docs/PERFORMANCE_PHASE5.md`). Exactness, publication safety and the pinned cores are
+Phase 5 round (`docs/evidence/PERFORMANCE_PHASE5.md`). Exactness, publication safety and the pinned cores are
 green, so the rate is the whole tradeoff: textured walls at about three
 quarters of the flat frame rate. Closing that gap needs a structural change
 rather than trims - fewer composed rows (grouping screen rows that share a
@@ -303,7 +303,7 @@ profile, the same round made the 16x16 multiply accumulate its table
 products through the stack, divided a door panel's displacement for its
 last twelve quotient bits only, and fused the crossing certificate into the
 DDA loop; `tests/test_runtime.py` pins the door quotient against Python.
-The sustained rates are in `docs/PERFORMANCE_PHASE5.md`.
+The sustained rates are in `docs/evidence/PERFORMANCE_PHASE5.md`.
 
 ### Texture sets per episode
 

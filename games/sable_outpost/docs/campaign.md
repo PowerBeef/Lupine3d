@@ -75,7 +75,7 @@ only ever compares bytes.
 ## Measured cost (v0.9)
 
 These figures were taken on the v0.9 ROM; the engine has grown since (the
-generated [memory map](guide/MEMORY_MAP.md) and the manifest hold the current
+generated [memory map](../../../docs/reference/memory-map.md) and the manifest hold the current
 budgets).
 
 | | Figure |
@@ -199,7 +199,7 @@ project's own model could not.
 ## Three episodes
 
 The campaign is three episodes of six sectors, each with its own palette set
-(`docs/ART_PIPELINE.md`) and its own opening and closing screens
+(`docs/reference/asset-formats.md`) and its own opening and closing screens
 (`AGENTS.md`, "Campaign, modes and screens"). Levels are packed five to a
 ROM bank from 241; the arsenal grows by episode (`WEAPON_UNLOCK_SECTORS`:
 the arc lance from sector 7, the pulse carbine from sector 13) and the
@@ -213,7 +213,7 @@ Signal Spire field the boss kind.
 | 3 Signal Spire | `spire` | Antenna Base, Relay Deck (keycard), Hull Walk, Signal Vault (keycard), Transmitter Ring, Spire Crown (boss) |
 
 Every sector carries the same compiler certificate as the first six
-(`docs/LEVEL_CERTIFICATE.md`; `tests/test_campaign.py` pins it for all
+(`docs/reference/level-certificate.md`; `tests/test_campaign.py` pins it for all
 eighteen), and the controller route plays all of them in CI's `route` matrix:
 eight chunks sized by route updates (`tools/ci_lanes.py`), each on its own
 runner and entered by continue code (`make playthrough SECTORS=8-9
@@ -248,7 +248,7 @@ follows how the place would be used rather than a grid of rooms:
 | 17 Transmitter Ring | a diamond ring round the transmitter, with a door at each point: arrival, two emitter rooms, the lock |
 | 18 Spire Crown | the crown chamber, eight pillars round the boss, with bays either side and the uplink lock above |
 
-The certificate shapes every plan (`docs/LEVEL_CERTIFICATE.md`): a door
+The certificate shapes every plan (`docs/reference/level-certificate.md`): a door
 counts as open floor in the six-cell sightline, so a door sits where the
 corridor turns, and every door must cut off at least eight cells, so doors
 lead into wings and never sit on a loop; the loops are open corridors.

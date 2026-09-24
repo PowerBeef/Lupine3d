@@ -10,7 +10,7 @@ byte for byte.
 
 ## Why publication was the largest remaining cost
 
-[The v0.8 performance audit](PERFORMANCE_AUDIT_V08.md) measured where a full
+[The v0.8 performance audit](../archive/PERFORMANCE_AUDIT_V08.md) measured where a full
 update spends its cycles and found that the engine work is only part of it:
 
 | Bucket | Per full update (walking) |
@@ -126,7 +126,7 @@ nothing, and bounds an exchange at contact range by less LCD time.
 
 ## Measurements
 
-Host harness, same routes as [the audit](PERFORMANCE_AUDIT_V08.md), same
+Host harness, same routes as [the audit](../archive/PERFORMANCE_AUDIT_V08.md), same
 ROM otherwise:
 
 | Route | v0.9 mean cycles/update | streamed | delta |
@@ -138,12 +138,12 @@ ROM otherwise:
 tour: what remains is the alignment wait to the next VBlank, which no
 synchronous scheme can remove (overlapped publication, the slim default
 since, hands that wait to the VBlank interrupt). The v0.10 sustained
-sixty-second results are in [its test report](archive/TEST_REPORT_V10.md).
+sixty-second results are in [its test report](../archive/TEST_REPORT_V10.md).
 
 ## What it does not do
 
 * It does not shorten the alignment wait by itself. Overlapped publication
-  (the slim default since Phase 5, `docs/PERFORMANCE_PHASE5.md`) does: the
+  (the slim default since Phase 5, `docs/evidence/PERFORMANCE_PHASE5.md`) does: the
   VBlank interrupt commits this tail while the next frame is already
   casting.
 * It does not raise the GDMA time spent in any VBlank. The tail carries 62

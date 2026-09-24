@@ -208,7 +208,7 @@ def main() -> None:
         # Staged: at most 176 GDMA blocks over two or three VBlanks. Streamed:
         # patterns and map by HBlank DMA (at most 126 blocks over visible
         # lines on the flat compositor; the textured ring streams up to its
-        # 238 pattern ids plus the 30-block map, docs/TEXTURED_WALLS.md), then
+        # 238 pattern ids plus the 30-block map, docs/explanation/textured-walls.md), then
         # one VBlank of at most 62 banked GDMA blocks.
         "maximum_commit_176_blocks": (int(v2_manifest["maximum_commit_blocks"]) <= 176 if not v2_manifest["hblank_streaming"]["enabled"]
                                       else v2_manifest["hblank_streaming"]["maximum_vblank_gdma_blocks"] <= 62
@@ -481,7 +481,7 @@ def main() -> None:
             "commit_vblanks": {"v0.1.0": 2, f"v{CURRENT_VERSION}": "1 cached; 2 or 3 full, packet-size dependent"},
         },
         "physical_hardware_tested": False,
-        "hardware_acceptance_document": "docs/HARDWARE_TEST_CHECKLIST.md",
+        "hardware_acceptance_document": "docs/engine/hardware-checklist.md",
     }
     out = v2.BUILD / "verification_report.json"
     out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

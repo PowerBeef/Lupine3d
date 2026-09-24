@@ -125,7 +125,7 @@ def expected_mask(scene, actor, center):
 
 
 def setup(c, scene):
-    c.diagnostic_barrier()   # the scene is written between frames (docs/VERIFICATION.md)
+    c.diagnostic_barrier()   # the scene is written between frames (docs/explanation/verification.md)
     c.write8(br.SIM_READY,0)
     apply_diagnostic_camera(c,dict(pose=list(scene.pose)))
     for offset,value in enumerate(scene.grid): set_test_world_byte(c,br.MAP+offset,value)

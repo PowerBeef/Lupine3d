@@ -6,7 +6,7 @@ game's text drawn in the engine's font. **Builds never generate
 images**: `games/sable_outpost/art/tools/adapt_sable_art.py` is an offline authoring step whose
 outputs are versioned, and a build that needed a generated file would be a
 bug. This page lists the asset kinds, their formats and the checks a new
-asset must pass. `docs/SABLE_OUTPOST.md` and `docs/STEEL_HUD.md` describe the
+asset must pass. `games/sable_outpost/docs/art.md` and `games/sable_outpost/docs/steel-hud.md` describe the
 art direction those assets implement; keep the armoured helmet and
 respirator, and do not substitute an uncovered face.
 
@@ -47,7 +47,7 @@ bit-planes per row, most significant bit on the left. Objects are 8×16 pairs
 | Drops | `drops.png` (medkit, keycard) | 8×8 | 2 | OBJ patterns, palette 2 |
 | Hit effect, exit beacon | `hit_effect.png`, `exit_beacon.png` | 8×8 | 2 each | OBJ patterns |
 | Wall fixtures | `fixtures.png`: per family (`game.json` `fixture_kinds`) a 16×16 cel at 16, 8 and 4 pixels across; the engine derives the half-width copy | 16×16 | 12 | masked OBJ patterns |
-| Wall textures | `games/<id>/textures/*.png` (named in `game.json` `textures`) (a structure and a machinery texture per episode, one shared door plate; design rules in `docs/TEXTURED_WALLS.md`, "Texture design") | 16×8 (upper half) | 1 | row-window tables in `TEXTURE_WINDOW_BANKS` on every slim build; a level's palette set picks its texture set |
+| Wall textures | `games/<id>/textures/*.png` (named in `game.json` `textures`) (a structure and a machinery texture per episode, one shared door plate; design rules in `docs/explanation/textured-walls.md`, "Texture design") | 16×8 (upper half) | 1 | row-window tables in `TEXTURE_WINDOW_BANKS` on every slim build; a level's palette set picks its texture set |
 | Screens | `screens.json`: text in the engine's 3×5 font | 160×144 | 1 per mode | the idle 96-pattern window at `$9000` |
 
 The twelve enemy cels are, in order: `idle_a`, `idle_b`, `walk_left`,
@@ -165,7 +165,7 @@ the compiler mirrors it about the horizon, because the folded compositor
 draws the lower half of every wall by Y-flipping the upper patterns. Index 0
 never appears. The build compiles four shade sets per texture (near, mid,
 far, dark face) into 5 KiB row-window blocks and refuses a PNG of the wrong
-size or mode. `docs/TEXTURED_WALLS.md` explains the kernel and its budget; a
+size or mode. `docs/explanation/textured-walls.md` explains the kernel and its budget; a
 texture costs 20 KiB of ROM and no VRAM until it is on screen.
 
 ## Adding or changing an asset
@@ -177,7 +177,7 @@ texture costs 20 KiB of ROM and no VRAM until it is on screen.
 3. `make build` and `python tools/check_sable.py`: the cel compiler contract,
    the VRAM window against the compiled sheet, the HUD fixture and the
    publication windows are hard gates.
-4. `make playtest-art` and review the snapshot diff (`docs/VERIFICATION.md`);
+4. `make playtest-art` and review the snapshot diff (`docs/explanation/verification.md`);
    an intentional change is accepted with a note and committed with its PNG.
 5. Preview on the emitted ROM with `make preview`; concept images are not
    evidence.

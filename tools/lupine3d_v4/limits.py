@@ -51,7 +51,7 @@ LIMITS: dict[str, Limit] = {
     # Sound.
     "song_rows": Limit(1, 1322, "rows in one song",
                        "a playing song is copied into WRAM bank 5 above the sequencer's state, three bytes a row"),
-    # One level (docs/LEVEL_FORMAT.md).
+    # One level (docs/reference/level-format.md).
     "level_size": Limit(16, 16, "cells on a side of a level", "the map is a 16x16 byte grid, one page"),
     "doors_per_level": Limit(0, 6, "doors in a level", "a level's six-byte door records fill 48 bytes of its slot"),
     "actors_per_level": Limit(0, 6, "enemies in a level",

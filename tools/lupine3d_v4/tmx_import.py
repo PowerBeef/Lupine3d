@@ -1,6 +1,6 @@
 """Tiled (TMX) authoring for levels: a lossless round trip with the JSON form.
 
-The mapping is documented in docs/LEVEL_FORMAT.md. The map is orthogonal,
+The mapping is documented in docs/reference/level-format.md. The map is orthogonal,
 16x16 cells of TILE pixels, so a Q8 coordinate is pixel * 256 / TILE: with
 TILE = 32 that is pixel * 8, exact in both directions. The JSON file stays
 the format the compiler reads; TMX is an editing view of it. Keys the

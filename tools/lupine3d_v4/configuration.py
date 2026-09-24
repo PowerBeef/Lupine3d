@@ -83,7 +83,7 @@ def resolve(environ=None):
     result["hdma_streaming"] = streaming == "1"
     if result["hdma_streaming"] and (result["foreground_publication"] or env.get("LUPINE3D_REPROJECTION", "0") == "1"):
         raise ValueError("HBlank-streamed publication excludes the experimental foreground/reprojection lanes")
-    # Textured walls (docs/TEXTURED_WALLS.md) compose every wall tile into a
+    # Textured walls (docs/explanation/textured-walls.md) compose every wall tile into a
     # ring the HBlank stream drains. They are the slim Sable renderer: the
     # engine and its showcase are textured, and the flat slim profile was
     # removed. The flat microstrip compositor remains only as the renderer of
@@ -106,7 +106,7 @@ def resolve(environ=None):
     if result["textured_walls"] and (result["physical_depth"] or result["anchor_packets"] or env.get("LUPINE3D_FOLDED", "1") == "0"):
         raise ValueError("Textured walls exclude physical depth, anchor packets and the unfolded diagnostic")
     # Overlapped publication hands the streamed VBlank tail to the VBlank
-    # interrupt so the next update casts while it waits (docs/PERFORMANCE_PHASE5.md).
+    # interrupt so the next update casts while it waits (docs/evidence/PERFORMANCE_PHASE5.md).
     # It is the slim default; compact keeps the synchronous tail unless asked,
     # physical depth and anchor packets (which republish from their own paths)
     # adapt the default off, and LUPINE3D_OVERLAP_PUBLICATION=0 opts out.

@@ -240,8 +240,8 @@ boot ROM remain untested and unavailable.
 
 **ROM SHA-256:** `e59f722b698b545e75e5dbb2cdfe3810c5cc6a3ec96e38e868c09d286e2a9b89`.
 
-See [the campaign write-up](docs/CAMPAIGN.md), [architecture](docs/ARCHITECTURE.md)
-and the [development guide](docs/DEVELOPMENT.md).
+See [the campaign write-up](games/sable_outpost/docs/campaign.md), [architecture](docs/explanation/architecture.md)
+and the [development guide](docs/engine/development.md).
 
 ---
 
@@ -263,7 +263,7 @@ A visual overhaul with native animated sprites, a larger world view and a cleane
 
 **ROM SHA-256:** `a5f3d54eb7d9be446d2d6ca36c010e9be264792c14c73f9691d6027871057ccb`.
 
-Download `Lupine3D_v0.8.gb` to play or the `_complete.zip` for source, assets and evidence. See [the v0.8 test report](docs/TEST_REPORT.md), [architecture](docs/ARCHITECTURE.md) and [development guide](docs/DEVELOPMENT.md).
+Download `Lupine3D_v0.8.gb` to play or the `_complete.zip` for source, assets and evidence. See [the v0.8 test report](docs/evidence/TEST_REPORT.md), [architecture](docs/explanation/architecture.md) and [development guide](docs/engine/development.md).
 
 ---
 
@@ -336,7 +336,7 @@ The Sable artwork and level remain intact. Original CGB/flash-cartridge acceptan
 - HUD preparation runs before VBlank. Publication uses a measured 24-pattern single-window budget and the documented 160-M-cycle OAM wait. Default large packets remain atomic over two VBlanks; the optional reprojection stress case can use three.
 - 72 tests, reviewed RGB fixtures, close-up art tour, controller-only completion and independent SameBoy CGB-0/CGB-E plus mGBA checks.
 
-The protected room/corridor topology and wall mathematics remain intact. This visual pass adds measurable rendering work; original CGB/flash-cartridge validation remains pending. See [visual implementation](docs/SABLE_OUTPOST.md) and [test report](docs/TEST_REPORT.md).
+The protected room/corridor topology and wall mathematics remain intact. This visual pass adds measurable rendering work; original CGB/flash-cartridge validation remains pending. See [visual implementation](games/sable_outpost/docs/art.md) and [test report](docs/evidence/TEST_REPORT.md).
 
 ---
 
@@ -353,7 +353,7 @@ Implements the software items deferred by the foundation alpha:
 - Optional turning reprojection shifts published world objects with the BG while retaining fixed UI; remains disabled by default.
 - Pinned SameBoy CGB-0/CGB-E and mGBA lanes, two-Sentinel acceptance scene, folded/unfolded RGB equivalence and controller-only level completion.
 
-This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/TEST_REPORT.md).
+This is a playable beta, not a blanket speedup or original-hardware certification. The combat diagnostic reaches 4.26 visual updates/s in its slowest view even though controls/simulation use fixed ticks. Pixel masks retain two-pixel conservative wall-depth precision. See [implementation status](docs/archive/OVERHAUL_IMPLEMENTATION.md) and [test report](docs/evidence/TEST_REPORT.md).
 
 ---
 

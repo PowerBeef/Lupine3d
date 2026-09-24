@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/powerbeef/lupine3d/docs/schema/level-v2.schema.json",
   "title": "Lupine 3D level (lupine-level-v2)",
-  "description": "Shape of an authored level. tools/lupine3d_v4/levels.py is the validator of record: it also checks the geometry (solid boundary, door frames, reachability, keycard gates, spawn clearance) and the readability certificate, which a schema cannot express. See docs/LEVEL_FORMAT.md.",
+  "description": "Shape of an authored level. tools/lupine3d_v4/levels.py is the validator of record: it also checks the geometry (solid boundary, door frames, reachability, keycard gates, spawn clearance) and the readability certificate, which a schema cannot express. See docs/reference/level-format.md.",
   "type": "object",
   "required": ["format", "name", "width", "height", "rows", "player_spawn", "doors", "entities", "pickups", "exit", "palette_profile", "vram_profile"],
   "properties": {

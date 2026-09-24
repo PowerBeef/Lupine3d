@@ -867,7 +867,7 @@ def emit_projection_and_casting(a: Assembler) -> None:
     a.ld_r_n("a", 255); a.ld_abs_a(Q14_RECORD); a.ret()
 
     if TEXTURED_WALLS:
-        # Where along its face the hit landed (docs/TEXTURED_WALLS.md): the
+        # Where along its face the hit landed (docs/explanation/textured-walls.md): the
         # player's other coordinate advanced by the axis distance times the
         # direction's Q8 slope, the product taken modulo 65536 through three
         # 8x8 products so no division is needed. Fixed half: it switches banks.

@@ -3,7 +3,7 @@
 This audit measures where a full geometry update actually spends its cycles in the
 shipped v0.8 ROM, and ranks the remaining optimization opportunities by measured
 value. It is an engineering assessment, not a release record; the qualification
-evidence for v0.8 itself remains [its test report](archive/TEST_REPORT_V08.md).
+evidence for v0.8 itself remains [its test report](TEST_REPORT_V08.md).
 
 The target (`docs/archive/RENDERING_IMPLEMENTATION.md`) is ten sustained full geometry
 updates per second. v0.8 reaches 5.5–7.9/s and the gate `Q <= (B + P) / 2` fails
@@ -79,7 +79,7 @@ Four of these redirect effort away from the intuitive answers:
 > but not by the interrupt-driven route prototyped in §3.1: the hidden
 > patterns and the hidden map now stream by HBlank DMA during composition
 > and the tail is one VBlank, which keeps the verification vantage point and
-> every packet byte. See [streamed publication](STREAMED_PUBLICATION.md).
+> every packet byte. See [streamed publication](../explanation/streamed-publication.md).
 > The alignment wait that §3.1 would also remove is still there, and so is
 > that decision.
 
@@ -322,9 +322,9 @@ can sit in bank 1 and still call `mul_u8` in bank 0.
 
 * The build manifest reports `maximum_publication_vblanks = 2` for the shipped
   slim configuration, but the slim path in `upload_hidden_page` can issue **three**
-  `wait_vblank` calls. [The v0.8 test report](archive/TEST_REPORT_V08.md) and
-  [the slim display contract](archive/SLIM_HUD.md) already say "two or three".
-* [The hardware checklist](HARDWARE_TEST_CHECKLIST.md) Gate D described the legacy
+  `wait_vblank` calls. [The v0.8 test report](TEST_REPORT_V08.md) and
+  [the slim display contract](SLIM_HUD.md) already say "two or three".
+* [The hardware checklist](../engine/hardware-checklist.md) Gate D described the legacy
   96/80 two-stage split rather than the shipped slim 96 / 32 / 48 split.
 
 Both are corrected alongside this document.

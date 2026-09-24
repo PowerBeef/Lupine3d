@@ -11,7 +11,7 @@ OPEN means the exit is unlocked, independent of the sliding door position.
 The HUD uses 85 of 96 patterns and the existing 16-byte snapshot packet.
 There are no extra runtime pattern uploads, OAM objects or DMA blocks.
 Resident reserve remains 3,123 bytes; fixed-ROM free space is 1,808 bytes.
-See [design and implementation](../../docs/STEEL_HUD.md) and the
+See [design and implementation](../../games/sable_outpost/docs/steel-hud.md) and the
 [before/after capture](../../docs/images/steel_hud_before_after_3x.png).
 
 ## Evidence

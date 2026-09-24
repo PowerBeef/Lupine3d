@@ -39,7 +39,7 @@ LUPINE3D_DUMP_RAM=build/ram.bin make sameboy SAMEBOY_DIR=build/deps/SameBoy
 ```
 
 The dump can be loaded into the harness to replay the same power-on state
-(`docs/DEVELOPMENT.md`, "Power-on RAM in the core adapters"). Both adapters
+(`docs/engine/development.md`, "Power-on RAM in the core adapters"). Both adapters
 press START first; SameBoy's waits for the ROM's own write of `MODE_PLAYING`,
 and mGBA's for the title to be seen before the mode reads playing.
 
@@ -48,7 +48,7 @@ and mGBA's for the title to be seen before the mode reads playing.
 A visual difference is a golden-image diff: `python tools/snapshot.py diff
 --suite tour` writes `build/snapshots/slim-sable-v2-textured/tour/report.html` with expected, actual
 and the changed pixels. Accepting a change is explicit and noted
-(`docs/VERIFICATION.md`). `make preview` renders actual emulator images.
+(`docs/explanation/verification.md`). `make preview` renders actual emulator images.
 
 ## Common failures
 
@@ -58,5 +58,5 @@ and the changed pixels. Accepting a change is explicit and noted
 | `bank_safety` rejects the image | a bank-register write above `$4000`, a section falling through, or a conditional bank restore |
 | Frame refused for DMA timing | a transfer started with `HDMA5` busy, a VBK write during a transfer, or a VBlank tail past line 153 |
 | Harness and SameBoy disagree | run `make conformance` for the CPU model, then the witness scenes for the PPU |
-| A level is refused | `python tools/lupine.py level check` prints the compiler's reason (`docs/LEVEL_CERTIFICATE.md`) |
+| A level is refused | `python tools/lupine.py level check` prints the compiler's reason (`docs/reference/level-certificate.md`) |
 | Art refused at build | `sprite_assets.frames`: mode, size, transparency index, palette or SHA-256 mismatch with `assets.json` |

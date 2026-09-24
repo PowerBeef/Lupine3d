@@ -1,8 +1,8 @@
 The display/publication contract below remains active. Its art and timing
 
-> Viewport implementation history. v0.8 ships the 24-pixel steel HUD with 94/96 patterns and the spaced GOAL caption; later sections record earlier candidates. See [the current HUD contract](../STEEL_HUD.md).
+> Viewport implementation history. v0.8 ships the 24-pixel steel HUD with 94/96 patterns and the spaced GOAL caption; later sections record earlier candidates. See [the current HUD contract](../../games/sable_outpost/docs/steel-hud.md).
 figures describe the initial 24-pixel HUD qualification. The current default
-uses the [steel-console artwork](../STEEL_HUD.md), with85 HUD patterns and a
+uses the [steel-console artwork](../../games/sable_outpost/docs/steel-hud.md), with85 HUD patterns and a
 separately versioned visual oracle; the packet, viewport and memory reserve
 remain the same.
 
@@ -79,7 +79,7 @@ Allocation assertions enforce these boundaries and preserve the3,000-byte
 resident reserve. The current ROM retains3,123 resident bytes and1,808
 fixed-ROM bytes free.
 
-> Superseded for the default build by [streamed publication](../STREAMED_PUBLICATION.md):
+> Superseded for the default build by [streamed publication](../explanation/streamed-publication.md):
 > the slim packet now streams patterns and the whole 480-byte map by HBlank
 > DMA during composition and commits masks, attributes, HUD and OAM in one
 > VBlank. The staged contract below is what `LUPINE3D_HDMA_STREAMING=0` and

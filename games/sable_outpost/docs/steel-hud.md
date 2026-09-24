@@ -55,7 +55,7 @@ objects or DMA blocks. At the time (v0.8), fixed-ROM free space was 1,776
 bytes and the resident reserve 3,123 bytes. Weapon/enemy/fixture source artwork is unchanged.
 
 The oracle for this work was `games/sable_outpost/playtests/archive/oracles/sable_objective_spaced_capture_pixels.json`,
-retained as evidence; current captures are golden snapshots ([verification](VERIFICATION.md)). Checks exercise
+retained as evidence; current captures are golden snapshots ([verification](../../../docs/explanation/verification.md)). Checks exercise
 all health digits, four portrait states, both maps, chassis rails, persistent
 highlights, immutable packets, and the maximal 176-block publication. A/B
 subroutine measurement and six frozen-world comparisons are provided by:

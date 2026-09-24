@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render the allocation ledger as the memory map page of the developer guide.
 
-    python tools/memory_map.py            # rewrite docs/guide/MEMORY_MAP.md from build/build_manifest.json
+    python tools/memory_map.py            # rewrite docs/reference/memory-map.md from build/build_manifest.json
     python tools/memory_map.py --check    # fail if the page is stale (tools/check_docs.py runs this)
 
 The ledger is `allocation.py`'s machine-checked table, recorded in the build
@@ -18,7 +18,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "build" / "build_manifest.json"
-PAGE = ROOT / "docs" / "guide" / "MEMORY_MAP.md"
+PAGE = ROOT / "docs" / "reference" / "memory-map.md"
 SPACES = (("ROM", "ROM (4 MiB MBC5, 256 banks of 16 KiB; addresses are absolute ROM offsets)"),
           ("WRAM0", "Fixed WRAM (`$C000-$CFFF`)"), ("WRAM1", "WRAM bank 1: the render snapshot (`$D000-$DFFF`)"),
           ("WRAM2", "WRAM bank 2: the live world"), ("WRAM3", "WRAM bank 3"), ("WRAM4", "WRAM bank 4"),

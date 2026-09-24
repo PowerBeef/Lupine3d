@@ -4,7 +4,7 @@ Lupine generates a CGB-only, 4 MiB MBC5 cartridge with no cartridge RAM.
 Python emits SM83 machine code, fixed-point tables and native 2bpp assets.
 The console runs in double-speed mode using tiles and 8×16 hardware sprites;
 there is no framebuffer. This document describes the default slim/Sable build.
-Historical beta.6 measurements are retained in [its test report](archive/TEST_REPORT_BETA6.md).
+Historical beta.6 measurements are retained in [its test report](../archive/TEST_REPORT_BETA6.md).
 
 ## Frame, input and simulation ownership
 
@@ -28,7 +28,7 @@ configuration and reload generation. A miss casts/reconstructs the view,
 composes tiles, prepares masks/entities and builds a complete publication packet.
 A hit retains matching walls/depth and refreshes entities/HUD only. Bank ownership
 for the published BG and OBJ patterns can consequently differ. See
-[wall reuse](archive/WALL_REUSE.md).
+[wall reuse](../archive/WALL_REUSE.md).
 
 ## Display and geometry
 
@@ -59,7 +59,7 @@ geometry. Physical-depth and higher-precision actor experiments remain disabled;
 production height-derived mask depth is not labelled a continuous geometric query.
 
 Slim builds compose every wall with the textured row-window kernel
-(`textured.py`, [textured walls](TEXTURED_WALLS.md)): textures are mirrored
+(`textured.py`, [textured walls](textured-walls.md)): textures are mirrored
 about the horizon, so the lower half is the upper half's Y-flipped patterns,
 and up to 238 dynamic pattern ids (below 128 at `$9000`, the rest at `$8800`)
 are composed through a 96-slot ring in fixed WRAM that HBlank DMA drains.
@@ -100,7 +100,7 @@ or replace the atlas. Flat dynamic allocation is bounded to 96 patterns.
 | 246, 248–255 | Texture row windows (three blocks per bank) |
 | 247 | Texture slopes, height-class rows and stride classes |
 
-No bank is free on the slim build; `docs/guide/MEMORY_MAP.md` is generated
+No bank is free on the slim build; `docs/reference/memory-map.md` is generated
 from the manifest and gives every range.
 
 ### Campaign levels
@@ -284,7 +284,7 @@ damage only: half, as authored, or one and a half.
 
 The weapon window is eighty OBJ patterns at `$8200` in VRAM bank 1, and that is
 one weapon's four 40×32 cels exactly (ten objects, twenty patterns a cel;
-`docs/ART_PIPELINE.md`) — the reticle and muzzle take the next four and
+`docs/reference/asset-formats.md`) — the reticle and muzzle take the next four and
 the masked pool owns the thirty-two below. Two weapons cannot both be resident,
 so SELECT streams the next owned one's cels in as a single GDMA of eighty
 blocks. The four cel sheets share ROM bank `WEAPON_ROM_BANK` in weapon order
@@ -352,11 +352,11 @@ On slim that tail is run by the VBlank interrupt (**overlapped
 publication**): the main loop hands the packet over at `publication_handoff`
 and goes straight on to the next snapshot and its casts, and waits for the
 tail (`wait_tail`) only before it touches a publication buffer again
-([performance after textures](PERFORMANCE_PHASE5.md)).
+([performance after textures](../evidence/PERFORMANCE_PHASE5.md)).
 HBlank sources are fixed WRAM because a block reads through SVBK and a
 simulation yield may have bank 2 mapped; VBK belongs to the transfer for its
 whole life; nothing streams with the LCD off. See
-[streamed publication](STREAMED_PUBLICATION.md).
+[streamed publication](streamed-publication.md).
 
 The legacy profile keeps the staged packet: at most 176 GDMA blocks (96 BG,
 32 OBJ, 24 map, 24 attribute) over two VBlanks, the pattern stage bounded to
@@ -371,12 +371,12 @@ two caption IDs, three status IDs and six portrait IDs. Text starts at HUD y=4
 and y=10. Each main status ID names a vertical tile pair; its lower ID is written
 into the third HUD row on both maps. The final one-pixel spacing fix adds six
 map writes, **108 CPU T-cycles** (about 12.9 µs), without extra pattern DMA.
-See [HUD layout and captures](STEEL_HUD.md).
+See [HUD layout and captures](../../games/sable_outpost/docs/steel-hud.md).
 
 CPU T-cycles are canonical: double-speed CPU frequency is 8,388,608 Hz. One LCD
 interval remains 70,224 base-speed clocks, about 16.74 ms (140,448 double-speed
 CPU T-cycles). Full geometry updates, cached presentations and experimental
-foreground publications are separate counters. [Current evidence](TEST_REPORT.md)
+foreground publications are separate counters. [Current evidence](../evidence/TEST_REPORT.md)
 documents the accepted visual/performance tradeoff; ten sustained full updates/s
 is a target, not an achieved guarantee.
 
@@ -394,7 +394,7 @@ Accepted fire restarts recoil and preserves pending flash feedback until it is
 published. Gameplay death happens immediately; a short three-pose death visual
 is cosmetic and can be omitted under capacity pressure. Scene generation,
 restart and tick wraparound preserve coherent state. Details and source locations
-are in [Sable Outpost](SABLE_OUTPOST.md).
+are in [Sable Outpost](../../games/sable_outpost/docs/art.md).
 
 ## Feature gates and references
 
@@ -407,6 +407,6 @@ Dynamic caching, packet traversal, physical depth, actor precision, scanline
 admission, paged projection, near-field precision and foreground publication
 remain experiments. Reprojection is disabled. Build flags and format versions
 are recorded in the manifest; unsupported explicit combinations fail.
-[Rendering milestone evidence](archive/RENDERING_IMPLEMENTATION.md) describes the earlier
-performance work, while [development guidance](DEVELOPMENT.md) explains how to
+[Rendering milestone evidence](../archive/RENDERING_IMPLEMENTATION.md) describes the earlier
+performance work, while [development guidance](../engine/development.md) explains how to
 build references and qualify changes without overwriting historical evidence.
