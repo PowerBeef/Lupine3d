@@ -23,9 +23,9 @@
   ],
   "player_spawn": {"x_q8": 640, "y_q8": 3200, "angle": 192, "safe_radius_cells": 5},
   "doors": [
-    {"id": "exit_door", "x": 12, "y": 3, "orientation": "vertical", "kind": "exit", "unlock": "enemies_cleared"},
+    {"id": "side_door", "x": 3, "y": 8, "orientation": "vertical", "kind": "standard", "unlock": "none"},
     {"id": "card_door", "x": 9, "y": 5, "orientation": "horizontal", "kind": "standard", "unlock": "keycard"},
-    {"id": "side_door", "x": 3, "y": 8, "orientation": "vertical", "kind": "standard", "unlock": "none"}
+    {"id": "exit_door", "x": 12, "y": 3, "orientation": "vertical", "kind": "exit", "unlock": "enemies_cleared"}
   ],
   "entities": [
     {"kind": "drone", "x_q8": 2688, "y_q8": 640, "health": 3, "activation_radius_q4": 96},
