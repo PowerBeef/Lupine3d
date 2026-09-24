@@ -1,0 +1,8 @@
+{
+  "format": "lupine-song-v1",
+  "speed": 7,
+  "loop_row": 0,
+  "pulse": {"notes": {"c": "C5", "e": "E5", "g": "G5", "C": "C6"}, "rows": ["c.e.g.C.....g.C.", "C..............."]},
+  "wave": {"notes": {"C": "C3", "G": "G2"}, "rows": ["C.......G.......", "C..............."]},
+  "noise": {"notes": {"k": "kick", "s": "snare", "h": "hat"}, "rows": ["k...s...k.k.s...", "k..............."]}
+}

@@ -71,6 +71,17 @@ LANES: dict[str, list[list[str]]] = {
     "identity": [
         ["make", "identity"],
     ],
+    # The starter game (games/starter): a game other than the showcase built,
+    # checked, played through on controller input and restarted; the limits
+    # game at every maximum; and a new game scaffolded from the starter.
+    "starter": [
+        ["make", "build", "GAME=games/starter"],
+        ["make", "game-check", "GAME=games/starter"],
+        ["make", "playtest", "GAME=games/starter"],
+        ["make", "playthrough", "GAME=games/starter", "RESTART=1", "ROUTE_DIR=build/games/starter/playthrough"],
+        ["make", "limits"],
+        ["make", "scaffold-check"],
+    ],
     "slow": [
         ["make", "build"],
         ["make", "variants"],
@@ -80,6 +91,7 @@ LANES: dict[str, list[list[str]]] = {
         ["make", "conformance", f"SAMEBOY_DIR={SAMEBOY_DIR}"],
         ["make", "mgba", f"MGBA_DIR={MGBA_DIR}"],
         ["python", "tools/independent_witnesses.py"],
+        ["make", "sameboy", "GAME=games/starter", f"SAMEBOY_DIR={SAMEBOY_DIR}"],
     ],
 }
 

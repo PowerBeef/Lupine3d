@@ -1,0 +1,73 @@
+{
+  "format": "lupine-game-v1",
+  "id": "starter",
+  "title": "Starter",
+  "profiles": ["slim"],
+  "rom": {"header_title": "STARTER", "version": 0},
+  "screens": "screens.json",
+  "sprites": {
+    "manifest": "art/sprites.json",
+    "actor_near": "sentinel_near",
+    "actor_mid": "sentinel_mid",
+    "actor_far": "sentinel_far",
+    "reticle": "reticle",
+    "muzzle_flash": "flash",
+    "hud": "hud_steel",
+    "portrait": "helmet_steel",
+    "drops": "drops",
+    "hit_effect": "hit_effect",
+    "exit_beacon": "exit_beacon",
+    "fixtures": "fixtures"
+  },
+  "fixture_kinds": ["vent", "light", "access", "sector"],
+  "playtests": {"tour": "playtests/tour.json"},
+  "preview": {"x": 7.5, "y": 6.5, "angle": 208},
+  "hud": {"words": {"caption": "GOAL", "hunt": "HUNT", "exit": "EXIT", "dead": "DEAD", "done": "DONE"}},
+  "audio": {
+    "songs": {"title": "audio/title.json", "world": "audio/world.json", "victory": "audio/victory.json"},
+    "sound": "audio/sound.json"
+  },
+  "episodes": [{"name": "Training", "levels": ["levels/first_steps.json", "levels/keycard.json"]}],
+  "actor_palettes": ["drone", "carrier"],
+  "kinds": [
+    {"name": "drone", "contact_damage": 6, "recovery_ticks": 8, "step_q8": 8, "palette": "drone", "drop": "medkit"},
+    {"name": "carrier", "contact_damage": 4, "recovery_ticks": 8, "step_q8": 12, "palette": "carrier", "drop": "keycard"}
+  ],
+  "weapons": [
+    {"name": "shotgun", "sprite": "shotgun", "damage": 1, "recovery_ticks": 0, "from_level": 1},
+    {"name": "slug rifle", "sprite": "slug_rifle", "damage": 2, "recovery_ticks": 15, "from_level": 1},
+    {"name": "arc lance", "sprite": "arc_lance", "damage": 4, "recovery_ticks": 40, "from_level": 2},
+    {"name": "pulse carbine", "sprite": "pulse_carbine", "damage": 2, "recovery_ticks": 6, "from_level": null}
+  ],
+  "textures": {
+    "steel_panel": "textures/steel_panel.png",
+    "machinery_grille": "textures/machinery_grille.png",
+    "door_plate": "textures/door_plate.png"
+  },
+  "themes": [
+    {
+      "name": "training",
+      "textures": {"structure": "steel_panel", "machinery": "machinery_grille", "door": "door_plate"},
+      "colours": {
+        "ceiling": [2, 2, 1],
+        "floor": [6, 5, 3],
+        "structure": [[17, 15, 11], [8, 7, 5]],
+        "door": [[4, 12, 18], [18, 26, 29]],
+        "machinery": [[14, 11, 6], [6, 5, 3]]
+      },
+      "actors": {
+        "drone": [[0, 0, 0], [4, 4, 6], [16, 18, 22], [28, 29, 30]],
+        "carrier": [[0, 0, 0], [6, 3, 1], [26, 14, 3], [31, 26, 12]]
+      }
+    }
+  ],
+  "shared_palettes": {
+    "hud": [[2, 3, 4], [12, 14, 15], [29, 28, 24], [10, 16, 16]],
+    "reserved_bg": [[7, 8, 9], [12, 10, 7], [14, 17, 18], [6, 9, 11]],
+    "weapon": [[0, 0, 0], [4, 4, 5], [13, 16, 17], [29, 28, 24]],
+    "drops": [[0, 0, 0], [2, 5, 4], [5, 18, 11], [27, 29, 23]],
+    "effects": [[0, 0, 0], [2, 3, 4], [8, 12, 14], [30, 22, 8]],
+    "decor": [[0, 0, 0], [2, 5, 6], [5, 15, 18], [16, 29, 27]],
+    "weapon_alt": [[0, 0, 0], [3, 3, 3], [13, 8, 5], [22, 16, 10]]
+  }
+}

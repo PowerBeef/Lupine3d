@@ -228,6 +228,62 @@ jobs:
       - name: Build every configuration and compare with the recorded ROMs
         run: make identity
 
+  # A game other than the showcase: the starter (games/starter) built,
+  # checked, toured against its own goldens and played through to its ending
+  # on controller input; the generated game at every content limit; and a new
+  # game scaffolded from the starter, as a creator would.
+  starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Build the starter game
+        run: make build GAME=games/starter
+
+      - name: Check its manifest and every level's certificate
+        run: make game-check GAME=games/starter
+
+      - name: Tour it against its goldens
+        run: make playtest GAME=games/starter
+
+      - name: Play it to the ending and restart with controller input only
+        run: make playthrough GAME=games/starter RESTART=1 ROUTE_DIR=build/games/starter/playthrough
+
+      - name: Build and walk the game at every content limit
+        run: make limits
+
+      - name: Scaffold, build and tour a new game from the starter
+        run: make scaffold-check
+
+      - name: Upload the starter evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: starter-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build/games/starter/lupine3d.gb
+            build/games/starter/build_manifest.json
+            build/games/starter/snapshots/
+            build/games/starter/playtest/coherence_tour/report.json
+            build/games/starter/playtest/coherence_tour/contact_sheet.png
+            build/games/starter/playthrough/report.json
+            build/games/starter/playthrough/contact_sheet.png
+            build/games/limits/limits_report.json
+
   # The slow lane: the exact A/B variants, wall reuse, LCD-timed motion, and
   # the pinned independent cores over the frozen witness scenes. Both cores
   # are cached by their pinned commit. The route runs in its own jobs.
@@ -304,6 +360,9 @@ jobs:
 
       - name: Compare frozen art and geometry in all pinned cores and against the witness goldens
         run: python tools/independent_witnesses.py
+
+      - name: Verify the starter game in SameBoy CGB-0 and CGB-E
+        run: make sameboy GAME=games/starter SAMEBOY_DIR=build/deps/SameBoy
 
       - name: Upload verification evidence
         uses: actions/upload-artifact@v4

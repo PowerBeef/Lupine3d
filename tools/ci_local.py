@@ -46,7 +46,7 @@ from ci_lanes import CORE_LANES, MGBA_DIR, ROUTE_CHUNKS, SAMEBOY_DIR, all_lanes,
 
 DOCS_LANE = {"docs": [["make", "docs-check"]]}
 # Rough CI minutes, used only to start the longest lanes first.
-EXPECTED_MINUTES = {"fast": 14, "slow": 17, "profiles": 3, "identity": 4, "docs": 2}
+EXPECTED_MINUTES = {"fast": 14, "slow": 18, "profiles": 3, "identity": 4, "starter": 9, "docs": 2}
 DOCUMENTATION_FILES = {"AGENTS.md", "CONTRIBUTING.md", "README.md", "RELEASE_NOTES.md", "NOTICE.md"}
 
 

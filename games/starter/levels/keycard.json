@@ -1,0 +1,44 @@
+{
+  "format": "lupine-level-v2",
+  "name": "Keycard",
+  "width": 16,
+  "height": 16,
+  "rows": [
+    "1111111122221111",
+    "1111111100001011",
+    "1111111100001011",
+    "1111111100003011",
+    "1111111100001011",
+    "1111111113111111",
+    "1111000000111111",
+    "1111000011111111",
+    "1103000011111111",
+    "1101000011111111",
+    "1101222211111111",
+    "1000011111111111",
+    "1000011111111111",
+    "1000011111111111",
+    "1111111111111111",
+    "1111111111111111"
+  ],
+  "player_spawn": {"x_q8": 640, "y_q8": 3200, "angle": 192, "safe_radius_cells": 5},
+  "doors": [
+    {"id": "exit_door", "x": 12, "y": 3, "orientation": "vertical", "kind": "exit", "unlock": "enemies_cleared"},
+    {"id": "card_door", "x": 9, "y": 5, "orientation": "horizontal", "kind": "standard", "unlock": "keycard"},
+    {"id": "side_door", "x": 3, "y": 8, "orientation": "vertical", "kind": "standard", "unlock": "none"}
+  ],
+  "entities": [
+    {"kind": "drone", "x_q8": 2688, "y_q8": 640, "health": 3, "activation_radius_q4": 96},
+    {"kind": "carrier", "x_q8": 1408, "y_q8": 1920, "health": 2, "activation_radius_q4": 96}
+  ],
+  "pickups": [{"kind": "medkit", "source": "drop", "value": 25}, {"kind": "keycard", "source": "drop", "value": 1}],
+  "exit": {"x": 13, "y": 1, "marker": "beacon"},
+  "palette_profile": "training",
+  "vram_profile": "entity-heavy",
+  "fixtures": [
+    {"x": 9, "y": 0, "side": "south", "kind": "light"},
+    {"x": 8, "y": 5, "side": "south", "kind": "access"},
+    {"x": 0, "y": 12, "side": "east", "kind": "vent"},
+    {"x": 12, "y": 1, "side": "east", "kind": "sector"}
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "lupine3d.snapshots.v1",
+  "scenes": {
+    "01_spawn_room": {
+      "rgb_sha256": "72b9eb77cc0afe37aa05108e355510a487e0ae6a1c2104e00c15202d669800b6",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "02_airlock_approach": {
+      "rgb_sha256": "aaa4a05f1f9855d095226a9b0edcdae96f66a6f7c20d6a616dc1327029288320",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "03_airlock_open": {
+      "rgb_sha256": "aaa4a05f1f9855d095226a9b0edcdae96f66a6f7c20d6a616dc1327029288320",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "04_corridor_turn": {
+      "rgb_sha256": "b6e8a41ceffbbe26251021413146ea144954af80a756804a44d72973545b4f0c",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "05_drone_room_entry": {
+      "rgb_sha256": "2083ff1ecc8b3a15b8ffe767ac2797073214c668ca8c334c9b986ba74647da0d",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "06_exit_door": {
+      "rgb_sha256": "fbf4814469258d2938b4f6147454be554e7687f7e91363bff823c76e4ca653a5",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    },
+    "07_exit_corridor": {
+      "rgb_sha256": "5f9db283aaf76a42d0a00e65856041125e91f319eefecb2a51f41c4becf37e8f",
+      "rom_sha256": "3eb22074c66ff8e217a38d4f6017be880d2257a93a4493a07bbb1fa734aabede",
+      "configuration_id": "ef9e1d7ca1c6b2612e1103060a8b78abee54617d279e997aa2d71e042c1b7d6b",
+      "accepted_at": "2026-09-24T01:55:19+00:00",
+      "accepted_by": "noreply@anthropic.com",
+      "note": "The starter game's tour: its first level, from the spawn room through the airlock and the drone room to the exit corridor, in the training theme."
+    }
+  }
+}

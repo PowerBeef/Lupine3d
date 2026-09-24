@@ -127,16 +127,18 @@ class GameSchemaTests(unittest.TestCase):
         level = load("level-v2")["properties"]
         self.assertEqual(level["doors"]["maxItems"], LIMITS["doors_per_level"].maximum)
 
-    def test_the_showcase_validates(self):
-        manifest = json.loads((SABLE / "game.json").read_text(encoding="utf-8"))
-        files = [("game-v1", "game.json"), ("screens-v1", manifest["screens"]), ("sound-v1", manifest["audio"]["sound"]),
-                 ("sprites-v1", manifest["sprites"]["manifest"])]
-        files += [("song-v1", path) for path in manifest["audio"]["songs"].values()]
-        for schema_name, relative in files:
-            with self.subTest(relative):
-                schema = load(schema_name)
-                instance = json.loads((SABLE / relative).read_text(encoding="utf-8"))
-                self.assertEqual(validate(instance, schema, schema), [])
+    def test_the_showcase_and_the_starter_validate(self):
+        for game in (SABLE, ROOT / "games" / "starter"):
+            manifest = json.loads((game / "game.json").read_text(encoding="utf-8"))
+            files = [("game-v1", "game.json"), ("screens-v1", manifest["screens"]),
+                     ("sound-v1", manifest["audio"]["sound"]), ("sprites-v1", manifest["sprites"]["manifest"])]
+            files += [("song-v1", path) for path in manifest["audio"]["songs"].values()]
+            files += [("level-v2", path) for episode in manifest["episodes"] for path in episode["levels"]]
+            for schema_name, relative in files:
+                with self.subTest(f"{game.name}/{relative}"):
+                    schema = load(schema_name)
+                    instance = json.loads((game / relative).read_text(encoding="utf-8"))
+                    self.assertEqual(validate(instance, schema, schema), [])
 
     def test_the_validator_refuses_what_the_loader_refuses(self):
         schema = load("game-v1")

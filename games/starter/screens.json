@@ -1,0 +1,36 @@
+{
+  "format": "lupine-screens-v1",
+  "screens": {
+    "title": [
+      {"text": "STARTER", "y": 28, "colour": 2, "scale": 3},
+      {"text": "A LUPINE 3D GAME", "y": 58, "colour": 3, "scale": 1},
+      {"text": "PRESS START", "y": 92, "colour": 2, "scale": 1},
+      {"field": "skill", "label": "SKILL", "y": 114, "colour": 3, "scale": 1}
+    ],
+    "gameover": [
+      {"text": "DOWN", "y": 48, "colour": 3, "scale": 2},
+      {"text": "THE DRONES WIN THIS ONE", "y": 84, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 110, "colour": 2, "scale": 1}
+    ],
+    "ending": [
+      {"text": "TRAINING DONE", "y": 34, "colour": 2, "scale": 2},
+      {"text": "NOW MAKE YOUR OWN", "y": 66, "colour": 3, "scale": 1},
+      {"field": "kills", "label": "KILLS", "y": 90, "colour": 1, "scale": 1},
+      {"field": "time", "label": "TIME", "y": 106, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 122, "colour": 2, "scale": 1}
+    ],
+    "intermission": [
+      {"text": "LEVEL CLEAR", "y": 28, "colour": 2, "scale": 2},
+      {"field": "code", "label": "CODE", "y": 58, "colour": 3, "scale": 1},
+      {"field": "kills", "label": "KILLS", "y": 82, "colour": 1, "scale": 1},
+      {"field": "time", "label": "TIME", "y": 98, "colour": 1, "scale": 1},
+      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+    ],
+    "password": [
+      {"text": "CONTINUE", "y": 32, "colour": 2, "scale": 2},
+      {"field": "code", "label": "CODE", "y": 74, "colour": 3, "scale": 1},
+      {"text": "START ACCEPTS", "y": 104, "colour": 1, "scale": 1},
+      {"text": "SELECT CANCELS", "y": 118, "colour": 1, "scale": 1}
+    ]
+  }
+}

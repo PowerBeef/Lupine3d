@@ -1,0 +1,17 @@
+{
+  "format": "lupine-song-v1",
+  "speed": 6,
+  "loop_row": 0,
+  "pulse": {
+    "notes": {"e": "E4", "g": "G4", "a": "A4", "b": "B4", "d": "D5"},
+    "rows": ["e.g.a...e.g.b...", "a...g...e...d...", "e.g.a...e.g.b.a.", "g...e...-......."]
+  },
+  "wave": {
+    "notes": {"E": "E2", "A": "A2", "D": "D2", "B": "B2"},
+    "rows": ["E...E...E...E...", "A...A...A...A...", "E...E...E...E...", "B...B...D...D..."]
+  },
+  "noise": {
+    "notes": {"k": "kick", "s": "snare", "h": "hat"},
+    "rows": ["k.h.s.h.k.h.s.h.", "k.h.s.h.k.h.s.h.", "k.h.s.h.k.h.s.h.", "k.h.s.h.k.k.s.s."]
+  }
+}

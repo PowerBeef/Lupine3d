@@ -227,6 +227,22 @@ class GameLoaderTests(unittest.TestCase):
         self.assertEqual(sable.episode_screen_names, ("episode_one_closing", "episode_two_closing",
                                                       "episode_two_opening", "episode_three_opening"))
 
+    def test_the_starter_is_a_complete_small_game(self):
+        starter = load_game(ROOT / "games" / "starter")
+        self.assertEqual((starter.id, starter.title, starter.rom_title), ("starter", "Starter", "STARTER"))
+        self.assertEqual(starter.episode_lengths, (2,))
+        self.assertEqual(starter.episode_starts, ())
+        self.assertEqual(starter.episode_screen_names, ())
+        self.assertEqual(starter.kind_ids, {"drone": 0, "carrier": 1})
+        self.assertEqual([kind.drop for kind in starter.kinds], ["medkit", "keycard"])
+        self.assertEqual([w.from_level for w in starter.weapons], [1, 1, 2, None])
+        self.assertEqual(starter.theme_ids, {"training": 0})
+        self.assertEqual(set(starter.playtests), {"tour"})
+        self.assertFalse(starter.is_showcase)
+        # Everything it builds from is inside its own folder, so the folder can be copied.
+        for relative in starter.files:
+            self.assertTrue((starter.root / relative).is_file(), relative)
+
     def test_the_key_table_covers_every_object_the_loader_reads(self):
         self.assertEqual(set(KEYS), {
             "game", "episode", "kind", "weapon", "theme", "theme.textures", "theme.colours", "shared_palettes", "rom",

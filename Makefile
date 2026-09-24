@@ -8,7 +8,7 @@ ifdef GAME
 export LUPINE3D_GAME := $(GAME)
 endif
 
-.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check limits research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check limits scaffold-check research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -53,6 +53,16 @@ limits:
 	$(PYTHON) tools/make_limits_game.py --output $(LIMITS_GAME)
 	LUPINE3D_GAME=$(LIMITS_GAME) $(PYTHON) tools/build_rom.py
 	LUPINE3D_GAME=$(LIMITS_GAME) $(PYTHON) tools/make_limits_game.py --check
+
+# A creator's first steps, run literally: a new game scaffolded from the
+# starter, checked, built and toured (it has no goldens yet: frame checks only).
+SCAFFOLD := build/scaffold-check/my_game
+scaffold-check:
+	rm -rf $(SCAFFOLD)
+	$(PYTHON) tools/lupine.py new-game $(SCAFFOLD)
+	$(PYTHON) tools/lupine.py game check --game $(SCAFFOLD)
+	$(PYTHON) tools/lupine.py build --game $(SCAFFOLD)
+	$(PYTHON) tools/lupine.py run --game $(SCAFFOLD) --snapshot-mode none
 
 # The `lupine` CLI: make lupine ARGS="level check games/sable_outpost/levels/*.json"
 lupine:
