@@ -492,8 +492,8 @@ def package(
         "living_world_report": ROOT / "build" / "playtest" / "living_world" / "report.json",
         "rendering_research": ROOT / "build" / "q14_tail.json",
         "verification": ROOT / "build" / "verification_report.json",
-        "renderer_design": ROOT / "docs" / "ARCHITECTURE.md",
-        "development_guide": ROOT / "docs" / "DEVELOPMENT.md",
+        "renderer_design": ROOT / "docs" / "explanation" / "architecture.md",
+        "development_guide": ROOT / "docs" / "engine" / "development.md",
         "clean_room": clean_room_build_path,
     }
     for key, source in artifact_sources.items():

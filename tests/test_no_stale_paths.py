@@ -33,6 +33,10 @@ STALE = [
     (re.compile(r"(?<![\w./-])snapshots/(slim|compact|legacy)-"), "goldens moved to games/<id>/snapshots/", False),
     (re.compile(r"(?<![\w./-])tools/(render_weapons|adapt_sable_art)\.py"),
      "the art tools moved to games/sable_outpost/art/tools/", False),
+    (re.compile(r"(?<![\w./-])docs/(guide/|(?!README)[A-Z][A-Z0-9_]*\.md)"),
+     "the handbook moved its pages (docs/README.md lists them)", False),
+    (re.compile(r'"docs" / "(guide|(?!README)[A-Z][A-Z0-9_]*\.md)"'),
+     "the handbook moved its pages (docs/README.md lists them)", False),
 ]
 
 
