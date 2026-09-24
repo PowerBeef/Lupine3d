@@ -6,8 +6,10 @@ the route in its chunks) runs in its own copy of the working tree, the way
 each CI job gets its own runner: lanes cannot share `build/`, because they
 rebuild the ROM and rewrite the same reports. A copy holds exactly the files
 a commit would (`git ls-files` tracked plus untracked-not-ignored, as they
-stand in the working tree); the caller's `LUPINE3D_*` flags are dropped, so a
-lane builds the default configuration as CI does.
+stand in the working tree when the run starts: they are staged once, so a
+lane that waits for a free CPU still tests that tree, not later edits); the
+caller's `LUPINE3D_*` flags are dropped, so a lane builds the default
+configuration as CI does.
 
     python tools/ci_local.py                 # every lane, one per CPU
     python tools/ci_local.py --changed       # only what the change needs
@@ -80,13 +82,13 @@ def documentation_only(paths: list[str]) -> bool:
         path in DOCUMENTATION_FILES or (path.startswith("docs/") and path.endswith(".md")) for path in paths)
 
 
-def copy_tree(files: list[str], destination: Path) -> None:
+def copy_tree(files: list[str], destination: Path, source: Path = ROOT) -> None:
     if destination.exists():
         shutil.rmtree(destination)
     for name in files:
         target = destination / name
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / name, target)
+        shutil.copy2(source / name, target)
 
 
 def lane_environment() -> dict[str, str]:
@@ -103,7 +105,7 @@ def resolve(command: list[str]) -> list[str]:
     return command
 
 
-def run_lane(name: str, commands: list[list[str]], files: list[str], output: Path) -> dict:
+def run_lane(name: str, commands: list[list[str]], files: list[str], output: Path, staged: Path = ROOT) -> dict:
     tree = output / name
     log_path = output / f"{name}.log"
     started = time.monotonic()
@@ -111,7 +113,7 @@ def run_lane(name: str, commands: list[list[str]], files: list[str], output: Pat
     if name in CORE_LANES and not all((ROOT / path).is_dir() for path in (SAMEBOY_DIR, MGBA_DIR)):
         result.update(status="skipped", reason=f"pinned cores are not under {SAMEBOY_DIR} and {MGBA_DIR}")
         return result
-    copy_tree(files, tree)
+    copy_tree(files, tree, staged)
     if name in CORE_LANES:
         (tree / "build").mkdir(exist_ok=True)
         (tree / "build" / "deps").symlink_to(ROOT / "build" / "deps", target_is_directory=True)
@@ -189,12 +191,18 @@ def main(argv: list[str] | None = None) -> int:
     output = (ROOT / args.output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     files = source_files()
+    # The tree under test is the one standing now: stage it once, and let
+    # every lane copy the staged files when it starts.
+    staged = output / ".source"
+    copy_tree(files, staged)
+    source_head = git("rev-parse", "HEAD").strip()
+    working_tree_clean = not git("status", "--porcelain").strip()
     order = sorted(selected, key=expected_minutes, reverse=True)
     print(f"{len(order)} lane(s), {args.jobs} at a time, {len(files)} source files; logs in {output.relative_to(ROOT)}/")
     started = time.monotonic()
     results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
-        futures = {pool.submit(run_lane, name, selected[name], files, output): name for name in order}
+        futures = {pool.submit(run_lane, name, selected[name], files, output, staged): name for name in order}
         for future in concurrent.futures.as_completed(futures):
             result = future.result()
             results.append(result)
@@ -208,8 +216,8 @@ def main(argv: list[str] | None = None) -> int:
     roms = {r["rom_sha256"] for r in results if "rom_sha256" in r}
     summary = {
         "schema": "lupine3d.ci-local.v1",
-        "source_head": git("rev-parse", "HEAD").strip(),
-        "working_tree_clean": not git("status", "--porcelain").strip(),
+        "source_head": source_head,
+        "working_tree_clean": working_tree_clean,
         "minutes": round((time.monotonic() - started) / 60, 1),
         "rom_sha256": sorted(roms),
         "lanes": sorted(results, key=lambda r: r["lane"]),
@@ -217,6 +225,7 @@ def main(argv: list[str] | None = None) -> int:
     failed = [r["lane"] for r in results if r["status"] == "failed"]
     skipped = [r["lane"] for r in results if r["status"] == "skipped"]
     summary["passed"] = not failed and not skipped and len(roms) <= 1
+    shutil.rmtree(staged, ignore_errors=True)
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(f"{summary['minutes']} min wall clock; ROM {', '.join(sha[:8] for sha in sorted(roms)) or 'none'}")
     if len(roms) > 1:
