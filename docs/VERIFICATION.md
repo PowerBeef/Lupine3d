@@ -90,6 +90,11 @@ not a defect.
 - `make playthrough SECTORS=A-B` — the controller route, one chunk of
   `tools/ci_lanes.py` per CI `route` job; `make playtest-sync` — the
   synchronous publication tail (CI `profiles` job).
+- `make identity` (`tools/rom_identity.py`) — every configuration the project
+  builds (default, sync, compact, legacy, the A/B variants, the level
+  fixtures) byte-identical to a recorded ROM, or to a git ref with
+  `compare --base`; the gate of refactors meant to change no behaviour (CI
+  `identity` job while the game/engine separation is under way).
 - `python tools/ci_local.py` — all of CI's lanes locally, in parallel, each
   in its own copy of the working tree; `--changed` picks the lanes a change
   needs, `--list` prints them.

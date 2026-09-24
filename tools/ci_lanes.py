@@ -66,6 +66,11 @@ LANES: dict[str, list[list[str]]] = {
     "profiles": [
         ["make", "playtest-sync"],
     ],
+    # Every configuration's ROM byte-identical to the record taken before the
+    # game/engine separation (tools/rom_identity.py); retired when it ends.
+    "identity": [
+        ["make", "identity"],
+    ],
     "slow": [
         ["make", "build"],
         ["make", "variants"],

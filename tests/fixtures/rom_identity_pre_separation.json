@@ -1,0 +1,90 @@
+{
+  "schema": "lupine3d.rom-identity.v1",
+  "source_commit": "275592d08502141b9c753376de452249e47dd2e0",
+  "configurations": {
+    "default": {
+      "env": {},
+      "rom_sha256": "ca10f97a427dd4ed7925ac635f094210096fe5f782535cef9b31368160194110",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "sym_sha256": "d612d5626d12ed3bd9f95715c73f46cc6deaa1361dc86180026f898d134ccb40"
+    },
+    "sync": {
+      "env": {
+        "LUPINE3D_OVERLAP_PUBLICATION": "0"
+      },
+      "rom_sha256": "86af20b7af064c32d10e190c9e98622c3bfbf854ab2575803c5a2064dfb313b2",
+      "configuration_id": "cdb1809f081cdf194036732b4759ad00f4cef83202e156e614732cd71f0f11a1",
+      "sym_sha256": "e24f59bb8bbb508bb200c84a9e2c59ea1aab78d742bb5b3222fc3f2d0b835c4a"
+    },
+    "compact": {
+      "env": {
+        "LUPINE3D_DISPLAY": "compact"
+      },
+      "rom_sha256": "b71026f34f31879e92359bd9e3661759a874e3b15d40b049ae5fb00012d021b2",
+      "configuration_id": "b0ca1064e247a8cd5878a329d84d8d25bdaa5d3580c318969c79b4f5195bda2b",
+      "sym_sha256": "7b8b968ea1cd4ea2008eb7d8c3dfd29836cb16346474e93d9ad63dfa0f996ea4"
+    },
+    "compact-unfolded": {
+      "env": {
+        "LUPINE3D_DISPLAY": "compact",
+        "LUPINE3D_FOLDED": "0",
+        "LUPINE3D_COMPACT_STRIPS": "0"
+      },
+      "rom_sha256": "898a8932b32d011f139e926547ad5728b793934969b4d7ffd95d985ea3735588",
+      "configuration_id": "5e4592b22862a328b2143807b398d529116842638165b552df8a1f8e37e29c01",
+      "sym_sha256": "e35e1cf22730b899b6c55d9d2233b6f6888d23138612334bde7280383aaf4f1f"
+    },
+    "legacy": {
+      "env": {
+        "LUPINE3D_DISPLAY": "legacy",
+        "LUPINE3D_ART": "legacy",
+        "LUPINE3D_ART_ANIMATION": "0"
+      },
+      "rom_sha256": "621110d62f93d89a8c0e0a54614308a2c7972024fc3d14d1d16c4927547bcc65",
+      "configuration_id": "5691cdf3bd75936802334db1ef90672e313b5ef720e01570f6e43148d194f705",
+      "sym_sha256": "ca31ec0927d398b581e9602aaa439736a8c4439b450dcb13ca73c58e8e9dc1b7"
+    },
+    "reprojection": {
+      "env": {
+        "LUPINE3D_REPROJECTION": "1",
+        "LUPINE3D_NARROW_YIELDS": "0"
+      },
+      "rom_sha256": "9a04461f5b1946be05296d10d2c852ff8c70858e043465d8d31c6ca43cfac456",
+      "configuration_id": "5705c10f4a16c0291128a5ecbd39efd989da066f22faa0f40ac02f9e03822676",
+      "sym_sha256": "a642a75e4114219685e2da920f93bc0996d7b23bb7352da84032452f0e1b31ac"
+    },
+    "reuse-disabled": {
+      "env": {
+        "LUPINE3D_WALL_REUSE": "0"
+      },
+      "rom_sha256": "bedc22921e53f263d12ef6612e5e9000e391003f0c6fb060e04320352da9673c",
+      "configuration_id": "f0173ba0f665a3c37beee4996ae434c44062d271660e37f3d52416a0b828c8dd",
+      "sym_sha256": "c581308a7e01226247508666f58bd39156476c581ea54eb49235bf0be4abe8bb"
+    },
+    "prepared-disabled": {
+      "env": {
+        "LUPINE3D_PREPARED_RAYS": "0",
+        "LUPINE3D_CAMERA_SETUP": "0"
+      },
+      "rom_sha256": "22278271431fa1497dd562e65033fefbfbac01a9c063d1681291d66beb48aafd",
+      "configuration_id": "1d794c1902ccdd0dac7a20f968129bdd3ad441d722f0ecf8077bd6abbce9dd5c",
+      "sym_sha256": "7d0bfffda124dbc76df88f53145b3943727903eb430c3eed88b3c593b834a589"
+    },
+    "two-sentinels": {
+      "env": {
+        "LUPINE3D_LEVEL": "level:two_sentinels"
+      },
+      "rom_sha256": "451ef00c9df1253b3cf3a0ec333f218b0e4e52b0b9d32b50fd5c2d21f37d87da",
+      "configuration_id": "2bb6b59d100bf141ee4c554af60e9eb2fe6052fa8b9c1fbcf6848550031a0b7e",
+      "sym_sha256": "150981a908173ef7f6c70e42fbf90354bc9b64e1931522c6cc249e972ae8837d"
+    },
+    "renderer-benchmark": {
+      "env": {
+        "LUPINE3D_LEVEL": "level:renderer_benchmark"
+      },
+      "rom_sha256": "60cb810c350d6e02eaf85b6ca34f2151b80cf8e631b9ef7037f138c3a73ae0d3",
+      "configuration_id": "555b050e94753a8910e81ce9bda1b03550478ab68dc78f65050039c8cb386bb6",
+      "sym_sha256": "b114d267609073feed128a70ef9e9fd69febc7029db691327ef158fec6b71c27"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all setup build test docs-check memory-map lupine ci-local research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine ci-local identity research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -19,6 +19,13 @@ docs-check: build
 
 memory-map: build
 	$(PYTHON) tools/memory_map.py
+
+# Every configuration's ROM against the record taken before the game/engine
+# separation (tools/rom_identity.py): a refactor that changes no behaviour
+# changes no ROM byte.
+IDENTITY_RECORD ?= tests/fixtures/rom_identity_pre_separation.json
+identity:
+	$(PYTHON) tools/rom_identity.py check $(IDENTITY_RECORD)
 
 # CI's jobs locally, each lane in its own copy of the working tree, in
 # parallel (tools/ci_local.py): make ci-local ARGS="--changed"
