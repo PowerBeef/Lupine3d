@@ -3,6 +3,13 @@
   "id": "sable_outpost",
   "title": "Sable Outpost",
   "profiles": ["slim", "compact", "legacy"],
+  "actor_palettes": ["sentinel", "warden", "skirmisher"],
+  "kinds": [
+    {"name": "sentinel", "contact_damage": 8, "recovery_ticks": 8, "step_q8": 8, "palette": "sentinel", "drop": "medkit"},
+    {"name": "skirmisher", "contact_damage": 4, "recovery_ticks": 8, "step_q8": 15, "palette": "skirmisher", "drop": "keycard"},
+    {"name": "warden", "contact_damage": 14, "recovery_ticks": 12, "step_q8": 5, "palette": "warden", "drop": "medkit"},
+    {"name": "boss", "contact_damage": 20, "recovery_ticks": 10, "step_q8": 6, "palette": "sentinel", "drop": "medkit"}
+  ],
   "episodes": [
     {
       "name": "Sable Outpost",

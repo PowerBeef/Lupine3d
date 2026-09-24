@@ -31,6 +31,14 @@ GAMES = ROOT / "games"
 DEFAULT_GAME_DIR = GAMES / "sable_outpost"
 GAME_FORMAT = "lupine-game-v1"
 DISPLAY_PROFILES = ("slim", "compact", "legacy")
+# What a dead actor can leave: engine behaviour (a medkit heals, a keycard
+# opens keycard doors), so the names are the engine's, not a game's.
+DROPS = ("medkit", "keycard")
+# The kind byte is masked to two bits, so the stat table has four records.
+MAX_KINDS = 4
+# Enemy colours: OBJ palettes 1, 6 and 7 are the actors'; the others belong
+# to the weapon, drops, effects and decor (docs/ART_PIPELINE.md).
+ACTOR_PALETTE_SLOTS = (1, 6, 7)
 
 
 class GameError(ValueError):
@@ -46,12 +54,24 @@ class Episode:
 
 
 @dataclass(frozen=True)
+class Kind:
+    name: str
+    contact_damage: int      # health a touch takes off at the authored skill (half on easy, 1.5x on hard)
+    recovery_ticks: int      # simulation ticks between two contacts
+    step_q8: int             # distance per step, in 1/256 of a cell
+    palette: str             # one of the game's actor palettes
+    drop: str                # what it leaves when it dies: medkit or keycard
+
+
+@dataclass(frozen=True)
 class Game:
     root: Path
     id: str
     title: str
     profiles: tuple[str, ...]
     episodes: tuple[Episode, ...]
+    actor_palettes: tuple[str, ...]
+    kinds: tuple[Kind, ...]
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -72,6 +92,14 @@ class Game:
             total += length
             starts.append(total)
         return tuple(starts)
+
+    @property
+    def kind_ids(self) -> dict[str, int]:
+        """Kind name to the runtime kind byte: declaration order."""
+        return {kind.name: index for index, kind in enumerate(self.kinds)}
+
+    def actor_palette_slot(self, name: str) -> int:
+        return ACTOR_PALETTE_SLOTS[self.actor_palettes.index(name)]
 
     @property
     def episode_screen_names(self) -> tuple[str, ...]:
@@ -154,6 +182,50 @@ def _episodes(data: object, root: Path, files: dict[str, str]) -> tuple[Episode,
     return tuple(episodes)
 
 
+def _names(data: object, root: Path, context: str, maximum: int) -> tuple[str, ...]:
+    if not isinstance(data, list) or not 1 <= len(data) <= maximum:
+        raise GameError(_where(root, f"{context} must list one to {maximum} names"))
+    names = tuple(_string(name, root, f"{context}[{n}]") for n, name in enumerate(data))
+    if len(set(names)) != len(names):
+        raise GameError(_where(root, f"{context} names must be distinct"))
+    return names
+
+
+def _integer(record: dict, key: str, minimum: int, maximum: int, root: Path, context: str) -> int:
+    value = record[key]
+    if not isinstance(value, int) or isinstance(value, bool) or not minimum <= value <= maximum:
+        raise GameError(_where(root, f"{context}.{key} must be a whole number from {minimum} to {maximum}"))
+    return value
+
+
+def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, ...]:
+    if not isinstance(data, list) or not 1 <= len(data) <= MAX_KINDS:
+        raise GameError(_where(root, f"kinds must list one to {MAX_KINDS} enemy kinds "
+                                     "(the kind byte is two bits wide)"))
+    kinds = []
+    for index, raw in enumerate(data):
+        context = f"kinds[{index}]"
+        fields = {"name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"}
+        raw = _keys(raw, fields, fields, root, context)
+        palette = _string(raw["palette"], root, f"{context}.palette")
+        if palette not in palettes:
+            raise GameError(_where(root, f"{context}.palette {palette!r} is not one of the actor_palettes "
+                                         f"({', '.join(palettes)})"))
+        drop = _string(raw["drop"], root, f"{context}.drop")
+        if drop not in DROPS:
+            raise GameError(_where(root, f"{context}.drop {drop!r} must be one of {', '.join(DROPS)}"))
+        kinds.append(Kind(
+            name=_string(raw["name"], root, f"{context}.name"),
+            # The hard skill adds half again, which must still fit a byte.
+            contact_damage=_integer(raw, "contact_damage", 0, 170, root, context),
+            recovery_ticks=_integer(raw, "recovery_ticks", 0, 255, root, context),
+            step_q8=_integer(raw, "step_q8", 1, 255, root, context),
+            palette=palette, drop=drop))
+    if len({kind.name for kind in kinds}) != len(kinds):
+        raise GameError(_where(root, "kind names must be distinct"))
+    return tuple(kinds)
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -165,8 +237,8 @@ def load_game(directory: Path) -> Game:
     except json.JSONDecodeError as error:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
-    data = _keys(data, {"$schema", "format", "id", "title", "profiles", "episodes"},
-                 {"format", "id", "title", "episodes"}, root, "the manifest")
+    data = _keys(data, {"$schema", "format", "id", "title", "profiles", "episodes", "actor_palettes", "kinds"},
+                 {"format", "id", "title", "episodes", "actor_palettes", "kinds"}, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
     game_id = _string(data["id"], root, "id")
@@ -175,8 +247,11 @@ def load_game(directory: Path) -> Game:
     profiles = data.get("profiles", ["slim"])
     if not isinstance(profiles, list) or not profiles or any(p not in DISPLAY_PROFILES for p in profiles):
         raise GameError(_where(root, f"profiles must be a non-empty list drawn from {', '.join(DISPLAY_PROFILES)}"))
+    actor_palettes = _names(data["actor_palettes"], root, "actor_palettes", len(ACTOR_PALETTE_SLOTS))
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
-                profiles=tuple(profiles), episodes=_episodes(data["episodes"], root, files), files=files)
+                profiles=tuple(profiles), episodes=_episodes(data["episodes"], root, files),
+                actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
+                files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:

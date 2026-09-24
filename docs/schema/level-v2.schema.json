@@ -32,7 +32,7 @@
           "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
           "orientation": {"enum": ["horizontal", "vertical"]},
           "kind": {"enum": ["standard", "exit"], "default": "standard"},
-          "unlock": {"enum": ["none", "sentinel_dead", "keycard"], "default": "none"}
+          "unlock": {"enum": ["none", "enemies_cleared", "sentinel_dead", "keycard"], "default": "none", "description": "enemies_cleared and sentinel_dead are the same rule: the door opens once every actor is dead."}
         }
       }
     },
@@ -41,7 +41,7 @@
       "items": {
         "type": "object", "required": ["kind", "x_q8", "y_q8", "health", "activation_radius_q4"],
         "properties": {
-          "kind": {"enum": ["sentinel", "skirmisher", "warden", "boss"]},
+          "kind": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "One of the kinds your game.json declares."},
           "x_q8": {"$ref": "#/$defs/q8"}, "y_q8": {"$ref": "#/$defs/q8"},
           "health": {"type": "integer", "minimum": 1, "maximum": 255},
           "activation_radius_q4": {"type": "integer", "minimum": 1, "maximum": 127}
@@ -54,7 +54,7 @@
         "type": "object", "required": ["kind", "source", "value"],
         "properties": {
           "kind": {"enum": ["medkit", "keycard"]},
-          "source": {"const": "sentinel_drop"},
+          "source": {"enum": ["drop", "sentinel_drop"], "description": "Every pickup is dropped by a dead actor; the two names mean the same."},
           "value": {"type": "integer", "minimum": 1, "maximum": 255}
         }
       },

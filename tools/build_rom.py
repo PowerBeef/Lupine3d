@@ -392,21 +392,16 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.label("level_directory"); a.bytes(bytes(
         byte for index in range(LEVEL_COUNT) for byte in level_location(index)),
         "level bank and slot page per index")
-    a.label("actor_kind_stats"); a.bytes(bytes((
-        # damage, recovery, step, palette, drop, spare...
-        8, 8, 8, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,     # sentinel: Sable armour
-        4, 8, 15, 7, DROP_KIND_IDS["keycard"], 0, 0, 0,   # skirmisher: quick,
-                           # fragile, half as punishing in contact - and the
-                           # one that carries a card
-        14, 12, 5, 6, DROP_KIND_IDS["medkit"], 0, 0, 0,   # warden: slow and
-                           # heavy, and the only thing in the outpost that
-                           # takes a third of your health on contact
-        20, 10, 6, 1, DROP_KIND_IDS["medkit"], 0, 0, 0,   # boss: the Sentinel's
-                           # cels and palette with the heaviest contact damage
-                           # in the game, slow, and the health its level gives
-                           # it; a corrupt kind byte still reads a playable
-                           # actor, only a dangerous one
-    )), "enemy kind stats")
+    # The game's kinds (game.json `kinds`), eight bytes each: contact damage,
+    # recovery ticks, Q8 step, OBJ palette, drop, three spare. The kind byte is
+    # masked to two bits, so the table always has four records; a game with
+    # fewer kinds repeats its first, so a corrupt kind byte still reads a
+    # playable actor.
+    kind_records = [bytes((kind.contact_damage, kind.recovery_ticks, kind.step_q8,
+                           GAME.actor_palette_slot(kind.palette), DROP_KIND_IDS[kind.drop], 0, 0, 0))
+                    for kind in GAME.kinds]
+    kind_records += [kind_records[0]] * (4 - len(kind_records))
+    a.label("actor_kind_stats"); a.bytes(b"".join(kind_records), "enemy kind stats")
     # Two bytes per weapon: damage a hit takes off, and the simulation ticks
     # before it can fire again. The shotgun keeps the engine's original
     # behaviour exactly - one damage, no wait - so the trade is the slug

@@ -8,22 +8,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from lupine3d_v4.game import GAME as _GAME, Game
+from lupine3d_v4.game import DROPS, GAME as _GAME, Game
 
 
 PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
-# Enemy kinds share the Sentinel's cels and differ by stats and OBJ palette,
-# so variety costs ROM bytes rather than VRAM patterns. A third kind would
-# need a third OBJ palette and there is exactly one free slot, so adding one
-# means re-planning the weapon/reticle palettes, not editing this table.
-# The order is the runtime stat-table index; keep it stable.
-# The fourth kind is the boss: the kind byte is masked to two bits, so the
-# table has four records whatever the campaign fields, and the boss takes the
-# record that used to repeat the Sentinel. It wears the Sentinel's cels and
-# OBJ palette (all eight palettes are spoken for) and is told apart by what
-# it does: the heaviest contact damage in the game and the health a level
-# gives it. The last sector of an episode fields one.
-ENTITY_KIND_IDS = {"sentinel": 0, "skirmisher": 1, "warden": 2, "boss": 3}
+# Enemy kinds are the game's (game.json `kinds`): a level names one, and its
+# declaration order is the runtime kind byte and stat-table index. Kinds share
+# the actor cels and differ by stats and OBJ palette, so variety costs ROM
+# bytes rather than VRAM patterns; the kind byte is masked to two bits, so a
+# game has at most four.
+ENTITY_KIND_IDS = _GAME.kind_ids
 # Palette sets: one per episode. The header byte selects the 128-byte set
 # `init_palettes` uploads at every world entry, so levels of one campaign may
 # differ; the order is the ROM table index and the runtime clamp, keep it.
@@ -49,8 +43,12 @@ DOOR_FLAG_LOCK_SENTINEL = 0x02
 DOOR_FLAG_KEYCARD = 0x04
 # What a dead actor leaves behind, selected by its kind rather than by a byte
 # in its slot: the slot is exactly full, and the kind is already there.
-DROP_KIND_IDS = {"medkit": 0, "keycard": 1}
-KIND_DROPS = {"sentinel": "medkit", "skirmisher": "keycard", "warden": "medkit", "boss": "medkit"}
+DROP_KIND_IDS = {name: index for index, name in enumerate(DROPS)}
+KIND_DROPS = {kind.name: kind.drop for kind in _GAME.kinds}
+# Engine vocabulary in a level file. Each value has a neutral name and the
+# name the showcase was written with; both mean the same thing.
+UNLOCK_WHEN_CLEARED = ("enemies_cleared", "sentinel_dead")
+DROP_SOURCES = ("drop", "sentinel_drop")
 
 # Campaign levels are packed five to a ROM bank from LEVEL_ROM_BANK_BASE, in
 # 256-byte-aligned slots, at fixed offsets inside the slot. A resident
@@ -629,7 +627,7 @@ def compile_level(path: Path) -> CompiledLevel:
             _bounded_int(item, "y", 0, height - 1),
             ORIENTATION_IDS[str(item["orientation"])],
             (DOOR_FLAG_EXIT if str(item.get("kind", "standard")) == "exit" else 0)
-            | (DOOR_FLAG_LOCK_SENTINEL if str(item.get("unlock", "none")) == "sentinel_dead" else 0)
+            | (DOOR_FLAG_LOCK_SENTINEL if str(item.get("unlock", "none")) in UNLOCK_WHEN_CLEARED else 0)
             | (DOOR_FLAG_KEYCARD if str(item.get("unlock", "none")) == "keycard" else 0),
         )
         for index, item in enumerate(source.get("doors", []))
@@ -680,13 +678,14 @@ def compile_level(path: Path) -> CompiledLevel:
         raise ValueError(f"levels require one to {MAX_ACTORS} actors")
     unknown = [entity.kind for entity in entities if entity.kind not in ENTITY_KIND_IDS]
     if unknown:
-        raise ValueError(f"unknown enemy kinds: {sorted(set(unknown))}")
+        raise ValueError(f"unknown enemy kinds {sorted(set(unknown))}: {_GAME.id}'s kinds are "
+                         f"{', '.join(ENTITY_KIND_IDS)} (game.json `kinds`)")
     # Every pickup is a drop from a dead actor; its kind follows from that
     # actor's kind, so a level declares which drops it fields rather than
     # placing them. The medkit's value is the only per-level number.
     if not 1 <= len(pickups) <= len(DROP_KIND_IDS):
         raise ValueError(f"levels declare one to {len(DROP_KIND_IDS)} drops")
-    if any(pickup.source != "sentinel_drop" for pickup in pickups):
+    if any(pickup.source not in DROP_SOURCES for pickup in pickups):
         raise ValueError("every drop comes from a dead actor")
     kinds = [pickup.kind for pickup in pickups]
     if len(set(kinds)) != len(kinds) or set(kinds) - set(DROP_KIND_IDS):
