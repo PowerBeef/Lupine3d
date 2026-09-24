@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from lupine3d_v4.game import DROPS, GAME as _GAME, Game
+from lupine3d_v4.limits import LIMITS as _LIMITS
 
 
 PROFILE_IDS = {"renderer-heavy": 0, "entity-heavy": 1}
@@ -33,6 +34,9 @@ DOOR_RECORD_BYTES = 6
 MAX_ACTORS = 6
 LEVEL_HEADER_BYTES = 24
 MAX_FIXTURES = 16
+# The creator-facing table (limits.py, docs/reference/limits.md) states these.
+assert (MAX_DOORS, MAX_ACTORS, MAX_FIXTURES) == tuple(
+    _LIMITS[name].maximum for name in ("doors_per_level", "actors_per_level", "fixtures_per_level"))
 DOOR_X = 0
 DOOR_Y = 1
 DOOR_ORIENTATION = 2

@@ -5,4 +5,4 @@ __pycache__/
 build/
 .render-baselines/
 dist/
-playtests/baseline_v030/
+games/sable_outpost/playtests/baseline_v030/

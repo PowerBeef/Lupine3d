@@ -13,12 +13,16 @@ write a level number or a count straight into a map cell without touching VRAM.
 from .artwork import canvas, rect, text_pixels, tiles
 from .layout import *  # noqa: F401,F403
 from .game import FIXED_SCREENS, SCREEN_FIELDS
+from .fonts import GLYPH_ADVANCE, GLYPH_HEIGHT, GLYPH_WIDTH  # noqa: F401
+from .limits import LIMITS
 
 SCREEN_COLUMNS = 20
 SCREEN_ROWS = 18
 SCREEN_MAP_BYTES = SCREEN_COLUMNS * SCREEN_ROWS
-# Signed BG addressing keeps IDs 0..127 at $9000, and composition owns 0..95.
-SCREEN_PATTERN_CAPACITY = DYNAMIC_TILE_CAPACITY
+# show_screen copies a screen's patterns linearly from $9000, and the BG map
+# starts at $9800: 128 patterns, whatever the world's composition window is.
+SCREEN_PATTERN_CAPACITY = LIMITS["screen_patterns"].maximum
+assert SCREEN_PATTERN_CAPACITY * 16 == 0x9800 - 0x9000
 DIGIT_PATTERNS = 10
 BLANK_PATTERN = DIGIT_PATTERNS
 # Map cells the runtime rewrites. Each entry is a screen-relative tile index.
@@ -56,9 +60,6 @@ def load_hl(a, address: int) -> None:
 def store_hl(a, address: int) -> None:
     a.ld_r_r("a", "l"); a.ld_abs_a(address)
     a.ld_r_r("a", "h"); a.ld_abs_a(address + 1)
-
-
-GLYPH_WIDTH, GLYPH_ADVANCE, GLYPH_HEIGHT = 3, 4, 5
 
 
 def _field_layout(label, digits, y, scale):
@@ -121,7 +122,9 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
                 patterns.append(pattern)
             tilemap[row * SCREEN_COLUMNS + column] = number
     if len(patterns) > SCREEN_PATTERN_CAPACITY:
-        raise ValueError(f"screen needs {len(patterns)} of {SCREEN_PATTERN_CAPACITY} patterns")
+        raise ValueError(f"it needs {len(patterns)} distinct 8x8 patterns and a screen holds {SCREEN_PATTERN_CAPACITY} "
+                         "(the ten digits and a blank included): use fewer lines, a smaller scale, or lines that "
+                         "share tile rows")
     if len(reserved) > SCREEN_SLOT_CAPACITY:
         raise ValueError(f"screen reserves {len(reserved)} of {SCREEN_SLOT_CAPACITY} digit slots")
     offsets = tuple(row * SCREEN_COLUMNS + column for column, row in reserved)
@@ -136,11 +139,12 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
 # Authored screens. Order is the runtime screen index; keep it stable, the
 # emitter indexes a directory by it.
 SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWORD = range(5)
-# Episode screens: the closing of episodes one and two, the opening of
-# episodes two and three (the title opens episode one). Indices are stable;
-# EPISODE_STARTS in layout.py names the sectors they sit before.
-SCREEN_EPISODE_CLOSINGS = (5, 6)
-SCREEN_EPISODE_OPENINGS = (7, 8)
+# Episode screens follow the fixed five: every closing but the last episode's,
+# then every opening but the first's (the title opens episode one, the ending
+# closes the last). EPISODE_STARTS in layout.py names the levels they sit
+# before; with three episodes these are screens 5, 6 and 7, 8.
+SCREEN_EPISODE_CLOSINGS = tuple(5 + n for n in range(len(EPISODE_STARTS)))
+SCREEN_EPISODE_OPENINGS = tuple(5 + len(EPISODE_STARTS) + n for n in range(len(EPISODE_STARTS)))
 
 # The game's screens (games/<id>/screens.json, loaded by game.py), in
 # runtime order: the five fixed modes, then the episode screens its episodes
@@ -162,7 +166,10 @@ def screen_assets() -> list[tuple[str, bytes, bytes, tuple[int, ...]]]:
     """(name, patterns, map, slot offsets) for every authored screen."""
     composed = []
     for name, lines, slots in SCREEN_SOURCES:
-        patterns, tilemap, offsets = compose_screen(lines, slots)
+        try:
+            patterns, tilemap, offsets = compose_screen(lines, slots)
+        except ValueError as error:
+            raise ValueError(f"{GAME.id}: screens.json screen {name!r}: {error}") from None
         composed.append((name, patterns, tilemap, offsets))
     return composed
 
@@ -204,7 +211,10 @@ def screen_directory() -> bytes:
             slot = offsets[index] if index < len(offsets) else NO_SLOT
             records.extend((slot & 255, slot >> 8))
     assert len(records) == len(SCREEN_SOURCES) * SCREEN_RECORD_BYTES
-    assert address <= 0x8000, "authored screens exceed one MBC5 bank"
+    if address > 0x8000:
+        raise ValueError(f"{GAME.id}: the {len(SCREEN_SOURCES)} screens need {address - 0x4000} bytes and the screen "
+                         f"bank holds 16384; each distinct pattern costs 16 bytes ("
+                         + ", ".join(f"{name} {len(patterns) // 16}" for name, patterns, _, _ in screen_assets()) + ")")
     return bytes(records) + b"".join(payloads)
 
 

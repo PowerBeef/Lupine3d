@@ -1,0 +1,693 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/game-v1.schema.json",
+  "title": "Lupine 3D game manifest (lupine-game-v1)",
+  "description": "games/<id>/game.json. tools/lupine3d_v4/game.py is the validator of record: it also checks that every file exists inside the game directory, that names refer to each other, the engine's limits (tools/lupine3d_v4/limits.py) and the order rules a schema cannot express. See docs/reference/game-manifest.md.",
+  "type": "object",
+  "required": [
+    "actor_palettes",
+    "audio",
+    "episodes",
+    "fixture_kinds",
+    "format",
+    "hud",
+    "id",
+    "kinds",
+    "rom",
+    "screens",
+    "shared_palettes",
+    "sprites",
+    "textures",
+    "themes",
+    "title",
+    "weapons"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "lupine-game-v1"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "lower-case letters, digits and underscores; names the build directory build/games/<id>/"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "slim",
+          "compact",
+          "legacy"
+        ]
+      },
+      "description": "display profiles; any game but the showcase builds slim only"
+    },
+    "rom": {
+      "$ref": "#/$defs/rom"
+    },
+    "episodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/episode"
+      }
+    },
+    "actor_palettes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "names for OBJ palettes 1, 6 and 7, in that order"
+    },
+    "kinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/kind"
+      }
+    },
+    "weapons": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/weapon"
+      }
+    },
+    "textures": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 7,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "description": "a file inside the game directory, relative to game.json"
+      },
+      "description": "texture name -> indexed 16x8 PNG (the upper half of a 16x16 face)"
+    },
+    "themes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "$ref": "#/$defs/theme"
+      }
+    },
+    "shared_palettes": {
+      "$ref": "#/$defs/shared_palettes"
+    },
+    "screens": {
+      "type": "string",
+      "minLength": 1,
+      "description": "a file inside the game directory, relative to game.json"
+    },
+    "audio": {
+      "$ref": "#/$defs/audio"
+    },
+    "hud": {
+      "$ref": "#/$defs/hud"
+    },
+    "sprites": {
+      "$ref": "#/$defs/sprites"
+    },
+    "fixture_kinds": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "the four wall fixture families, in the order of the fixture sheet"
+    },
+    "playtests": {
+      "$ref": "#/$defs/playtests"
+    },
+    "preview": {
+      "$ref": "#/$defs/preview"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "colour": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 31
+      },
+      "description": "[red, green, blue], each 0..31: exactly what the console stores (RGB555)"
+    },
+    "episode": {
+      "type": "object",
+      "required": [
+        "levels",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "levels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "description": "a file inside the game directory, relative to game.json"
+          }
+        },
+        "opening": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the screen shown before its first level (every episode but the first)"
+        },
+        "closing": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the screen shown after its last level (every episode but the last)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "kind": {
+      "type": "object",
+      "required": [
+        "contact_damage",
+        "drop",
+        "name",
+        "palette",
+        "recovery_ticks",
+        "step_q8"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contact_damage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 170,
+          "description": "health a touch takes at the authored skill; half on easy, 1.5x on hard"
+        },
+        "recovery_ticks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "step_q8": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "description": "distance per step in 1/256 cell"
+        },
+        "palette": {
+          "type": "string",
+          "minLength": 1,
+          "description": "one of actor_palettes"
+        },
+        "drop": {
+          "enum": [
+            "medkit",
+            "keycard"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "weapon": {
+      "type": "object",
+      "required": [
+        "damage",
+        "from_level",
+        "name",
+        "recovery_ticks",
+        "sprite"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sprite": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the weapon's cel sheet: a record of the sprite manifest"
+        },
+        "damage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        "recovery_ticks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "from_level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 255,
+          "description": "the first level (1-based) that owns it; null: never. The first weapon is 1, and it never decreases"
+        }
+      },
+      "additionalProperties": false
+    },
+    "theme": {
+      "type": "object",
+      "required": [
+        "actors",
+        "colours",
+        "name",
+        "textures"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "textures": {
+          "$ref": "#/$defs/theme.textures"
+        },
+        "colours": {
+          "$ref": "#/$defs/theme.colours"
+        },
+        "actors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/$defs/colour"
+            }
+          },
+          "description": "every actor palette's four colours in this theme (colour 0 is transparent)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "theme.textures": {
+      "type": "object",
+      "required": [
+        "door",
+        "machinery",
+        "structure"
+      ],
+      "properties": {
+        "structure": {
+          "type": "string",
+          "minLength": 1
+        },
+        "machinery": {
+          "type": "string",
+          "minLength": 1
+        },
+        "door": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "theme.colours": {
+      "type": "object",
+      "required": [
+        "ceiling",
+        "door",
+        "floor",
+        "machinery",
+        "structure"
+      ],
+      "properties": {
+        "ceiling": {
+          "$ref": "#/$defs/colour"
+        },
+        "floor": {
+          "$ref": "#/$defs/colour"
+        },
+        "structure": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "door": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "machinery": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "shared_palettes": {
+      "type": "object",
+      "description": "the palettes every theme shares: BG 1 and 7, OBJ 0 and 2-5",
+      "required": [
+        "decor",
+        "drops",
+        "effects",
+        "hud",
+        "reserved_bg",
+        "weapon",
+        "weapon_alt"
+      ],
+      "properties": {
+        "hud": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "reserved_bg": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "weapon": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "drops": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "decor": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        },
+        "weapon_alt": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/colour"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "rom": {
+      "type": "object",
+      "required": [
+        "header_title"
+      ],
+      "properties": {
+        "header_title": {
+          "type": "string",
+          "pattern": "^[A-Z0-9 ]{1,15}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "additionalProperties": false
+    },
+    "audio": {
+      "type": "object",
+      "required": [
+        "songs",
+        "sound"
+      ],
+      "properties": {
+        "songs": {
+          "$ref": "#/$defs/audio.songs"
+        },
+        "sound": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audio.songs": {
+      "type": "object",
+      "required": [
+        "title",
+        "victory",
+        "world"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "world": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "victory": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hud": {
+      "type": "object",
+      "required": [
+        "words"
+      ],
+      "properties": {
+        "words": {
+          "$ref": "#/$defs/hud.words"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hud.words": {
+      "type": "object",
+      "required": [
+        "caption",
+        "dead",
+        "done",
+        "exit",
+        "hunt"
+      ],
+      "properties": {
+        "caption": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        },
+        "hunt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        },
+        "exit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        },
+        "dead": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        },
+        "done": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        }
+      },
+      "additionalProperties": false
+    },
+    "sprites": {
+      "type": "object",
+      "required": [
+        "actor_far",
+        "actor_mid",
+        "actor_near",
+        "drops",
+        "exit_beacon",
+        "fixtures",
+        "hit_effect",
+        "hud",
+        "manifest",
+        "muzzle_flash",
+        "portrait",
+        "reticle"
+      ],
+      "properties": {
+        "manifest": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "actor_near": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "actor_mid": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "actor_far": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "reticle": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "muzzle_flash": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "hud": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "portrait": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "drops": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "hit_effect": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "exit_beacon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        },
+        "fixtures": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a record of the sprite manifest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "playtests": {
+      "type": "object",
+      "required": [
+        "tour"
+      ],
+      "properties": {
+        "tour": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "world": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "art": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "preview": {
+      "type": "object",
+      "required": [
+        "angle",
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 64
+        },
+        "y": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 64
+        },
+        "angle": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

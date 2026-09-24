@@ -26,7 +26,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .fonts import FONT, HUD_FONT
+from .fonts import FONT, GLYPH_ADVANCE, GLYPH_HEIGHT, HUD_FONT
+from .limits import LIMITS, refuse
 
 ROOT = Path(__file__).resolve().parents[2]
 GAMES = ROOT / "games"
@@ -37,12 +38,13 @@ DISPLAY_PROFILES = ("slim", "compact", "legacy")
 # opens keycard doors), so the names are the engine's, not a game's.
 DROPS = ("medkit", "keycard")
 # The kind byte is masked to two bits, so the stat table has four records.
-MAX_KINDS = 4
+MAX_KINDS = LIMITS["kinds"].maximum
 # Enemy colours: OBJ palettes 1, 6 and 7 are the actors'; the others belong
 # to the weapon, drops, effects and decor (docs/ART_PIPELINE.md).
 ACTOR_PALETTE_SLOTS = (1, 6, 7)
+assert len(ACTOR_PALETTE_SLOTS) == LIMITS["actor_palettes"].maximum
 # The weapon index is masked, so the arsenal is exactly this many weapons.
-WEAPON_COUNT = 4
+WEAPON_COUNT = LIMITS["weapons"].maximum
 # The roles a wall face can have; a theme gives each a texture.
 TEXTURE_ROLES = ("structure", "machinery", "door")
 # The palettes that are the same in every theme (docs/ART_PIPELINE.md):
@@ -87,11 +89,54 @@ SPRITE_ROLES = ("actor_near", "actor_mid", "actor_far", "reticle", "muzzle_flash
 # drawn at three distances in the fixture sheet.
 FIXTURE_KINDS = 4
 SPRITE_SCHEMAS = ("lupine-sprites-v1", "sable.native.v1")
-MUSIC_ROW_LIMIT = 1322   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
+MUSIC_ROW_LIMIT = LIMITS["song_rows"].maximum   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
 # A game's driven playtests (tools/playtest.py): the tour every build runs,
 # and optionally a living-world run and an art tour. Each scenario may name
 # a snapshot suite; its goldens live in the game's snapshots/ directory.
 PLAYTEST_ROLES = ("tour", "world", "art")
+
+
+def _required(*names: str) -> tuple[frozenset[str], frozenset[str]]:
+    return frozenset(names), frozenset(names)
+
+
+# Every object a game's files hold: (allowed keys, required keys). The loader
+# refuses any other key, naming the nearest; docs/schema/*.schema.json state
+# the same (tests/test_game_schema.py holds them equal). Objects keyed by the
+# game's own names (a theme's actors, its textures' names) are checked where
+# they are read.
+_GAME_KEYS = ("format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
+              "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds")
+KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
+    "game": (frozenset(_GAME_KEYS) | {"$schema", "profiles", "playtests", "preview"}, frozenset(_GAME_KEYS)),
+    "episode": (frozenset({"name", "levels", "opening", "closing"}), frozenset({"name", "levels"})),
+    "kind": _required("name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"),
+    "weapon": _required("name", "sprite", "damage", "recovery_ticks", "from_level"),
+    "theme": _required("name", "textures", "colours", "actors"),
+    "theme.textures": _required(*TEXTURE_ROLES),
+    "theme.colours": _required("ceiling", "floor", "structure", "door", "machinery"),
+    "shared_palettes": _required(*SHARED_PALETTES),
+    "rom": (frozenset({"header_title", "version"}), frozenset({"header_title"})),
+    "audio": _required("songs", "sound"),
+    "audio.songs": _required(*SONG_ROLES),
+    "hud": _required("words"),
+    "hud.words": _required(*HUD_WORDS),
+    "sprites": _required("manifest", *SPRITE_ROLES),
+    "playtests": (frozenset(PLAYTEST_ROLES), frozenset({"tour"})),
+    "preview": _required("x", "y", "angle"),
+    "screens": (frozenset({"$schema", "format", "screens"}), frozenset({"format", "screens"})),
+    "screen.text": (frozenset({"text", "y", "colour", "scale"}), frozenset({"text", "y", "colour"})),
+    "screen.field": (frozenset({"field", "label", "y", "colour", "scale"}), frozenset({"field", "label", "y", "colour"})),
+    "song": (frozenset({"$schema", "format", "speed", "loop_row", "pulse", "wave", "noise"}),
+             frozenset({"format", "speed", "loop_row", "pulse", "wave", "noise"})),
+    "song.channel": _required("notes", "rows"),
+    "sound": (frozenset({"$schema", "format", "instruments", "effects"}), frozenset({"format", "instruments", "effects"})),
+    "sound.instruments": _required("pulse", "wave", "noise"),
+    "sound.pulse": _required("duty", "envelope"),
+    "sound.wave": _required("volume", "pattern"),
+    "sound.noise": _required(*DRUMS),
+    "sound.effects": _required(*EFFECTS),
+}
 
 
 class GameError(ValueError):
@@ -290,7 +335,7 @@ def _where(root: Path, context: str) -> str:
     return f"{name}: {context}"
 
 
-def _keys(data: object, allowed: set[str], required: set[str], root: Path, context: str) -> dict:
+def _keys(data: object, allowed: frozenset[str], required: frozenset[str], root: Path, context: str) -> dict:
     if not isinstance(data, dict):
         raise GameError(_where(root, f"{context} must be an object"))
     for key in data:
@@ -324,13 +369,21 @@ def _game_file(root: Path, relative: object, context: str, files: dict[str, str]
     return path
 
 
+def _limit(name: str, count: int, root: Path, context: str) -> None:
+    reason = refuse(name, count)
+    if reason is not None:
+        raise GameError(_where(root, f"{context}: {reason}"))
+
+
 def _episodes(data: object, root: Path, files: dict[str, str]) -> tuple[Episode, ...]:
     if not isinstance(data, list) or not data:
         raise GameError(_where(root, "episodes must be a non-empty list"))
+    _limit("episodes", len(data), root, "episodes")
+    _limit("levels", sum(len(raw.get("levels", ())) for raw in data if isinstance(raw, dict)), root, "episodes")
     episodes = []
     for index, raw in enumerate(data):
         context = f"episodes[{index}]"
-        raw = _keys(raw, {"name", "levels", "opening", "closing"}, {"name", "levels"}, root, context)
+        raw = _keys(raw, *KEYS["episode"], root, context)
         levels = raw["levels"]
         if not isinstance(levels, list) or not levels:
             raise GameError(_where(root, f"{context}.levels must be a non-empty list of level files"))
@@ -375,14 +428,13 @@ def _integer(record: dict, key: str, minimum: int, maximum: int, root: Path, con
 
 
 def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, ...]:
-    if not isinstance(data, list) or not 1 <= len(data) <= MAX_KINDS:
-        raise GameError(_where(root, f"kinds must list one to {MAX_KINDS} enemy kinds "
-                                     "(the kind byte is two bits wide)"))
+    if not isinstance(data, list) or not data:
+        raise GameError(_where(root, "kinds must be a non-empty list of enemy kinds"))
+    _limit("kinds", len(data), root, "kinds")
     kinds = []
     for index, raw in enumerate(data):
         context = f"kinds[{index}]"
-        fields = {"name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"}
-        raw = _keys(raw, fields, fields, root, context)
+        raw = _keys(raw, *KEYS["kind"], root, context)
         palette = _string(raw["palette"], root, f"{context}.palette")
         if palette not in palettes:
             raise GameError(_where(root, f"{context}.palette {palette!r} is not one of the actor_palettes "
@@ -393,7 +445,7 @@ def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, .
         kinds.append(Kind(
             name=_string(raw["name"], root, f"{context}.name"),
             # The hard skill adds half again, which must still fit a byte.
-            contact_damage=_integer(raw, "contact_damage", 0, 170, root, context),
+            contact_damage=_integer(raw, "contact_damage", 0, LIMITS["contact_damage"].maximum, root, context),
             recovery_ticks=_integer(raw, "recovery_ticks", 0, 255, root, context),
             step_q8=_integer(raw, "step_q8", 1, 255, root, context),
             palette=palette, drop=drop))
@@ -409,8 +461,7 @@ def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
     weapons = []
     for index, raw in enumerate(data):
         context = f"weapons[{index}]"
-        fields = {"name", "sprite", "damage", "recovery_ticks", "from_level"}
-        raw = _keys(raw, fields, fields, root, context)
+        raw = _keys(raw, *KEYS["weapon"], root, context)
         from_level = raw["from_level"]
         if from_level is not None:
             from_level = _integer(raw, "from_level", 1, 255, root, context)
@@ -445,6 +496,7 @@ def _colours(value: object, count: int, root: Path, context: str) -> tuple[Colou
 def _textures(data: object, root: Path, files: dict[str, str]) -> dict[str, Path]:
     if not isinstance(data, dict) or not data:
         raise GameError(_where(root, "textures must map texture names to PNG files"))
+    _limit("textures", len(data), root, "textures")
     return {_string(name, root, "a texture name"): _game_file(root, path, f"textures.{name}", files)
             for name, path in data.items()}
 
@@ -452,17 +504,17 @@ def _textures(data: object, root: Path, files: dict[str, str]) -> dict[str, Path
 def _themes(data: object, textures: dict[str, Path], palettes: tuple[str, ...], root: Path) -> tuple[Theme, ...]:
     if not isinstance(data, list) or not data:
         raise GameError(_where(root, "themes must be a non-empty list"))
+    _limit("themes", len(data), root, "themes")
     themes = []
     for index, raw in enumerate(data):
         context = f"themes[{index}]"
-        raw = _keys(raw, {"name", "textures", "colours", "actors"}, {"name", "textures", "colours", "actors"}, root, context)
-        roles = _keys(raw["textures"], set(TEXTURE_ROLES), set(TEXTURE_ROLES), root, f"{context}.textures")
+        raw = _keys(raw, *KEYS["theme"], root, context)
+        roles = _keys(raw["textures"], *KEYS["theme.textures"], root, f"{context}.textures")
         for role, name in roles.items():
             if name not in textures:
                 raise GameError(_where(root, f"{context}.textures.{role} {name!r} is not in textures "
                                              f"({', '.join(textures)})"))
-        colours = _keys(raw["colours"], {"ceiling", "floor", "structure", "door", "machinery"},
-                        {"ceiling", "floor", "structure", "door", "machinery"}, root, f"{context}.colours")
+        colours = _keys(raw["colours"], *KEYS["theme.colours"], root, f"{context}.colours")
         actors = _keys(raw["actors"], set(palettes), set(palettes), root, f"{context}.actors")
         themes.append(Theme(
             name=_string(raw["name"], root, f"{context}.name"), textures=dict(roles),
@@ -487,8 +539,29 @@ def _themes(data: object, textures: dict[str, Path], palettes: tuple[str, ...], 
 
 
 def _shared_palettes(data: object, root: Path) -> dict[str, tuple[Colour, ...]]:
-    data = _keys(data, set(SHARED_PALETTES), set(SHARED_PALETTES), root, "shared_palettes")
+    data = _keys(data, *KEYS["shared_palettes"], root, "shared_palettes")
     return {name: _colours(data[name], 4, root, f"shared_palettes.{name}") for name in SHARED_PALETTES}
+
+
+# A screen draws inside its frame: the inner steel lines run at x 4..155 and
+# y 4 and 139.
+SCREEN_TEXT_WIDTH = 152
+SCREEN_TEXT_TOP, SCREEN_TEXT_BOTTOM = 5, 139
+
+
+def _screen_text(line: ScreenLine, root: Path, where: str) -> None:
+    unknown = sorted({c for c in line.text if c != " " and c not in FONT})
+    if unknown:
+        raise GameError(_where(root, f"{where} {line.text!r} uses {', '.join(repr(c) for c in unknown)}, which the "
+                                     f"screen font does not have (it draws {''.join(FONT)} and space)"))
+    width = len(line.text) * GLYPH_ADVANCE * line.scale
+    if line.field is None and width > SCREEN_TEXT_WIDTH:
+        raise GameError(_where(root, f"{where} {line.text!r} is {width} pixels wide at scale {line.scale}; "
+                                     f"a line fits {SCREEN_TEXT_WIDTH} ({SCREEN_TEXT_WIDTH // (GLYPH_ADVANCE * line.scale)} "
+                                     "characters at that scale)"))
+    if line.y < SCREEN_TEXT_TOP or line.y + GLYPH_HEIGHT * line.scale > SCREEN_TEXT_BOTTOM:
+        raise GameError(_where(root, f"{where} at y={line.y}, scale {line.scale}, leaves the frame: a line's "
+                                     f"top is at least {SCREEN_TEXT_TOP} and its bottom above {SCREEN_TEXT_BOTTOM}"))
 
 
 def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files: dict[str, str]) -> dict:
@@ -498,7 +571,7 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files:
         data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as error:
         raise GameError(_where(root, f"{context} is not valid JSON ({error})")) from None
-    data = _keys(data, {"$schema", "format", "screens"}, {"format", "screens"}, root, context)
+    data = _keys(data, *KEYS["screens"], root, context)
     if data["format"] != SCREENS_FORMAT:
         raise GameError(_where(root, f"{context} format is {data['format']!r}; this engine reads {SCREENS_FORMAT!r}"))
     episode_screens = tuple(e.closing for e in episodes[:-1]) + tuple(e.opening for e in episodes[1:])
@@ -523,15 +596,17 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files:
         for n, raw in enumerate(lines):
             where = f"{context} {name}[{n}]"
             if isinstance(raw, dict) and "field" in raw:
-                raw = _keys(raw, {"field", "label", "y", "colour", "scale"}, {"field", "label", "y", "colour"}, root, where)
+                raw = _keys(raw, *KEYS["screen.field"], root, where)
                 text, field_name = _string(raw["label"], root, f"{where}.label"), _string(raw["field"], root, f"{where}.field")
             else:
-                raw = _keys(raw, {"text", "y", "colour", "scale"}, {"text", "y", "colour"}, root, where)
+                raw = _keys(raw, *KEYS["screen.text"], root, where)
                 text, field_name = _string(raw["text"], root, f"{where}.text"), None
             raw.setdefault("scale", 1)
-            parsed.append(ScreenLine(text=text, y=_integer(raw, "y", 0, 143, root, where),
-                                     colour=_integer(raw, "colour", 0, 3, root, where),
-                                     scale=_integer(raw, "scale", 1, 4, root, where), field=field_name))
+            line = ScreenLine(text=text, y=_integer(raw, "y", 0, 143, root, where),
+                              colour=_integer(raw, "colour", 0, 3, root, where),
+                              scale=_integer(raw, "scale", 1, 4, root, where), field=field_name)
+            _screen_text(line, root, where)
+            parsed.append(line)
         fields = [line.field for line in parsed if line.field]
         expected = list(SCREEN_FIELDS.get(name, {}))
         if fields != expected:
@@ -543,7 +618,7 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files:
 
 
 def _rom(data: object, root: Path) -> tuple[str, int]:
-    data = _keys(data, {"header_title", "version"}, {"header_title"}, root, "rom")
+    data = _keys(data, *KEYS["rom"], root, "rom")
     title = _string(data["header_title"], root, "rom.header_title")
     if len(title) > 15 or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 " for c in title):
         raise GameError(_where(root, "rom.header_title must be at most 15 upper-case letters, digits or spaces "
@@ -590,12 +665,11 @@ def _note(spec: object, root: Path, context: str) -> int:
 
 def _song(path: Path, root: Path, role: str) -> Song:
     data = _json_file(path, root, SONG_FORMAT)
-    data = _keys(data, {"$schema", "format", "speed", "loop_row", "pulse", "wave", "noise"},
-                 {"format", "speed", "loop_row", "pulse", "wave", "noise"}, root, path.name)
+    data = _keys(data, *KEYS["song"], root, path.name)
     channels = {}
     for channel in ("pulse", "wave", "noise"):
         where = f"{path.name} {channel}"
-        raw = _keys(data[channel], {"notes", "rows"}, {"notes", "rows"}, root, where)
+        raw = _keys(data[channel], *KEYS["song.channel"], root, where)
         notes = raw["notes"]
         if not isinstance(notes, dict):
             raise GameError(_where(root, f"{where}.notes must map one-letter keys to notes"))
@@ -635,19 +709,17 @@ def _song(path: Path, root: Path, role: str) -> Song:
 
 
 def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, Song], Sound]:
-    data = _keys(data, {"songs", "sound"}, {"songs", "sound"}, root, "audio")
-    songs_raw = _keys(data["songs"], set(SONG_ROLES), set(SONG_ROLES), root, "audio.songs")
+    data = _keys(data, *KEYS["audio"], root, "audio")
+    songs_raw = _keys(data["songs"], *KEYS["audio.songs"], root, "audio.songs")
     songs = {role: _song(_game_file(root, songs_raw[role], f"audio.songs.{role}", files), root, role)
              for role in SONG_ROLES}
     path = _game_file(root, data["sound"], "audio.sound", files)
-    sound = _keys(_json_file(path, root, SOUND_FORMAT), {"$schema", "format", "instruments", "effects"},
-                  {"format", "instruments", "effects"}, root, path.name)
-    instruments = _keys(sound["instruments"], {"pulse", "wave", "noise"}, {"pulse", "wave", "noise"}, root,
-                        f"{path.name} instruments")
-    pulse = _keys(instruments["pulse"], {"duty", "envelope"}, {"duty", "envelope"}, root, f"{path.name} pulse")
-    wave = _keys(instruments["wave"], {"volume", "pattern"}, {"volume", "pattern"}, root, f"{path.name} wave")
-    noise = _keys(instruments["noise"], set(DRUMS), set(DRUMS), root, f"{path.name} noise")
-    effects = _keys(sound["effects"], set(EFFECTS), set(EFFECTS), root, f"{path.name} effects")
+    sound = _keys(_json_file(path, root, SOUND_FORMAT), *KEYS["sound"], root, path.name)
+    instruments = _keys(sound["instruments"], *KEYS["sound.instruments"], root, f"{path.name} instruments")
+    pulse = _keys(instruments["pulse"], *KEYS["sound.pulse"], root, f"{path.name} pulse")
+    wave = _keys(instruments["wave"], *KEYS["sound.wave"], root, f"{path.name} wave")
+    noise = _keys(instruments["noise"], *KEYS["sound.noise"], root, f"{path.name} noise")
+    effects = _keys(sound["effects"], *KEYS["sound.effects"], root, f"{path.name} effects")
     return songs, Sound(
         pulse_duty=_byte(pulse["duty"], root, f"{path.name} pulse.duty"),
         pulse_envelope=_byte(pulse["envelope"], root, f"{path.name} pulse.envelope"),
@@ -658,14 +730,13 @@ def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, S
 
 
 def _hud(data: object, root: Path) -> dict[str, str]:
-    data = _keys(data, {"words"}, {"words"}, root, "hud")
-    words = _keys(data["words"], set(HUD_WORDS), set(HUD_WORDS), root, "hud.words")
+    data = _keys(data, *KEYS["hud"], root, "hud")
+    words = _keys(data["words"], *KEYS["hud.words"], root, "hud.words")
     out = {}
     for name in HUD_WORDS:
         text = _string(words[name], root, f"hud.words.{name}")
         font, face = (FONT, "the 3x5 caption font") if name == "caption" else (HUD_FONT, "the HUD status font")
-        if len(text) > 4:
-            raise GameError(_where(root, f"hud.words.{name} {text!r} is longer than the panel's four characters"))
+        _limit("hud_word", len(text), root, f"hud.words.{name} {text!r}")
         missing = sorted({c for c in text if c not in font})
         if missing:
             raise GameError(_where(root, f"hud.words.{name} {text!r} uses {', '.join(repr(c) for c in missing)}, "
@@ -675,7 +746,7 @@ def _hud(data: object, root: Path) -> dict[str, str]:
 
 
 def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str]) -> tuple[Path, dict[str, str]]:
-    data = _keys(data, set(SPRITE_ROLES) | {"manifest"}, set(SPRITE_ROLES) | {"manifest"}, root, "sprites")
+    data = _keys(data, *KEYS["sprites"], root, "sprites")
     path = _game_file(root, data["manifest"], "sprites.manifest", files)
     try:
         manifest = json.loads(path.read_text(encoding="utf-8"))
@@ -707,7 +778,7 @@ def _fixture_kinds(data: object, root: Path) -> tuple[str, ...]:
 def _playtests(data: object, root: Path) -> dict[str, Path]:
     if data is None:
         return {}
-    data = _keys(data, set(PLAYTEST_ROLES), {"tour"}, root, "playtests")
+    data = _keys(data, *KEYS["playtests"], root, "playtests")
     # Scenarios drive the built ROM; they are not build inputs, so they are
     # not recorded among the files the ROM was built from.
     return {role: _game_file(root, data[role], f"playtests.{role}", None) for role in PLAYTEST_ROLES if role in data}
@@ -716,7 +787,7 @@ def _playtests(data: object, root: Path) -> dict[str, Path]:
 def _preview(data: object, root: Path) -> tuple[int, int, int] | None:
     if data is None:
         return None
-    data = _keys(data, {"x", "y", "angle"}, {"x", "y", "angle"}, root, "preview")
+    data = _keys(data, *KEYS["preview"], root, "preview")
     position = []
     for axis in ("x", "y"):
         value = data[axis]
@@ -738,9 +809,7 @@ def load_game(directory: Path) -> Game:
     except json.JSONDecodeError as error:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
-    keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
-            "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds"}
-    data = _keys(data, keys | {"$schema", "profiles", "playtests", "preview"}, keys, root, "the manifest")
+    data = _keys(data, *KEYS["game"], root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
     game_id = _string(data["id"], root, "id")

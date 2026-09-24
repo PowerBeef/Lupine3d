@@ -352,6 +352,15 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # Everything a level owns now lives in that level's own ROM bank; only the
     # profile-independent HUD vocabulary is still resident.
     a.label("resident_data")
+    if a.labels["resident_data"] > 0x4000:
+        # Resident code switches banks and is reached by interrupts, so all
+        # of it must sit in bank 0. Name what a game adds there.
+        over = a.labels["resident_data"] - 0x4000
+        raise ValueError(
+            f"{GAME.id}: the resident engine no longer fits the fixed half of bank 0 ({over} bytes past $4000). "
+            f"A game adds {TEXTURE_SET_DIRECTORY_BYTES} bytes there per theme ({PALETTE_SET_COUNT} themes) and about "
+            f"26 per episode after the first ({len(EPISODE_LENGTHS)} episodes): use fewer themes or episodes "
+            "(docs: limits)")
     # Eight bytes per enemy kind: contact damage, attack recovery in AI ticks,
     # Q8 move per tick, OBJ palette, what it drops when it dies, and three
     # spare. Kinds share the Sentinel's cels, so variety costs ROM bytes

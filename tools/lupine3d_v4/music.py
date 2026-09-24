@@ -121,7 +121,9 @@ def music_payload() -> bytes:
         payloads.append(data)
         address += len(data)
     assert len(records) == len(SONG_SOURCES) * MUSIC_RECORD_BYTES
-    assert address <= 0x8000, "songs exceed one MBC5 bank"
+    if address > 0x8000:
+        raise ValueError(f"{GAME.id}: the songs need {address - 0x4000} bytes and the music bank holds 16384, "
+                         "three bytes a row: shorten a song")
     table = bytearray()
     for period in note_periods():
         table.extend((period & 255, period >> 8))

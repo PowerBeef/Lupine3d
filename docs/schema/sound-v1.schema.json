@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/sound-v1.schema.json",
+  "title": "Lupine 3D sound (lupine-sound-v1)",
+  "description": "The sequencer's instruments and the nine CH1 effects, as register bytes. See docs/reference/sound.md.",
+  "type": "object",
+  "required": [
+    "effects",
+    "format",
+    "instruments"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "lupine-sound-v1"
+    },
+    "instruments": {
+      "$ref": "#/$defs/sound.instruments"
+    },
+    "effects": {
+      "$ref": "#/$defs/sound.effects"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "byte": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        {
+          "type": "string",
+          "pattern": "^0[xX][0-9A-Fa-f]{1,2}$"
+        }
+      ]
+    },
+    "sound.instruments": {
+      "type": "object",
+      "required": [
+        "noise",
+        "pulse",
+        "wave"
+      ],
+      "properties": {
+        "pulse": {
+          "$ref": "#/$defs/sound.pulse"
+        },
+        "wave": {
+          "$ref": "#/$defs/sound.wave"
+        },
+        "noise": {
+          "$ref": "#/$defs/sound.noise"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sound.pulse": {
+      "type": "object",
+      "description": "CH2, the lead: NR21 and NR22",
+      "required": [
+        "duty",
+        "envelope"
+      ],
+      "properties": {
+        "duty": {
+          "$ref": "#/$defs/byte"
+        },
+        "envelope": {
+          "$ref": "#/$defs/byte"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sound.wave": {
+      "type": "object",
+      "description": "CH3, the bass: NR32 and wave RAM",
+      "required": [
+        "pattern",
+        "volume"
+      ],
+      "properties": {
+        "volume": {
+          "$ref": "#/$defs/byte"
+        },
+        "pattern": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "wave RAM: 32 four-bit samples"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sound.noise": {
+      "type": "object",
+      "description": "CH4, the drums",
+      "required": [
+        "hat",
+        "kick",
+        "snare"
+      ],
+      "properties": {
+        "kick": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR41..NR44"
+        },
+        "snare": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR41..NR44"
+        },
+        "hat": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR41..NR44"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sound.effects": {
+      "type": "object",
+      "description": "CH1, one write of NR10..NR14 per effect",
+      "required": [
+        "complete",
+        "door",
+        "hurt",
+        "keycard",
+        "kill",
+        "locked",
+        "pickup",
+        "shoot",
+        "swap"
+      ],
+      "properties": {
+        "shoot": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "door": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "swap": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "keycard": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "locked": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "hurt": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "kill": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "pickup": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        },
+        "complete": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

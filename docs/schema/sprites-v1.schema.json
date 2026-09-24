@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/sprites-v1.schema.json",
+  "title": "Lupine 3D sprite manifest (lupine-sprites-v1)",
+  "description": "The game's indexed PNG sheets. tools/lupine3d_v4/sprite_assets.py refuses a sheet whose mode, size, transparency, palette or SHA-256 disagrees with its record. See docs/ART_PIPELINE.md.",
+  "type": "object",
+  "required": [
+    "schema",
+    "assets"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema": {
+      "enum": [
+        "lupine-sprites-v1",
+        "sable.native.v1"
+      ]
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "preview_note": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": [
+        "file",
+        "size",
+        "frames",
+        "ticks",
+        "anchor",
+        "palette",
+        "sha256"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a file inside the game directory, relative to game.json"
+        },
+        "size": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 8
+          }
+        },
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "ticks": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "description": "per frame, animation ticks it shows for (0: the frame is chosen by the engine, not a clock)"
+        },
+        "anchor": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "palette": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          }
+        },
+        "object_palettes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 7
+          },
+          "description": "a weapon sheet's OBJ palette per object, in object order"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

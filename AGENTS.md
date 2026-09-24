@@ -87,7 +87,7 @@ Paths below are relative to `tools/lupine3d_v4/` unless stated otherwise.
 | Gated experiments | `tile_cache.py`, `packets.py`, `physical_depth.py`, `actor_precision.py`, `admission.py`, `projection_storage.py`, `near_field.py`, `foreground.py` |
 | Assembler and deterministic CGB harness | `tools/sm83.py`, `tools/sm83emu.py` |
 | A game's manifest, its palettes and the engine fonts | `game.py` (the loader, `GAME`), `palettes.py`, `fonts.py` |
-| The showcase game (a game package) | `games/sable_outpost/`: `game.json`, `levels/`, `art/`, `textures/`, `audio/`, `screens.json`, `playtests/`, `snapshots/` |
+| The showcase game (a game package) | `games/sable_outpost/`: its `game.json` and `screens.json`, and its levels, art, textures, audio, playtests and snapshots directories |
 | Game selection and creator commands | `tools/lupine.py` (`--game`, `new-game`, `game check`), `LUPINE3D_GAME`, `make … GAME=` |
 | Engine assets and tests | `assets/` (the historical atlases), `tests/` (engine level fixtures in `tests/levels/`) |
 | Research and retained evidence | `research/`, `milestones/`, `.render-baselines/` |

@@ -1,2 +1,2 @@
 Pillow>=10.0
-numpy==2.4.6    # offline weapon rendering (tools/render_weapons.py) and its test; pinned so a fresh render is byte-identical
+numpy==2.4.6    # offline weapon rendering (games/sable_outpost/art/tools/render_weapons.py) and its test; pinned so a fresh render is byte-identical

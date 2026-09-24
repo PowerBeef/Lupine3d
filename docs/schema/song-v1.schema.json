@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/song-v1.schema.json",
+  "title": "Lupine 3D song (lupine-song-v1)",
+  "description": "One of the game's three songs (title, world, victory): three channels of the same number of rows, at most 1322. See docs/reference/song-format.md.",
+  "type": "object",
+  "required": [
+    "format",
+    "loop_row",
+    "noise",
+    "pulse",
+    "speed",
+    "wave"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "lupine-song-v1"
+    },
+    "speed": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 255,
+      "description": "frames per row"
+    },
+    "loop_row": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pulse": {
+      "$ref": "#/$defs/song.channel"
+    },
+    "wave": {
+      "$ref": "#/$defs/song.channel"
+    },
+    "noise": {
+      "$ref": "#/$defs/song.channel"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "song.channel": {
+      "type": "object",
+      "required": [
+        "notes",
+        "rows"
+      ],
+      "properties": {
+        "notes": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[^.-]$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^([A-G]#?[2-7]|kick|snare|hat)$"
+          },
+          "description": "key -> a note C2..D#7 (pulse, wave) or a drum (noise)"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "one character per row: a notes key, '.' holds, '-' releases"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

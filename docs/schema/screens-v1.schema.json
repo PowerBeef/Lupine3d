@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/powerbeef/lupine3d/docs/schema/screens-v1.schema.json",
+  "title": "Lupine 3D screens (lupine-screens-v1)",
+  "description": "The game's full-screen modes: title, gameover, ending, intermission, password, and the screens its episodes name. Text is drawn in the engine's 3x5 font; the loader refuses a character the font lacks and a line that leaves the frame. See docs/reference/screen-format.md.",
+  "type": "object",
+  "required": [
+    "format",
+    "screens"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "format": {
+      "const": "lupine-screens-v1"
+    },
+    "screens": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/screen.text"
+            },
+            {
+              "$ref": "#/$defs/screen.field"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "screen.text": {
+      "type": "object",
+      "required": [
+        "colour",
+        "text",
+        "y"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "pattern": "^[A-Z0-9 ./:!?,'-]+$"
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 134
+        },
+        "colour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        }
+      },
+      "additionalProperties": false
+    },
+    "screen.field": {
+      "type": "object",
+      "required": [
+        "colour",
+        "field",
+        "label",
+        "y"
+      ],
+      "properties": {
+        "field": {
+          "enum": [
+            "skill",
+            "code",
+            "kills",
+            "time"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "pattern": "^[A-Z0-9 ./:!?,'-]+$"
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 134
+        },
+        "colour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

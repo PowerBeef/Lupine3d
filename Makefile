@@ -8,7 +8,7 @@ ifdef GAME
 export LUPINE3D_GAME := $(GAME)
 endif
 
-.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check limits research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
 
 all: build
 
@@ -44,6 +44,15 @@ ci-local:
 # certificate (make game-check GAME=games/starter).
 game-check:
 	$(PYTHON) tools/lupine.py game check
+
+# A generated game at every game-level maximum at once (tools/make_limits_game.py,
+# the table in tools/lupine3d_v4/limits.py): built, then each episode's first
+# level, the last and one in the added theme entered by continue code and walked.
+LIMITS_GAME := build/limits-game
+limits:
+	$(PYTHON) tools/make_limits_game.py --output $(LIMITS_GAME)
+	LUPINE3D_GAME=$(LIMITS_GAME) $(PYTHON) tools/build_rom.py
+	LUPINE3D_GAME=$(LIMITS_GAME) $(PYTHON) tools/make_limits_game.py --check
 
 # The `lupine` CLI: make lupine ARGS="level check games/sable_outpost/levels/*.json"
 lupine:
