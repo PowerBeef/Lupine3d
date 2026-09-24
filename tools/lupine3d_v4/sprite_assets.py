@@ -1,15 +1,23 @@
-"""Deterministic native PNG validation and 2bpp compilation (no generation)."""
+"""Deterministic native PNG validation and 2bpp compilation (no generation).
+
+The game's sprite manifest (game.json `sprites.manifest`) lists each sheet:
+its file, cel size, frames, palette and SHA-256. A record is checked here
+before it is compiled: the hash, the indexed mode and transparency, the
+2bpp pixel values and the palette.
+"""
 import hashlib
 import json
 from functools import lru_cache
 from pathlib import Path
 from PIL import Image
-ROOT=Path(__file__).resolve().parents[2]/'assets/sable_v2'
+from .game import GAME, SPRITE_SCHEMAS
+MANIFEST=GAME.sprite_manifest
+ROOT=MANIFEST.parent
 
 @lru_cache(maxsize=1)
 def manifest():
-    data=json.loads((ROOT/'assets.json').read_text())
-    if data['schema']!='sable.native.v1':raise ValueError('unsupported native asset schema')
+    data=json.loads(MANIFEST.read_text())
+    if data['schema'] not in SPRITE_SCHEMAS:raise ValueError('unsupported native asset schema')
     return data
 
 @lru_cache(maxsize=None)
@@ -36,5 +44,5 @@ def compile_sheet(name,**kwargs):return b''.join(compile_frame(name,i,**kwargs) 
 
 def evidence():
     for name in manifest()['assets']:frames(name)
-    return {'schema':'sable.native.v1','sha256':hashlib.sha256((ROOT/'assets.json').read_bytes()).hexdigest(),
+    return {'schema':manifest()['schema'],'sha256':hashlib.sha256(MANIFEST.read_bytes()).hexdigest(),
             'assets':{name:r['sha256'] for name,r in manifest()['assets'].items()}}

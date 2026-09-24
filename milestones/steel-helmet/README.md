@@ -29,7 +29,7 @@ ceiling and 3,123-byte resident reserve are unchanged.
   startup RGB comparisons pass for this ROM.
 
 See the [current capture](../../docs/images/sable_steel_helmet_4x.png) and
-[four native cels](../../assets/sable_v2/previews/helmet_steel-sheet.png).
+[four native cels](../../games/sable_outpost/art/previews/helmet_steel-sheet.png).
 ROM-driven motion previews are under `build/steel-helmet/motion/`.
 
 These targeted subroutine comparisons do not constitute a new sustained

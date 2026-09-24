@@ -83,7 +83,7 @@
         "properties": {
           "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
           "side": {"$ref": "#/$defs/side"},
-          "kind": {"enum": ["vent", "light", "access", "sector"]}
+          "kind": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "One of the fixture_kinds your game.json declares."}
         }
       }
     },

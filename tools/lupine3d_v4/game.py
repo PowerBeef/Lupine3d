@@ -79,6 +79,14 @@ EFFECTS = ("shoot", "door", "swap", "keycard", "locked", "hurt", "kill", "pickup
 # reads while enemies remain or the exit is open (GOAL over HUNT or EXIT in
 # the showcase); DEAD and DONE replace both. Each is at most four characters.
 HUD_WORDS = ("caption", "hunt", "exit", "dead", "done")
+# The sprite roles the engine draws, each a record of the game's sprite
+# manifest (docs/ART_PIPELINE.md gives each role's size and frames).
+SPRITE_ROLES = ("actor_near", "actor_mid", "actor_far", "reticle", "muzzle_flash", "hud", "portrait",
+                "drops", "hit_effect", "exit_beacon", "fixtures")
+# Wall fixtures: four families (the fixture record's kind is two bits), each
+# drawn at three distances in the fixture sheet.
+FIXTURE_KINDS = 4
+SPRITE_SCHEMAS = ("lupine-sprites-v1", "sable.native.v1")
 MUSIC_ROW_LIMIT = 1322   # rows per song the sequencer's WRAM page holds (layout.MUSIC_ROW_CAPACITY)
 
 
@@ -178,6 +186,9 @@ class Game:
     songs: dict[str, Song]                       # by role: title, world, victory
     sound: Sound
     hud_words: dict[str, str]                    # HUD_WORDS -> the text shown
+    sprite_manifest: Path                        # the game's sprite manifest (records of indexed PNG sheets)
+    sprites: dict[str, str]                      # SPRITE_ROLES -> sprite record name
+    fixture_kinds: tuple[str, ...]               # the names a level's fixtures use, in sheet order
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -631,6 +642,36 @@ def _hud(data: object, root: Path) -> dict[str, str]:
     return out
 
 
+def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str]) -> tuple[Path, dict[str, str]]:
+    data = _keys(data, set(SPRITE_ROLES) | {"manifest"}, set(SPRITE_ROLES) | {"manifest"}, root, "sprites")
+    path = _game_file(root, data["manifest"], "sprites.manifest", files)
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise GameError(_where(root, f"{path.name} is not valid JSON ({error})")) from None
+    if not isinstance(manifest, dict) or manifest.get("schema") not in SPRITE_SCHEMAS:
+        raise GameError(_where(root, f"{path.name} must be a sprite manifest (\"schema\": \"{SPRITE_SCHEMAS[0]}\")"))
+    records = manifest.get("assets", {})
+    roles = {role: _string(data[role], root, f"sprites.{role}") for role in SPRITE_ROLES}
+    wanted = [(f"sprites.{role}", name) for role, name in roles.items()]
+    wanted += [(f"weapons[{n}].sprite", weapon.sprite) for n, weapon in enumerate(weapons)]
+    for context, name in wanted:
+        if name not in records:
+            raise GameError(_where(root, f"{context} {name!r} is not a record of {path.name}"))
+        sheet = (path.parent / str(records[name].get("file", ""))).resolve()
+        if not sheet.is_relative_to(root.resolve()) or not sheet.is_file():
+            raise GameError(_where(root, f"{path.name} record {name!r} names a file that does not exist in the game"))
+        files[sheet.relative_to(root.resolve()).as_posix()] = hashlib.sha256(sheet.read_bytes()).hexdigest()
+    return path, roles
+
+
+def _fixture_kinds(data: object, root: Path) -> tuple[str, ...]:
+    if not isinstance(data, list) or len(data) != FIXTURE_KINDS:
+        raise GameError(_where(root, f"fixture_kinds must name the {FIXTURE_KINDS} wall fixture families, "
+                                     "in the order of the fixture sheet"))
+    return _names(data, root, "fixture_kinds", FIXTURE_KINDS)
+
+
 def load_game(directory: Path) -> Game:
     """Read and check `directory/game.json`; raise GameError naming the problem."""
     root = Path(directory).resolve()
@@ -643,7 +684,7 @@ def load_game(directory: Path) -> Game:
         raise GameError(f"{manifest}: not valid JSON ({error})") from None
     files: dict[str, str] = {"game.json": hashlib.sha256(manifest.read_bytes()).hexdigest()}
     keys = {"format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
-            "shared_palettes", "screens", "rom", "audio", "hud"}
+            "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds"}
     data = _keys(data, keys | {"$schema", "profiles"}, keys, root, "the manifest")
     if data["format"] != GAME_FORMAT:
         raise GameError(_where(root, f"format is {data['format']!r}; this engine reads {GAME_FORMAT!r}"))
@@ -658,12 +699,16 @@ def load_game(directory: Path) -> Game:
     episodes = _episodes(data["episodes"], root, files)
     rom_title, rom_version = _rom(data["rom"], root)
     songs, sound = _audio(data["audio"], root, files)
+    weapons = _weapons(data["weapons"], root, 0)
+    sprite_manifest, sprites = _sprites(data["sprites"], weapons, root, files)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=episodes,
                 screens=_screens(data["screens"], episodes, root, files), rom_title=rom_title, rom_version=rom_version,
                 songs=songs, sound=sound, hud_words=_hud(data["hud"], root),
+                sprite_manifest=sprite_manifest, sprites=sprites,
+                fixture_kinds=_fixture_kinds(data["fixture_kinds"], root),
                 actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
-                weapons=_weapons(data["weapons"], root, 0), textures=textures,
+                weapons=weapons, textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
                 shared_palettes=_shared_palettes(data["shared_palettes"], root), files=files)
 

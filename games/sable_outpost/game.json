@@ -5,6 +5,14 @@
   "profiles": ["slim", "compact", "legacy"],
   "rom": {"header_title": "LUPINE3D", "version": 6},
   "screens": "screens.json",
+  "sprites": {
+    "manifest": "art/sprites.json",
+    "actor_near": "sentinel_near", "actor_mid": "sentinel_mid", "actor_far": "sentinel_far",
+    "reticle": "reticle", "muzzle_flash": "flash",
+    "hud": "hud_steel", "portrait": "helmet_steel",
+    "drops": "drops", "hit_effect": "hit_effect", "exit_beacon": "exit_beacon", "fixtures": "fixtures"
+  },
+  "fixture_kinds": ["vent", "light", "access", "sector"],
   "hud": {"words": {"caption": "GOAL", "hunt": "HUNT", "exit": "EXIT", "dead": "DEAD", "done": "DONE"}},
   "audio": {
     "songs": {"title": "audio/title.json", "world": "audio/world.json", "victory": "audio/victory.json"},

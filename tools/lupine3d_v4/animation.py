@@ -78,7 +78,7 @@ def emit_animation(a):
             a.ld_a_abs(SHOT_ACTIVE);a.or_r('a');a.jr('weapon_frame_ready','z')
             age(a,SHOT_TICK,FRAME_TICK);a.ld_r_r('a','h');a.or_r('a');a.jr('weapon_frame_ready','nz')
             # The kick, the action back, the action returning; recovery is
-            # the idle cel again (four rendered cels, tools/render_weapons.py).
+            # the idle cel again (four rendered cels, games/sable_outpost/art/tools/render_weapons.py).
             for limit,cel in ((4,1),(10,2),(16,3)):
                 a.ld_r_r('a','l');a.cp_n(limit);a.ld_r_n('c',cel);a.jr('weapon_frame_ready','c')
             a.ld_r_n('c',0);a.jr('weapon_frame_ready')

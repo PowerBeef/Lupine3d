@@ -772,10 +772,14 @@ def compile_level(path: Path) -> CompiledLevel:
             )
     fixtures = []
     sides = {"west": 0, "east": 1, "north": 2, "south": 3}
-    kinds = {"vent": 0, "light": 1, "access": 2, "sector": 3}
+    kinds = {name: index for index, name in enumerate(_GAME.fixture_kinds)}
     for fixture in source.get("fixtures", []):
         x = _bounded_int(fixture, "x", 0, width-1); y = _bounded_int(fixture, "y", 0, height-1)
-        side = sides[fixture["side"]]; kind = kinds[fixture["kind"]]
+        side = sides[fixture["side"]]
+        if fixture["kind"] not in kinds:
+            raise ValueError(f"fixture kind {fixture['kind']!r} is not one of {_GAME.id}'s "
+                             f"({', '.join(kinds)}; game.json `fixture_kinds`)")
+        kind = kinds[fixture["kind"]]
         dx,dy = ((-1,0),(1,0),(0,-1),(0,1))[side]
         if not grid[y*width+x] or not (0 <= x+dx < width and 0 <= y+dy < height):
             raise ValueError("fixture requires an interior wall face")

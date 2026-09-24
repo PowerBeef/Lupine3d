@@ -98,37 +98,20 @@ def make_obj_ui_tiles():
             if d < 5 and (d < 3 or (x+y)%2): flash[y][x] = 3 if d<2 else 2
     return tiles(reticle) + tiles(flash)
 
-def fixture_pixels(kind, size):
-    px = canvas(16,16); w = 16 if size == 16 else size
-    rect(px, 0, 0, w, size, 1); rect(px, 1, 1, max(1,w-2), max(1,size-2), 2)
-    if kind == 0:  # recessed ventilation cassette
-        for y in range(2, size-1, 3): rect(px, 2, y, max(1,w-4), 1, 1)
-        for x in (1,w-2):
-            if size >= 8: px[1][x] = px[size-2][x] = 3
-    elif kind == 1:  # local caged utility light
-        rect(px, 2, 2, max(1,w-4), max(1,size-4), 3)
-        if size == 16:
-            for x in (5,10): rect(px,x,1,1,14,1)
-    elif kind == 2:  # door access medallion, not a geometric crease
-        if size >= 8:
-            for y in range(2,size-2):
-                x = w//2 + (abs(y-size//2)//2)
-                if x < w-1: px[y][x] = 3
-            rect(px, 2, 2, 1, size-4, 3)
-        else: rect(px,1,1,2,2,3)
-    else:  # wall-mounted sector marking
-        if size == 16: text_pixels(px,"07",4,5,3)
-        else: rect(px,2,2,max(1,w-4),max(1,size-4),3)
-    return px
-
 def make_fixture_tiles():
+    """The game's wall fixture sheet (game.json `sprites.fixtures`): per
+    family, 16x16 cels drawn at the three distances (16, 8 and 4 pixels
+    across, top-left), then a half-width copy of the near cel."""
+    from .sprite_assets import frames
+    cels = frames(GAME.sprites['fixtures'])
+    assert len(cels) == 3 * len(GAME.fixture_kinds) and len(cels[0]) == len(cels[0][0]) == 16
     out = bytearray()
-    for kind in range(4):
-        for size in (16,8,4):
-            px = fixture_pixels(kind,size)
-            if size == 16: out.extend(pairs(px))
-            else: out.extend(pairs([row[:8] for row in px]))
-        out.extend(pairs([[row[x*2] for x in range(8)] for row in fixture_pixels(kind,16)]))
+    for kind in range(len(GAME.fixture_kinds)):
+        near, middle, far = ([list(row) for row in cels[kind * 3 + n]] for n in range(3))
+        out.extend(pairs(near))
+        out.extend(pairs([row[:8] for row in middle]))
+        out.extend(pairs([row[:8] for row in far]))
+        out.extend(pairs([[row[x*2] for x in range(8)] for row in near]))
         out.extend(bytes(6*16))  # sixteen source patterns per fixture family
     return bytes(out)
 
@@ -193,7 +176,9 @@ def compact_hud_assets():
     """Instrument strip; dynamic tiles preserve the divider when touching row zero."""
     from .sprite_assets import frames
     from .steel_hud import HEALTH_FONT, paint
-    screen=frames('hud_steel' if SLIM_DISPLAY else 'hud')[0]
+    # The game's HUD and portrait sheets; the historical compact profile keeps
+    # the showcase's compact HUD.
+    screen=frames(GAME.sprites['hud'] if SLIM_DISPLAY else 'hud')[0]
     def background(x,y,w,h):
         return [list(row[x:x+w]) for row in screen[y:y+h]]
     payload=[]
@@ -242,7 +227,7 @@ def compact_hud_assets():
             if label in ('LOCK','OPEN'):text_pixels(prefix,'EXIT',0,2,3)
             statuses['caption_'+label]=[intern(tiles(prefix)[i*16:(i+1)*16]) for i in range(2)]
     from .sprite_assets import frames
-    for index,px in enumerate(frames('helmet_steel' if SLIM_DISPLAY else 'helmet')):
+    for index,px in enumerate(frames(GAME.sprites['portrait'] if SLIM_DISPLAY else 'helmet')):
         # Palette mapping: source steel becomes HUD steel, ivory stays readable.
         if SLIM_DISPLAY:
             mapped=background(72,0,16,24)
@@ -267,17 +252,17 @@ def make_weapon_tiles():
 def _sentinel_near_frame(frame):
     if not SABLE_ART:return _legacy_near_frame(frame)
     from .sprite_assets import compile_frame
-    return compile_frame('sentinel_near',frame)
+    return compile_frame(GAME.sprites['actor_near'],frame)
 
 def _sentinel_far_frame(frame):
     if not SABLE_ART:return _legacy_far_frame(frame)
     from .sprite_assets import compile_frame
-    return compile_frame('sentinel_far',frame)
+    return compile_frame(GAME.sprites['actor_far'],frame)
 
 def make_obj_ui_tiles():
     if not SABLE_ART:return _legacy_obj_ui_tiles()
     from .sprite_assets import compile_sheet
-    return compile_sheet('reticle')+compile_sheet('flash')
+    return compile_sheet(GAME.sprites['reticle'])+compile_sheet(GAME.sprites['muzzle_flash'])
 
 
 def compact_hud_pixels(height=32):

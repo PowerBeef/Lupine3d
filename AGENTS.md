@@ -292,7 +292,7 @@ regression contract.
 - Pattern IDs never change, only their contents, so no OAM is rewritten and the
   animation code is weapon-agnostic. Every weapon must compile to exactly
   `WEAPON_TILE_BYTES`; the sheets are rendered from 3D models by
-  `tools/render_weapons.py` (`docs/ART_PIPELINE.md`, "Weapons are rendered
+  `games/sable_outpost/art/tools/render_weapons.py` (`docs/ART_PIPELINE.md`, "Weapons are rendered
   from models") into a 40x32 window right of centre: ten objects
   (`WEAPON_OBJECTS`, OAM 0-9, then the reticle and muzzle), four cels of
   twenty patterns, and a per-weapon OBJ palette per object that

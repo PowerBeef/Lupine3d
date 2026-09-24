@@ -49,10 +49,10 @@ Four weapons share one eighty-pattern window at `$8200` in VRAM bank 1; SELECT
 walks to the next owned one with the LCD off. The count is a power of two
 (the index is masked), so a fifth weapon means eight slots.
 
-1. Art: a model function in `tools/render_weapons.py` (parts with a
+1. Art: a model function in `games/sable_outpost/art/tools/render_weapons.py` (parts with a
    material and a name, the moving ones marked `action`), added to `MODELS`
-   and `WEAPONS`, rendered into `assets/sable_v2/native/` with
-   `python tools/render_weapons.py --write` (`docs/ART_PIPELINE.md`,
+   and `WEAPONS`, rendered into `games/sable_outpost/art/native/` with
+   `python games/sable_outpost/art/tools/render_weapons.py --write` (`docs/ART_PIPELINE.md`,
    "Weapons are rendered from models"). It compiles to exactly
    `WEAPON_TILE_BYTES` in the 8×16 pair order, and its manifest record
    carries the fitted `object_palettes`.
@@ -62,7 +62,7 @@ walks to the next owned one with the LCD off. The count is a power of two
 3. `WEAPON_COUNT`, `WEAPON_SHEET_LABELS` and `WEAPON_UNLOCK_SECTORS` in
    `layout.py`, the sheet maker in `make_weapon_assets` (`build_rom.py`, the
    sheets share `WEAPON_ROM_BANK`) and the manifest entry in
-   `assets/sable_v2/assets.json`. The swap itself is weapon-agnostic: one GDMA
+   `games/sable_outpost/art/sprites.json`. The swap itself is weapon-agnostic: one GDMA
    of the cel sheet, from the main loop, with the LCD off.
 4. `make test playtest-art`, `python tools/check_sable.py`, both cores
    (`make sameboy mgba`) because the swap is an LCD-off VRAM upload, and

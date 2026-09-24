@@ -301,7 +301,7 @@ def make_slug_tiles() -> bytes:
     """The second weapon, in the 8x16 pair order the weapon window expects.
 
     Under the Sable profile every weapon is a native sheet rendered by
-    `tools/render_weapons.py`; the legacy profile keeps its single drawn cel."""
+    `games/sable_outpost/art/tools/render_weapons.py`; the legacy profile keeps its single drawn cel."""
     if SABLE_ART:
         from .sprite_assets import compile_sheet
         return compile_sheet(GAME.weapons[1].sprite, paired=True)
@@ -391,49 +391,17 @@ def make_entity_tiles() -> bytes:
     for frame in range(SENTINEL_FAR_FRAMES):
         out.extend(_sentinel_far_frame(frame))
 
-    pickup = [[0] * 8 for _ in range(8)]
-    for y in range(2, 7):
-        for x in range(1, 7): pickup[y][x] = 1 if y in (2, 6) or x in (1, 6) else 3
-    for x, y in ((3, 3), (4, 3), (3, 4), (4, 4), (3, 5), (4, 5), (2, 4), (5, 4)):
-        pickup[y][x] = 2
-    pickup[1][3] = pickup[1][4] = 1
-    out.extend(tile_from_pixels(pickup))
-
-    # The second reserved pickup tile, which used to be blank, is the keycard a
-    # skirmisher leaves. Same OBJ palette as the medkit - a drop is a drop -
-    # but a landscape card with a magnetic stripe and a notched corner reads
-    # as something you carry rather than something you drink.
-    keycard = [[0] * 8 for _ in range(8)]
-    for x in range(1, 7):
-        keycard[2][x] = keycard[6][x] = 1
-    for y in range(3, 6):
-        keycard[y][1] = keycard[y][6] = 1
-        for x in range(2, 6): keycard[y][x] = 3
-    for x in range(2, 6): keycard[4][x] = 2
-    keycard[2][6] = keycard[3][6] = 0          # the notch that orients it
-    out.extend(tile_from_pixels(keycard))
-
-    for phase in range(2):
-        effect = [[0] * 8 for _ in range(8)]
-        radius = 2 + phase
-        for x, y in ((4, 4 - radius), (4, 4 + radius - 1), (4 - radius, 4), (4 + radius - 1, 4),
-                     (4 - phase, 4 - phase), (4 + phase, 4 + phase)):
-            if 0 <= x < 8 and 0 <= y < 8: effect[y][x] = 3
-        out.extend(tile_from_pixels(effect))
-        out.extend(bytes(16))
-
-    # A high-contrast diegetic exit beacon consumes the final two tiles freed
-    # by the entity profile. The armoured chevron remains legible at 8x8.
-    for phase in range(EXIT_BEACON_FRAMES):
-        beacon = [[0] * 8 for _ in range(8)]
-        border = 2 + phase
-        for x in range(1, 7):
-            beacon[1][x] = beacon[6][x] = border
-        for y in range(1, 7):
-            beacon[y][1] = beacon[y][6] = border
-        for x, y in ((3, 2), (4, 2), (4, 3), (5, 3), (4, 4), (5, 4), (3, 5), (4, 5)):
-            beacon[y][x] = 3
-        out.extend(tile_from_pixels(beacon))
+    # The drops (the medkit, then the keycard a skirmisher leaves in the
+    # showcase), the two-phase hit effect and the exit beacon are the game's
+    # 8x8 sheets (game.json `sprites`), compiled in this order; the hit and
+    # beacon phases each keep an empty pattern after them.
+    from .sprite_assets import frames
+    drops, hit, beacon = (frames(GAME.sprites[role]) for role in ("drops", "hit_effect", "exit_beacon"))
+    assert len(drops) == len(DROP_KIND_IDS) and len(hit) == 2 and len(beacon) == EXIT_BEACON_FRAMES
+    for cel in drops:
+        out.extend(tile_from_pixels(cel))
+    for cel in (*hit, *beacon):
+        out.extend(tile_from_pixels(cel))
         out.extend(bytes(16))
 
     # Medium 16x16 LOD keeps width while reducing height. Derived from the
@@ -441,7 +409,7 @@ def make_entity_tiles() -> bytes:
     for frame in range(SENTINEL_MID_FRAMES):
         if SABLE_ART:
             from .sprite_assets import compile_frame
-            out.extend(compile_frame('sentinel_mid', frame, paired=True))
+            out.extend(compile_frame(GAME.sprites['actor_mid'], frame, paired=True))
             continue
         source = _sentinel_near_frame(frame)
         px = [[0] * 16 for _ in range(16)]
@@ -464,7 +432,7 @@ WEAPON_SHEETS = tuple(weapon.sprite for weapon in GAME.weapons)
 
 def weapon_object_palettes() -> list[list[int]]:
     """Per weapon, the OBJ palette (0 or 5) of each of its objects, in OAM
-    order, as `tools/render_weapons.py` fitted them."""
+    order, as `games/sable_outpost/art/tools/render_weapons.py` fitted them."""
     from .sprite_assets import manifest
     tables = [list(manifest()["assets"][name]["object_palettes"]) for name in WEAPON_SHEETS]
     for table in tables:

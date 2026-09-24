@@ -11,7 +11,7 @@ the intervening uncovered human portrait was rejected.
 
 `tools/lupine3d_v4/steel_hud.py` contains deliberately authored native pixels
 and glyphs based on the [concept study](design/hud-steel/README.md). The concept
-was not automatically shrunk into the game. `tools/adapt_sable_art.py` compiles
+was not automatically shrunk into the game. `games/sable_outpost/art/tools/adapt_sable_art.py` compiles
 the indexed `hud_steel` and `helmet_steel` sibling assets; the original native
 assets and historical image fixtures remain intact. Builds only read these
 validated PNGs and never call image generation.

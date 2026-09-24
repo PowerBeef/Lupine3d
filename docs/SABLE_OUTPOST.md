@@ -18,7 +18,7 @@ The ceiling and floor stay visually distinct. There are no eye-height rails, mat
 
 ## Native sprite sources
 
-Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame metadata live in `assets/sable_v2/`. `tools/adapt_sable_art.py` is an offline authoring step; builds consume the versioned PNGs and never generate images. `sprite_assets.py` validates binary transparency, palette indices, dimensions and source hashes before 2bpp compilation.
+Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame metadata live in `games/sable_outpost/art/`. `games/sable_outpost/art/tools/adapt_sable_art.py` is an offline authoring step; builds consume the versioned PNGs and never generate images. `sprite_assets.py` validates binary transparency, palette indices, dimensions and source hashes before 2bpp compilation.
 
 | Asset | Native size | Cels |
 |---|---|---:|

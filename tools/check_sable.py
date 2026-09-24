@@ -34,8 +34,8 @@ def check(output,snapshot_mode='check'):
     c=boot();assert c.raster_lcdc=={b.VIEW_HEIGHT:(16,16,0)}
     assert b.VIEW_MAP_BYTES==b.VIEW_HEIGHT*4
     assert b.STRIP_SCRATCH==(0xC8E0 if b.SLIM_DISPLAY else 0xC7C0)
-    assert bytes(c.vram[1][0x200:0x700])==compile_sheet('shotgun',paired=True)
-    assert bytes(c.vram[1][0x700:0x760])==compile_sheet('reticle')+compile_sheet('flash')
+    assert bytes(c.vram[1][0x200:0x700])==compile_sheet(b.GAME.weapons[0].sprite,paired=True)
+    assert bytes(c.vram[1][0x700:0x760])==compile_sheet(b.GAME.sprites['reticle'])+compile_sheet(b.GAME.sprites['muzzle_flash'])
     assert len(b.make_entity_tiles())==242*16 and len(b.hud_assets()[0])<=96*16
     checks['cold_art_and_raster_boundary']=True
     if b.TEXTURED_WALLS:

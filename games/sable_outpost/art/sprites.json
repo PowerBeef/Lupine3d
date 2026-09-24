@@ -712,6 +712,194 @@
         0,
         0
       ]
+    },
+    "drops": {
+      "file": "native/drops.png",
+      "size": [
+        8,
+        8
+      ],
+      "frames": [
+        "medkit",
+        "keycard"
+      ],
+      "ticks": [
+        1,
+        1
+      ],
+      "anchor": [
+        4,
+        8
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "57a8149130f7eddd082f0d111f2774ef452870e95232cc0595c480660c4f47ab"
+    },
+    "hit_effect": {
+      "file": "native/hit_effect.png",
+      "size": [
+        8,
+        8
+      ],
+      "frames": [
+        "a",
+        "b"
+      ],
+      "ticks": [
+        1,
+        1
+      ],
+      "anchor": [
+        4,
+        4
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "d7d65779f5507967f544fb131219520d23e4cfbe5382e63a069b3edaf28a4334"
+    },
+    "exit_beacon": {
+      "file": "native/exit_beacon.png",
+      "size": [
+        8,
+        8
+      ],
+      "frames": [
+        "a",
+        "b"
+      ],
+      "ticks": [
+        1,
+        1
+      ],
+      "anchor": [
+        4,
+        4
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "dedd632a036de939aacd1ec4ac9914fccccb6300fb903bed7c5c25ef7352e2ca"
+    },
+    "fixtures": {
+      "file": "native/fixtures.png",
+      "size": [
+        16,
+        16
+      ],
+      "frames": [
+        "vent_16",
+        "vent_8",
+        "vent_4",
+        "light_16",
+        "light_8",
+        "light_4",
+        "access_16",
+        "access_8",
+        "access_4",
+        "sector_16",
+        "sector_8",
+        "sector_4"
+      ],
+      "ticks": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "anchor": [
+        8,
+        8
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          30,
+          35,
+          40
+        ],
+        [
+          111,
+          132,
+          137
+        ],
+        [
+          238,
+          229,
+          197
+        ]
+      ],
+      "sha256": "8543f5f6accd9afeee0b73c363d97295722441cfb88417fa22c6c97ca008a724"
     }
   },
   "preview_note": "Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence."

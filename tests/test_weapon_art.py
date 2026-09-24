@@ -1,5 +1,5 @@
 """The weapon cels are rendered from 3D models: the committed native sheets
-are exactly what `tools/render_weapons.py` renders, every sheet fills the
+are exactly what the showcase's `games/sable_outpost/art/tools/render_weapons.py` renders, every sheet fills the
 40x32 window with four distinct cels, and each weapon carries the OBJ
 palette its objects were fitted to."""
 from pathlib import Path
@@ -9,7 +9,9 @@ import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+ART = ROOT / "games" / "sable_outpost" / "art"
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ART / "tools"))
 import build_rom as br  # noqa: E402
 
 
@@ -19,15 +21,15 @@ class WeaponArtTests(unittest.TestCase):
     def setUpClass(cls):
         import render_weapons
         cls.rw = render_weapons
-        cls.manifest = json.loads((ROOT / "assets" / "sable_v2" / "assets.json").read_text())
+        cls.manifest = json.loads((ART / "sprites.json").read_text())
         cls.sheets = {name: render_weapons.render_sheet(name) for name in render_weapons.WEAPONS}
 
     def test_the_committed_sheets_are_the_render_of_their_models(self):
         for name, (indices, palettes) in self.sheets.items():
             record = self.manifest["assets"][name]
             data = self.rw.sheet_png(indices)
-            path = ROOT / "assets" / "sable_v2" / record["file"]
-            self.assertEqual(path.read_bytes(), data, f"{name}: regenerate with tools/render_weapons.py --write")
+            path = ART / record["file"]
+            self.assertEqual(path.read_bytes(), data, f"{name}: regenerate with games/sable_outpost/art/tools/render_weapons.py --write")
             self.assertEqual(record["sha256"], hashlib.sha256(data).hexdigest(), name)
             self.assertEqual(record["frames"], self.rw.FRAMES, name)
             self.assertEqual(record["size"], [self.rw.WIDTH, self.rw.HEIGHT], name)

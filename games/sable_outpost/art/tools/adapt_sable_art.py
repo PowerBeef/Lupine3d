@@ -9,7 +9,11 @@ import json
 from pathlib import Path
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1] / 'assets/sable_v2'
+# The showcase's art directory (this tool writes its sheets, previews and
+# manifest); the engine's tools are imported from the repository.
+ROOT = Path(__file__).resolve().parents[1]
+import sys  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / 'tools'))
 PALETTES = {'sentinel': [(0,0,0),(39,28,32),(170,53,50),(238,218,175)],
             'shotgun': [(0,0,0),(30,35,40),(111,132,137),(238,229,197)],
             'helmet': [(0,0,0),(25,32,35),(89,129,126),(238,229,197)]}
@@ -100,6 +104,6 @@ def main():
     for pixels in portrait_pixels():
         cel=indexed((16,16),PALETTE);cel.putdata([v for row in pixels for v in row]);portraits.append(cel)
     records['helmet_steel']=save_sheet('helmet_steel',portraits,PALETTE,['normal','blink','hurt','dead'],[0,4,8,0])
-    (ROOT/'assets.json').write_text(json.dumps({'schema':'sable.native.v1','assets':records,'preview_note':'Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence.'},indent=2)+'\n')
+    (ROOT/'sprites.json').write_text(json.dumps({'schema':'sable.native.v1','assets':records,'preview_note':'Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence.'},indent=2)+'\n')
 
 if __name__=='__main__':main()

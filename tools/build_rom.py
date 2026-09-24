@@ -369,7 +369,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
                                      "damage and cooldown per weapon")
     a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
     # Per weapon, the attribute byte of each of its objects (VRAM bank 1,
-    # OBJ palette 0 or 5), as tools/render_weapons.py fitted them.
+    # OBJ palette 0 or 5), as games/sable_outpost/art/tools/render_weapons.py fitted them.
     a.label("weapon_object_attributes")
     if SABLE_ART:
         from lupine3d_v4.resources import weapon_object_palettes

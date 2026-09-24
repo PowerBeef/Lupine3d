@@ -2,12 +2,12 @@
 """Render the first-person weapon cels from 3D models, straight at the
 console's resolution.
 
-    python tools/render_weapons.py                 # preview sheets under build/weapon-art/
-    python tools/render_weapons.py --write         # write the native PNGs and their manifest records
-    python tools/render_weapons.py --check         # the committed sheets equal a fresh render
+    python games/sable_outpost/art/tools/render_weapons.py                 # preview sheets under build/weapon-art/
+    python games/sable_outpost/art/tools/render_weapons.py --write         # write the native PNGs and their manifest records
+    python games/sable_outpost/art/tools/render_weapons.py --check         # the committed sheets equal a fresh render
 
 Offline authoring, never called by a ROM build: the build compiles the
-committed indexed PNGs under `assets/sable_v2/native/` through
+committed indexed PNGs under `games/sable_outpost/art/native/` through
 `sprite_assets`, exactly as it does the enemy and HUD art.
 
 The technique is the one 3D-to-pixel-art pipelines use, fitted to the
@@ -54,9 +54,12 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parents[1]
-NATIVE = ROOT / "assets" / "sable_v2" / "native"
-MANIFEST = ROOT / "assets" / "sable_v2" / "assets.json"
+# This tool is the showcase's art source, not part of the build: it lives in
+# the game's art directory and writes that directory's sheets and manifest.
+ART = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[4]
+NATIVE = ART / "native"
+MANIFEST = ART / "sprites.json"
 
 WEAPONS = ("shotgun", "slug_rifle", "arc_lance", "pulse_carbine")
 FRAMES = ["idle", "recoil", "action_back", "action_forward"]
@@ -522,7 +525,7 @@ def main():
         preview(name, indices, object_palettes).save(out / f"{name}.png")
         record = manifest["assets"][name]
         if args.check:
-            path = ROOT / "assets" / "sable_v2" / record["file"]
+            path = ART / record["file"]
             if path.read_bytes() != data or record.get("object_palettes") != object_palettes:
                 failed.append(name)
         if args.write:

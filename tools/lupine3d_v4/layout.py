@@ -232,7 +232,7 @@ def bg_tile_address(tile_id: int) -> int:
     return 0x9000 + (tile_id if tile_id < 128 else tile_id - 256) * 16
 # The weapon's OAM window. Sable weapons are rendered from models into a
 # 40x32 window right of centre: five 8x16 objects across, two down, four
-# cels of twenty patterns (tools/render_weapons.py). The per-scanline
+# cels of twenty patterns (games/sable_outpost/art/tools/render_weapons.py). The per-scanline
 # admission counts these objects before it admits any world object, so ten
 # per line still holds with the muzzle flash on the top row. The legacy art
 # profile keeps its 32x32 centred window of eight objects.
