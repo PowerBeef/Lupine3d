@@ -201,7 +201,7 @@
       "properties": {
         "say": {
           "type": "string",
-          "pattern": "^([A-Z0-9 ./:!?,'%-]|\\{sector\\}|\\{next\\})+$"
+          "pattern": "^([A-Z0-9 ./:!?,'%<>-]|\\{sector\\}|\\{next\\})+$"
         },
         "row": {
           "type": "integer",
@@ -241,7 +241,7 @@
         },
         "label": {
           "type": "string",
-          "pattern": "^([A-Z0-9 ./:!?,'%-]|\\{sector\\}|\\{next\\})+$"
+          "pattern": "^([A-Z0-9 ./:!?,'%<>-]|\\{sector\\}|\\{next\\})+$"
         },
         "row": {
           "type": "integer",
@@ -260,7 +260,7 @@
         },
         "suffix": {
           "type": "string",
-          "pattern": "^[A-Z0-9 ./:!?,'%-]+$"
+          "pattern": "^[A-Z0-9 ./:!?,'%<>-]+$"
         }
       },
       "additionalProperties": false

@@ -65,7 +65,7 @@ a character, so it sits on the tile grid and each character is one pattern.
 
 | Key | Required | Value |
 |---|---|---|
-| `say` | yes | upper-case letters, digits, space and `- / . , ! ? : ' %`; in a debrief, also `{sector}` and `{next}` |
+| `say` | yes | upper-case letters, digits, space and `- / . , ! ? : ' % < >`; in a debrief, also `{sector}` and `{next}` |
 | `row` | yes | the tile row, 0..17 (1..16 inside the frame) |
 | `colour` | yes | 0..3: a colour of the shared `hud` palette (BG 1) |
 | `column` | no | the first tile column; without it the line is centred |

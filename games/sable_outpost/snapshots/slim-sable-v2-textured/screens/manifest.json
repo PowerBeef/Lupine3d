@@ -210,12 +210,12 @@
       "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
     },
     "title": {
-      "rgb_sha256": "a2b01b784c2ca9c636255a33bae55109f4bccaa1832003eb09e01c0ffa69cc30",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "68b1567898b8ffe1a3121952b8eb942ddda6d95453ef43069c4ac8af14ad5c2b",
+      "rom_sha256": "5ec1a1109fd87d8bc3676a646b9752bb7a351b50933f295e2393f2e609c45bb5",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T22:25:13+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "Title relaid: the 19-cell tagline could not centre on the 20-cell grid and sat against the left edge and the helmet, PRESS START and SKILL touched, and the credit sat on the bottom edge. The tagline and credit move to the small 3x5 face, OUTPOST and the helmet move up a row, the skill gets its own row with pointers (< SKILL 2 >) showing left and right choose it, and every element has air around it."
     }
   }
 }

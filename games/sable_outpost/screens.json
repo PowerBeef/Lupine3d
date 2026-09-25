@@ -3,12 +3,12 @@
   "screens": {
     "title": {"frame": false, "lines": [
       {"image": "art/title/wordmark.png", "row": 1},
-      {"say": "O U T P O S T", "row": 6, "colour": 3},
-      {"image": "art/title/emblem.png", "row": 8},
-      {"say": "SOMETHING ANSWERED.", "row": 12, "colour": 1},
-      {"say": "PRESS START", "row": 14, "colour": 2},
-      {"field": "skill", "label": "SKILL", "row": 15, "colour": 1},
-      {"say": "A LUPINE 3D GAME", "row": 17, "colour": 1}
+      {"say": "O U T P O S T", "row": 5, "colour": 3},
+      {"image": "art/title/emblem.png", "row": 7},
+      {"text": "SOMETHING ANSWERED.", "y": 93, "colour": 1},
+      {"say": "PRESS START", "row": 13, "colour": 2},
+      {"field": "skill", "label": "< SKILL", "suffix": " >", "row": 15, "colour": 1},
+      {"text": "A LUPINE 3D GAME", "y": 134, "colour": 1}
     ]},
     "gameover": [
       {"say": "SIGNAL LOST", "row": 4, "colour": 3},
