@@ -8,6 +8,11 @@ import subprocess
 import sys
 from PIL import Image
 
+# The engine's evidence is recorded on the showcase's first sector as v0.12
+# populated it (the evidence population, lupine3d_v4/levels.py).
+if __name__ == "__main__":
+    os.environ.setdefault("LUPINE3D_POPULATION", "evidence")
+
 POSES=((1152,3456,192),(1408,3328,192),(896,2432,192),(2176,2176,0),(2432,2688,64),(1152,3100,191),(1152,3100,255))
 
 def capture(out):

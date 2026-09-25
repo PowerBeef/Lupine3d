@@ -1,5 +1,6 @@
 {
   "name": "sable_objective_spaced_coherence_tour",
+  "population": "evidence",
   "world_mode": "empty",
   "actions": [
     {

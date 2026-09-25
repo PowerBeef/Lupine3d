@@ -1,5 +1,6 @@
 {
   "name": "hangar_breach",
+  "population": "evidence",
   "world_mode": "living",
   "snapshot_suite": "world",
   "actions": [

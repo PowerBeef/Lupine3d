@@ -1,5 +1,6 @@
 {
   "name": "sable_art_tour",
+  "population": "evidence",
   "world_mode": "living",
   "snapshot_suite": "art",
   "actions": [

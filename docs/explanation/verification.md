@@ -71,6 +71,37 @@ the route, and for exploring a change before accepting it);
 `--snapshot-mode none` skips snapshots (for a foreign ROM such as an archived
 baseline).
 
+### The evidence population
+
+The engine's evidence was recorded on the showcase's first sector: the tour,
+world, art, sable and witness goldens, the cycle gates of the driven
+playtests, the fold, reuse and prepared-ray captures, the wall-reuse scenes,
+the motion tapes and the sixty-second trials. The sector's geometry is frozen
+(its grid, spawn, exit, doors, fixtures and theme), but who is in it belongs
+to the game, and a new enemy near the spawn would move every one of those.
+
+So the evidence runs on the **evidence population**: the sector as v0.12
+populated it, kept in `tests/levels/living_world_v012.json`. A process with
+`LUPINE3D_POPULATION=evidence` compiles that fixture in place of the shipped
+sector (after `levels.evidence_level` checks that every frozen field
+agrees) and boots `build_rom.population_image`: the built ROM with that one
+level slot rewritten and its global checksum updated. The code, every other
+sector and every table are the shipped ROM's own, and
+`tests/test_evidence_population.py` builds both populations to prove it.
+The evidence tools (`check_sable`, the witnesses, `benchmark_motion`,
+`sable_sustained`, `benchmark_wall_reuse`, `verify_variants`,
+`profile_rendering` and the rest) default to it when run as scripts;
+`tools/run_tests.py` sets it; a playtest scenario declares it
+(`"population": "evidence"`) and `playtest.py` and `snapshot.py run` start a
+process on it. The route refuses it, and so does a build: the route plays,
+and a build writes, the game as it ships.
+
+Reports record the image they booted, and `release_check.py` and
+`qualify_sable_release.py` bind each evidence report to the evidence image of
+the ROM under test (`build_rom.evidence_image`) and everything else to the
+ROM itself. While the shipped sector keeps its v0.12 population the two are
+the same file.
+
 ### What a snapshot does not prove
 
 A matching snapshot says the frame is the frame it was. It does not say the

@@ -1,0 +1,258 @@
+{
+ "schema": "lupine3d.overhaul-baseline.v1",
+ "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+ "commit": "c50e811",
+ "note": "The shipped v0.12-line ROM before the showcase overhaul. The overhaul's shipped-content gates (per-sector route mean < 1.05M T and max < 2.2M T, no input overflow) and its route comparisons are held against these numbers; the engine's evidence gates keep their own thresholds on the evidence population.",
+ "route": {
+  "skill": 1,
+  "sectors": {
+   "0": {
+    "name": "Sable Outpost",
+    "updates": 506,
+    "actors": 1,
+    "health_remaining": 92,
+    "mean_cycles": 891211,
+    "max_cycles": 1404740,
+    "min_health": 67
+   },
+   "1": {
+    "name": "Coolant Spine",
+    "updates": 1106,
+    "actors": 2,
+    "health_remaining": 99,
+    "mean_cycles": 906540,
+    "max_cycles": 1404852,
+    "min_health": 99
+   },
+   "2": {
+    "name": "Reactor Gate",
+    "updates": 1103,
+    "actors": 3,
+    "health_remaining": 82,
+    "mean_cycles": 929628,
+    "max_cycles": 1544684,
+    "min_health": 57
+   },
+   "3": {
+    "name": "Vent Stacks",
+    "updates": 954,
+    "actors": 4,
+    "health_remaining": 99,
+    "mean_cycles": 809978,
+    "max_cycles": 1545184,
+    "min_health": 99
+   },
+   "4": {
+    "name": "Signal Deck",
+    "updates": 935,
+    "actors": 4,
+    "health_remaining": 99,
+    "mean_cycles": 945585,
+    "max_cycles": 1685120,
+    "min_health": 99
+   },
+   "5": {
+    "name": "Cryo Vault",
+    "updates": 838,
+    "actors": 4,
+    "health_remaining": 99,
+    "mean_cycles": 898300,
+    "max_cycles": 2107224,
+    "min_health": 97
+   },
+   "6": {
+    "name": "Coolant Intake",
+    "updates": 1349,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 984991,
+    "max_cycles": 2106728,
+    "min_health": 99
+   },
+   "7": {
+    "name": "Pump Gallery",
+    "updates": 1409,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 964098,
+    "max_cycles": 1826068,
+    "min_health": 75
+   },
+   "8": {
+    "name": "Turbine Hall",
+    "updates": 1340,
+    "actors": 4,
+    "health_remaining": 99,
+    "mean_cycles": 882498,
+    "max_cycles": 1826084,
+    "min_health": 97
+   },
+   "9": {
+    "name": "Coolant Dark",
+    "updates": 2851,
+    "actors": 6,
+    "health_remaining": 99,
+    "mean_cycles": 959056,
+    "max_cycles": 2107120,
+    "min_health": 99
+   },
+   "10": {
+    "name": "Control Gallery",
+    "updates": 888,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 1032048,
+    "max_cycles": 1826064,
+    "min_health": 99
+   },
+   "11": {
+    "name": "Reactor Heart",
+    "updates": 1764,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 975956,
+    "max_cycles": 1826088,
+    "min_health": 69
+   },
+   "12": {
+    "name": "Antenna Base",
+    "updates": 1076,
+    "actors": 4,
+    "health_remaining": 99,
+    "mean_cycles": 924766,
+    "max_cycles": 1685392,
+    "min_health": 87
+   },
+   "13": {
+    "name": "Relay Deck",
+    "updates": 1018,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 982073,
+    "max_cycles": 1825960,
+    "min_health": 91
+   },
+   "14": {
+    "name": "Hull Walk",
+    "updates": 2183,
+    "actors": 6,
+    "health_remaining": 99,
+    "mean_cycles": 983896,
+    "max_cycles": 1685636,
+    "min_health": 93
+   },
+   "15": {
+    "name": "Signal Vault",
+    "updates": 1777,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 912062,
+    "max_cycles": 1966520,
+    "min_health": 93
+   },
+   "16": {
+    "name": "Transmitter Ring",
+    "updates": 1651,
+    "actors": 5,
+    "health_remaining": 99,
+    "mean_cycles": 969340,
+    "max_cycles": 1685364,
+    "min_health": 92
+   },
+   "17": {
+    "name": "Spire Crown",
+    "updates": 1742,
+    "actors": 6,
+    "health_remaining": 99,
+    "mean_cycles": 988861,
+    "max_cycles": 1966284,
+    "min_health": 95
+   }
+  }
+ },
+ "playtests": {
+  "tour": {
+   "updates": 11,
+   "mean_cycles": 815644,
+   "max_cycles": 984752,
+   "snapshots": {
+    "match": 9,
+    "changed": 0,
+    "new": 0,
+    "missing": 0
+   }
+  },
+  "world": {
+   "updates": 47,
+   "mean_cycles": 612001,
+   "max_cycles": 1264016,
+   "snapshots": {
+    "match": 14,
+    "changed": 0,
+    "new": 0,
+    "missing": 0
+   }
+  },
+  "art": {
+   "updates": 6,
+   "mean_cycles": 956720,
+   "max_cycles": 1125184,
+   "snapshots": {
+    "match": 6,
+    "changed": 0,
+    "new": 0,
+    "missing": 0
+   }
+  }
+ },
+ "motion": {
+  "walking": {
+   "full_frame_cycles": {
+    "count": 17,
+    "mean": 1131944.2352941176,
+    "p50": 1123588,
+    "p95": 1264036,
+    "p99": 1264036,
+    "worst": 1264036
+   },
+   "full_geometry_hz": 7.0983585700459395
+  },
+  "turning": {
+   "full_frame_cycles": {
+    "count": 24,
+    "mean": 831043.3333333334,
+    "p50": 842676,
+    "p95": 1123716,
+    "p99": 1125252,
+    "worst": 1125252
+   },
+   "full_geometry_hz": 10.021214094148146
+  },
+  "walking_turning": {
+   "full_frame_cycles": {
+    "count": 23,
+    "mean": 848856.0,
+    "p50": 842692,
+    "p95": 1123716,
+    "p99": 1125252,
+    "worst": 1125252
+   },
+   "full_geometry_hz": 9.603663506891973
+  },
+  "opening_door": {
+   "full_frame_cycles": {
+    "count": 5,
+    "mean": 1067708.0,
+    "p50": 1123464,
+    "p95": 1264020,
+    "p99": 1264020,
+    "worst": 1264020
+   },
+   "full_geometry_hz": 2.0877662380999977
+  }
+ },
+ "wall_reuse": {
+  "passed": true,
+  "exact_scenes": 53
+ }
+}

@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class TexturedWallsLane(unittest.TestCase):
     def test_reference_tests_pass_on_the_slim_viewport(self):
         env = {k: v for k, v in os.environ.items() if not k.startswith('LUPINE3D_')}
-        env.update(LUPINE3D_DISPLAY='slim', LUPINE3D_ART='sable-v2')
+        env.update(LUPINE3D_DISPLAY='slim', LUPINE3D_ART='sable-v2', LUPINE3D_POPULATION='evidence')
         result = subprocess.run([sys.executable, '-m', 'unittest', 'tests.test_texture_reference', '-v'],
                                 env=env, cwd=ROOT, capture_output=True, text=True, timeout=900)
         self.assertEqual(result.returncode, 0, result.stderr[-4000:])

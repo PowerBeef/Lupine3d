@@ -26,7 +26,7 @@ test that needs a game other than the showcase loads it with
 For a focused run:
 
 ```sh
-LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 \
+LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 LUPINE3D_POPULATION=evidence \
   .venv/bin/python -m unittest discover -s tests -p 'test_game_loader.py' -v
 ```
 

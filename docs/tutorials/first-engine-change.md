@@ -52,7 +52,7 @@ tests run under explicit legacy settings, because the engine reads its flags
 once at import:
 
 ```sh
-LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 \
+LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 LUPINE3D_POPULATION=evidence \
   .venv/bin/python -m unittest tests.test_enemies.SkillTests
 ```
 

@@ -26,6 +26,7 @@ safety, the OBJ budget). A game names its scenarios in `game.json`
 | `name` | the scenario's name, for its report |
 | `world_mode` | `living` (enemies move and fight) or `empty` (a still world, for looking at walls and doors); default `living` |
 | `snapshot_suite` | the golden-image suite its captures are checked against: `tour`, `world` or `art`, matching its role in `game.json`. Leave it out for a scenario without goldens |
+| `population` | `shipped` (the default) or `evidence`: the showcase's scenarios run on its first sector as v0.12 populated it, the scene the engine's evidence was recorded on ([the evidence population](../explanation/verification.md#the-evidence-population)). A game of your own leaves it out |
 | `actions` | the actions, in order |
 
 ## Actions

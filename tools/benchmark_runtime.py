@@ -11,6 +11,11 @@ import json
 from pathlib import Path
 import statistics
 
+import os
+# The engine's evidence is recorded on the showcase's first sector as v0.12
+# populated it (the evidence population, lupine3d_v4/levels.py).
+if __name__ == "__main__":
+    os.environ.setdefault("LUPINE3D_POPULATION", "evidence")
 import build_rom as br
 from playtest import apply_diagnostic_camera, read_block, set_test_world_byte, validate_frame
 from sm83emu import CGB, parse_symbols, run_to_world

@@ -30,14 +30,18 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     assert manifest['memory_budget']['resident_free_bytes'] >= 3000
     assert manifest['memory_budget']['fixed_code_end'] < 0x4000
     assert manifest['configuration']['display'] == 'slim'
+    # The engine's evidence (art checks, witnesses, sustained motion and its
+    # budget) runs on the evidence population: this ROM with its first
+    # sector's frozen v0.12 population (lupine3d_v4/levels.py).
+    evidence_sha = digest(br.evidence_image(rom))
     output.mkdir(parents=True, exist_ok=True)
     evidence = {}
 
-    def collect(name, source, *, field=None, passed=True, compressed=False):
+    def collect(name, source, *, field=None, passed=True, compressed=False, expected=sha):
         raw = Path(source).read_bytes()
         data = json.loads(raw)
         if field:
-            assert data[field] == sha, (source, 'different ROM')
+            assert data[field] == expected, (source, 'different ROM')
         if passed:
             assert data.get('passed') is True, (source, 'failed evidence')
         target = output / 'evidence' / (name + ('.json.gz' if compressed else '.json'))
@@ -53,7 +57,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     version = (br.ROOT / 'VERSION').read_text().strip()
     assert release['version'] == version and release['physical_hardware_tested'] is False
     collect('manifest', br.BUILD / 'build_manifest.json', field='sha256', passed=False)
-    art = collect('art-checks', inputs / 'art-checks/checks.json', field='rom_sha256')
+    art = collect('art-checks', inputs / 'art-checks/checks.json', field='rom_sha256', expected=evidence_sha)
     assert all(art['checks'].values())
     collect('display', inputs / 'display/report.json')
     collect('atlas', br.BUILD / 'atlas_verification.json', passed=False)
@@ -61,7 +65,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     collect('geometry-tail', br.BUILD / 'q14_tail.json', passed=False)
     for name in ('sameboy_cgb0', 'sameboy_cgbe', 'mgba_cgb'):
         collect(name, br.BUILD / (name + '.json'), field='rom_sha256')
-    scenes = collect('independent-scenes', br.BUILD / 'independent-witnesses/report.json', field='rom_sha256')
+    scenes = collect('independent-scenes', br.BUILD / 'independent-witnesses/report.json', field='rom_sha256', expected=evidence_sha)
     assert len(scenes['scenes']) == 87
     assert all(core['passed'] and core['rgb_matches_host']
                for scene in scenes['scenes'] for core in scene['cores'].values())
@@ -85,7 +89,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
     assert covered == set(range(len(br.CAMPAIGN))), ('route does not cover the campaign', sorted(covered))
     assert restarted, 'no route chunk restarted the campaign'
     motion = collect('sustained-motion', inputs / 'sustained/motion_benchmark.json',
-                     field='candidate_sha256', compressed=True)
+                     field='candidate_sha256', compressed=True, expected=evidence_sha)
     assert motion['requested_duration_seconds'] == 60 and len(motion['cases']) == 8
     timing = {}
     for name, result in motion['cases'].items():
@@ -102,7 +106,7 @@ def assemble(inputs: Path, output: Path, tests: Path) -> dict:
         timing[name] = dict(full_geometry_hz=row['full_geometry_updates_hz'],
                            full_frame_cycles=row['full_frame_cycles'],
                            input_replay_sha256=row['input_replay_sha256'])
-    budget = collect('quality-budget', inputs / 'quality-budget.json', field='quality_sha256', passed=False)
+    budget = collect('quality-budget', inputs / 'quality-budget.json', field='quality_sha256', passed=False, expected=evidence_sha)
     assert budget['quality_report_sha256'] == evidence['sustained-motion']['uncompressed_sha256']
     assert budget['default_enabled'] and budget['promotion_basis']
     collect('immutable-budget-inputs', br.ROOT / 'milestones/sable-v2/performance-inputs.json', passed=False)

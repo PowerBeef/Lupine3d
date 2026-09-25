@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -280,13 +281,15 @@ def default_scenario() -> Path:
 
 
 def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str | None,
-                        rom_path: Path | None = None):
+                        rom_path: Path | None = None, built: bytes | None = None):
     """The golden-image suite a scenario declares, or None when it has none.
 
     A scenario names its suite with `snapshot_suite`; every capture is then
     compared with the golden of the same name (see tools/snapshot.py). The
     configuration id comes from the manifest beside the ROM under test, so a
     profile built into its own directory (build/flat) is identified too.
+    `rom` is the image booted and `built` the file it came from, when the
+    evidence population rewrote its first sector (build_rom.population_image).
     """
     suite_name = scenario.get("snapshot_suite")
     if not suite_name or snapshot_mode is None:
@@ -294,16 +297,31 @@ def open_snapshot_suite(scenario: dict[str, Any], rom: bytes, snapshot_mode: str
     from snapshot import Suite, build_identity
     rom_sha = hashlib.sha256(rom).hexdigest()
     built_sha, configuration_id = build_identity(rom_path.parent if rom_path is not None else None)
+    file_sha = hashlib.sha256(built if built is not None else rom).hexdigest()
     return Suite(str(suite_name), mode=snapshot_mode, rom_sha256=rom_sha,
-                 configuration_id=configuration_id if built_sha == rom_sha else "foreign-rom")
+                 configuration_id=configuration_id if built_sha == file_sha else "foreign-rom")
+
+
+def scenario_population(scenario: dict[str, Any]) -> str:
+    """The population a scenario is recorded on: `evidence` (the showcase's
+    frozen v0.12 first sector, lupine3d_v4/levels.py) or `shipped`."""
+    population = str(scenario.get("population", "shipped"))
+    if population not in br.level_codec.POPULATIONS:
+        raise ValueError(f"unknown population {population!r}")
+    return population
 
 
 def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
                  output_dir: Path, record_all: bool = False,
                  snapshot_mode: str | None = "check") -> dict[str, Any]:
     scenario = json.loads(scenario_path.read_text(encoding="utf-8"))
-    rom = rom_path.read_bytes()
-    snapshots = open_snapshot_suite(scenario, rom, snapshot_mode, rom_path)
+    population = scenario_population(scenario)
+    if population != br.level_codec.population():
+        raise ValueError(f"{scenario_path.name} is recorded on the {population} population; this process "
+                         f"runs LUPINE3D_POPULATION={br.level_codec.population()}")
+    built = rom_path.read_bytes()
+    rom = br.population_image(built)
+    snapshots = open_snapshot_suite(scenario, rom, snapshot_mode, rom_path, built)
     symbols = parse_symbols(symbols_path)
     cgb = CGB(rom, symbols)
     run_to_world(cgb)
@@ -425,7 +443,9 @@ def run_scenario(rom_path: Path, symbols_path: Path, scenario_path: Path,
         "scenario": scenario.get("name", scenario_path.stem),
         "scenario_file": str(scenario_path),
         "rom": str(rom_path),
-        "rom_sha256": hashlib.sha256(rom_path.read_bytes()).hexdigest(),
+        "rom_sha256": hashlib.sha256(rom).hexdigest(),
+        "population": population,
+        "built_rom_sha256": hashlib.sha256(built).hexdigest(),
         "updates": updates,
         "summary": {
             "update_count": len(updates),
@@ -483,6 +503,14 @@ def main() -> None:
     if args.output_dir is None:
         args.output_dir = br.GAME_BUILD / "playtest" / ROLE_OUTPUTS[args.role]
     mode = None if args.snapshot_mode == "none" else args.snapshot_mode
+    # Population is fixed at import like every flag, so a scenario recorded on
+    # the other one restarts this tool with it; an explicit conflict fails.
+    wanted = scenario_population(json.loads(args.scenario.read_text(encoding="utf-8")))
+    if wanted != br.level_codec.population():
+        if "LUPINE3D_POPULATION" in os.environ:
+            raise SystemExit(f"{args.scenario.name} is recorded on the {wanted} population, "
+                             f"not LUPINE3D_POPULATION={os.environ['LUPINE3D_POPULATION']}")
+        os.execve(sys.executable, [sys.executable, *sys.argv], {**os.environ, "LUPINE3D_POPULATION": wanted})
     report = run_scenario(args.rom, args.symbols, args.scenario, args.output_dir, args.record_all, snapshot_mode=mode)
     print(json.dumps(report["summary"], indent=2))
 

@@ -48,7 +48,7 @@ Do not run all historical unittests against implicit slim defaults. For a
 focused historical suite:
 
 ```sh
-LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 \
+LUPINE3D_DISPLAY=legacy LUPINE3D_ART=legacy LUPINE3D_ART_ANIMATION=0 LUPINE3D_POPULATION=evidence \
   .venv/bin/python -m unittest discover -s tests -p 'test_columns.py' -v
 ```
 
@@ -447,6 +447,15 @@ in CI accepts, and an empty note is refused. The retired hash oracles live in
 equality, publication safety, the bank contract, reserves, A/B equality,
 core agreement, the v1 hash) are hard gates, never snapshots: **never weaken
 a check to pass.**
+
+The engine's evidence runs on the **evidence population**
+(`LUPINE3D_POPULATION=evidence`): the showcase's first sector as v0.12
+populated it (`tests/levels/living_world_v012.json`), so the sector's
+enemies and items can change without moving a golden, cycle gate or tape.
+Its geometry is frozen and `levels.evidence_level` refuses a difference.
+Evidence tools default to it as scripts, `run_tests.py` sets it, scenarios
+declare it, and reports bind `build_rom.evidence_image`; the route and a
+build refuse it. A moved evidence golden is a defect, never an accept.
 
 `playtest`/frozen witnesses may inject diagnostic poses. `playthrough` uses
 controller input without game-RAM writes. Sustained motion uses LCD-indexed

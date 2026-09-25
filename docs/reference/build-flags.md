@@ -65,6 +65,7 @@ exclude others and the resolver refuses the combination.
 |---|---|
 | `LUPINE3D_TILE_ATLAS_DIR`, `LUPINE3D_ENTITY_ATLAS_DIR` | the historical atlas research: build from another atlas directory |
 | `LUPINE3D_COMPACT_ATLAS` | the entity atlas research: the compact entity atlas |
+| `LUPINE3D_POPULATION` | `shipped` (the default) or `evidence`: the engine's evidence tools, `tools/run_tests.py` and the evidence snapshot suites boot the showcase's first sector with its frozen v0.12 population (`tests/levels/living_world_v012.json`), and the route refuses it ([verification](../explanation/verification.md#the-evidence-population)); a build refuses it too, since a build writes the game as it ships |
 | `LUPINE3D_ROUTE_DEBUG` | `tools/playthrough.py`: trace every combat exchange of the controller route |
 | `LUPINE3D_SAMEBOY_SEED` | the SameBoy adapter: the seed for randomised power-on RAM, to reproduce a run |
 | `LUPINE3D_DUMP_RAM` | the core adapters: a file to dump power-on RAM to, for replay in the harness |

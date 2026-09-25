@@ -14,7 +14,7 @@ from lupine3d_v4 import levels, tmx_import  # noqa: E402
 class TmxRoundTripTests(unittest.TestCase):
     def test_every_authored_level_round_trips_exactly(self):
         paths = sorted((ROOT / "games" / "sable_outpost" / "levels").glob("*.json")) + sorted((ROOT / "tests" / "levels").glob("*.json"))
-        self.assertEqual(len(paths), 20)
+        self.assertEqual(len(paths), 21)
         for path in paths:
             with self.subTest(level=path.name):
                 source = json.loads(path.read_text(encoding="utf-8"))

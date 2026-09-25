@@ -48,6 +48,14 @@ SNAPSHOT_ROOT = GAME.snapshot_root
 FAST_SUITES = ("tour", "world", "art", "sable", "witnesses")
 ALL_SUITES = FAST_SUITES + ("route",)
 PLAYTEST_SUITES = ("tour", "world", "art")
+# The engine's evidence suites are recorded on the showcase's first sector as
+# v0.12 populated it (the evidence population, lupine3d_v4/levels.py); the
+# route plays the game as it ships, and so does every other game.
+EVIDENCE_SUITES = FAST_SUITES
+
+
+def suite_population(suite: str) -> str:
+    return "evidence" if GAME.is_showcase and suite in EVIDENCE_SUITES else "shipped"
 MODES = ("check", "record")
 
 
@@ -417,7 +425,20 @@ def main(argv: list[str] | None = None) -> None:
     if args.command == "run":
         suites = [s for name in args.suite for s in (game_suites() if name == "all" else (name,))]
         failures = []
+        # Population is fixed at import, so a suite recorded on another one
+        # than this process's runs in its own process; an explicit conflict fails.
+        explicit = os.environ.get("LUPINE3D_POPULATION")
         for suite in suites:
+            wanted = suite_population(suite)
+            if explicit is not None and explicit != wanted:
+                failures.append(f"suite '{suite}' is recorded on the {wanted} population, not LUPINE3D_POPULATION={explicit}")
+                continue
+            if wanted != (explicit or "shipped"):
+                child = subprocess.run([sys.executable, str(Path(__file__).resolve()), "run", "--suite", suite, "--mode", args.mode],
+                                       env={**os.environ, "LUPINE3D_POPULATION": wanted})
+                if child.returncode:
+                    failures.append(f"suite '{suite}' failed (exit {child.returncode})")
+                continue
             try:
                 report = run_suite(suite, args.mode)
             except SystemExit as exc:

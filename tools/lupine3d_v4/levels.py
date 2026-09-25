@@ -811,12 +811,63 @@ def compile_level(path: Path) -> CompiledLevel:
     )
 
 
+# The engine's evidence (goldens, witnesses, cycle gates, the sustained tapes)
+# was recorded on the showcase's first sector as v0.12 populated it. The
+# sector's geometry is frozen; its population is the game's to change. A
+# process run with LUPINE3D_POPULATION=evidence swaps in the frozen v0.12
+# population, so the evidence keeps measuring the scene it was recorded on
+# while the shipped game moves on. Only the population may differ: the
+# swap refuses a sector whose frozen fields disagree with the fixture.
+POPULATIONS = ("shipped", "evidence")
+EVIDENCE_LEVEL = Path(__file__).resolve().parents[2] / "tests" / "levels" / "living_world_v012.json"
+
+
+def population() -> str:
+    """`LUPINE3D_POPULATION`: `shipped` (the default) or `evidence`."""
+    value = os.environ.get("LUPINE3D_POPULATION", "shipped")
+    if value not in POPULATIONS:
+        raise ValueError(f"LUPINE3D_POPULATION must be one of {', '.join(POPULATIONS)}, not {value!r}")
+    return value
+
+
+def frozen_fields(level: CompiledLevel) -> dict[str, Any]:
+    """What the evidence population holds fixed: everything but who is in the sector."""
+    return dict(
+        grid=level.grid, segment_table=level.segment_table, surface_table=level.surface_table,
+        spawn=(level.player_x_q8, level.player_y_q8, level.player_angle, level.safe_radius_cells),
+        exit=level.exit, fixtures=level.fixtures,
+        doors=tuple((door.name, door.x, door.y, door.orientation) for door in level.doors),
+        profiles=(level.palette_profile, level.vram_profile),
+    )
+
+
+def evidence_level(shipped: CompiledLevel) -> CompiledLevel:
+    """The frozen v0.12 population of the showcase's first sector, checked
+    against the shipped sector's frozen fields."""
+    frozen = compile_level(EVIDENCE_LEVEL)
+    expected, actual = frozen_fields(frozen), frozen_fields(shipped)
+    moved = [name for name in expected if expected[name] != actual[name]]
+    if moved:
+        raise ValueError(f"the showcase's first sector changed its frozen {', '.join(moved)}: the evidence "
+                         f"population ({EVIDENCE_LEVEL.name}) only replaces who is in the sector")
+    return frozen
+
+
 def campaign(game: Game | None = None) -> tuple[CompiledLevel, ...]:
-    """The game's ordered campaign, or the single level a diagnostic build selected."""
+    """The game's ordered campaign, or the single level a diagnostic build selected.
+
+    Under the evidence population the showcase's first sector is the frozen
+    v0.12 one; a single-level build and any other game have no such sector,
+    so the setting does not apply to them."""
     configured = os.environ.get("LUPINE3D_LEVEL")
+    evidence = population() == "evidence"
     if configured:
         return (compile_level(Path(configured).resolve()),)
-    return tuple(compile_level(path) for path in (game or _GAME).level_paths)
+    game = game or _GAME
+    levels = [compile_level(path) for path in game.level_paths]
+    if evidence and game.is_showcase:
+        levels[0] = evidence_level(levels[0])
+    return tuple(levels)
 
 
 def active_level(game: Game | None = None) -> CompiledLevel:

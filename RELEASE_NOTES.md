@@ -1,5 +1,19 @@
 # Unreleased — after v0.12
 
+- **The engine's evidence keeps its scene when the showcase changes.** The
+  goldens, witnesses, cycle gates and sustained tapes were all recorded on
+  the showcase's first sector as v0.12 populated it. That sector keeps its
+  geometry, but its enemies and items are about to change. With
+  `LUPINE3D_POPULATION=evidence` a process swaps the v0.12 population back
+  in (`tests/levels/living_world_v012.json`, refused if the frozen geometry
+  ever differs) and boots the built ROM with that one level slot rewritten.
+  Evidence tools default to it, `run_tests.py` sets it, playtest scenarios
+  declare it, and release checks bind those reports to that image; the
+  route and the build refuse it. A canary run with two extra Sentinels in
+  the shipped sector reproduced every golden, cycle count and test on the
+  evidence image, which was byte-identical to the unmodified ROM. The
+  numbers the overhaul's shipped-content gates are held against are in
+  `milestones/overhaul/baseline-7dd300d7.json`. No ROM byte changes.
 - **Enemies grow as they come closer.** The middle and far cels were both
   16 pixels tall, so from about 1¾ cells out an enemy stayed one size while
   the walls around it grew: it looked twice a wall's height at six cells and

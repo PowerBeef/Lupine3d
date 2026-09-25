@@ -159,6 +159,12 @@ def main() -> None:
     world_playtest = json.loads(world_playtest_path.read_text(encoding="utf-8"))
     art_playtest = json.loads((v2.BUILD / "playtest/art_tour/report.json").read_text())
     current_sha = hashlib.sha256(v2_rom).hexdigest()
+    # The engine's evidence (the driven playtests and their goldens, the fold
+    # and reuse captures, motion, wall reuse) runs on the evidence population:
+    # this ROM with its first sector holding the frozen v0.12 population
+    # (lupine3d_v4/levels.py). Those reports bind that image, which differs
+    # from this ROM in one level slot and the global checksum alone.
+    evidence_sha = hashlib.sha256(v2.evidence_image(v2_rom)).hexdigest()
     # The route plays the campaign in episodes (CI's matrix); every report for
     # the current ROM contributes its sectors, and together they must cover
     # the campaign in order.
@@ -221,23 +227,23 @@ def main() -> None:
                                       and int(v2_manifest["maximum_commit_blocks"]) <= (330 if textured else 188)),
         "bounded_publication_stages": (v2_manifest["maximum_first_stage_blocks"] <= 96 and v2_manifest["maximum_final_stage_blocks"] <= 80) if not v2_manifest["hblank_streaming"]["enabled"]
                                       else v2_manifest["maximum_final_stage_blocks"] <= 62 and v2_manifest["maximum_publication_vblanks"] == 1,
-        "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == current_sha,
-        "sable_art_tour_current": art_playtest["rom_sha256"] == current_sha and art_playtest["summary"]["passed"] and art_playtest["summary"]["capture_count"] == 6,
+        "playtest_hashes_current": playtest["rom_sha256"] == world_playtest["rom_sha256"] == evidence_sha,
+        "sable_art_tour_current": art_playtest["rom_sha256"] == evidence_sha and art_playtest["summary"]["passed"] and art_playtest["summary"]["capture_count"] == 6,
         "hud_and_fixture_budgets": v2_manifest["hud_patterns"] <= 96 and v2_manifest["wall_fixture_oam_budget"] <= 4,
         "controller_only_completion": completion["passed"] and completion["controller_only"] and completion["game_ram_injections"] == 0 and completion["rom_sha256"] == current_sha,
         "fixed_tick_and_snapshot_enabled": v2_manifest["fixed_tick_simulation"] and v2_manifest["live_world_wram_bank"] != v2_manifest["render_snapshot_wram_bank"],
         "certified_q14_enabled": v2_manifest["certified_q14_crossing_order"],
         "masked_8x16_six_actor_slots": v2_manifest["hardware_obj_size"] == [8, 16] and v2_manifest["actor_slot_capacity"] == v2.MAX_ACTORS == 6,
-        "folded_rgb_exact": (folded["passed"] and folded["rom_sha256"] == current_sha and len(folded["checks"]) == 9
+        "folded_rgb_exact": (folded["passed"] and folded["rom_sha256"] == evidence_sha and len(folded["checks"]) == 9
                              and folded_compact["passed"] and unfolded["passed"]
                              and len(folded_compact["checks"]) == 9 and folded_compact["checks"] == unfolded["checks"]),
         "exact_wall_reuse_enabled": v2_manifest["exact_wall_reuse"] and v2_manifest["wall_cache_key_bytes"] == v2.WALL_KEY_BYTES and v2_manifest["independent_obj_page"],
-        "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == current_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
+        "wall_reuse_53_scenes_and_timed_feedback": wall_reuse["passed"] and wall_reuse["candidate_sha256"] == evidence_sha and wall_reuse["frozen"]["exact_scenes"] == 53,
         "wall_reuse_disabled_rgb_exact": reuse_disabled["passed"] and reuse_disabled["checks"] == folded["checks"],
         "streaming_columns_and_events_enabled": v2_manifest["streaming_columns"] and v2_manifest["streaming_surface_events"],
         "prepared_ray_table_budget": v2_manifest["prepared_ray_setup"] and v2_manifest["prepared_ray_table_bytes"] == 1048576 and v2_manifest["prepared_ray_wram_bytes"] == (8 if v2.RENDER_CONFIG["camera_setup"] else 4) and (v2_manifest["prepared_ray_table_bank"] * 0x4000 + v2_manifest["prepared_ray_table_bytes"]) <= v2.ROM_BYTES,
         "prepared_ray_disabled_rgb_exact": prepared_disabled["passed"] and prepared_disabled["checks"] == folded["checks"],
-        "live_motion_current_and_safe": motion["passed"] and motion["candidate_sha256"] == current_sha and set(motion["cases"]) == {"walking", "turning", "walking_turning", "opening_door"} and all(case["candidate"]["wall_invalidation_exact"] and case["candidate"]["input_queue_overflow"] == case["candidate"]["unsafe_gdma_starts"] == 0 for case in motion["cases"].values()),
+        "live_motion_current_and_safe": motion["passed"] and motion["candidate_sha256"] == evidence_sha and set(motion["cases"]) == {"walking", "turning", "walking_turning", "opening_door"} and all(case["candidate"]["wall_invalidation_exact"] and case["candidate"]["input_queue_overflow"] == case["candidate"]["unsafe_gdma_starts"] == 0 for case in motion["cases"].values()),
         "full_current_tail_scan": current_tail["configuration"]["q14_order"] and current_tail["corpus"]["views"] == 24384 and current_tail["tail"]["columns_at_or_above_threshold"] == 0 and current_tail["tail"]["maximum_top_error_px"] < 5,
         "available_independent_evidence_current": all(r["passed"] and r["rom_sha256"] == current_sha for r in independent.values()),
         "integer_dda_zero_mismatches": research["integer_dda_identity"]["mismatches"] == 0,
@@ -256,7 +262,7 @@ def main() -> None:
         # captures match their accepted goldens on this exact ROM.
         "snapshots_all_match": all(
             report["summary"]["snapshot"] is not None and report["summary"]["snapshot"]["passed"]
-            and report["summary"]["snapshot"]["rom_sha256"] == current_sha
+            and report["summary"]["snapshot"]["rom_sha256"] == evidence_sha
             for report in (playtest, world_playtest, art_playtest)),
         # Sable's bounded decals have an explicit visual-content budget.
         "driven_playtest_mean_under_1_050k": float(playtest["summary"]["mean_cycles"]) < 1_050_000,

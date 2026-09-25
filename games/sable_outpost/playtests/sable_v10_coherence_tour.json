@@ -1,5 +1,6 @@
 {
   "name": "sable_v10_coherence_tour",
+  "population": "evidence",
   "world_mode": "empty",
   "snapshot_suite": "tour",
   "actions": [

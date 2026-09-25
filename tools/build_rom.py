@@ -839,9 +839,8 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     chk = 0
     for value in rom[0x0134:0x014D]: chk = (chk - value - 1) & 0xFF
     rom[0x014D] = chk
-    rom[0x014E] = rom[0x014F] = 0
-    total = sum(rom) & 0xFFFF
-    rom[0x014E] = (total >> 8) & 0xFF; rom[0x014F] = total & 0xFF
+    global_checksum(rom)
+    total = (rom[0x014E] << 8) | rom[0x014F]
     metadata.update({
         "game": GAME.record(),
         "header_checksum": chk, "global_checksum": total, "title": GAME.rom_title,
@@ -850,6 +849,53 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
         "symbols": {k: f"0x{v:04X}" for k, v in sorted(assembler.labels.items(), key=lambda item: item[1])},
     })
     return bytes(rom), assembler, metadata
+
+
+def global_checksum(rom: bytearray) -> None:
+    """Rewrite the cartridge's global checksum (the header's last two bytes)."""
+    rom[0x014E] = rom[0x014F] = 0
+    total = sum(rom) & 0xFFFF
+    rom[0x014E] = (total >> 8) & 0xFF; rom[0x014F] = total & 0xFF
+
+
+def population_image(rom: bytes) -> bytes:
+    """The ROM a harness boots for this process's population.
+
+    Under LUPINE3D_POPULATION=evidence the showcase's first sector holds the
+    frozen v0.12 population (levels.evidence_level), so this returns `rom`
+    with that one level slot rewritten and the global checksum updated; the
+    code, every other level and every table are the shipped ROM's own. In
+    every other case it returns `rom` unchanged. Tools that read a built ROM
+    from disk boot this image; in-process builds already are it."""
+    if level_codec.population() != "evidence" or not GAME.is_showcase or os.environ.get("LUPINE3D_LEVEL"):
+        return bytes(rom)
+    return evidence_image(rom)
+
+
+def evidence_image(rom: bytes) -> bytes:
+    """A showcase ROM with its first sector holding the frozen v0.12
+    population, whatever this process's population: what the evidence
+    reports bind (release_check proves each one against the shipped ROM)."""
+    image = bytearray(rom)
+    payload = make_level_payload(level_codec.evidence_level(CAMPAIGN[0]))
+    start = level_rom_offset(0)
+    image[start:start + len(payload)] = payload
+    global_checksum(image)
+    return bytes(image)
+
+
+def population_rom_path(path: Path) -> Path:
+    """`path`, or for the evidence population a copy of its image under
+    build/evidence/ for tools that hand a file to an emulator core."""
+    data = path.read_bytes()
+    image = population_image(data)
+    if image == data:
+        return path
+    target = Path(__file__).resolve().parents[1] / "build" / "evidence" / path.name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists() or target.read_bytes() != image:
+        target.write_bytes(image)
+    return target
 
 
 def write_outputs(output: Path, rom: bytes, assembler, metadata: dict) -> Path:
@@ -885,6 +931,9 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=GAME_BUILD,
                         help="default build/ for the showcase, build/games/<id>/ for any other game")
     output = parser.parse_args().output_dir
+    if level_codec.population() == "evidence" and GAME.is_showcase:
+        raise SystemExit("LUPINE3D_POPULATION=evidence is a harness view of the showcase's first sector; "
+                         "a build writes the game as it ships (unset it)")
     rom, assembler, metadata = make_rom()
     rom_path = write_outputs(output, rom, assembler, metadata)
     print(f"Built {rom_path} ({len(rom)} bytes): {GAME.title} ({GAME.id})")

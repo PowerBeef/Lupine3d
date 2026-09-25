@@ -22,6 +22,7 @@ from playtest import validate_frame, oam_budget, make_contact_sheet
 from sm83emu import CGB, parse_symbols, run_to_world
 
 
+
 def enter_sector(cgb, level: int) -> None:
     """Start the campaign at sector `level` (0-based) the way a player would:
     the continue code the ROM prints for it, typed on the title with the
@@ -76,6 +77,10 @@ def enter_sector(cgb, level: int) -> None:
 
 def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapshot_mode="record",
         sectors=None):
+    # The route plays the game as it ships. The evidence population (the
+    # frozen v0.12 first sector the engine's evidence runs on) is not a game.
+    if br.level_codec.population() != "shipped":
+        raise SystemExit("the route plays the shipped game; unset LUPINE3D_POPULATION")
     output.mkdir(parents=True, exist_ok=True)
     rom = (rom_path or br.GAME_BUILD / "lupine3d.gb").read_bytes()
     cgb = CGB(rom, parse_symbols(symbols_path or br.GAME_BUILD / "lupine3d.sym"))
