@@ -8,6 +8,14 @@ from .layout import *
 
 def emit_admission(a: Assembler):
     if not (SCANLINE_ADMISSION or SABLE_ART): return
+    # Only per-scanline admission counts the UI objects into WORLD_SCANLINES
+    # (clear_entity_oam_shadow calls this); the Sable profiles admit against world
+    # objects alone and never reach it.
+    if SCANLINE_ADMISSION: emit_seed_foreground_scanlines(a)
+    emit_actor_admission(a)
+
+
+def emit_seed_foreground_scanlines(a: Assembler):
     a.label("seed_foreground_scanlines")
     # Predict the submitted muzzle without decrementing the snapshot's FLASH.
     # A foreground event may activate it between world commits, so that mode
@@ -28,6 +36,8 @@ def emit_admission(a: Assembler):
         a.label(end)
     a.ret()
 
+
+def emit_actor_admission(a: Assembler):
     a.label("collect_actor_strip")  # submit arguments already staged in MASK_*; preserve allocation state
     a.ld_a_abs(MASK_BITS); a.or_r("a"); a.ret("z")
     a.ld_a_abs(MASK_OAM_Y); a.or_r("a"); a.ret("z"); a.cp_n(160); a.ret("nc")
@@ -41,7 +51,29 @@ def emit_admission(a: Assembler):
     a.ld_a_abs(ADMISSION_FAILED); a.or_r("a"); a.jr("admission_fail","nz")
     a.ld_a_abs(ADMISSION_COUNT); a.ld_r_r("b","a"); a.ld_a_abs(SENTINEL_OAM_USED); a.add_a_r("b"); a.cp_n(ENTITY_OAM_COUNT+1); a.jr("admission_fail","nc")
     a.ld_r_r("a","b"); a.add_a_r("a"); a.ld_r_r("b","a"); a.ld_a_abs(MASK_TILE_COUNT); a.add_a_r("b"); a.cp_n(33); a.jr("admission_fail","nc")
-    a.xor_r("a"); a.ld_abs_a(ADMISSION_LINE)
+    if SCANLINE_ADMISSION:
+        # UI objects are seeded into WORLD_SCANLINES without a cap, so a line
+        # no strip covers can still be full: every line is checked.
+        a.xor_r("a"); a.ld_abs_a(ADMISSION_LINE); a.ld_r_n("d", 144)
+    else:
+        # Only the lines the staged strips cover can fail. Every submitter
+        # refuses at four world objects a line and actors are admitted first,
+        # so any other line holds four or fewer and passes; checking the
+        # window from the first strip's top to the last strip's bottom makes
+        # the full scan's decision in a fraction of its 144 lines.
+        # D = the line after the window, HL walks the records.
+        a.ld_a_abs(ADMISSION_COUNT); a.or_r("a"); a.jr("admission_pass","z")
+        a.ld_r_r("c","a"); a.ld_rr_nn("hl",ADMISSION_RECORDS); a.ld_rr_nn("de",0x00FF)   # D = highest Y, E = lowest
+        a.label("admission_window_loop")
+        a.ld_a_hl(); a.cp_r("e"); a.jr("admission_window_low","nc"); a.ld_r_r("e","a")
+        a.label("admission_window_low"); a.cp_r("d"); a.jr("admission_window_high","c"); a.ld_r_r("d","a")
+        a.label("admission_window_high")
+        a.ld_r_r("a","l"); a.add_a_n(5); a.ld_r_r("l","a"); a.dec_r("c"); a.jr("admission_window_loop","nz")
+        # A strip at OAM Y covers screen lines Y-16..Y-1; records hold 1..159.
+        a.ld_r_r("a","e"); a.sub_n(16); a.jr("admission_window_start","nc"); a.xor_r("a")
+        a.label("admission_window_start"); a.ld_abs_a(ADMISSION_LINE)
+        a.ld_r_r("a","d"); a.cp_n(144); a.jr("admission_window_end","c"); a.ld_r_n("d",144)
+        a.label("admission_window_end")
     a.label("admission_line_loop")
     a.ld_a_abs(ADMISSION_LINE); a.ld_r_r("l","a"); a.ld_r_n("h",WORLD_SCANLINES>>8); a.ld_a_hl(); a.ld_r_r("b","a")
     a.ld_a_abs(ADMISSION_COUNT); a.ld_r_r("c","a"); a.or_r("a"); a.jr("admission_line_ready","z")
@@ -50,11 +82,13 @@ def emit_admission(a: Assembler):
     a.ld_a_hl(); a.ld_r_r("e","a"); a.ld_a_abs(ADMISSION_LINE); a.cp_r("e"); a.jr("admission_strip_next","nc")
     a.add_a_n(16); a.cp_r("e"); a.jr("admission_strip_next","c"); a.inc_r("b")
     a.label("admission_strip_next")
-    a.ld_rr_nn("de",5); a.add_hl_rr("de"); a.dec_r("c"); a.jr("admission_count_overlap","nz")
+    # The four records share a page, so the stride is a low-byte add (D holds
+    # the end of the window).
+    a.ld_r_r("a","l"); a.add_a_n(5); a.ld_r_r("l","a"); a.dec_r("c"); a.jr("admission_count_overlap","nz")
     a.label("admission_line_ready")
     a.ld_r_r("a","b"); a.cp_n(11 if SCANLINE_ADMISSION else 5); a.jr("admission_fail","nc")
-    a.ld_rr_nn("hl",ADMISSION_LINE); a.inc_r("(hl)"); a.ld_a_hl(); a.cp_n(144); a.jr("admission_line_loop","c")
-    a.ld_r_n("a",1); a.ret()
+    a.ld_rr_nn("hl",ADMISSION_LINE); a.inc_r("(hl)"); a.ld_a_hl(); a.cp_r("d"); a.jr("admission_line_loop","c")
+    a.label("admission_pass"); a.ld_r_n("a",1); a.ret()
     a.label("admission_fail"); a.xor_r("a"); a.ret()
 
     a.label("render_actor_atomic")

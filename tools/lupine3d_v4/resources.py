@@ -393,13 +393,16 @@ def make_entity_tiles() -> bytes:
 
     # The drops (the medkit, then the keycard a skirmisher leaves in the
     # showcase), the two-phase hit effect and the exit beacon are the game's
-    # 8x8 sheets (game.json `sprites`), compiled in this order; the hit and
-    # beacon phases each keep an empty pattern after them.
+    # 8x8 sheets (game.json `sprites`), compiled in this order; each keeps an
+    # empty pattern after it, the top of an 8x16 object (PICKUP_STRIDE: the
+    # legacy profile keeps its drops packed).
     from .sprite_assets import frames
     drops, hit, beacon = (frames(GAME.sprites[role]) for role in ("drops", "hit_effect", "exit_beacon"))
-    assert len(drops) == len(DROP_KIND_IDS) and len(hit) == 2 and len(beacon) == EXIT_BEACON_FRAMES
+    assert len(drops) == len(DROP_KIND_IDS) == 2 and len(hit) == 2 and len(beacon) == EXIT_BEACON_FRAMES
     for cel in drops:
         out.extend(tile_from_pixels(cel))
+        if PICKUP_STRIDE == 2:
+            out.extend(bytes(16))
     for cel in (*hit, *beacon):
         out.extend(tile_from_pixels(cel))
         out.extend(bytes(16))

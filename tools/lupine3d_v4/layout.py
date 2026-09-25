@@ -1061,7 +1061,12 @@ SENTINEL_FAR_TILE_BASE = SENTINEL_NEAR_TILE_BASE + SENTINEL_NEAR_FRAMES * SENTIN
 SENTINEL_FAR_FRAMES = 12 if SABLE_ART else 2
 SENTINEL_FAR_TILES_PER_FRAME = 2
 PICKUP_TILE = SENTINEL_FAR_TILE_BASE + SENTINEL_FAR_FRAMES * SENTINEL_FAR_TILES_PER_FRAME
-HIT_EFFECT_TILE_BASE = PICKUP_TILE + 2
+# A drop is an 8x8 cel drawn as the top of an 8x16 object, so on the Sable
+# profiles each keeps an empty pattern after it, as the hit and beacon phases
+# do: packed, a medkit wore the keycard beneath it and a keycard the hit
+# effect. The legacy profile keeps its packed pair and its bytes.
+PICKUP_STRIDE = 2 if SABLE_ART else 1
+HIT_EFFECT_TILE_BASE = PICKUP_TILE + 2 * PICKUP_STRIDE
 EXIT_BEACON_TILE = HIT_EFFECT_TILE_BASE + 4
 EXIT_BEACON_FRAMES = 2
 SENTINEL_MID_TILE_BASE = EXIT_BEACON_TILE + EXIT_BEACON_FRAMES * 2

@@ -58,36 +58,36 @@
       "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
     },
     "08_sentinel_hit_one": {
-      "rgb_sha256": "484f60c5303737b3473a7ecfb22d20264b44bbeac0b178bd2dc8f6d8b2de5cf7",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "e013926e1a5bfa3c40a60d3e5298052138ad39b79af318546ea0c6ac0446a3ef",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:15:22+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
+      "note": "P1 CPU savings (windowed admission preflight, no cast for a dormant actor outside its radius): these captures land 2-4 LCD frames earlier than on 7dd300d7 (133/136/147/193 against 135/140/151/197); every capture taken on the same LCD frame is pixel-identical, and the frozen-state suites (sable, 81 witnesses, variants, 53 reuse scenes) are unchanged"
     },
     "09_sentinel_hit_two": {
-      "rgb_sha256": "646a3c59a7cff7e54ba965bfadd18704918262758b435234599580f49f1416fe",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "484f60c5303737b3473a7ecfb22d20264b44bbeac0b178bd2dc8f6d8b2de5cf7",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:15:22+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
+      "note": "P1 CPU savings (windowed admission preflight, no cast for a dormant actor outside its radius): these captures land 2-4 LCD frames earlier than on 7dd300d7 (133/136/147/193 against 135/140/151/197); every capture taken on the same LCD frame is pixel-identical, and the frozen-state suites (sable, 81 witnesses, variants, 53 reuse scenes) are unchanged"
     },
     "10_sentinel_dead": {
-      "rgb_sha256": "c30ca46555b49b198de8c4e30b59fc528980d8066801d5451eb26e501b032286",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "af0e84b720e2399dd2aa23c624cf66077f6cbf855840efcbb26897a17f38361b",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:15:22+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
+      "note": "Drop cels padded: the medkit no longer draws the keycard cel beneath it. Also captured 4 LCD frames earlier (140 against 144) with the P1 CPU savings"
     },
     "11_pickup_collected": {
-      "rgb_sha256": "c431fe980ee09d16cf126d84768e263669727cb0131e0085a3db71999f8802b4",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "82d446deca7a98fff6dfa7916dd30752a94b4024ffd542d0448545563b896206",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:15:22+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
+      "note": "P1 CPU savings (windowed admission preflight, no cast for a dormant actor outside its radius): these captures land 2-4 LCD frames earlier than on 7dd300d7 (133/136/147/193 against 135/140/151/197); every capture taken on the same LCD frame is pixel-identical, and the frozen-state suites (sable, 81 witnesses, variants, 53 reuse scenes) are unchanged"
     },
     "12_exit_unlocking": {
       "rgb_sha256": "8304a1a67743f2ac3527aa497712603b50ada3cd5d67e6bfe80656fd7a65629b",
@@ -98,12 +98,12 @@
       "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
     },
     "13_exit_beacon": {
-      "rgb_sha256": "1d0a5fdee18673fe321982af3b3c4e596c99cebad0dcb9bd5f285a61f6763746",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "e53e03f3a19c92cab1632aca2d476b4480b43619ce3900edfb6d080ddf9d72dc",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:15:22+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: the middle distance is the 8x16 half-scale figure (was the squat 16x16) and the far one a 4x8 quarter-scale figure, switching where neighbouring sizes are equally wrong, so an enemy grows steadily as it approaches. Sentinel scenes show the new cels; 11_pickup_collected and 13_exit_beacon land on another simulation tick because the one-column middle cel costs less (the camera a step on, the beacon's other phase). Every frame check passes."
+      "note": "P1 CPU savings (windowed admission preflight, no cast for a dormant actor outside its radius): these captures land 2-4 LCD frames earlier than on 7dd300d7 (133/136/147/193 against 135/140/151/197); every capture taken on the same LCD frame is pixel-identical, and the frozen-state suites (sable, 81 witnesses, variants, 53 reuse scenes) are unchanged"
     },
     "14_level_complete": {
       "rgb_sha256": "67ddcbabd93fad19b642b7cb1709d768246bc1ccdf748e7662a5e092602d509a",

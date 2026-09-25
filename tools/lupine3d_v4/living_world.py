@@ -429,15 +429,9 @@ def emit_entity_renderer(a: Assembler) -> None:
 
 
 def emit_line_of_sight(a: Assembler) -> None:
-    a.label("sentinel_line_of_sight")
-    # Cell-space Bresenham traversal. Every visited cell is checked against
-    # the exact active WRAM grid; the player's destination cell is accepted.
-    a.ld_a_abs(SENTINEL_XH); a.ld_abs_a(LOS_X); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_XH); a.sub_r("b"); a.ld_r_n("c", 1); a.jr("los_dx_positive", "nc"); a.cpl(); a.inc_r("a"); a.ld_r_n("c", 0xFF)
-    a.label("los_dx_positive"); a.ld_abs_a(LOS_DX); a.ld_r_r("a", "c"); a.ld_abs_a(LOS_SX)
-    a.ld_a_abs(SENTINEL_YH); a.ld_abs_a(LOS_Y); a.ld_r_r("b", "a")
-    a.ld_a_abs(PLAYER_YH); a.sub_r("b"); a.ld_r_n("c", 1); a.jr("los_dy_positive", "nc"); a.cpl(); a.inc_r("a"); a.ld_r_n("c", 0xFF)
-    a.label("los_dy_positive"); a.ld_abs_a(LOS_DY); a.ld_r_r("a", "c"); a.ld_abs_a(LOS_SY)
+    a.label("sentinel_line_of_sight")   # the cell deltas, then sight
+    a.call("los_cell_deltas")
+    a.label("los_exact_sight")
     # Exact subcell line query from player to Sentinel. The same grid and
     # sliding-panel intersection routine is used by rendering and hitscan.
     for entity, player, target in ((SENTINEL_XL, PLAYER_XL, Q14_X), (SENTINEL_YL, PLAYER_YL, Q14_Y)):
@@ -453,31 +447,17 @@ def emit_line_of_sight(a: Assembler) -> None:
     a.ldi_a_hl(); a.ld_r_r("e", "a"); a.ld_a_hl(); a.ld_r_r("d", "a")
     a.ld_a_abs(DDA_DIST_L); a.sub_r("e"); a.ld_a_abs(DDA_DIST_H); a.sbc_a_r("d")
     a.jp("los_blocked", "c"); a.jp("los_visible")
-    a.ld_a_abs(LOS_DX); a.add_a_n(128); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_DY); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_abs_a(LOS_ERR)
-    a.ld_r_n("a", 32); a.ld_abs_a(LOS_COUNT)
-    a.label("los_loop")
-    a.ld_a_abs(LOS_X); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_XH); a.cp_r("b"); a.jr("los_not_at_player", "nz")
-    a.ld_a_abs(LOS_Y); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_YH); a.cp_r("b"); a.jr("los_not_at_player", "nz")
-    a.ld_r_n("a", 1); a.ld_abs_a(LOS_RESULT); a.ret()
-    a.label("los_not_at_player")
-    # Biased E2 = 2*(err-128)+128.
-    a.ld_a_abs(LOS_ERR); a.add_a_r("a"); a.sub_n(128); a.ld_abs_a(LOS_E2)
-    # if e2 >= -dy, advance X and subtract dy from error.
-    a.ld_a_abs(LOS_DY); a.ld_r_r("b", "a"); a.ld_r_n("a", 128); a.sub_r("b"); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_E2); a.cp_r("b"); a.jr("los_skip_x", "c")
-    a.ld_a_abs(LOS_ERR); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_DY); a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.sub_r("c"); a.ld_abs_a(LOS_ERR)
-    a.ld_a_abs(LOS_SX); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_X); a.add_a_r("b"); a.ld_abs_a(LOS_X)
-    a.label("los_skip_x")
-    # if e2 <= dx, advance Y and add dx to error.
-    a.ld_a_abs(LOS_DX); a.add_a_n(128); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_E2); a.cp_r("b"); a.jr("los_skip_y", "nc")
-    a.ld_a_abs(LOS_ERR); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_DX); a.add_a_r("b"); a.ld_abs_a(LOS_ERR)
-    a.ld_a_abs(LOS_SY); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_Y); a.add_a_r("b"); a.ld_abs_a(LOS_Y)
-    a.label("los_skip_y")
-    # Destination is allowed; every earlier solid cell blocks sight.
-    a.ld_a_abs(LOS_X); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_XH); a.cp_r("b"); a.jr("los_check_map", "nz")
-    a.ld_a_abs(LOS_Y); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_YH); a.cp_r("b"); a.jr("los_visible", "z")
-    a.label("los_check_map")
-    a.ld_a_abs(LOS_Y); a.cb("swap", "a"); a.ld_r_r("b", "a"); a.ld_a_abs(LOS_X); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0xD0); a.ld_a_hl(); a.or_r("a"); a.jr("los_blocked", "nz")
-    a.ld_a_abs(LOS_COUNT); a.dec_r("a"); a.ld_abs_a(LOS_COUNT); a.jp("los_loop", "nz")
+
+    a.label("los_cell_deltas")
+    # The cell deltas and signs feed the AI (wake radius, contact, chase
+    # direction) without a cast; sight itself is the exact query above.
+    # LOS_X/LOS_Y are what the retired cell-space Bresenham walk started from.
+    a.ld_a_abs(SENTINEL_XH); a.ld_abs_a(LOS_X); a.ld_r_r("b", "a")
+    a.ld_a_abs(PLAYER_XH); a.sub_r("b"); a.ld_r_n("c", 1); a.jr("los_dx_positive", "nc"); a.cpl(); a.inc_r("a"); a.ld_r_n("c", 0xFF)
+    a.label("los_dx_positive"); a.ld_abs_a(LOS_DX); a.ld_r_r("a", "c"); a.ld_abs_a(LOS_SX)
+    a.ld_a_abs(SENTINEL_YH); a.ld_abs_a(LOS_Y); a.ld_r_r("b", "a")
+    a.ld_a_abs(PLAYER_YH); a.sub_r("b"); a.ld_r_n("c", 1); a.jr("los_dy_positive", "nc"); a.cpl(); a.inc_r("a"); a.ld_r_n("c", 0xFF)
+    a.label("los_dy_positive"); a.ld_abs_a(LOS_DY); a.ld_r_r("a", "c"); a.ld_abs_a(LOS_SY); a.ret()
     a.label("los_blocked"); a.xor_r("a"); a.ld_abs_a(LOS_RESULT); a.ret()
     a.label("los_visible"); a.ld_r_n("a", 1); a.ld_abs_a(LOS_RESULT); a.ret()
 
@@ -499,16 +479,18 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_cooldown_done", "z"); a.dec_r("a"); a.ld_abs_a(SENTINEL_COOLDOWN)
     a.label("ai_cooldown_done")
     a.ld_a_abs(SENTINEL_AI_PHASE); a.inc_r("a"); a.ld_abs_a(SENTINEL_AI_PHASE)
-    a.call("sentinel_line_of_sight")
-    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DORMANT); a.jr("ai_not_dormant", "nz")
+    a.call("los_cell_deltas")
+    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DORMANT); a.jr("ai_sight", "nz")
     # A dormant actor wakes when the player comes inside the level's authored
-    # activation radius, rather than two AI ticks after the level loads.
-    # sentinel_line_of_sight has just left the cell deltas in LOS_DX/LOS_DY.
+    # activation radius, rather than two AI ticks after the level loads. The
+    # radius needs only the cell deltas, so a dormant actor outside it costs
+    # no cast: nothing reads the sight it would have produced.
     a.ld_a_abs(ACTIVATION_RADIUS); a.ld_r_r("b", "a")
     a.ld_a_abs(LOS_DX); a.cp_r("b"); a.ret("nc")
     a.ld_a_abs(LOS_DY); a.cp_r("b"); a.ret("nc")
     a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE)
-    a.label("ai_not_dormant")
+    a.label("ai_sight")
+    a.call("los_exact_sight")
     a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jr("ai_patrol", "z")
     a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
     # Contact across a diagonal counts only when the corner is clean: both

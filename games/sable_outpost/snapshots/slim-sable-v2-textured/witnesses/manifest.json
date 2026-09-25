@@ -498,28 +498,28 @@
       "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
     },
     "sable_mid_09": {
-      "rgb_sha256": "7d80d2705a9bd06ca71bac4867c1ac147c7aef4aafd9137bbbb65ab3c08baa84",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "933d979db446e3f3d3e3592174209b01d8bae9dec341bb0f43723e617f1cf7b4",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_mid_10": {
-      "rgb_sha256": "de883910ac1f63fd939a8f2ac29bbc12ca97b518f873fb9a3d4f5885a651cabe",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "0991b8c459b5e5e9f9be0d996e9572312c85c1c7723a595c67847e4833b3ca44",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_mid_11": {
-      "rgb_sha256": "6788e90a0aacdb738436196f0020eb38ac4e084b89201fbccb91e6ec0c0842c7",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "080d64af817a56b58f3e65c4b85286d671477b1b1c96c1b018db1cf6cb7b30e2",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_near_00": {
       "rgb_sha256": "f4e6da5f543c0bdd012199adbd9d457cb5160017def7702f880fbef36327b644",
@@ -594,28 +594,28 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "sable_near_09": {
-      "rgb_sha256": "70ff6452d5710a60b7cc5d9c8c7da714331324936f75b8f5ec702ab30d551e58",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3f3f995d46e925fd7f3ff07dfbfa3aa6f50713736f528cf808f30073300aa97d",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_near_10": {
-      "rgb_sha256": "1912eb881ab833279b83bf5aeff2563066fb8133ec44b827289437c6a2759a5a",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "2fe5580c9418f9981cd01145aef47949cb4a5c31d731bdd6f35b799f41503b73",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_near_11": {
-      "rgb_sha256": "e47ca11cce81a3323fa68141e48bead87417bc6b3c8740175b17c2e5dc77caca",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "15b71ed90ad026c785bfb16af04abfeee78b8ebad777f470f0f8a43872b04a22",
+      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T04:24:21+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "shallow_angle": {
       "rgb_sha256": "a739d517d0660a009571816398f2d98c75b0144b2fb7d3244d02de811ed014df",

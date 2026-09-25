@@ -129,7 +129,9 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
     # The cel follows the drop's kind, which follows the kind of the actor
     # that left it: a medkit and a card are different objects on the floor.
-    a.call("actor_kind_drop"); a.add_a_n(PICKUP_TILE); a.ld_r_r("d", "a")
+    a.call("actor_kind_drop")
+    if PICKUP_STRIDE == 2: a.add_a_r("a")
+    a.add_a_n(PICKUP_TILE); a.ld_r_r("d", "a")
     a.ld_r_n("e", 2); a.jp("submit_masked_oam")
 
     a.label("render_exit_beacon")

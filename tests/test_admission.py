@@ -67,3 +67,45 @@ class AdmissionTests(unittest.TestCase):
 
 
 if __name__=="__main__": unittest.main()
+
+
+def default_build():
+    """The production (slim, Sable art) ROM, built in a fresh process."""
+    import json, os, subprocess, sys, tempfile
+    from pathlib import Path
+    with tempfile.TemporaryDirectory() as folder:
+        env = {k: v for k, v in os.environ.items() if not k.startswith("LUPINE3D_")}
+        env["LUPINE3D_POPULATION"] = "evidence"
+        subprocess.run([sys.executable, "-c", "import sys,json;from pathlib import Path;"
+                        "sys.path.insert(0,'tools');import build_rom as b;"
+                        "r,a,m=b.make_rom();p=Path(sys.argv[1]);"
+                        "(p/'rom').write_bytes(r);(p/'labels').write_text(json.dumps(a.labels))", folder],
+                       cwd=br.ROOT, env=env, check=True, capture_output=True)
+        return (Path(folder) / "rom").read_bytes(), json.loads((Path(folder) / "labels").read_text())
+
+
+class WindowedPreflightTests(unittest.TestCase):
+    """The production preflight checks only the lines its staged strips
+    cover. Every submitter refuses at four world objects a line, so the
+    other lines always pass: the decision must be the full scan's."""
+    @classmethod
+    def setUpClass(cls): cls.build = default_build()
+
+    def test_windowed_decision_equals_the_full_scan(self):
+        c = CGB(*self.build); c.write8(0xFF70, 1)
+        rng = random.Random(1812)
+        for case in range(1500):
+            count = rng.randrange(5); ys = [rng.choice((rng.randrange(1, 160), 1, 16, 17, 143, 144, 159)) for _ in range(count)]
+            occupancy = [rng.choice((0, 0, 1, 2, 3, 4, 4)) for _ in range(144)]
+            used = rng.randrange(17); tiles = rng.randrange(17) * 2
+            for i, v in enumerate(occupancy): c.write8(br.WORLD_SCANLINES + i, v)
+            for i, y in enumerate(ys):
+                for j, v in enumerate((y, rng.choice((0, 80, 168)), 0, 1, 255)): c.write8(br.ADMISSION_RECORDS + i * 5 + j, v)
+            c.write8(br.ADMISSION_COUNT, count); c.write8(br.ADMISSION_FAILED, 0)
+            c.write8(br.SENTINEL_OAM_USED, used); c.write8(br.MASK_TILE_COUNT, tiles)
+            expected = used + count <= 16 and tiles + 2 * count <= 32 and all(
+                occupancy[line] + sum(y - 16 <= line < y for y in ys) <= 4 for line in range(144))
+            before = read_block(c, br.WORLD_SCANLINES, 144), read_block(c, br.ADMISSION_RECORDS, 20)
+            c.call_subroutine("preflight_actor")
+            self.assertEqual(bool(c.a), expected, (case, ys, used, tiles))
+            self.assertEqual((read_block(c, br.WORLD_SCANLINES, 144), read_block(c, br.ADMISSION_RECORDS, 20)), before)

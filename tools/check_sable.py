@@ -43,7 +43,7 @@ def check(output,snapshot_mode='check'):
     assert b.STRIP_SCRATCH==(0xC8E0 if b.SLIM_DISPLAY else 0xC7C0)
     assert bytes(c.vram[1][0x200:0x700])==compile_sheet(b.GAME.weapons[0].sprite,paired=True)
     assert bytes(c.vram[1][0x700:0x760])==compile_sheet(b.GAME.sprites['reticle'])+compile_sheet(b.GAME.sprites['muzzle_flash'])
-    assert len(b.make_entity_tiles())==218*16 and len(b.hud_assets()[0])<=96*16
+    assert len(b.make_entity_tiles())==220*16 and len(b.hud_assets()[0])<=96*16
     checks['cold_art_and_raster_boundary']=True
     if b.TEXTURED_WALLS:
         # The kernel's window blocks and their directory are the reference's

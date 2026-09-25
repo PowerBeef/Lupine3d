@@ -63,7 +63,7 @@ record plays which role.
 
 | Role (`game.json`) | Size | Frames | Where it lives at runtime |
 |---|---|---|---|
-| `actor_near` | 16×32 | 12 | a 218-pattern ROM cel dictionary shared by the three distances; masked into 32 OBJ patterns per bank at runtime |
+| `actor_near` | 16×32 | 12 | a 220-pattern ROM cel dictionary shared by the three distances; masked into 32 OBJ patterns per bank at runtime |
 | `actor_mid` | 8×16 or 16×16 (one or two columns) | 12 | same |
 | `actor_far` | 8×16 | 12 | same |
 | weapons (`weapons[].sprite`) | 40×32 | 4 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1; one weapon resident, SELECT swaps with the LCD off |
@@ -71,7 +71,7 @@ record plays which role.
 | `reticle` | 8×16 | 1 | a preloaded OBJ pattern, OBJ palette 4 |
 | `portrait` | 16×16 | 4: normal, blink, hurt, dead | the HUD packet's portrait, six tile IDs |
 | `hud` | 160×24 | 1 | 94 of 96 HUD patterns, bank 0 `$8200-$87DF`, BG palette 1 |
-| `drops` | 8×8 | 2: medkit, keycard | OBJ patterns, OBJ palette 2 |
+| `drops` | 8×8 | 2: medkit, keycard | OBJ patterns, OBJ palette 2; each is the top of an 8×16 object over an empty pattern |
 | `hit_effect`, `exit_beacon` | 8×8 | 2 each | OBJ patterns |
 | `fixtures` | 16×16 | 3 per family: 16, 8 and 4 pixels across (the engine derives a half-width copy) | masked OBJ patterns |
 | wall textures (`textures`) | 16×8, the upper half of a face | 1 | row-window tables in the texture banks; a level's theme picks its set |

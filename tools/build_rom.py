@@ -314,8 +314,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("dda", emit_dda), ("projection_and_casting", emit_projection_and_casting),
         ("renderer", emit_renderer), ("precision", emit_precision),
         ("packets", emit_packets), ("physical_depth", emit_physical_depth),
-        ("actor_precision", emit_actor_precision), ("animation", emit_animation),
-        ("admission", emit_admission), ("projection_storage", emit_projection_storage),
+        ("actor_precision", emit_actor_precision), ("projection_storage", emit_projection_storage),
         ("near_field", emit_near_field), ("foreground", emit_foreground),
         ("door_geometry", emit_door_geometry), ("simulation", emit_simulation),
         ("tile_cache", emit_tile_cache), ("screens", emit_screens),
@@ -340,7 +339,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         ("wall_cache", emit_wall_cache), ("surfaces", emit_surfaces),
         ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
         ("entity_renderer_v7", emit_entity_renderer_v7), ("movement_v6", emit_movement_v6),
-        ("snapshot", emit_snapshot),
+        ("snapshot", emit_snapshot), ("animation", emit_animation), ("admission", emit_admission),
     ]
     if TEXTURED_WALLS: cold_sections.append(("textured_compositor", emit_textured_compositor))
     if OVERLAP_PUBLICATION:

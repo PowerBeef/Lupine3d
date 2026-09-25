@@ -44,7 +44,7 @@ Death animation is cosmetic: enemy death, pickup availability and exit activatio
 | World / HUD | 160×120 / 160×24; horizon 60, STAT split at line 120 |
 | HUD patterns | 94 of 96, bank 0 $8200–$87DF |
 | Weapon, reticle and flash | 86 preloaded patterns, bank 1 $8200–$875F |
-| Enemy and fixture ROM dictionary | 218 source patterns, before runtime masks |
+| Enemy and fixture ROM dictionary | 220 source patterns, before runtime masks |
 | Masked world OBJ patterns | 32 per VRAM bank, $8000–$81FF |
 | World admission | 16 objects; four per scanline; hardware limit ten per line |
 | Dynamic BG patterns | 96 |

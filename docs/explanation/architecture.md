@@ -216,7 +216,7 @@ allocations. Important owners are:
 | Bank-1 OBJ patterns | 86 preloaded weapon/UI plus 32 masked world patterns; 80 of the 86 are the streamed weapon window |
 | OAM | 40 hardware objects; world pool 16, at most four per scanline |
 
-The 218-pattern enemy/fixture **ROM source dictionary** is distinct from resident
+The 220-pattern enemy/fixture **ROM source dictionary** is distinct from resident
 VRAM tile IDs. Masked strips are composed into the bounded pool. Hardware selects
 at most ten objects per scanline, including Y-overlapping objects hidden in X.
 Living actors and gameplay pickups have priority over cosmetic death sprites.

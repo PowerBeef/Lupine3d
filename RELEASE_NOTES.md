@@ -1,5 +1,25 @@
 # Unreleased — after v0.12
 
+- **Room below $4000, and cheaper enemies.** The showcase overhaul needs
+  code in the fixed half of bank 0, which had 64 bytes left. Actor admission
+  and animation never switch banks and no interrupt reaches them, so they
+  now sit above $4000 in bank 1 (bank_safety proves it): the fixed half has
+  1,344 bytes free. Two pieces of unreachable code are gone: the cell-walk
+  line of sight that the exact query replaced long ago, and the UI scanline
+  seeding that only per-scanline admission calls (581 bytes). An actor's
+  admission check now reads only the scanlines its strips cover instead of
+  all 144, which makes the same decision (every other line already holds
+  four objects or fewer; `tests/test_admission.py` checks 1,500 random
+  cases against the full scan) and saves 30-60k T per drawn enemy. A dormant
+  actor outside its wake radius no longer casts a line of sight nothing
+  reads. The world playtest captures five scenes a few LCD frames earlier
+  as a result; every capture taken on the same frame as before is
+  pixel-identical.
+- **A dropped medkit no longer wears the keycard.** A drop is an 8×8 cel
+  drawn as the top of an 8×16 object, and the cels were packed, so a medkit
+  showed the keycard beneath it and a keycard the hit effect. Each drop now
+  keeps an empty pattern after it (the dictionary is 220 patterns); the
+  legacy profile keeps its bytes for this.
 - **The engine's evidence keeps its scene when the showcase changes.** The
   goldens, witnesses, cycle gates and sustained tapes were all recorded on
   the showcase's first sector as v0.12 populated it. That sector keeps its

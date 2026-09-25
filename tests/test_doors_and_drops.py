@@ -35,16 +35,22 @@ class DropTableTests(unittest.TestCase):
             self.assertIn(spare[br.ACTOR_KIND_DROP], set(DROP_KIND_IDS.values()))
 
     def test_a_drop_cel_exists_for_every_drop_kind(self):
-        # render_dropped_pickup adds the drop id to PICKUP_TILE, so the cels
-        # must be consecutive and inside the reserved pair.
-        self.assertEqual(br.HIT_EFFECT_TILE_BASE - br.PICKUP_TILE, len(DROP_KIND_IDS))
+        # render_dropped_pickup adds the drop id times PICKUP_STRIDE to
+        # PICKUP_TILE. A drop is the top of an 8x16 object, so on the Sable
+        # profiles the pattern after each cel is empty: packed, the medkit
+        # was drawn over the keycard and the keycard over the hit effect.
+        stride = br.PICKUP_STRIDE
+        self.assertEqual(stride, 2 if br.SABLE_ART else 1)
+        self.assertEqual(br.HIT_EFFECT_TILE_BASE - br.PICKUP_TILE, len(DROP_KIND_IDS) * stride)
         tiles = br.make_entity_tiles()
+        cels = {}
         for kind, index in DROP_KIND_IDS.items():
-            cel = tiles[(br.PICKUP_TILE + index) * 16:(br.PICKUP_TILE + index + 1) * 16]
-            self.assertNotEqual(cel, bytes(16), f"{kind} has no cel")
-        medkit = tiles[br.PICKUP_TILE * 16:(br.PICKUP_TILE + 1) * 16]
-        keycard = tiles[(br.PICKUP_TILE + 1) * 16:(br.PICKUP_TILE + 2) * 16]
-        self.assertNotEqual(medkit, keycard, "the two drops must look different")
+            tile = br.PICKUP_TILE + index * stride
+            cels[kind] = tiles[tile * 16:(tile + 1) * 16]
+            self.assertNotEqual(cels[kind], bytes(16), f"{kind} has no cel")
+            if stride == 2:
+                self.assertEqual(tiles[(tile + 1) * 16:(tile + 2) * 16], bytes(16), f"{kind} draws over another cel")
+        self.assertNotEqual(cels["medkit"], cels["keycard"], "the two drops must look different")
 
 
 class CompiledDoorTests(unittest.TestCase):

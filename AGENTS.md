@@ -412,7 +412,7 @@ Slim helmet blink uses accepted snapshot ticks 62–63 modulo 64.
 
 Weapon/UI occupies 86 preloaded bank-1 OBJ patterns, separate from the 32 masked
 patterns; eighty of them are one weapon's cels and are streamed, not resident
-per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 218 patterns (242 before the middle distance became one column); source IDs
+per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 220 patterns (242 before the middle distance became one column; each drop keeps an empty pattern after it); source IDs
 are not resident VRAM IDs. Preserve cold-bank capacity. Animation follows
 accepted snapshot ticks; pending flashes cannot expire unseen. Cosmetic death
 must never delay gameplay death, pickups or exit activation; living actors and
