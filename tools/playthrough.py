@@ -361,6 +361,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
     DEBUG = bool(os.environ.get("LUPINE3D_ROUTE_DEBUG"))   # trace every exchange
     hold_aim = [False]  # set while an exchange has proved that kiting settles nothing
     fired = [0]         # shots the current exchange has actually taken
+    miss_streak = [0, None]   # shots since the target last lost health, and (slot, health)
 
     kind_stats = cgb.symbols.get("actor_kind_stats")
 
@@ -427,6 +428,17 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         # exact bearing, which may still clear the corner.
         if heading != exact and not ray_clear(heading, target):
             heading = exact
+        # The ROM projects an actor through a Q4 camera transform, and at
+        # contact range its floor moves the actor up to nine pixels off where
+        # the geometry says: the starter's carrier, pressed against a wall one
+        # cell south and five units west of the route's axis, drew at x=89,
+        # one pixel outside the aim window, and every straight shot missed. A
+        # player turns onto the sprite; the route turns two, then four, steps
+        # either way once three shots at contact range have left it unhurt.
+        if (target["slot"], target["health"]) != miss_streak[1]:
+            miss_streak[:] = [0, (target["slot"], target["health"])]
+        if abs(dx) < 512 and abs(dy) < 512 and miss_streak[0] >= 3:
+            heading = (heading + (2, -2, 4, -4)[(miss_streak[0] // 3 - 1) % 4]) & 255
         delta = (heading - angle + 128) % 256 - 128
         # Keep steering to the target rather than parking one degree away:
         # at close range the legacy Q4 transform can put that pose outside
@@ -444,6 +456,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         retreat = contact and abs(delta) <= 16
         shoot = abs(delta) <= 8 and not cgb.read16(br.SIM_CLOCK) & 2
         fired[0] += shoot
+        miss_streak[0] += shoot
         return ((1 if delta > 0 else 2) if delta else 0) | (8 if retreat else 0) | (16 if shoot else 0)
 
     def firing_cell(actor):
@@ -576,14 +589,27 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 continue
             navigate(cell); step(0)
 
-    def take_near_drops(limit=8):
-        """Pick up what a kill left when it is a few steps away, as a player
-        does. Only once nothing was reachable did the route go back for
-        drops, and Signal Vault's courier left its card at the far end of the
-        east stacks: the route crossed the sector to the west stacks and back
-        for it, and ran out of time before the last Warden."""
+    def drops_card(actor):
+        """The actor left a card: an item of the key effect, or, without
+        items, a kind whose drop is the keycard."""
+        if not actor["pickup"]:
+            return False
+        if br.ITEM_DROPS:
+            return br.GAME.items[(actor["pickup"] - 1) & 15].effect == "key"
+        kinds = br.GAME.kinds
+        return (kinds[actor["kind"]] if actor["kind"] < len(kinds) else kinds[0]).drop == "keycard"
+
+    def take_near_cards(limit=8):
+        """Pick up a card a kill left when it is a few steps away, as a
+        player does. Only once nothing was reachable did the route go back
+        for drops, and Signal Vault's courier left its card at the far end of
+        the east stacks: the route crossed the sector to the west stacks and
+        back for it, and ran out of time before the last Warden. Other drops
+        still wait (patch_up takes health when it is needed): taking every
+        drop at once walked the starter's route to its drone's medkit, and
+        the other way round to the carrier, into a corner it died in."""
         for actor in actors():
-            if not actor["pickup"] or worthless(actor):
+            if not drops_card(actor):
                 continue
             cell = actor["x"] >> 8, actor["y"] >> 8
             path = path_to(cell, reachable_only=True)
@@ -685,7 +711,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                     continue
             if len(living()) < opening:
                 fruitless.clear()
-                take_near_drops()
+                take_near_cards()
             elif survivor is not None:
                 count = fruitless[survivor["slot"]] = fruitless.get(survivor["slot"], 0) + 1
                 awake = survivor["state"] in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK)
