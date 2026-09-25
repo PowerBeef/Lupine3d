@@ -281,14 +281,16 @@ def check(output,snapshot_mode='check'):
     c=boot();c.ime=False;c.write8(0xff40,0);c.write8(b.SIM_READY,0)
     # Force all twelve source frames through all three emitted LOD paths and
     # verify actual masked WRAM bytes rather than merely host frame indexing.
-    for lod,name,base in ((0,b.GAME.sprites['actor_near'],b.SENTINEL_NEAR_TILE_BASE),(1,b.GAME.sprites['actor_mid'],b.SENTINEL_MID_TILE_BASE),(2,b.GAME.sprites['actor_far'],b.SENTINEL_FAR_TILE_BASE)):
+    lods=[(b.LOD_NEAR,b.GAME.sprites['actor_near'],b.SENTINEL_NEAR_TILE_BASE),(b.LOD_MID,b.GAME.sprites['actor_mid'],b.SENTINEL_MID_TILE_BASE),(b.LOD_FAR,b.GAME.sprites['actor_far'],b.SENTINEL_FAR_TILE_BASE)]
+    if b.ACTOR_CLOSE: lods.insert(0,(b.LOD_CLOSE,b.GAME.sprites['actor_close'],b.SENTINEL_CLOSE_TILE_BASE))
+    for lod,name,base in lods:
         for frame in range(12):
             c.call_subroutine('clear_entity_oam_shadow');c.write8(b.SENTINEL_LOD,lod);c.write8(b.SENTINEL_ANIM,frame)
             c.write8(b.ENTITY_FOOT_Y,88);c.write8(b.SENTINEL_SCREEN_X,72);c.write8(b.ENTITY_SCREEN_LEFT,255);c.write8(b.ENTITY_SCREEN_RIGHT,255)
             c.call_subroutine('render_actor_atomic')
             expected=compile_frame(name,frame,column_major=True)
             assert bytes(c.read8(b.MASK_TILES+i) for i in range(len(expected)))==expected,(name,frame)
-    checks['all_36_emitted_enemy_cels']=True
+    checks[f'all_{12*len(lods)}_emitted_enemy_cels']=True
     # Four rendered cels (idle, kick, action back, action returning);
     # recovery shows the idle cel again. Twenty patterns a cel.
     for age,cel in ((0,1),(4,2),(10,3),(16,0),(24,0)):
@@ -410,7 +412,7 @@ def check(output,snapshot_mode='check'):
         c.write8(b.SENTINEL_LOD,0);c.write8(b.SENTINEL_ANIM,11)
         c.write8(b.ENTITY_FOOT_Y,88);c.write8(b.SENTINEL_SCREEN_X,72);c.write8(b.ENTITY_SCREEN_LEFT,255);c.write8(b.ENTITY_SCREEN_RIGHT,255)
         c.call_subroutine('render_actor_atomic')
-        delta=c.read8(b.SENTINEL_OAM_USED)-used;assert delta in (0,1,2,4) and delta<=16-used
+        delta=c.read8(b.SENTINEL_OAM_USED)-used;assert delta in (0,1,2,4,6) and delta<=16-used
         assert c.read8(b.MASK_TILE_COUNT)==2*(used+delta)
     checks['atomic_capacity_fallback_no_partial_actor']=True
     c.call_subroutine('init_art_clocks');c.write8(b.SHOT_ACTIVE,1);c.call_subroutine('world_to_buffer');c.write8(0xff70,2);c.call_subroutine('buffer_to_world')

@@ -24,7 +24,7 @@ Selected generated masters, prompts, palettes, indexed PNGs, anchors and frame m
 |---|---|---:|
 | Shotgun | 40×32 | 4: idle, recoil, pump back, pump forward (rendered from a 3D model, `docs/reference/asset-formats.md`) |
 | Muzzle flash | 8×16 | 2 |
-| Sentinel | 16×32, 8×16, and a 4×8 figure in an 8×16 cel | 12 per size: idle, walk, attack, hurt, death. Each size is half the one before, so an enemy grows steadily as it approaches; the smallest is derived from the 8×16 by `art/tools/derive_distant_sentinel.py`. The earlier 16×16 middle cel (`native/sentinel_mid.png`) is kept but no longer drawn: at the height of the 8×16 it stopped enemies growing between 1¾ and 4 cells. |
+| Sentinel | 16×48, 16×32, 8×16, and a 4×8 figure in an 8×16 cel | 12 per size: idle, walk, attack, hurt, death. The close figure (16×48, `art/tools/derive_close_sentinel.py`, from the same master crops) is half as tall again as the near one, so an enemy a cell away stands four fifths as tall as the wall with its head well above eye level; it keeps the near figure's width, a slightly slimmer frame, because a proportional 24-pixel figure would take nine objects and leave room for one such enemy on a scanline. Each smaller size is half the one before, so an enemy grows steadily as it approaches; the smallest is derived from the 8×16 by `art/tools/derive_distant_sentinel.py`. The earlier 16×16 middle cel (`native/sentinel_mid.png`) is kept but no longer drawn: at the height of the 8×16 it stopped enemies growing between 1¾ and 4 cells. |
 | Player helmet | 16×16 | 4: normal, blink, hurt, dead |
 | Reticle | 8×16 | 1 |
 | Steel panel | 160×24 | Static base with dynamic tile regions |

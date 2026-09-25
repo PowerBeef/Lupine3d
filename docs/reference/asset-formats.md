@@ -63,7 +63,8 @@ record plays which role.
 
 | Role (`game.json`) | Size | Frames | Where it lives at runtime |
 |---|---|---|---|
-| `actor_near` | 16×32 | 12 | a 220-pattern ROM cel dictionary shared by the three distances; masked into 32 OBJ patterns per bank at runtime |
+| `actor_close` (optional) | 16×48 | 12, as `actor_near` | a second ROM cel dictionary of 144 patterns; drawn as six 8×16 objects |
+| `actor_near` | 16×32 | 12 | a 220-pattern ROM cel dictionary shared by the other distances; masked into 32 OBJ patterns per bank at runtime |
 | `actor_mid` | 8×16 or 16×16 (one or two columns) | 12 | same |
 | `actor_far` | 8×16 | 12 | same |
 | weapons (`weapons[].sprite`) | 40×32 | 4 | eighty streamed OBJ patterns at `$8200`, VRAM bank 1; one weapon resident, SELECT swaps with the LCD off |
@@ -81,11 +82,14 @@ record plays which role.
 The twelve enemy frames are, in order: `idle_a`, `idle_b`, `walk_left`,
 `walk_pass_a`, `walk_right`, `walk_pass_b`, `attack_raise`, `attack_fire`,
 `hurt`, `death_kneel`, `death_fall`, `death_down`, with a tick count each.
-All three distances carry the same twelve. The runtime chooses a distance
+Every distance carries the same twelve. The runtime chooses a distance
 from the enemy's forward distance: the engine measures each distance's
 tallest drawn figure (its inked rows) and switches where the neighbouring
-sizes are equally wrong, taking the near figure as true one cell away, with
-a tenth of hysteresis either side. Every enemy kind uses these frames in its
+sizes are equally wrong, taking the largest figure (the close one when the
+game has it, else the near one) as true one cell away, with a tenth of
+hysteresis either side. A close figure costs six of the sixteen world
+objects and twelve of the 32 masked patterns while it is drawn; when they
+are not free the enemy is drawn at the next distance instead, whole. Every enemy kind uses these frames in its
 own palette.
 
 A fixture is centred on its face three quarters of the way up the wall, a

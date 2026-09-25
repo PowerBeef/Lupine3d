@@ -1,6 +1,68 @@
 {
   "schema": "sable.native.v1",
   "assets": {
+    "sentinel_close": {
+      "file": "native/sentinel_close.png",
+      "size": [
+        16,
+        48
+      ],
+      "frames": [
+        "idle_a",
+        "idle_b",
+        "walk_left",
+        "walk_pass_a",
+        "walk_right",
+        "walk_pass_b",
+        "attack_raise",
+        "attack_fire",
+        "hurt",
+        "death_kneel",
+        "death_fall",
+        "death_down"
+      ],
+      "ticks": [
+        32,
+        32,
+        8,
+        8,
+        8,
+        8,
+        4,
+        4,
+        8,
+        12,
+        12,
+        12
+      ],
+      "anchor": [
+        8,
+        48
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          39,
+          28,
+          32
+        ],
+        [
+          170,
+          53,
+          50
+        ],
+        [
+          238,
+          218,
+          175
+        ]
+      ],
+      "sha256": "e7a5aed95b7218652714c008652efc92adc64f860d66b869d7669ec93f2e9808"
+    },
     "sentinel_near": {
       "file": "native/sentinel_near.png",
       "size": [

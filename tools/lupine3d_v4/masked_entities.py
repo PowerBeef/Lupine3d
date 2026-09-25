@@ -2,7 +2,32 @@
 from .layout import *  # noqa: F401,F403
 
 
+def emit_close_lod_choice(a: Assembler) -> None:
+    """Four distances: the first boundary the forward distance falls short of
+    is the LOD. Each boundary's threshold is its HOLD while the previous LOD
+    is on its finer side and its ENTER once it is coarser, so a figure on a
+    line does not flicker. Every boundary's lower threshold lies above the
+    previous one's upper, so stopping at the first uncrossed one is exact."""
+    a.label("choose_entity_lod")
+    a.ld_a_abs(ENTITY_SLOT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", LOD_HISTORY); a.add_hl_rr("de")
+    a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_a_abs(ENTITY_FORWARD); a.ld_r_r("c", "a")
+    bounds = ((LOD_CLOSE_ENTER, LOD_CLOSE_HOLD), (LOD_NEAR_ENTER, LOD_NEAR_HOLD), (LOD_FAR_HOLD, LOD_FAR_ENTER))
+    for k, (lower, upper) in enumerate(bounds):
+        a.ld_r_r("a", "b"); a.cp_n(k + 1); a.ld_r_r("a", "c"); a.jr(f"lod_lower_{k}", "nc")
+        a.cp_n(upper); a.jr(f"lod_test_{k}")
+        a.label(f"lod_lower_{k}"); a.cp_n(lower)
+        a.label(f"lod_test_{k}"); a.ld_r_n("a", k); a.jr("lod_store", "c")
+    a.ld_r_n("a", LOD_FAR)
+    a.label("lod_store"); a.ld_hl_a(); a.ld_abs_a(SENTINEL_LOD); a.ret()
+
+
 def emit_masked_entities(a: Assembler) -> None:
+    if ACTOR_CLOSE: emit_close_lod_choice(a)
+    else: emit_three_lod_choice(a)
+    emit_masked_submission(a)
+
+
+def emit_three_lod_choice(a: Assembler) -> None:
     a.label("choose_entity_lod")
     a.ld_a_abs(ENTITY_SLOT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_nn("hl", LOD_HISTORY); a.add_hl_rr("de")
     a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_a_abs(ENTITY_FORWARD)
@@ -16,6 +41,8 @@ def emit_masked_entities(a: Assembler) -> None:
     a.label("lod_far"); a.ld_r_n("a", 2)
     a.label("lod_store"); a.ld_hl_a(); a.ld_abs_a(SENTINEL_LOD); a.ret()
 
+
+def emit_masked_submission(a: Assembler) -> None:
     a.label("submit_masked_oam")  # B=Y, C=X, D=even source cel, E=palette
     for source, target in (("b", MASK_OAM_Y), ("c", MASK_OAM_X), ("d", MASK_SOURCE_TILE), ("e", MASK_ATTRIBUTES)):
         a.ld_r_r("a", source); a.ld_abs_a(target)
@@ -41,7 +68,13 @@ def emit_masked_entities(a: Assembler) -> None:
     a.ld_rr_nn("de", MASK_TILES); a.add_hl_rr("de"); a.ld_r_r("d", "h"); a.ld_r_r("e", "l")
     a.ld_a_abs(MASK_SOURCE_TILE); a.ld_r_r("l", "a"); a.ld_r_n("h", 0)
     for _ in range(4): a.add_hl_rr("hl")
-    a.ld_rr_label("bc", "entity_tiles"); a.add_hl_rr("bc")
+    a.ld_rr_label("bc", "entity_tiles")
+    if ACTOR_CLOSE:
+        # The close figure's cels are the second dictionary (attribute bit 7).
+        a.ld_a_abs(MASK_ATTRIBUTES); a.add_a_r("a"); a.jr("mask_source_ready", "nc")
+        a.ld_rr_label("bc", "entity_close_tiles")
+        a.label("mask_source_ready")
+    a.add_hl_rr("bc")
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_a_abs(MASK_BITS); a.ld_r_r("b", "a"); a.ld_r_n("c", 32)
     a.label("mask_copy_loop")
@@ -86,8 +119,27 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.call("project_sentinel_cached"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
     if SCANLINE_ADMISSION or SABLE_ART: a.jp("render_actor_atomic")
     a.label("render_actor_selected_lod")
-    a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jp("render_far_pair", "z")
-    a.or_r("a"); a.jp("render_medium_pairs", "nz")
+    a.ld_a_abs(SENTINEL_LOD); a.cp_n(LOD_FAR); a.jp("render_far_pair", "z")
+    if ACTOR_CLOSE:
+        a.cp_n(LOD_MID); a.jp("render_medium_pairs", "z")
+        a.or_r("a"); a.jp("render_near_quads", "nz")
+        # The close figure: two columns of three 8x16 strips from the second
+        # dictionary, twelve source patterns a frame, column-major pairs.
+        a.ld_a_abs(SENTINEL_ANIM); a.and_n(15); a.ld_r_r("b", "a"); a.add_a_r("a"); a.add_a_r("b")
+        a.add_a_r("a"); a.add_a_r("a")
+        if SENTINEL_CLOSE_TILE_BASE: a.add_a_n(SENTINEL_CLOSE_TILE_BASE)
+        a.ld_abs_a(ENTITY_TILE_BASE_STATE)
+        for col, visible in ((0, ENTITY_SCREEN_LEFT), (1, ENTITY_SCREEN_RIGHT)):
+            for row in range(3):
+                a.ld_a_abs(visible); a.ld_abs_a(MASK_BITS)
+                a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(48 - row * 16); a.ld_r_r("b", "a")
+                a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(col * 8); a.ld_r_r("c", "a")
+                a.ld_a_abs(ENTITY_TILE_BASE_STATE); a.add_a_n(col * 6 + row * 2); a.ld_r_r("d", "a")
+                a.ld_a_abs(ACTOR_PALETTE); a.or_n(ENTITY_CLOSE_DICTIONARY); a.ld_r_r("e", "a"); a.call("submit_masked_oam")
+        a.ret()
+        a.label("render_near_quads")
+    else:
+        a.or_r("a"); a.jp("render_medium_pairs", "nz")
     a.ld_a_abs(SENTINEL_ANIM); a.and_n(15 if SABLE_ART else 3)
     for _ in range(3): a.add_a_r("a")
     a.add_a_n(SENTINEL_NEAR_TILE_BASE); a.ld_abs_a(ENTITY_TILE_BASE_STATE)

@@ -216,13 +216,16 @@ FG_OVERFLOW = 0xC8C4
 FG_FRAME_GENERATION, FG_PUBLISHED_GENERATION, FG_TARGET_GENERATION = 0xC8C6, 0xC8C8, 0xC8CA
 FG_BUDGET, FG_CHANGED = 0xC8CC, 0xC8CD
 FG_COMPOSITE_OAM, FG_PUBLISHED_OAM, FG_QUEUE = 0xD000, 0xD100, 0xD200  # bank 4
-ADMISSION_RECORDS = 0xCB80     # four Y/X/cel/palette/mask records
-ADMISSION_COUNT = 0xCB94
-ADMISSION_FAILED = 0xCB95
-ADMISSION_MODE = 0xCB96
-ADMISSION_LINE = 0xCB97
-ADMISSION_INDEX = 0xCB98
-ADMISSION_DISTANCE_LOD = 0xCB99
+ADMISSION_RECORDS = 0xCB80     # up to six Y/X/cel/palette/mask records, one page
+ADMISSION_RECORDS_END = 0xCB9E
+# The scalars sit beside the mask submission scratch in WRAM bank 1, which
+# every submitter already has mapped.
+ADMISSION_COUNT = 0xD8F9
+ADMISSION_FAILED = 0xD8FA
+ADMISSION_MODE = 0xD8FB
+ADMISSION_LINE = 0xD8FC
+ADMISSION_INDEX = 0xD8FD
+ADMISSION_DISTANCE_LOD = 0xD8FE
 CERTIFICATE_THRESHOLD = 0xD3A0  # Nx + Ny, ordinary coarse traversal only
 FRAME_SETUP_BANK = 0xD3A2
 FRAME_SETUP_PAGE = 0xD3A3
@@ -1150,11 +1153,30 @@ SENTINEL_MID_TILE_BASE = EXIT_BEACON_TILE + EXIT_BEACON_FRAMES * 2
 SENTINEL_MID_FRAMES = 12 if SABLE_ART else 2
 
 
+# A game may give the enemy a taller figure for the closest range
+# (sprites.actor_close, 16x48: two columns of three 8x16 objects), which adds
+# a fourth distance before the near one. Its cels are a second ROM dictionary
+# (`entity_close_tiles`, 144 patterns the first has no room for): a
+# submission whose attribute byte carries ENTITY_CLOSE_DICTIONARY reads its
+# source pair there. The distances are numbered from the closest.
+ACTOR_CLOSE = SABLE_ART and "actor_close" in GAME.sprites
+ENTITY_CLOSE_DICTIONARY = 0x80
+SENTINEL_CLOSE_TILE_BASE = 0
+SENTINEL_CLOSE_TILES_PER_FRAME = 12
+LOD_CLOSE = 0
+LOD_NEAR = 1 if ACTOR_CLOSE else 0
+LOD_MID = LOD_NEAR + 1
+LOD_FAR = LOD_NEAR + 2
+# One actor's strips staged for admission: the close figure's six, else the
+# near figure's four.
+ADMISSION_RECORD_LIMIT = 6 if ACTOR_CLOSE else 4
+
+
 def _actor_figure_heights():
     """The drawn height of each distance's figure: its tallest inked rows."""
     from .sprite_assets import frames, manifest
     heights, widths = [], []
-    for role in ("actor_near", "actor_mid", "actor_far"):
+    for role in ("actor_close",) * ACTOR_CLOSE + ("actor_near", "actor_mid", "actor_far"):
         name = GAME.sprites[role]
         rows = [y for cel in frames(name) for y, row in enumerate(cel) if any(row)]
         heights.append(max(rows) - min(rows) + 1)
@@ -1167,23 +1189,33 @@ def _actor_figure_heights():
 # cel a quarter-scale figure, so the three sizes halve as an enemy recedes.
 if SABLE_ART:
     _heights, _widths = _actor_figure_heights()
-    if _widths[1] not in (8, 16):
+    if _widths[-2] not in (8, 16):
         raise ValueError("actor_mid must be 8 or 16 pixels wide")
-    SENTINEL_MID_COLUMNS = _widths[1] // 8
-    # A wall one cell away projects 960/16 = 60 pixels; the near figure is
-    # drawn at its true size one cell (forward 16, Q4) away, so a figure of
-    # height h is true at forward 16 * near/h. Each switch sits where the two
+    SENTINEL_MID_COLUMNS = _widths[-2] // 8
+    # A wall one cell away projects 960/16 = 60 pixels; the largest figure
+    # (the close one when the game has it, else the near one) is drawn at its
+    # true size one cell (forward 16, Q4) away, so a figure of height h is
+    # true at forward 16 * largest/h. Each switch sits where the two
     # neighbouring figures are equally wrong (the geometric mean), with a
     # tenth either side of hysteresis so a figure on the line does not flicker.
-    _near, _mid, _far = _heights
-    _near_switch = 16 * (_near / _mid) ** 0.5
-    _far_switch = 16 * _near / (_mid * _far) ** 0.5
+    # The ENTER/HOLD pairs name the finer side: a figure enters it below
+    # ENTER and holds it below HOLD (the far pair names the coarser side).
+    _largest = _heights[0]
+    _near, _mid, _far = _heights[-3:]
+    _near_switch = 16 * _largest / (_near * _mid) ** 0.5
+    _far_switch = 16 * _largest / (_mid * _far) ** 0.5
     LOD_NEAR_ENTER, LOD_NEAR_HOLD = round(_near_switch * 0.93), round(_near_switch * 1.1)
     LOD_FAR_ENTER, LOD_FAR_HOLD = round(_far_switch * 1.07), round(_far_switch * 0.93)
     assert 5 < LOD_NEAR_ENTER < LOD_NEAR_HOLD < LOD_FAR_HOLD < LOD_FAR_ENTER < 128, _heights
+    if ACTOR_CLOSE:
+        _close_switch = 16 * _largest / (_largest * _near) ** 0.5
+        LOD_CLOSE_ENTER, LOD_CLOSE_HOLD = round(_close_switch * 0.93), round(_close_switch * 1.1)
+        assert 5 < LOD_CLOSE_ENTER < LOD_CLOSE_HOLD < LOD_NEAR_ENTER, _heights
 else:
     SENTINEL_MID_COLUMNS = 2
     LOD_NEAR_ENTER, LOD_NEAR_HOLD, LOD_FAR_ENTER, LOD_FAR_HOLD = 28, 36, 68, 60
+assert ADMISSION_RECORDS + 5 * ADMISSION_RECORD_LIMIT <= ADMISSION_RECORDS_END
+assert ADMISSION_RECORDS >> 8 == (ADMISSION_RECORDS_END - 1) >> 8   # the stride is a low-byte add
 SENTINEL_MID_TILES_PER_FRAME = SENTINEL_MID_COLUMNS * 2
 # The fixture families (sixteen source patterns each), then the placed
 # items' cels, each an 8x8 cel over an empty pattern like the drops.

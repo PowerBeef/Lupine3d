@@ -7,7 +7,7 @@
   "screens": "screens.json",
   "sprites": {
     "manifest": "art/sprites.json",
-    "actor_near": "sentinel_near", "actor_mid": "sentinel_far", "actor_far": "sentinel_distant",
+    "actor_close": "sentinel_close", "actor_near": "sentinel_near", "actor_mid": "sentinel_far", "actor_far": "sentinel_distant",
     "reticle": "reticle", "muzzle_flash": "flash",
     "hud": "hud_steel", "portrait": "helmet_steel",
     "drops": "drops", "hit_effect": "hit_effect", "exit_beacon": "exit_beacon", "fixtures": "fixtures",

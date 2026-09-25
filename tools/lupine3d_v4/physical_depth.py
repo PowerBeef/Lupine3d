@@ -35,7 +35,7 @@ def emit_physical_depth(a: Assembler):
 
     a.label("coverage_mark_actor")
     a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.ret("z")
-    a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jr("coverage_mark_small","z")
+    a.ld_a_abs(SENTINEL_LOD); a.cp_n(LOD_FAR); a.jr("coverage_mark_small","z")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.jr("coverage_mark_small","z")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.sub_n(8); a.ld_r_n("b",16); a.jp("coverage_mark_strip")
     a.label("coverage_mark_small")

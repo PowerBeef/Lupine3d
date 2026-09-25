@@ -30,7 +30,7 @@ game directory and never generates an image.
 - **The renderer.** A first-person view of a 16×16 grid world, 160×120
   pixels over a 24-pixel HUD, cast with 41 prepared rays and reconstructed to
   160 columns, textured walls with depth shading, doors that slide, enemies
-  drawn as masked sprites at three distances. The frame has no framebuffer:
+  drawn as masked sprites at up to four distances. The frame has no framebuffer:
   it is composed into Game Boy Color tiles and published by DMA.
 - **The simulation.** A fixed tick: movement and collision, doors, the
   enemies' waking, patrolling, chasing and contact, hitscan shots,
@@ -59,7 +59,7 @@ setting a game can reach.
 | Fixed | Because |
 |---|---|
 | 16×16 levels, up to 6 doors, 6 enemies, 16 fixtures | the level slot and the door and actor records ([level format](../reference/level-format.md)) |
-| every enemy kind uses one set of twelve frames | the cel dictionary is built for one actor sheet at three distances |
+| every enemy kind uses one set of twelve frames | the cel dictionaries are built for one actor sheet at three or four distances |
 | one resident wall atlas profile for the whole game | levels must agree on `vram_profile`; switching would need atlas streaming |
 | the enemy behaviour | patrol, chase and contact are engine code; a kind sets only speed, damage, recovery and drop |
 | one activation radius a level | the level header carries the first enemy's |

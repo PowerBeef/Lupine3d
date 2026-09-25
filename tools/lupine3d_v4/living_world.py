@@ -343,10 +343,12 @@ def emit_entity_projection(a: Assembler) -> None:
     # Coarse 8-pixel strip occlusion against authoritative two-pixel wall depth.
     # One 8-pixel strip for the one-column cels (far, and middle when it is
     # one column wide), two for the two-column ones.
-    if SENTINEL_MID_COLUMNS == 1:
+    if SENTINEL_MID_COLUMNS == 1 and ACTOR_CLOSE:
+        a.ld_a_abs(SENTINEL_LOD); a.cp_n(LOD_MID); a.jr("project_near_visibility", "c")
+    elif SENTINEL_MID_COLUMNS == 1:
         a.ld_a_abs(SENTINEL_LOD); a.or_r("a"); a.jr("project_near_visibility", "z")
     else:
-        a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jr("project_near_visibility", "nz")
+        a.ld_a_abs(SENTINEL_LOD); a.cp_n(LOD_FAR); a.jr("project_near_visibility", "nz")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(ENTITY_SCREEN_LEFT); a.ld_abs_a(ENTITY_SCREEN_RIGHT); a.or_r("a"); a.jr("project_visibility_store")
     a.label("project_near_visibility")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.sub_n(4); a.call("entity_column_visible"); a.ld_abs_a(ENTITY_SCREEN_LEFT)

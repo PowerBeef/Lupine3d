@@ -667,6 +667,11 @@
           "minLength": 1,
           "description": "a file inside the game directory, relative to game.json"
         },
+        "actor_close": {
+          "type": "string",
+          "minLength": 1,
+          "description": "optional: the enemy at the closest range, 16x48 with as many frames as actor_near (a record of the sprite manifest)"
+        },
         "actor_near": {
           "type": "string",
           "minLength": 1,

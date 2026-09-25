@@ -1,6 +1,7 @@
 """Atomic actor admission against actual Y-selected hardware objects.
 
-Four prospective strips are staged in fixed WRAM. Preflight mutates no world
+Up to six prospective strips (ADMISSION_RECORD_LIMIT: the close figure's six,
+else four) are staged in fixed WRAM. Preflight mutates no world
 allocation state. Temporary capacity LOD never changes distance hysteresis.
 """
 from .layout import *
@@ -41,7 +42,7 @@ def emit_actor_admission(a: Assembler):
     a.label("collect_actor_strip")  # submit arguments already staged in MASK_*; preserve allocation state
     a.ld_a_abs(MASK_BITS); a.or_r("a"); a.ret("z")
     a.ld_a_abs(MASK_OAM_Y); a.or_r("a"); a.ret("z"); a.cp_n(160); a.ret("nc")
-    a.ld_a_abs(ADMISSION_COUNT); a.cp_n(4); a.jr("admission_collect_overflow","nc")
+    a.ld_a_abs(ADMISSION_COUNT); a.cp_n(ADMISSION_RECORD_LIMIT); a.jr("admission_collect_overflow","nc")
     a.ld_r_r("e","a"); a.add_a_r("a"); a.add_a_r("a"); a.add_a_r("e"); a.add_a_n(ADMISSION_RECORDS&255); a.ld_r_r("l","a"); a.ld_r_n("h",ADMISSION_RECORDS>>8)
     for address in (MASK_OAM_Y,MASK_OAM_X,MASK_SOURCE_TILE,MASK_ATTRIBUTES,MASK_BITS): a.ld_a_abs(address); a.ldi_hl_a()
     a.ld_rr_nn("hl",ADMISSION_COUNT); a.inc_r("(hl)"); a.ret()
@@ -82,7 +83,7 @@ def emit_actor_admission(a: Assembler):
     a.ld_a_hl(); a.ld_r_r("e","a"); a.ld_a_abs(ADMISSION_LINE); a.cp_r("e"); a.jr("admission_strip_next","nc")
     a.add_a_n(16); a.cp_r("e"); a.jr("admission_strip_next","c"); a.inc_r("b")
     a.label("admission_strip_next")
-    # The four records share a page, so the stride is a low-byte add (D holds
+    # The records share a page, so the stride is a low-byte add (D holds
     # the end of the window).
     a.ld_r_r("a","l"); a.add_a_n(5); a.ld_r_r("l","a"); a.dec_r("c"); a.jr("admission_count_overlap","nz")
     a.label("admission_line_ready")
@@ -100,10 +101,12 @@ def emit_actor_admission(a: Assembler):
     a.xor_r("a"); a.ld_abs_a(ADMISSION_MODE)
     a.call("preflight_actor"); a.or_r("a"); a.jr("admission_commit","nz")
     a.label("admission_capacity_rejected")
-    a.ld_a_abs(SENTINEL_LOD); a.cp_n(2); a.jr("admission_restore_lod","z")
+    a.ld_a_abs(SENTINEL_LOD); a.cp_n(LOD_FAR); a.jr("admission_restore_lod","z")
     a.inc_r("a"); a.ld_abs_a(SENTINEL_LOD)
-    # A coarser cel that is one column wide needs the one-strip mask.
-    if SENTINEL_MID_COLUMNS == 2: a.cp_n(2); a.jr("admission_retry_lod","nz")
+    # A coarser cel that is one column wide needs the one-strip mask (the
+    # close and near figures share their two columns' masks).
+    if SENTINEL_MID_COLUMNS == 2: a.cp_n(LOD_FAR); a.jr("admission_retry_lod","nz")
+    elif ACTOR_CLOSE: a.cp_n(LOD_MID); a.jr("admission_retry_lod","c")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(ENTITY_SCREEN_LEFT)
     a.jr("admission_retry_lod")
     a.label("admission_commit")

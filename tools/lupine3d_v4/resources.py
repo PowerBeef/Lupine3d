@@ -382,6 +382,18 @@ def _sentinel_far_frame(frame: int) -> bytes:
     return _split_pixels(px, 8, 16)
 
 
+def make_entity_close_tiles() -> bytes:
+    """The close figure's cels (sprites.actor_close), the second dictionary:
+    twelve patterns a frame, each column's three 8x16 strips top to bottom."""
+    if not ACTOR_CLOSE:
+        return b""
+    from .sprite_assets import compile_frame, frames
+    name = GAME.sprites["actor_close"]
+    out = b"".join(compile_frame(name, frame, column_major=True) for frame in range(len(frames(name))))
+    assert len(out) == SENTINEL_NEAR_FRAMES * SENTINEL_CLOSE_TILES_PER_FRAME * 16 <= 256 * 16
+    return out
+
+
 def make_entity_tiles() -> bytes:
     """ROM-source animation cels and wall fixtures; VRAM receives masked pairs."""
     out = bytearray()

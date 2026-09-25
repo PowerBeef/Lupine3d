@@ -485,7 +485,7 @@ Slim helmet blink uses accepted snapshot ticks 62–63 modulo 64.
 
 Weapon/UI occupies 86 preloaded bank-1 OBJ patterns, separate from the 32 masked
 patterns; eighty of them are one weapon's cels and are streamed, not resident
-per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 220 patterns (242 before the middle distance became one column; each drop keeps an empty pattern after it), then the placed items' cels (two patterns each, `ITEM_TILE_BASE`); source IDs
+per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 220 patterns (242 before the middle distance became one column; each drop keeps an empty pattern after it), then the placed items' cels (two patterns each, `ITEM_TILE_BASE`); a game's optional close figure (`actor_close`, 16x48, six objects) is a second 144-pattern dictionary (`entity_close_tiles`) that a submission selects with attribute bit 7 (`ENTITY_CLOSE_DICTIONARY`), and adds a fourth LOD numbered from the closest (`LOD_CLOSE`..`LOD_FAR`); admission stages up to six strips (`ADMISSION_RECORD_LIMIT`). Source IDs
 are not resident VRAM IDs. Preserve cold-bank capacity. Animation follows
 accepted snapshot ticks; pending flashes cannot expire unseen. Cosmetic death
 must never delay gameplay death, pickups or exit activation; living actors and

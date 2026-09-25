@@ -116,6 +116,10 @@ HUD_WORDS = ("caption", "hunt", "exit", "dead", "done")
 # manifest (docs/reference/asset-formats.md gives each role's size and frames).
 SPRITE_ROLES = ("actor_near", "actor_mid", "actor_far", "reticle", "muzzle_flash", "hud", "portrait",
                 "drops", "hit_effect", "exit_beacon", "fixtures")
+# Roles a game may leave out: a taller enemy figure for the closest range
+# (16x48, drawn as six objects), which adds a fourth distance before
+# actor_near.
+OPTIONAL_SPRITE_ROLES = ("actor_close",)
 # Wall fixtures: four families (the fixture record's kind is two bits), each
 # drawn at three distances in the fixture sheet.
 FIXTURE_KINDS = 4
@@ -159,7 +163,7 @@ KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "audio.songs": (frozenset(SONG_ROLES + SONG_EXTRA_ROLES), frozenset(SONG_ROLES)),
     "hud": _required("words"),
     "hud.words": _required(*HUD_WORDS),
-    "sprites": (frozenset({"manifest", *SPRITE_ROLES, "items"}), frozenset({"manifest", *SPRITE_ROLES})),
+    "sprites": (frozenset({"manifest", *SPRITE_ROLES, *OPTIONAL_SPRITE_ROLES, "items"}), frozenset({"manifest", *SPRITE_ROLES})),
     "playtests": (frozenset(PLAYTEST_ROLES), frozenset({"tour"})),
     "preview": _required("x", "y", "angle"),
     "screens": (frozenset({"$schema", "format", "screens", "debriefs"}), frozenset({"format", "screens"})),
@@ -1053,6 +1057,7 @@ def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str],
         raise GameError(_where(root, f"{path.name} must be a sprite manifest (\"schema\": \"{SPRITE_SCHEMAS[0]}\")"))
     records = manifest.get("assets", {})
     roles = {role: _string(data[role], root, f"sprites.{role}") for role in SPRITE_ROLES}
+    roles.update({role: _string(data[role], root, f"sprites.{role}") for role in OPTIONAL_SPRITE_ROLES if role in data})
     if "items" in data:
         roles["items"] = _string(data["items"], root, "sprites.items")
     elif items:
@@ -1066,6 +1071,12 @@ def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str],
         if not sheet.is_relative_to(root.resolve()) or not sheet.is_file():
             raise GameError(_where(root, f"{path.name} record {name!r} names a file that does not exist in the game"))
         files[sheet.relative_to(root.resolve()).as_posix()] = hashlib.sha256(sheet.read_bytes()).hexdigest()
+    if "actor_close" in roles:
+        close, near = records[roles["actor_close"]], records[roles["actor_near"]]
+        if close.get("size") != [16, 48]:
+            raise GameError(_where(root, f"sprites.actor_close {roles['actor_close']!r} must be 16x48 cels, not {close.get('size')}"))
+        if len(close.get("frames", [])) != len(near.get("frames", [])):
+            raise GameError(_where(root, "sprites.actor_close must have as many frames as sprites.actor_near"))
     if items:
         frames = records[roles["items"]].get("frames", [])
         size = records[roles["items"]].get("size")

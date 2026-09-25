@@ -211,6 +211,7 @@ Every value but `manifest` names a record of the sprite manifest
 | Key | Required | Value |
 |---|---|---|
 | `manifest` | yes | the sprite manifest (`art/sprites.json` by convention) |
+| `actor_close` | no | the enemy at the closest range, 16×48, as many cels as `actor_near`; without it the near figure is the closest |
 | `actor_near` | yes | the enemy at close range, 16×32, twelve cels |
 | `actor_mid` | yes | the enemy at middle range, 8×16 or 16×16 |
 | `actor_far` | yes | the enemy far away, 8×16 |

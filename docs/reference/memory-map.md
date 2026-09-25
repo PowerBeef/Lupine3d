@@ -26,7 +26,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | banks 146-153 (`$4000` in 146 to `$8000` in 153) | 131,072 | product table | persistent |
 | bank 154 `$4000-$8000` | 16,384 | inactive atlas | persistent |
 | bank 155 `$4000-$8000` | 16,384 | texture row windows (three blocks per bank) | persistent |
-| bank 156 `$4000-$6BFA` | 11,258 | boot art and authored state | persistent |
+| bank 156 `$4000-$74FA` | 13,562 | boot art and authored state | persistent |
 | banks 157-172 (`$4000` in 157 to `$8000` in 172) | 262,144 | Q14 directions | persistent |
 | banks 173-236 (`$4000` in 173 to `$8000` in 236) | 1,048,576 | prepared rays and packet padding | persistent |
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
@@ -70,7 +70,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$CAF8-$CAFF` | 7 | actor patrol headings and wake radius (simulation only) | persistent |
 | `$CB00-$CB6F` | 111 | saved render HRAM | simulation service |
 | `$CB70-$CB80` | 16 | dynamic cache key staging and pointer | one tile lookup/composition |
-| `$CB80-$CB9A` | 26 | atomic actor admission staging | entity rendering, no yields |
+| `$CB80-$CB9E` | 30 | atomic actor admission records | entity rendering, no yields |
 | `$CBA0-$CC00` | 96 | textured run records | one composed column |
 | `$CC00-$CD00` | 256 | timestamped input queue | persistent |
 | `$CD00-$CE00` | 256 | exact wall map key | persistent |
@@ -103,6 +103,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$D8E0-$D8E7` | 7 | LOD history | persistent |
 | `$D8F0-$D8F7` | 7 | surface and prepared projection metadata | persistent |
 | `$D8F7-$D8F9` | 2 | along-face result and slope scratch | one cast |
+| `$D8F9-$D8FF` | 6 | atomic actor admission scalars | entity rendering, no yields |
 | `$D900-$DA00` | 256 | scanlines, actor slots, decor and HUD | persistent |
 | `$DA00-$DC00` | 512 | masked OBJ patterns | persistent |
 | `$DC00-$DDE0` | 480 | BG attributes | persistent |

@@ -7,6 +7,7 @@
   "screens": "screens.json",
   "sprites": {
     "manifest": "art/sprites.json",
+    "actor_close": "sentinel_close",
     "actor_near": "sentinel_near",
     "actor_mid": "sentinel_far",
     "actor_far": "sentinel_distant",

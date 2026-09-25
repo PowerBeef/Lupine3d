@@ -82,7 +82,9 @@ def make_boot_assets() -> list[tuple[str, bytes]]:
         ("ui_tiles", make_ui_tiles()), ("hud_tiles", hud_assets()[0]), ("obj_ui_tiles", make_obj_ui_tiles()),
         ("static_view_tiles", make_static_view_tiles()),
         ("active_atlas_tiles", ACTIVE_ATLAS_TILES),
-        ("entity_tiles", make_entity_tiles()), ("oam_initial", make_oam_shadow()),
+        ("entity_tiles", make_entity_tiles()),
+        *([("entity_close_tiles", make_entity_close_tiles())] if ACTOR_CLOSE else []),
+        ("oam_initial", make_oam_shadow()),
         # Pan Docs HRAM loop: 40 * four M-cycles covers the 160-M-cycle DMA.
         ("oam_dma_stub", bytes((0x3E, 0xC8, 0xE0, OAM_DMA, 0x3E, 40, 0x3D, 0x20, 0xFD, 0xC9))),
         ("tilemap_data", make_tilemap()), ("attrmap_page0", make_attrmap(0)),

@@ -114,7 +114,7 @@ Each feature is data in this folder, read by the engine:
 | `kinds` | four enemy kinds in three palettes, a ranged Warden and a boss, each actor with its own wake rule and drop | [enemies](../../docs/how-to/enemies.md) |
 | `weapons` | four weapons owned by episode or found, three drawing on ammunition | [weapons](../../docs/how-to/weapons.md) |
 | `themes`, `textures/` | three themes over seven wall textures, the most the engine holds | [themes](../../docs/how-to/themes-and-palettes.md), [textures](../../docs/how-to/wall-textures.md) |
-| `art/` | the Sentinel's twelve animated frames at three distances, the steel HUD and helmet, items, fixtures, the title's wordmark and emblem | [sprites and HUD](../../docs/how-to/sprites-and-hud.md) |
+| `art/` | the Sentinel's twelve animated frames at four distances, the steel HUD and helmet, items, fixtures, the title's wordmark and emblem | [sprites and HUD](../../docs/how-to/sprites-and-hud.md) |
 | `screens.json` | 27 screens: the title, code entry, a prologue, the episode pages, 17 debriefs, game over and the ending | [screens](../../docs/how-to/screens.md) |
 | `audio/` | eight songs and ten effects | [music and sound](../../docs/how-to/music-and-sound.md) |
 | `playtests/`, `snapshots/` | three driven tours and six golden suites | [test your game](../../docs/how-to/test-your-game.md) |

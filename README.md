@@ -31,7 +31,7 @@ independent emulators.
 
 | | |
 |---|---|
-| **Renderer** | 160×120 first-person view over a 24-pixel HUD; walls textured from 16×8 images with depth shading; sliding doors; wall fixtures; enemies as animated sprites at three distances |
+| **Renderer** | 160×120 first-person view over a 24-pixel HUD; walls textured from 16×8 images with depth shading; sliding doors; wall fixtures; enemies as animated sprites at four distances, up to 48 pixels tall |
 | **World** | 16×16 grid levels with up to 6 doors, 6 enemies and 16 wall fixtures; enemies that wake, patrol, chase and strike; keycards and medkits; a fixed-tick simulation |
 | **Game** | up to 20<!-- limit:levels --> levels in 3<!-- limit:episodes --> episodes; 4<!-- limit:kinds --> enemy kinds; 4<!-- limit:weapons --> weapons unlocked as you progress; 4<!-- limit:themes --> themes over 7<!-- limit:textures --> wall textures; title, results and episode screens; three skills; continue codes instead of saves |
 | **Sound** | a three-channel music sequencer and nine sound effects on the fourth channel |
