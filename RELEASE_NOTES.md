@@ -1,5 +1,13 @@
 # Unreleased — after v0.12
 
+- **The results screens tally the items.** In a game with items, a cleared
+  sector stamps the share of its placed items the player took, and the
+  intermission and every debrief report it after the time as a new `items`
+  field ("ITEMS  78%"; a sector with none reports 100). A reading-face field
+  line may carry a static `suffix` after its digits, the reading face gains
+  `%`, and a screen may now rewrite twelve cells (`SCREEN_SLOT_CAPACITY`).
+  Sable Outpost's eighteen results screens show it; the starter, which has
+  no items, is unchanged.
 - **Every room of Sable Outpost means something.** All eighteen sectors are
   repopulated (and most extended) around the new systems: six actors in
   each, eight to thirteen placed items, at least one coloured card door,

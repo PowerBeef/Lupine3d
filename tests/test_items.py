@@ -209,6 +209,23 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(live[br.AMMO - 0xD000], 9)
         self.assertEqual(cgb.read8(br.TRIGGERS_FIRED), 1)
 
+    def test_the_results_screen_reports_the_share_of_items_taken(self):
+        """A cleared sector stamps the share of its placed items taken, and
+        the results screen writes it after the time, leading zeros blank."""
+        from lupine3d_v4.screens import BLANK_PATTERN as BLANK
+        slot = br.PASSWORD_DIGITS + 2 + 3
+        for taken, share, cells in ((0, 0, (BLANK, BLANK, 0)),
+                                    (0b00111, 60, (BLANK, 6, 0)),
+                                    (0b00011, 40, (BLANK, 4, 0)),
+                                    (0b00001, 20, (BLANK, 2, 0)),
+                                    (0b11111, 100, (1, 0, 0))):
+            cgb = self.world()
+            self.live(cgb, br.ITEMS_TAKEN, taken)
+            cgb.call_subroutine("stamp_sector_result", max_steps=200_000)
+            self.assertEqual(self.live(cgb, br.SECTOR_ITEMS), share, bin(taken))
+            cgb.call_subroutine("screen_sector_stats", max_steps=400_000)
+            self.assertEqual(tuple(cgb.read8(br.SCREEN_DIGITS + slot + n) for n in range(3)), cells, share)
+
     def test_b_refuses_a_remote_door_and_a_card_door_wants_its_colour(self):
         cgb = self.world()
         level = level_codec.compile_level(FIXTURE)

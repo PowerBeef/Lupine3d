@@ -129,7 +129,8 @@
             "skill",
             "code",
             "kills",
-            "time"
+            "time",
+            "items"
           ]
         },
         "label": {
@@ -200,7 +201,7 @@
       "properties": {
         "say": {
           "type": "string",
-          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
+          "pattern": "^([A-Z0-9 ./:!?,'%-]|\\{sector\\}|\\{next\\})+$"
         },
         "row": {
           "type": "integer",
@@ -234,12 +235,13 @@
             "skill",
             "code",
             "kills",
-            "time"
+            "time",
+            "items"
           ]
         },
         "label": {
           "type": "string",
-          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
+          "pattern": "^([A-Z0-9 ./:!?,'%-]|\\{sector\\}|\\{next\\})+$"
         },
         "row": {
           "type": "integer",
@@ -255,6 +257,10 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 19
+        },
+        "suffix": {
+          "type": "string",
+          "pattern": "^[A-Z0-9 ./:!?,'%-]+$"
         }
       },
       "additionalProperties": false

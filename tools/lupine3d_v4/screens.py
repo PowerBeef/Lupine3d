@@ -12,7 +12,7 @@ write a level number or a count straight into a map cell without touching VRAM.
 """
 from .artwork import canvas, rect, text_pixels, tiles
 from .layout import *  # noqa: F401,F403
-from .game import DEBRIEF_FIELDS, FIXED_SCREENS, SCREEN_FIELDS, ScreenLine
+from .game import FIXED_SCREENS, SCREEN_FIELDS, ScreenLine, screen_fields
 from .fonts import GLYPH_ADVANCE, GLYPH_HEIGHT, GLYPH_WIDTH, SCREEN_FACE  # noqa: F401
 from .limits import LIMITS
 
@@ -166,7 +166,8 @@ def compose_screen(lines, slots=(), frame: bool = True, digits: dict | None = No
                         px[line.row * 8 + y][column * 8 + x] = value
             continue
         if line.face == "reading":
-            cells = len(line.text) + (1 + count if line.field else 0)
+            suffix = getattr(line, "suffix", "")
+            cells = len(line.text) + (1 + count + len(suffix) if line.field else 0)
             column = line.column if line.column is not None else (SCREEN_COLUMNS - cells) // 2
             claim([(column + n, line.row) for n in range(cells)], index)
             for n, char in enumerate(line.text):
@@ -175,6 +176,11 @@ def compose_screen(lines, slots=(), frame: bool = True, digits: dict | None = No
             if line.field:
                 reserved.extend((column + len(line.text) + 1 + n, line.row) for n in range(count))
                 field_faces.add("reading"); field_colours.add(line.colour)
+                # A suffix ("%") is static text after the runtime cells.
+                for n, char in enumerate(suffix):
+                    if char != " ":
+                        _reading_glyph(px, char, (column + len(line.text) + 1 + count + n) * 8, line.row * 8,
+                                       line.colour)
             continue
         if line.field:
             x, cells = _field_layout(line.text, count, line.y, line.scale)
@@ -238,8 +244,7 @@ DEBRIEF_BASE = len(FIXED_SCREENS) + len(EPISODE_STARTS) + len(OPENING_STARTS) if
 assert FIXED_SCREENS[:5] == ("title", "gameover", "ending", "intermission", "password")
 assert SCREEN_FIELDS["intermission"]["code"] == SCREEN_FIELDS["password"]["code"] == PASSWORD_DIGITS
 SCREEN_SOURCES = tuple(
-    (name, lines, GAME.screen_frames.get(name, True),
-     DEBRIEF_FIELDS if name.startswith("debrief_") else SCREEN_FIELDS.get(name, {}))
+    (name, lines, GAME.screen_frames.get(name, True), screen_fields(name, bool(GAME.items)))
     for name, lines in GAME.screens.items())
 assert tuple(name for name, _, _, _ in SCREEN_SOURCES[5:]) == GAME.episode_screen_names + GAME.debrief_names, (
     f"the game's episode screens {GAME.episode_screen_names} are not the authored ones")
@@ -520,6 +525,18 @@ def emit_screens(a: Assembler) -> None:
     a.ld_a_abs(SECTOR_KILLS); a.ld_abs_a(SCREEN_VALUE)
     a.xor_r("a"); a.ld_abs_a(SCREEN_VALUE + 1)
     a.ld_r_n("b", 2); a.ld_r_n("c", PASSWORD_DIGITS); a.call("screen_write_number")
+    if ITEM_DROPS:
+        # The share of the placed items taken, in the three cells after the
+        # time, its leading zeros blank: "ITEMS  78%".
+        items_slot = PASSWORD_DIGITS + 2 + 3
+        a.ld_a_abs(SECTOR_ITEMS); a.ld_abs_a(SCREEN_VALUE)
+        a.xor_r("a"); a.ld_abs_a(SCREEN_VALUE + 1)
+        a.ld_r_n("b", 3); a.ld_r_n("c", items_slot); a.call("screen_write_number")
+        a.ld_rr_nn("hl", SCREEN_DIGITS + items_slot)
+        for _ in range(2):
+            a.ld_a_hl(); a.or_r("a"); a.jr("screen_items_digits", "nz")
+            a.ld_hl_n(BLANK_PATTERN); a.inc_rr("hl")
+        a.label("screen_items_digits")
     a.ld_rr_nn("hl", SECTOR_TIME)
     a.ld_r_n("b", 3); a.ld_r_n("c", PASSWORD_DIGITS + 2); a.jp("screen_seconds_from")
 

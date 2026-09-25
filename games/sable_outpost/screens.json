@@ -32,6 +32,7 @@
       {"field": "code", "label": "CODE ", "row": 6, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 8, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 12, "colour": 2, "column": 4},
       {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "password": [
@@ -99,6 +100,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -112,6 +114,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -125,6 +128,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -138,6 +142,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -151,6 +156,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -164,6 +170,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -177,6 +184,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -190,6 +198,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -203,6 +212,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -216,6 +226,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -229,6 +240,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -242,6 +254,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -255,6 +268,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -268,6 +282,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -281,6 +296,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -294,6 +310,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}
@@ -307,6 +324,7 @@
       {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
       {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
       {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"field": "items", "label": "ITEMS", "suffix": "%", "row": 11, "colour": 2, "column": 4},
       {"say": "NEXT", "row": 12, "colour": 1},
       {"say": "{next}", "row": 13, "colour": 3},
       {"say": "PRESS START", "row": 15, "colour": 1}

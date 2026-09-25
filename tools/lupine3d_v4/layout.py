@@ -343,7 +343,7 @@ RAW_RAY_ROM_ADDRESS = 0x4000
 # window while the world renders, so these screens borrow it when it is idle.
 SCREEN_ROM_BANK = 239
 SCREEN_ROM_ADDRESS = 0x4000
-SCREEN_SLOT_CAPACITY = 10      # digits one screen can rewrite at runtime
+SCREEN_SLOT_CAPACITY = 12      # digits one screen can rewrite at runtime (a debrief: code 4, kills 2, time 3, items 3)
 # Pattern count, pattern address, map address, the payload's ROM bank, slot
 # count, then the slots. The directory is always in SCREEN_ROM_BANK; payloads
 # that do not fit it continue in SCREEN_OVERFLOW_ROM_BANK after its raw rays.
@@ -1277,7 +1277,10 @@ CAMPAIGN_TIME = SECTOR_TIME + 2       # u16 VBlanks across the run
 ITEMS_TAKEN = CAMPAIGN_TIME + 2       # u16: bit n is placed item n
 AMMO = ITEMS_TAKEN + 2                # two pools, 0..99, INFINITE_AMMO (255) for a level without a loadout
 PLAYER_ARMOUR = AMMO + 2              # points, 0..100
-GAME_STATE_END = PLAYER_ARMOUR + 1
+# The share of the sector's placed items taken, 0..100 (100 for a sector with
+# none), stamped when it is cleared for the results screen to report.
+SECTOR_ITEMS = PLAYER_ARMOUR + 1
+GAME_STATE_END = SECTOR_ITEMS + 1
 VBLANKS_PER_SECOND = 60
 
 # The depth pass projects every actor; the draw pass used to project each

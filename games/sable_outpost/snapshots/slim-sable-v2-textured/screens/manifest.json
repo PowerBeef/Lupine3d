@@ -2,140 +2,140 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "debrief_1": {
-      "rgb_sha256": "99990df3696c78c2d393a8a76e79a8f683042296f9ab07e70b2a34d02bdc775a",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "6c5a5cb7b66c98c3a09e78936d810776439eaf7f58b1c4ec1ff7e611e69d63a2",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:03+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_10": {
-      "rgb_sha256": "28e539fed0accd8009dbfbe79290d21305a6714f978c92f39b447e72b5062cf9",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "ed90e306a57227fa183a43e61a5ddebe707f423d5f5d81dc0a9e892a84f5b265",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:05+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_11": {
-      "rgb_sha256": "d154503d031aa054b874e4403f54338f694569f88b5a67c61fc28da96298cdbd",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "350dfa861ec408c52661ded5b2786232e275c767ef8d9c0daddc0a3ff8d2003b",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:05+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_12": {
-      "rgb_sha256": "6192420686ce7fea2c8a6ab175c037d3968ff8a14af8f1bda8969dfa912f06e0",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "b85d07d39532675a5f4cfef904bbb825dc7fc52a2b4e405cf480102d329fd310",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:05+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_13": {
-      "rgb_sha256": "74a2660c7eb73d8d59c96d061538bc1bff98e69f21e206fb4de899f5c09e0875",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "507bd737a24450605138a575ce935101b4144a42d37b3b3930440822a85b310c",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:06+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_14": {
-      "rgb_sha256": "74041b3ec1696faff22928ecf5549b844646e65e4616574a604c8519cec3d229",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "1791888c130e1515c34dce10debaf755eda78ce7a6d9c8faa95f9fc851eda028",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:06+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_15": {
-      "rgb_sha256": "e58f0073d54da1672d28165308786c7c19fba92c0529a34803a56c33e7d4f8db",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "3f468e25241ad1d0db25c0b729c9b3411239c77b209f9b7c8e658734527256aa",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:06+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_16": {
-      "rgb_sha256": "922ff092b6b7d5ed6b0d2914c7782f68f201343c6483e50e4745ecb923cb35ff",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "3307eb016872c45c1db86e2450aa27ee641eb68ce302d40652cb434dfcb5537d",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:06+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_17": {
-      "rgb_sha256": "95e811a8cff2bca7e3850da4f4832ae04873f095cf76f4f0d7dc7a4dd6715a5e",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "24ffd6b2e3f27386cc4b3f9bad309c10d16d8987a44f73ff524ddf2fb53645bb",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:06+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_2": {
-      "rgb_sha256": "c2580c657072c0d8f90e22f6f5d76de99ec88646ac23a71313298a76b554a92a",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "f1c6080baf921b94482006a7c5f1da18ea1f3422253ab8df3897b8ac4e3a5025",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:03+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_3": {
-      "rgb_sha256": "f364642cdcc09bb8bf96e0a88e84dc4be14e0fb65f991cddb052d79412dd759b",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "53b5df29e3bee8307a44b4b5e7e07802ad4a0b91be2e80818c10e07954b6fc8e",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:03+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_4": {
-      "rgb_sha256": "f2ca2d57d01c59dde6369d584026cdfbf6dd89ccfa48813f95dbde6de33f54a8",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "7581875cac433ba05814910eda2bf05154284288798a748c4c142eda9a3b0b29",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:03+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_5": {
-      "rgb_sha256": "901c402396ed09ea967a1cec2fc1909402aa417457ba98dd0864a14e0856dbf7",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "f234560ce1411e2292057ada88766ead13aec6135de917f7dbab91738b55ab84",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:04+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_6": {
-      "rgb_sha256": "b70a057899c647ba65368323e896e1e29e8dc37ba76123769cac535c4ae263b6",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "3c5d74c9e3bd39f1685fca012dfc374f31045e9b39dc665d41aeeb3faea2261e",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:04+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_7": {
-      "rgb_sha256": "7d8a60db9d6b1f5c69a38bd2d4cb6a2b2bd4d19783e584d15b1cfb94f0227c3e",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "9782e6e689a6138294298212135e9ff88c66a1a8f49b2c57308c05b0eecb5edc",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:04+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_8": {
-      "rgb_sha256": "6477aefc4405827197b8f8db5413970b77a4a5564f0b49e5ba8cda2e6bb18f24",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "053ae9ee749e49dd92de69f733ede496b4c286a7c499b4c0e85adab6a122c082",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:04+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "debrief_9": {
-      "rgb_sha256": "fe99358fe162e3193781a2f9194c35baf63decb48fcded81cc9cd2d7417edad3",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "11c8e8e0cd1fef91fdd44eab3398340446107ac151fc6cf022d00d56f3b067d5",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:05+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "ending": {
       "rgb_sha256": "bad554504e5aa28baec78017b6879b111703e4e84e05d27e79416e982b1fc21d",
@@ -194,12 +194,12 @@
       "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
     },
     "intermission": {
-      "rgb_sha256": "9141e21dea1f866a8022819c9fba7be06416064c957a2de8bcbd159e40b506d6",
-      "rom_sha256": "13a69012dd8cde63cfc0081fed3232723ed6c28761cb13094170646bc9167f38",
+      "rgb_sha256": "00a76f625f68c340c8255182aa37740464a00e7caaa8df922327268ce5f80107",
+      "rom_sha256": "41f67eafcd29f134a94a17f9ac977054f33abcab1dfe6b4b22a3d521f8a9947b",
       "configuration_id": "7d2d1798c018de64cb44f1c5ba5393dee9b6ac2df3b229b77621bf17f42a66b4",
-      "accepted_at": "2026-09-25T04:54:58+00:00",
+      "accepted_at": "2026-09-25T10:26:03+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "The story overhaul's screens: the SABLE title with its derived wordmark and helmet emblem, the Linewalker's dispatch prologue, Oda's log in seventeen debriefs, the episode pages, relay code entry, game over and the ending, drawn in the reading face"
+      "note": "The results screens report the share of the sector's placed items taken: an ITEMS field (three runtime digits, leading zeros blank) with a static % after it, below the time. The intermission's ITEMS row is 12, a debrief's row 11; nothing else on these screens moves."
     },
     "password": {
       "rgb_sha256": "588ea7f31ac2e485c37f8e20699880cb27c8facf065c7ebdf8ea1bf17da42fd1",

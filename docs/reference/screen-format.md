@@ -38,7 +38,7 @@ below, and a file must author exactly these, no more:
 | `title` | at power-on and after the ending; left and right choose the skill, START begins, SELECT opens code entry | `skill` (1 digit) |
 | `gameover` | when the player dies; START retries the level | none |
 | `ending` | after the last level; START returns to the title | `kills` (3), `time` (4: the run's whole seconds, up to 9,999) |
-| `intermission` | after every other level, unless the game has debriefs | `code` (4), `kills` (2), `time` (3) |
+| `intermission` | after every other level, unless the game has debriefs | `code` (4), `kills` (2), `time` (3), and in a game with items `items` (3: the share of the level's placed items taken, 0..100, leading zeros blank) |
 | `password` | code entry, from the title | `code` (4) |
 | each episode's `opening` | before the episode's first level; the first episode's is a prologue, shown after the title's START and before a continue code into the first level | none |
 | each episode's `closing` | on the intermission after the episode's last level (not the last episode's) | none |
@@ -65,7 +65,7 @@ a character, so it sits on the tile grid and each character is one pattern.
 
 | Key | Required | Value |
 |---|---|---|
-| `say` | yes | upper-case letters, digits, space and `- / . , ! ? : '`; in a debrief, also `{sector}` and `{next}` |
+| `say` | yes | upper-case letters, digits, space and `- / . , ! ? : ' %`; in a debrief, also `{sector}` and `{next}` |
 | `row` | yes | the tile row, 0..17 (1..16 inside the frame) |
 | `colour` | yes | 0..3: a colour of the shared `hud` palette (BG 1) |
 | `column` | no | the first tile column; without it the line is centred |
@@ -80,8 +80,9 @@ must appear in the order the table above gives.
 
 | Key | Required | Value |
 |---|---|---|
-| `field` | yes | `skill`, `code`, `kills` or `time` |
+| `field` | yes | `skill`, `code`, `kills`, `time` or `items` |
 | `label` | yes | the text before the digits |
+| `suffix` | no | reading-face text after the digits, such as `%` |
 | `row`, `colour`, `column` | as for a reading line | |
 
 An **image** is an indexed PNG drawn on the tile grid: whole 8×8 tiles,

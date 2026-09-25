@@ -718,6 +718,28 @@ def emit_world_update(a: Assembler) -> None:
 
     a.label("stamp_sector_result")
     if CARRY_OVER: a.call("store_carry")
+    if ITEM_DROPS:
+        # The share of the placed items taken, for the results screen: count
+        # ITEMS_TAKEN's bits (only the level's items can be set), times 100,
+        # over the items placed, by repeated subtraction (sixteen items at
+        # most, once a sector). A sector with none reports 100.
+        a.ld_a_abs(ITEM_TABLE); a.ld_r_r("c", "a"); a.or_r("a"); a.ld_r_n("a", 100)
+        a.jr("sector_items_store", "z")
+        a.ld_a_abs(ITEMS_TAKEN); a.ld_r_r("e", "a"); a.ld_a_abs(ITEMS_TAKEN + 1); a.ld_r_r("d", "a")
+        a.ld_r_n("b", 0); a.ld_r_n("l", 16)
+        a.label("sector_items_count")
+        a.cb("srl", "d"); a.cb("rr", "e"); a.jr("sector_items_bit", "nc"); a.inc_r("b")
+        a.label("sector_items_bit"); a.dec_r("l"); a.jr("sector_items_count", "nz")
+        a.ld_rr_nn("hl", 0); a.ld_rr_nn("de", 100)
+        a.inc_r("b")
+        a.label("sector_items_scale"); a.dec_r("b"); a.jr("sector_items_scaled", "z"); a.add_hl_rr("de"); a.jr("sector_items_scale")
+        a.label("sector_items_scaled")
+        a.ld_r_n("d", 0)
+        a.label("sector_items_divide")
+        a.ld_r_r("a", "l"); a.sub_r("c"); a.ld_r_r("l", "a"); a.ld_r_r("a", "h"); a.sbc_a_n(0); a.ld_r_r("h", "a")
+        a.jr("sector_items_quotient", "c"); a.inc_r("d"); a.jr("sector_items_divide")
+        a.label("sector_items_quotient"); a.ld_r_r("a", "d")
+        a.label("sector_items_store"); a.ld_abs_a(SECTOR_ITEMS)
     # SECTOR_TIME = SIM_CLOCK - SECTOR_START, then fold the sector into the run.
     a.ld_a_abs(SIM_CLOCK); a.ld_r_r("b", "a")
     a.ld_a_abs(SECTOR_START); a.ld_r_r("c", "a")

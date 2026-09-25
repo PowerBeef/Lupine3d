@@ -61,8 +61,9 @@ class ScreenCompositionTests(unittest.TestCase):
         self.assertEqual(len(slots["title"]), 1)             # the skill digit
         self.assertEqual(len(slots["password"]), br.PASSWORD_DIGITS)
         # The intermission carries the code and then what the sector cost:
-        # two digits of kills and three of seconds.
-        self.assertEqual(len(slots["intermission"]), br.PASSWORD_DIGITS + 2 + 3)
+        # two digits of kills and three of seconds, and in a game with items
+        # three of the share of them taken.
+        self.assertEqual(len(slots["intermission"]), br.PASSWORD_DIGITS + 2 + 3 + (3 if br.ITEM_DROPS else 0))
         # The ending has no code to show, only the run: three digits of kills
         # and four of seconds.
         self.assertEqual(len(slots["ending"]), 3 + 4)
@@ -73,7 +74,7 @@ class ScreenCompositionTests(unittest.TestCase):
                 self.assertLess(offset, screens.SCREEN_MAP_BYTES, name)
         # The code's four cells are adjacent, so it reads as one number, and so
         # is every run of digits a screen writes.
-        for name, runs in (("intermission", (4, 2, 3)), ("password", (4,)), ("ending", (3, 4))):
+        for name, runs in (("intermission", (4, 2, 3) + ((3,) if br.ITEM_DROPS else ())), ("password", (4,)), ("ending", (3, 4))):
             offsets, start = list(slots[name]), 0
             for length in runs:
                 run = offsets[start:start + length]

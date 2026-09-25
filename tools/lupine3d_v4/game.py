@@ -72,6 +72,17 @@ SCREEN_FIELDS = {
 # A debrief (screens.json `debriefs`, one per level but the last) replaces the
 # intermission after its level and writes the intermission's fields.
 DEBRIEF_FIELDS = SCREEN_FIELDS["intermission"]
+# A game with items also reports the share of the sector's placed items the
+# player took, as a percentage, after the intermission's and every debrief's
+# other fields.
+ITEM_SCREEN_FIELDS = {"items": 3}
+
+
+def screen_fields(name: str, has_items: bool) -> dict[str, int]:
+    """The fields the engine writes on screen `name`, in order."""
+    results = name == "intermission" or name.startswith("debrief_")
+    fields = DEBRIEF_FIELDS if name.startswith("debrief_") else SCREEN_FIELDS.get(name, {})
+    return {**fields, **ITEM_SCREEN_FIELDS} if results and has_items else fields
 # In a debrief's text these become the cleared level's name and the next one's.
 DEBRIEF_TOKENS = ("{sector}", "{next}")
 SCREENS_FORMAT = "lupine-screens-v1"
@@ -156,7 +167,7 @@ KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "screen.text": (frozenset({"text", "y", "colour", "scale"}), frozenset({"text", "y", "colour"})),
     "screen.field": (frozenset({"field", "label", "y", "colour", "scale"}), frozenset({"field", "label", "y", "colour"})),
     "screen.say": (frozenset({"say", "row", "colour", "column"}), frozenset({"say", "row", "colour"})),
-    "screen.say_field": (frozenset({"field", "label", "row", "colour", "column"}), frozenset({"field", "label", "row", "colour"})),
+    "screen.say_field": (frozenset({"field", "label", "row", "colour", "column", "suffix"}), frozenset({"field", "label", "row", "colour"})),
     "screen.image": (frozenset({"image", "row", "column"}), frozenset({"image", "row"})),
     "song": (frozenset({"$schema", "format", "speed", "loop_row", "pulse", "wave", "noise"}),
              frozenset({"format", "speed", "loop_row", "pulse", "wave", "noise"})),
@@ -246,6 +257,7 @@ class ScreenLine:
     row: int | None = None       # tile row of a reading-face line or an image
     column: int | None = None    # its first tile column; None centres it
     image: Path | None = None    # an image line's PNG
+    suffix: str = ""             # reading-face text after a field's cells ("%")
 
 
 @dataclass(frozen=True)
@@ -792,10 +804,12 @@ def _screen_lines(name: str, lines: object, fields_wanted: dict[str, int], frame
                 text = text.replace(token, value)
             row = _integer(raw, "row", 0, SCREEN_MAP_ROWS - 1, root, where)
             column = _integer(raw, "column", 0, SCREEN_MAP_COLUMNS - 1, root, where) if "column" in raw else None
-            cells = len(text) + (1 + fields_wanted.get(field_name, 0) if field_name else 0)
-            _reading_text(text, row, column, cells, frame, root, where)
+            suffix = _string(raw["suffix"], root, f"{where}.suffix") if "suffix" in raw else ""
+            cells = len(text) + (1 + fields_wanted.get(field_name, 0) + len(suffix) if field_name else 0)
+            _reading_text(text + suffix, row, column, cells, frame, root, where)
             parsed.append(ScreenLine(text=text, y=row * 8, colour=_integer(raw, "colour", 0, 3, root, where),
-                                     scale=1, field=field_name, face="reading", row=row, column=column))
+                                     scale=1, field=field_name, face="reading", row=row, column=column,
+                                     suffix=suffix))
             continue
         if "field" in raw:
             raw = _keys(raw, *KEYS["screen.field"], root, where)
@@ -840,7 +854,7 @@ def _level_name(path: Path) -> str:
 
 
 def _screens(relative: object, episodes: tuple[Episode, ...], root: Path,
-             files: dict[str, str]) -> tuple[dict, dict[str, bool], int]:
+             files: dict[str, str], has_items: bool = False) -> tuple[dict, dict[str, bool], int]:
     path = _game_file(root, relative, "screens", files)
     context = path.name
     try:
@@ -867,7 +881,7 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path,
     screens, frames = {}, {}
     for name in wanted:
         lines, frames[name] = _screen_record(authored[name], root, f"{context} screen {name!r}")
-        screens[name] = _screen_lines(name, lines, SCREEN_FIELDS.get(name, {}), frames[name], {},
+        screens[name] = _screen_lines(name, lines, screen_fields(name, has_items), frames[name], {},
                                       root, context, files)
     # Debriefs: the screen after each level but the last, in place of the
     # intermission, with the cleared level's name and the next one's.
@@ -882,7 +896,8 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path,
             name = f"debrief_{index + 1}"
             lines, frames[name] = _screen_record(raw, root, f"{context} debriefs[{index}]")
             tokens = dict(zip(DEBRIEF_TOKENS, (_level_name(levels[index]), _level_name(levels[index + 1]))))
-            screens[name] = _screen_lines(name, lines, DEBRIEF_FIELDS, frames[name], tokens, root, context, files)
+            screens[name] = _screen_lines(name, lines, screen_fields(name, has_items), frames[name], tokens,
+                                          root, context, files)
         count = len(debriefs)
     return screens, frames, count
 
@@ -1118,7 +1133,7 @@ def load_game(directory: Path) -> Game:
     episodes = _episodes(data["episodes"], root, files)
     rom_title, rom_version = _rom(data["rom"], root)
     songs, sound = _audio(data["audio"], root, files)
-    screens, screen_frames, debriefs = _screens(data["screens"], episodes, root, files)
+    screens, screen_frames, debriefs = _screens(data["screens"], episodes, root, files, bool(data.get("items")))
     pools = _optional_names(data.get("ammo"), root, "ammo", "ammo_pools")
     keys = _optional_names(data.get("keys"), root, "keys", "keys")
     weapons = _weapons(data["weapons"], root, 0, pools)
