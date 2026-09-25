@@ -14,7 +14,8 @@ from sm83emu import CGB, run_to_world  # noqa: E402
 
 
 def palette_set(rom: bytes, labels: dict, index: int) -> tuple[bytes, bytes]:
-    base = labels["bg_palettes"] + index * 128
+    # The sets are boot assets: the label is an address in the boot bank.
+    base = br.BOOT_ASSETS_ROM_BANK * 0x4000 + labels["bg_palettes"] - 0x4000 + index * 128
     return rom[base:base + 64], rom[base + 64:base + 128]
 
 

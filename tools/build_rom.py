@@ -87,6 +87,15 @@ def make_boot_assets() -> list[tuple[str, bytes]]:
         ("oam_dma_stub", bytes((0x3E, 0xC8, 0xE0, OAM_DMA, 0x3E, 40, 0x3D, 0x20, 0xFD, 0xC9))),
         ("tilemap_data", make_tilemap()), ("attrmap_page0", make_attrmap(0)),
         ("attrmap_page1", make_attrmap(1)),
+        # One 128-byte set per theme (game.json `themes` and
+        # `shared_palettes`, lupine3d_v4/palettes.py), BG then OBJ, so
+        # init_palettes uploads a set as one run with this bank mapped: the
+        # world recolours per theme; the HUD, the weapon, drops, effects and
+        # decor stay the same in every set. Set 0 is byte-identical to the
+        # single table it replaced and `obj_palettes` still names its OBJ half.
+        ("bg_palettes", b"".join(
+            words_le(bg_values) + words_le(obj_values) for bg_values, obj_values in
+            assemble_palette_sets(GAME, slim=SLIM_DISPLAY, compact=COMPACT_DISPLAY, sable_art=SABLE_ART))),
     ]
 
 
@@ -325,6 +334,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     resident_sections = [
         ("copy_bulk", emit_copy_bulk), ("wait_vblank", v1.emit_wait_vblank),
         ("level_loader", emit_level_loader), ("vram_init", emit_vram_init),
+        ("palette_init", emit_palette_init),
         ("oam_system", emit_oam_system), ("door_system", emit_door_system),
         ("audio", emit_audio), ("input_system", emit_input_system),
         # Legacy quarter-step helpers are retained only for the two-step door interaction.
@@ -357,7 +367,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # after the data so they land above $4000 in ROM bank 1, which is the
     # engine's resting bank; bank_safety proves each claim against the image.
     cold_sections = [
-        ("palette_init", emit_palette_init), ("hud_system", emit_hud_system),
+        ("hud_system", emit_hud_system),
         ("dma", emit_dma), ("div_u16_u8_sat9", emit_div_u16_u8_sat9),
         ("wall_cache", emit_wall_cache), ("surfaces", emit_surfaces),
         ("line_of_sight", emit_line_of_sight), ("world_update", emit_world_update),
@@ -455,16 +465,17 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
         a.labels[name] = cold_address; bank_bound_labels[name] = BOOT_ASSETS_ROM_BANK
         cold_address += len(payload)
     assert cold_address <= 0x8000, "cold boot assets exceed one MBC5 bank"
+    for index in range(PALETTE_SET_COUNT):
+        for half, stem in enumerate(("bg_palettes", "obj_palettes")):
+            name = stem if index == 0 else f"{stem}_{index}"
+            a.labels[name] = a.labels["bg_palettes"] + index * 128 + half * 64
+            bank_bound_labels[name] = BOOT_ASSETS_ROM_BANK
     weapon_address = 0x4000
     for name, payload in make_weapon_assets():
         a.labels[name] = weapon_address; bank_bound_labels[name] = WEAPON_ROM_BANK
         weapon_address += len(payload)
     assert weapon_address <= 0x8000, "weapon sheets exceed their MBC5 bank"
 
-    # One palette set per theme (game.json `themes` and `shared_palettes`,
-    # lupine3d_v4/palettes.py): the world recolours per theme; the HUD, the
-    # weapon, drops, effects and decor stay the same in every set.
-    palette_sets = assemble_palette_sets(GAME, slim=SLIM_DISPLAY, compact=COMPACT_DISPLAY, sable_art=SABLE_ART)
     # The padding this alignment costs depends on every byte emitted before
     # it, so the manifest reports it: a variant whose fixed code is a few
     # bytes longer can cross a page boundary here and pay up to 255 bytes
@@ -517,18 +528,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
             a.labels[f"pair_microstrips_style_{style}"] = 0x4000 + len(microstrips) + style * pair_style_block; bank_bound_labels[f"pair_microstrips_style_{style}"] = UNFOLDED_STRIP_ROM_BANK
     if NEAR_FIELD:
         a.label("near_correction_q14"); a.bytes(words_le(near_corrections()), "241 Q14 camera-plane cosine corrections")
-    # Palettes are cold startup data. Keeping them after the aligned hot tables
-    # avoids wasting a complete 1 KiB alignment page as the resident art/UI
-    # vocabulary grows.
-    # One 128-byte set per episode, BG then OBJ, so init_palettes uploads a
-    # set as one run; set 0 is byte-identical to the single table it replaced
-    # and `obj_palettes` still names its OBJ half.
-    for index, (bg_values, obj_values) in enumerate(palette_sets):
-        a.label("bg_palettes" if index == 0 else f"bg_palettes_{index}")
-        a.bytes(words_le(bg_values), f"eight CGB BG palettes, set {index}")
-        a.label("obj_palettes" if index == 0 else f"obj_palettes_{index}")
-        a.bytes(words_le(obj_values), f"eight CGB OBJ palettes, set {index}")
-
     # Cold code, above $4000 in ROM bank 1. Nothing here switches a bank, runs
     # inside another section's bank window, or is reachable from an interrupt
     # vector, so the bank mapped at $4000 is always 1 while it executes.

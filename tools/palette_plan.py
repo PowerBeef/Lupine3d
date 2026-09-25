@@ -40,7 +40,9 @@ def palettes(rom: bytes, assembler, palette_set: int = 0) -> tuple[list[list[int
     `bg_palettes`, BG first, exactly as `init_palettes` uploads them."""
     out = []
     for half in range(2):
-        base = assembler.labels["bg_palettes"] + palette_set * 128 + half * 64
+        # The sets are boot assets: the label is an address in the boot bank.
+        base = (br.BOOT_ASSETS_ROM_BANK * 0x4000 + assembler.labels["bg_palettes"] - 0x4000
+                + palette_set * 128 + half * 64)
         words = [rom[base + i] | (rom[base + i + 1] << 8) for i in range(0, 64, 2)]
         out.append([words[p * 4:(p + 1) * 4] for p in range(8)])
     return out[0], out[1]

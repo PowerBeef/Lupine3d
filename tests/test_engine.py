@@ -886,9 +886,21 @@ class Lupine3DTests(unittest.TestCase):
 
         cgb.write16(br.PLAYER_XL, cgb.read16(br.SENTINEL_XL))
         cgb.write16(br.PLAYER_YL, cgb.read16(br.SENTINEL_YL))
+        if br.ITEM_DROPS:
+            # The drop is an item type, and a medkit has nothing to give a
+            # player at full health: it stays down until one is hurt.
+            medkit = br.GAME.items[cgb.read8(br.PICKUP_ACTIVE) - 1]
+            self.assertEqual(medkit.effect, "health")
+            cgb.write8(br.PLAYER_HEALTH, 99)
+            cgb.call_subroutine("collect_pickup_and_exit")
+            self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 1)
+            self.assertEqual(cgb.read8(br.PICKUP_COLLECTED), 0)
+            cgb.write8(br.PLAYER_HEALTH, 60)
         cgb.call_subroutine("collect_pickup_and_exit")
         self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 0)
         self.assertEqual(cgb.read8(br.PICKUP_COLLECTED), 1)
+        if br.ITEM_DROPS:
+            self.assertEqual(cgb.read8(br.PLAYER_HEALTH), min(99, 60 + medkit.value))
         cgb.write8(br.PLAYER_XH, cgb.read8(br.EXIT_CELL_X))
         cgb.write8(br.PLAYER_YH, cgb.read8(br.EXIT_CELL_Y))
         cgb.call_subroutine("collect_pickup_and_exit")

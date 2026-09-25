@@ -75,7 +75,8 @@ class EnemyKindTests(unittest.TestCase):
         self.assertEqual(shadow[7 * 4 + 3] & 0x07, 5)
 
     def test_every_visible_kind_has_a_palette_of_its_own_in_the_rom(self):
-        start = self.asm.labels["obj_palettes"]
+        # The palette sets are boot assets: the label is a boot-bank address.
+        start = br.BOOT_ASSETS_ROM_BANK * 0x4000 + self.asm.labels["obj_palettes"] - 0x4000
         def palette(palette_set, index):
             base = start + palette_set * 128 + index * 8
             return tuple(self.rom[base + i] | self.rom[base + i + 1] << 8 for i in range(0, 8, 2))

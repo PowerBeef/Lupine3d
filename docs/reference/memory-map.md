@@ -26,7 +26,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | banks 146-153 (`$4000` in 146 to `$8000` in 153) | 131,072 | product table | persistent |
 | bank 154 `$4000-$8000` | 16,384 | inactive atlas | persistent |
 | bank 155 `$4000-$8000` | 16,384 | texture row windows (three blocks per bank) | persistent |
-| bank 156 `$4000-$6A5A` | 10,842 | boot art and authored state | persistent |
+| bank 156 `$4000-$6BFA` | 11,258 | boot art and authored state | persistent |
 | banks 157-172 (`$4000` in 157 to `$8000` in 172) | 262,144 | Q14 directions | persistent |
 | banks 173-236 (`$4000` in 173 to `$8000` in 236) | 1,048,576 | prepared rays and packet padding | persistent |
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
