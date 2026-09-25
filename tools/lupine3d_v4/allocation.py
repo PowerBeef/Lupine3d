@@ -148,7 +148,8 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     # the trigger table, and its projection records at the item table).
     assert l.ACTOR_PROJECTED + l.MAX_ACTORS <= l.ITEM_TABLE and l.TRIGGER_TABLE >= 0xD1F0
     assert l.WEAPON_TILE_BASE >= 32
-    assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) + (2 if l.KEY_HUD else 0) <= 128
+    assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) + (2 if l.KEY_HUD else 0) + (2 if l.ARMOUR_HUD else 0) <= 128
+    assert not l.ARMOUR_HUD or (l.KEY_HUD and l.ARMOUR_TILE == l.KEY_TILE + 2)
     assert not l.KEY_HUD or (l.KEY_TILE == l.RETICLE_TILE + 6 and l.KEY_OAM >= l.ENTITY_OAM_FIRST + l.ENTITY_OAM_COUNT)
     assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*l.SENTINEL_MID_TILES_PER_FRAME + 64 <= 256
     # The copy is a contract: the map, the camera, the world window and every

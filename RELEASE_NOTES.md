@@ -10,7 +10,8 @@
   stirs when it opens. In a game with items, drops are item types: a kind
   names one or `none`, a level may give any actor its own (`drop`: the one
   that carries the card), and a drop with nothing to give stays down.
-  Armour takes half of every blow while it lasts. B held with left or right
+  Armour takes half of every blow while it lasts, and the slim HUD shows a
+  shield after the health while it does. B held with left or right
   strafes. `carry_over` games keep health (at least 50), armour, ammunition
   and weapons found from sector to sector; a death retries a sector with
   what it began with, and the title's START starts over from the loadout.

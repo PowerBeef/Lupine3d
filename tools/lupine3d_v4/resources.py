@@ -497,6 +497,8 @@ def make_oam_shadow() -> bytes:
     if KEY_HUD:
         for key in range(len(GAME.keys)):
             data[(KEY_OAM + key) * 4:(KEY_OAM + key) * 4 + 4] = bytes((0, KEY_OAM_X[key], KEY_TILE, 0x08 | KEY_PALETTES[key]))
+    if ARMOUR_HUD:
+        data[ARMOUR_OAM * 4:ARMOUR_OAM * 4 + 4] = bytes((0, ARMOUR_OAM_X, ARMOUR_TILE, 0x08 | ARMOUR_PALETTE))
     return bytes(data)
 
 

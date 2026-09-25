@@ -150,17 +150,19 @@ def emit_hud_system(a: Assembler) -> None:
         a.label("hud_ammo_ready")
         a.ld_r_r("a", "d"); a.ld_abs_a(HUD_PACKET + HUD_AMMO_OFFSET)
         a.ld_r_r("a", "e"); a.ld_abs_a(HUD_PACKET + HUD_AMMO_OFFSET + 1)
-    if KEY_HUD: a.call("update_key_oam")
+    if KEY_HUD or ARMOUR_HUD: a.call("update_key_oam")
     if COMPACT_DISPLAY: a.jp("prepare_compact_hud")
     a.ret()
-    if KEY_HUD:
-        a.label("update_key_oam")   # a key's object shows while it is held
-        for key in range(len(GAME.keys)):
-            a.ld_a_abs(PLAYER_KEYS); a.and_n(1 << key); a.jr(f"key_{key}_y", "z"); a.ld_r_n("a", KEY_OAM_Y)
-            a.label(f"key_{key}_y"); a.ld_r_r("b", "a")
-            a.ld_a_abs(OAM_SHADOW + (KEY_OAM + key) * 4); a.cp_r("b"); a.jr(f"key_{key}_same", "z")
-            a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + (KEY_OAM + key) * 4); a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY)
-            a.label(f"key_{key}_same")
+    if KEY_HUD or ARMOUR_HUD:
+        a.label("update_key_oam")   # a key's object shows while it is held, the shield while armour lasts
+        shown = [(f"key_{key}", PLAYER_KEYS, 1 << key, KEY_OAM + key) for key in range(len(GAME.keys)) if KEY_HUD]
+        if ARMOUR_HUD: shown.append(("armour", PLAYER_ARMOUR, 0xFF, ARMOUR_OAM))
+        for name, address, mask, oam in shown:
+            a.ld_a_abs(address); a.and_n(mask); a.jr(f"{name}_y", "z"); a.ld_r_n("a", KEY_OAM_Y)
+            a.label(f"{name}_y"); a.ld_r_r("b", "a")
+            a.ld_a_abs(OAM_SHADOW + oam * 4); a.cp_r("b"); a.jr(f"{name}_same", "z")
+            a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + oam * 4); a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY)
+            a.label(f"{name}_same")
         a.ret()
     if not OVERLAP_PUBLICATION: emit_update_hud_tiles(a)
 
@@ -319,7 +321,7 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16)
-    a.ld_rr_nn("bc", (128 if KEY_HUD else 96) if SABLE_ART else 64); a.call("copy_bc")
+    a.ld_rr_nn("bc", (96 + (32 if KEY_HUD else 0) + (32 if ARMOUR_HUD else 0)) if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.xor_r("a"); a.ldh_n_a(VBK)

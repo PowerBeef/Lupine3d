@@ -227,6 +227,20 @@ class RuntimeTests(unittest.TestCase):
         self.assertFalse(cgb.f & 0x10)
         self.assertEqual(self.live(cgb, br.AMMO + pool), br.INFINITE_AMMO, "an infinite pool was spent")
 
+    @unittest.skipUnless(br.KEY_HUD and br.ARMOUR_HUD, "the slim Sable HUD shows keys and armour")
+    def test_the_hud_shows_held_keys_and_armour_as_objects(self):
+        cgb = self.world()
+        cgb.io[br.SVBK & 0x7F] = 1
+        for keys, armour in ((0, 0), (1, 0), (2, 30), (3, 100)):
+            cgb.write8(br.PLAYER_KEYS, keys); cgb.write8(br.PLAYER_ARMOUR, armour)
+            cgb.call_subroutine("update_key_oam", max_steps=10_000)
+            shown = [cgb.read8(br.OAM_SHADOW + (br.KEY_OAM + key) * 4) == br.KEY_OAM_Y for key in range(2)]
+            self.assertEqual(shown, [bool(keys & 1), bool(keys & 2)], keys)
+            self.assertEqual(cgb.read8(br.OAM_SHADOW + br.ARMOUR_OAM * 4) == br.KEY_OAM_Y, armour > 0, armour)
+        # The world's per-frame clear leaves them alone.
+        cgb.call_subroutine("clear_entity_oam_shadow", max_steps=20_000)
+        self.assertEqual(cgb.read8(br.OAM_SHADOW + br.ARMOUR_OAM * 4), br.KEY_OAM_Y)
+
     @unittest.skipUnless(br.ITEM_CEL_NAMES, "the legacy profile draws no placed items")
     def test_the_renderer_draws_untaken_items_near_the_player(self):
         from sm83emu import CGB

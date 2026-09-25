@@ -476,7 +476,8 @@ portrait 6 bytes, and on slim (18 bytes) the ammunition of the weapon in
 hand, 2: small digits on the plain steel of row 16, columns 6-7, plain
 (pattern 73) for no pool or an infinite one. Slim Sable shows held keys as
 OAM 28-29 (the key cel after the reticle and muzzle, OBJ patterns 118-119,
-the cards' effects and decor palettes) over column 12 of row 16;
+the cards' effects and decor palettes) over column 12 of row 16, and armour
+as a shield (OAM 30, patterns 120-121, decor palette) over column 5;
 `clear_entity_oam_shadow` clears only the sixteen world entries there. HUD source uses **94/96 patterns**. Objective text starts at
 HUD y=4/y=10; status IDs reference vertical tile pairs and publication writes
 ID+1 into the third HUD row on both maps. Preserve all chassis/framing pixels.

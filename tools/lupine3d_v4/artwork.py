@@ -271,6 +271,13 @@ def make_obj_ui_tiles():
             for x, pixel in enumerate(row):
                 key[y][x] = 3 if pixel == "3" else 0
         tiles_out += tiles(key)
+    if ARMOUR_HUD:
+        # A shield, a plate with a raised centre, over an empty pattern.
+        shield = canvas(8, 16)
+        for y, row in enumerate(("1111111.", "1333331.", "1323231.", "1333331.", "1333331.", ".13331..", "..131...", "...1....")):
+            for x, pixel in enumerate(row):
+                shield[y][x] = 0 if pixel == "." else int(pixel)
+        tiles_out += tiles(shield)
     return tiles_out
 
 

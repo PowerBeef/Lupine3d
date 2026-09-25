@@ -256,6 +256,13 @@ KEY_TILE = 118
 KEY_OAM_Y = 128 + 16
 KEY_OAM_X = (96 + 8, 100 + 8)
 KEY_PALETTES = (3, 4)          # the effects (amber) and decor (teal) OBJ palettes, the cards' own
+# Slim Sable with armour items: a shield over the plain steel of HUD cell 5
+# on row 16, between the health and the ammunition, while armour lasts.
+ARMOUR_HUD = SLIM_DISPLAY and SABLE_ART and any(item.effect == "armour" for item in GAME.items)
+ARMOUR_OAM = KEY_OAM + 2
+ARMOUR_TILE = KEY_TILE + 2
+ARMOUR_OAM_X = 40 + 8
+ARMOUR_PALETTE = 4
 ENTITY_OAM_FIRST = WEAPON_OBJECTS + 2   # the weapon's objects, crosshair, muzzle
 ENTITY_OAM_COUNT = 16          # bounded 32-pattern masked publication packet
 MASK_TILE_COUNT = 0xD8D0

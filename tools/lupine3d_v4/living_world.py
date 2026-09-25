@@ -160,7 +160,7 @@ def emit_oam_system(a: Assembler) -> None:
     a.xor_r("a")
     # The world's sixteen objects; the HUD's key objects above them keep
     # their place (update_key_oam sets them).
-    for index in range(ENTITY_OAM_FIRST, ENTITY_OAM_FIRST + ENTITY_OAM_COUNT if KEY_HUD else 40):
+    for index in range(ENTITY_OAM_FIRST, ENTITY_OAM_FIRST + ENTITY_OAM_COUNT if KEY_HUD or ARMOUR_HUD else 40):
         a.ld_abs_a(OAM_SHADOW + index * 4)
     a.ld_rr_nn("hl", OAM_SHADOW + ENTITY_OAM_FIRST * 4); store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     a.xor_r("a"); a.ld_abs_a(SENTINEL_OAM_USED)
