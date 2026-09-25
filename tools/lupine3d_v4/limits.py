@@ -37,6 +37,9 @@ LIMITS: dict[str, Limit] = {
                             "effects, decor and reticle"),
     "contact_damage": Limit(0, 170, "an enemy's contact damage",
                             "the hard skill adds half again, and the result must fit a byte"),
+    "actor_range": Limit(2, 7, "cells an enemy's ranged shot reaches",
+                         "a level's sightlines are certified to at most six cells, and the AI compares the "
+                         "Chebyshev distance of whole cells"),
     "weapons": Limit(4, 4, "weapons", "the weapon index is two bits and SELECT walks all four"),
     "ammo_pools": Limit(0, 2, "ammunition pools",
                         "a weapon record names its pool in one byte, and the render snapshot's slack holds two"),

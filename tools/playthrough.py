@@ -190,15 +190,20 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         steers by: no game-RAM writes and no build-time knowledge of which
         door is locked.
         """
-        if live8(br.PLAYER_KEYS):
-            return set()
+        keys = live8(br.PLAYER_KEYS)
         shut = set()
         for index in range(live8(br.DOOR_COUNT)):
             base = br.DOOR_TABLE + index * br.DOOR_RECORD_BYTES
-            if not live8(base + br.DOOR_FLAGS_OFFSET) & br.DOOR_FLAG_KEYCARD:
-                continue
-            if live8(base + br.DOOR_STATE_OFFSET) != 2:
-                shut.add((live8(base + br.DOOR_X_OFFSET), live8(base + br.DOOR_Y_OFFSET)))
+            flags, state = live8(base + br.DOOR_FLAGS_OFFSET), live8(base + br.DOOR_STATE_OFFSET)
+            cell = live8(base + br.DOOR_X_OFFSET), live8(base + br.DOOR_Y_OFFSET)
+            if flags & br.DOOR_FLAG_REMOTE:
+                # Only its trigger opens it; once opening, it is on its way.
+                if state == 0:
+                    shut.add(cell)
+            elif flags & br.DOOR_FLAG_KEYCARD and state != 2:
+                colour = (flags >> br.DOOR_KEY_SHIFT) & 3
+                if not (keys & colour if colour else keys):
+                    shut.add(cell)
         return shut
 
     def path_to(goal, *, reachable_only=False):
@@ -507,10 +512,64 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 return
         raise AssertionError("the weapon patterns were never streamed")
 
+    def worthless(actor):
+        """A drop the ROM leaves on the floor because it has nothing to give:
+        with items, health at 99, armour at 100, or a pool full or infinite."""
+        if not br.ITEM_DROPS or not actor["pickup"]:
+            return False
+        item = br.GAME.items[(actor["pickup"] - 1) & 15]
+        if item.effect == "health":
+            return live8(br.PLAYER_HEALTH) >= 99
+        if item.effect == "armour":
+            return live8(br.PLAYER_ARMOUR) >= 100
+        if item.effect == "ammo":
+            return live8(br.AMMO + item.pool) >= 99
+        return False
+
+    def placed(kinds=None):
+        """The level's untaken items, as (cell, item type), from the live table."""
+        out = []
+        taken = live16(br.ITEMS_TAKEN)
+        for index in range(live8(br.ITEM_TABLE)):
+            cell = live8(br.ITEM_TABLE + 1 + 2 * index)
+            kind = live8(br.ITEM_TABLE + 2 + 2 * index) & 15
+            if taken >> index & 1 or (kinds is not None and br.GAME.items[kind].effect not in kinds):
+                continue
+            out.append(((cell & 15, cell >> 4), kind))
+        return out
+
+    def unfired_triggers():
+        fired = live8(br.TRIGGERS_FIRED)
+        return [(live8(br.TRIGGER_TABLE + 2 * n) & 15, live8(br.TRIGGER_TABLE + 2 * n) >> 4)
+                for n in range(live8(br.LEVEL_TRIGGER_COUNT)) if not fired >> n & 1]
+
+    def open_the_way():
+        """Everything left alive is out of reach: take the cards on this side,
+        then step on the triggers that open the closets. False when neither
+        is left to do."""
+        for cell, _ in sorted(placed(("key",)), key=lambda entry: len(path_to(entry[0], reachable_only=True) or ())):
+            if path_to(cell, reachable_only=True) is not None:
+                navigate(cell); step(0)
+                return True
+        for cell in unfired_triggers():
+            if path_to(cell, reachable_only=True) is not None:
+                navigate(cell); step(0)
+                return True
+        return False
+
+    def patch_up():
+        """Low on health: take the nearest reachable health on the floor."""
+        if live8(br.PLAYER_HEALTH) >= 50:
+            return
+        options = [cell for cell, _ in placed(("health",)) if path_to(cell, reachable_only=True) is not None]
+        if options:
+            px, py, _ = pose()
+            navigate(min(options, key=lambda c: abs(c[0] - (px >> 8)) + abs(c[1] - (py >> 8)))); step(0)
+
     def collect_drops():
         """Walk onto every drop the route can reach and has not taken."""
         for actor in actors():
-            if not actor["pickup"]:
+            if not actor["pickup"] or worthless(actor):
                 continue
             cell = actor["x"] >> 8, actor["y"] >> 8
             if path_to(cell, reachable_only=True) is None:
@@ -525,13 +584,15 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             if cgb.frame_count - opened > 12_000:
                 capture(f"{name}_combat_watchdog")
                 raise AssertionError(f"sector {name} was not cleared after {len(records)} updates: {situation()}")
+            patch_up()
             target = nearest_living(walkable=True)
             if target is None:
-                # Everything left is behind a door that wants a card: take the
-                # drops on this side and the way through opens.
+                # Everything left is behind a door that wants a card or opens
+                # from a trigger: take the drops on this side, then the cards
+                # and triggers, and the way through opens.
                 collect_drops()
-                assert nearest_living(walkable=True) is not None, \
-                    f"sector {name} deadlocked: {situation()}"
+                if nearest_living(walkable=True) is None and not open_the_way():
+                    raise AssertionError(f"sector {name} deadlocked: {situation()}")
                 continue
             if not engageable(target):
                 navigate((target["x"] >> 8, target["y"] >> 8), stop=engageable)
@@ -728,11 +789,16 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         if "swap_weapon" in cgb.symbols and index == SWAP_SECTOR:
             swap_weapon()
         capture(f"sector{index + 1}_cleared")
+        # A card door may stand between the last fight and the way out.
+        while path_to((level.exit.x, level.exit.y), reachable_only=True) is None:
+            assert open_the_way(), f"sector {index + 1}: the exit is out of reach: {situation()}"
         navigate((level.exit.x, level.exit.y))
         step(0)
         assert live8(br.LEVEL_COMPLETE) == 1
         assert all(actor["state"] == br.SENTINEL_DEAD for actor in actors())
-        assert live8(br.PICKUP_COLLECTED) == 1
+        # Every drop was taken, except one with nothing to give (with items).
+        assert all(not actor["pickup"] or worthless(actor) for actor in actors()), situation()
+        exit_health = live8(br.PLAYER_HEALTH)
         sectors.append({"index": index, "name": level.name, "updates": len(records) - opened,
                         "actors": live8(br.ACTOR_COUNT), "health_remaining": live8(br.PLAYER_HEALTH)})
         capture(f"sector{index + 1}_complete")
@@ -741,7 +807,10 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             generation = cgb.read16(br.WALL_EPOCH)
             cross_screen(br.MODE_INTERMISSION, f"sector{index + 2}_intermission")
             assert cgb.read16(br.WALL_EPOCH) != generation
-            assert not live8(br.LEVEL_COMPLETE) and live8(br.PLAYER_HEALTH) == 99
+            # A game that carries the loadout begins the next sector with the
+            # health it cleared this one with, at least the floor; else full.
+            carried = max(exit_health, br.CARRY_MINIMUM_HEALTH) if br.CARRY_OVER else 99
+            assert not live8(br.LEVEL_COMPLETE) and live8(br.PLAYER_HEALTH) == carried, (live8(br.PLAYER_HEALTH), carried)
 
     completed_at=len(records)
     if restart:

@@ -60,6 +60,11 @@ def emit_level_loader(a: Assembler) -> None:
         a.ld_rr_nn("de", ITEM_TABLE); a.ld_rr_nn("bc", ITEM_TABLE_END - ITEM_TABLE); a.call("copy_bc")
     a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET + EXTRAS_TRIGGERS); add_level_page(a)
     a.ld_rr_nn("de", TRIGGER_TABLE); a.ld_rr_nn("bc", TRIGGER_TABLE_END - TRIGGER_TABLE); a.call("copy_bc")
+    if ITEM_DROPS:
+        # What each actor leaves, where the simulation looks when it dies.
+        a.ld_r_n("a", SIM_EXTRAS_BANK); a.ldh_n_a(SVBK)
+        a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET + EXTRAS_DROPS); add_level_page(a)
+        a.ld_rr_nn("de", ACTOR_DROP); a.ld_rr_nn("bc", ACTOR_DROP_END - ACTOR_DROP); a.call("copy_bc")
     a.pop("af"); a.ldh_n_a(SVBK)
     a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET + EXTRAS_LOADOUT); add_level_page(a)
     for address in (AMMO, AMMO + 1, PLAYER_ARMOUR):
@@ -122,7 +127,9 @@ def emit_level_loader(a: Assembler) -> None:
     ):
         a.ld_abs_a(address)
     if SABLE_ART or COMPACT_DISPLAY: a.call("init_art_clocks")
-    a.call("init_actors"); a.ret()
+    a.call("init_actors")
+    if CARRY_OVER: a.jp("apply_carry")
+    a.ret()
 
 
 def emit_oam_system(a: Assembler) -> None:
@@ -506,14 +513,24 @@ def emit_world_update(a: Assembler) -> None:
     # activation radius, rather than two AI ticks after the level loads. The
     # radius needs only the cell deltas, so a dormant actor outside it costs
     # no cast: nothing reads the sight it would have produced.
-    a.ld_a_abs(ACTIVATION_RADIUS); a.ld_r_r("b", "a")
+    # An actor may carry its own radius (kind byte bits 4-5) and want sight
+    # of the player as well (bit 6): a sentry that turns at a doorway, a
+    # closet that stirs only when opened.
+    a.ld_a_abs(SENTINEL_KIND); a.cb("swap", "a"); a.and_n(3); a.jr("wake_level_radius", "z")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "wake_radii"); a.add_hl_rr("de"); a.dec_rr("hl")
+    a.ld_a_hl(); a.jr("wake_radius_ready")
+    a.label("wake_level_radius"); a.ld_a_abs(ACTIVATION_RADIUS)
+    a.label("wake_radius_ready"); a.ld_r_r("b", "a")
     a.ld_a_abs(LOS_DX); a.cp_r("b"); a.ret("nc")
     a.ld_a_abs(LOS_DY); a.cp_r("b"); a.ret("nc")
+    a.ld_a_abs(SENTINEL_KIND); a.and_n(KIND_SIGHT); a.jr("wake_now", "z")
+    a.call("los_exact_sight"); a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.ret("z")
+    a.label("wake_now")
     a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE)
     a.label("ai_sight")
     a.call("los_exact_sight")
-    a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jr("ai_patrol", "z")
-    a.ld_a_abs(LOS_DX); a.cp_n(2); a.jr("ai_chase", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jr("ai_chase", "nc")
+    a.ld_a_abs(LOS_RESULT); a.or_r("a"); a.jp("ai_patrol", "z")
+    a.ld_a_abs(LOS_DX); a.cp_n(2); a.jp("ai_ranged", "nc"); a.ld_a_abs(LOS_DY); a.cp_n(2); a.jp("ai_ranged", "nc")
     # Contact across a diagonal counts only when the corner is clean: both
     # cells the two share a side with must be open. A wall corner between
     # them blocks the player's shot, so it blocks the actor's reach as well;
@@ -521,28 +538,53 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(LOS_DX); a.or_r("a"); a.jr("ai_contact", "z")
     a.ld_a_abs(LOS_DY); a.or_r("a"); a.jr("ai_contact", "z")
     a.ld_a_abs(SENTINEL_XH); a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_YH); a.ld_r_r("c", "a")
-    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.call("map_cell_bc"); a.or_r("a"); a.jp("ai_chase", "nz")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.ld_r_r("c", "a")
-    a.call("map_cell_bc"); a.or_r("a"); a.jr("ai_chase", "nz")
+    a.call("map_cell_bc"); a.or_r("a"); a.jp("ai_chase", "nz")
     a.label("ai_contact")
     a.ld_r_n("a", SENTINEL_ATTACK); a.ld_abs_a(SENTINEL_STATE)
-    a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
+    a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jp("ai_animate", "nz")
     if SABLE_ART:
         a.ld_r_n("a",1); a.call("stamp_actor_reaction"); a.call("stamp_player_hurt")
     a.call("sound_hurt")
     a.call("actor_kind_record")
     a.ldi_a_hl(); a.ld_r_r("b", "a")                     # authored contact damage
     a.ld_a_hl(); a.ld_abs_a(SENTINEL_COOLDOWN)           # this kind's recovery
-    a.call("scale_contact_damage")
-    a.ld_a_abs(PLAYER_HEALTH); a.sub_r("b"); a.jr("ai_health_store", "nc"); a.xor_r("a")
-    a.label("ai_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("ai_animate")
+    a.call("scale_contact_damage"); a.call("apply_player_damage"); a.jp("ai_animate")
+    # A ranged kind in sight and in reach holds its ground: it raises its arm
+    # for its wind-up (AIM, with a warning), then shoots if it still sees the
+    # player, and recovers before it aims again. A hit while it aims puts it
+    # in HURT and spends the shot.
+    a.label("ai_ranged")
+    a.call("actor_kind_record"); a.ld_rr_nn("de", ACTOR_KIND_RANGE); a.add_hl_rr("de")
+    a.ld_a_hl(); a.or_r("a"); a.jr("ai_chase", "z"); a.ld_r_r("b", "a")
+    a.ld_a_abs(LOS_DX); a.ld_r_r("c", "a"); a.ld_a_abs(LOS_DY); a.cp_r("c"); a.jr("ai_range_far", "nc"); a.ld_r_r("a", "c")
+    a.label("ai_range_far"); a.cp_r("b"); a.jr("ai_in_range", "z"); a.jr("ai_chase", "nc")
+    a.label("ai_in_range")
+    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_AIM); a.jr("ai_aiming", "z")
+    a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_hold", "nz")
+    a.ld_r_n("a", SENTINEL_AIM); a.ld_abs_a(SENTINEL_STATE)
+    a.inc_rr("hl"); a.inc_rr("hl"); a.ld_a_hl(); a.ld_abs_a(SENTINEL_COOLDOWN)   # the wind-up
+    a.call("sound_warn"); a.jr("ai_animate")
+    a.label("ai_aiming")
+    a.ld_a_abs(SENTINEL_COOLDOWN); a.or_r("a"); a.jr("ai_animate", "nz")
+    if SABLE_ART:
+        a.ld_r_n("a",1); a.call("stamp_actor_reaction"); a.call("stamp_player_hurt")
+    a.call("sound_hurt")
+    a.call("actor_kind_record"); a.inc_rr("hl"); a.ld_a_hl(); a.ld_abs_a(SENTINEL_COOLDOWN)   # recovery
+    a.ld_rr_nn("de", ACTOR_KIND_RANGE); a.add_hl_rr("de"); a.ld_a_hl(); a.ld_r_r("b", "a")   # HL was +1: +1+5 = damage
+    a.call("scale_contact_damage"); a.call("apply_player_damage")
+    a.label("ai_hold"); a.ld_r_n("a", SENTINEL_CHASE); a.ld_abs_a(SENTINEL_STATE); a.jr("ai_animate")
     a.label("ai_chase"); a.ld_r_n("a", SENTINEL_CHASE); a.ld_abs_a(SENTINEL_STATE); a.call("sentinel_chase_step"); a.jr("ai_animate")
     a.label("ai_patrol"); a.ld_r_n("a", SENTINEL_PATROL); a.ld_abs_a(SENTINEL_STATE); a.call("sentinel_patrol_step")
     a.label("ai_animate")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_ATTACK); a.ld_r_n("a", 2); a.jr("ai_animation_store", "z")
+    a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_AIM); a.ld_r_n("a", 2); a.jr("ai_animation_store", "z")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_HURT); a.ld_r_n("a", 3); a.jr("ai_animation_store", "z")
     a.ld_a_abs(SENTINEL_AI_PHASE); a.and_n(1)
     a.label("ai_animation_store"); a.ld_abs_a(SENTINEL_ANIM); a.ret()
+
+    a.label("wake_radii"); a.bytes(bytes(WAKE_CELLS), "the wake radius of kind byte bits 4-5 = 1..3, in cells")
 
     a.label("actor_kind_record")   # HL -> the loaded actor's stat record
     a.ld_a_abs(SENTINEL_KIND); a.and_n(3)
@@ -557,6 +599,17 @@ def emit_world_update(a: Assembler) -> None:
     a.label("actor_kind_step")    # ACTOR_STEP = this kind's Q8 move per AI tick
     a.call("actor_kind_record"); a.inc_rr("hl"); a.inc_rr("hl")
     a.ld_a_hl(); a.ld_abs_a(ACTOR_STEP); a.ret()
+
+    a.label("apply_player_damage")   # B = damage; armour takes half of it while it lasts
+    a.ld_a_abs(PLAYER_ARMOUR); a.or_r("a"); a.jr("damage_to_health", "z")
+    a.ld_r_r("c", "a"); a.ld_r_r("a", "b"); a.cb("srl", "a")
+    a.cp_r("c"); a.jr("damage_armour_holds", "c"); a.ld_r_r("a", "c")
+    a.label("damage_armour_holds"); a.ld_r_r("d", "a")                     # D = what the armour takes
+    a.ld_r_r("a", "c"); a.sub_r("d"); a.ld_abs_a(PLAYER_ARMOUR)
+    a.ld_r_r("a", "b"); a.sub_r("d"); a.ld_r_r("b", "a")
+    a.label("damage_to_health")
+    a.ld_a_abs(PLAYER_HEALTH); a.sub_r("b"); a.jr("damage_health_store", "nc"); a.xor_r("a")
+    a.label("damage_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.ret()
 
     a.label("scale_contact_damage")  # B = authored damage -> skill-scaled damage
     a.ld_a_abs(DIFFICULTY); a.or_r("a"); a.jr("damage_not_easy", "nz")
@@ -631,6 +684,11 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(PICKUP_ACTIVE); a.or_r("a"); a.jr("check_level_exit", "z")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_XH); a.cp_r("b"); a.jr("check_level_exit", "nz")
     a.ld_a_abs(PLAYER_YH); a.ld_r_r("b", "a"); a.ld_a_abs(SENTINEL_YH); a.cp_r("b"); a.jr("check_level_exit", "nz")
+    if ITEM_DROPS:
+        # The drop is an item type; one with nothing to give stays down.
+        a.ld_a_abs(PICKUP_ACTIVE); a.dec_r("a"); a.call("apply_item"); a.jr("check_level_exit", "c")
+        a.xor_r("a"); a.ld_abs_a(PICKUP_ACTIVE); a.inc_r("a"); a.ld_abs_a(PICKUP_COLLECTED)
+        a.call("sound_pickup"); a.jr("check_level_exit")
     a.xor_r("a"); a.ld_abs_a(PICKUP_ACTIVE); a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_COLLECTED)
     a.call("sound_pickup")
     # A drop does not carry a kind byte of its own: it is whatever the actor
@@ -659,6 +717,7 @@ def emit_world_update(a: Assembler) -> None:
     emit_placed(a)
 
     a.label("stamp_sector_result")
+    if CARRY_OVER: a.call("store_carry")
     # SECTOR_TIME = SIM_CLOCK - SECTOR_START, then fold the sector into the run.
     a.ld_a_abs(SIM_CLOCK); a.ld_r_r("b", "a")
     a.ld_a_abs(SECTOR_START); a.ld_r_r("c", "a")
@@ -720,9 +779,62 @@ def emit_world_update(a: Assembler) -> None:
         a.ld_r_n("a",3); a.call("stamp_actor_reaction")
     a.ld_r_n("a", SENTINEL_DEAD); a.ld_abs_a(SENTINEL_STATE)
     a.ld_a_abs(SECTOR_KILLS); a.inc_r("a"); a.ld_abs_a(SECTOR_KILLS)
-    a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE)
+    if ITEM_DROPS:
+        # PICKUP_ACTIVE is the item type it leaves, plus one: zero leaves nothing.
+        a.call("actor_drop_item"); a.ld_abs_a(PICKUP_ACTIVE); a.ld_r_n("a", 1); a.ld_abs_a(EXIT_ACTIVE)
+    else:
+        a.ld_r_n("a", 1); a.ld_abs_a(PICKUP_ACTIVE); a.ld_abs_a(EXIT_ACTIVE)
     a.jp("sound_kill")
     a.label("sentinel_survived_hit"); a.ld_r_n("a", SENTINEL_HURT); a.ld_abs_a(SENTINEL_STATE); a.ld_r_n("a", 3); a.ld_abs_a(SENTINEL_ANIM); a.ret()
+
+
+def emit_carry(a: Assembler) -> None:
+    """Carry-over between levels (game.json `carry_over`), in WRAM bank 6.
+
+    store_carry runs as a level is cleared (the simulation, bank 2 mapped):
+    it keeps health, armour, both pools and the weapons owned, and marks the
+    store as the next level's entry state. apply_carry runs at the end of
+    every load_level (the loading bank mapped): with a valid store the level
+    begins with the health carried (at least CARRY_MINIMUM_HEALTH), the
+    armour and pools carried or its loadout's, whichever is more (a pool the
+    level leaves infinite stays so, and one carried infinite gives way to
+    the loadout), and the weapons carried as well as its own. A death
+    retries from the same store; clear_carry (the title's START) begins a run
+    from the loadout."""
+    a.label("store_carry")
+    for register, address in (("b", PLAYER_HEALTH), ("c", PLAYER_ARMOUR), ("d", AMMO), ("e", AMMO + 1), ("h", WEAPONS_OWNED)):
+        a.ld_a_abs(address); a.ld_r_r(register, "a")
+    a.ldh_a_n(SVBK); a.ld_r_r("l", "a"); a.ld_r_n("a", SIM_EXTRAS_BANK); a.ldh_n_a(SVBK)
+    for offset, register in enumerate("bcdeh"):
+        a.ld_r_r("a", register); a.ld_abs_a(CARRY + offset)
+    a.ld_r_n("a", 1); a.ld_abs_a(CARRY_VALID)
+    a.ld_r_r("a", "l"); a.ldh_n_a(SVBK); a.ret()
+
+    a.label("clear_carry")
+    a.ldh_a_n(SVBK); a.ld_r_r("l", "a"); a.ld_r_n("a", SIM_EXTRAS_BANK); a.ldh_n_a(SVBK)
+    a.xor_r("a"); a.ld_abs_a(CARRY_VALID)
+    a.ld_r_r("a", "l"); a.ldh_n_a(SVBK); a.ret()
+
+    a.label("apply_carry")
+    a.ldh_a_n(SVBK); a.ld_r_r("l", "a"); a.ld_r_n("a", SIM_EXTRAS_BANK); a.ldh_n_a(SVBK)
+    a.ld_a_abs(CARRY_VALID); a.ld_r_r("h", "a")
+    for offset, register in enumerate("bcde"):
+        a.ld_a_abs(CARRY + offset); a.ld_r_r(register, "a")
+    a.ld_r_r("a", "h"); a.or_r("a"); a.ld_a_abs(CARRY + 4); a.ld_r_r("h", "a")
+    a.ld_r_r("a", "l"); a.ldh_n_a(SVBK)
+    a.ret("z")                                                              # no store: the loadout stands
+    a.ld_r_r("a", "b"); a.cp_n(CARRY_MINIMUM_HEALTH); a.jr("carry_health_ready", "nc"); a.ld_r_n("a", CARRY_MINIMUM_HEALTH)
+    a.label("carry_health_ready"); a.ld_abs_a(PLAYER_HEALTH)
+    a.ld_a_abs(PLAYER_ARMOUR); a.cp_r("c"); a.jr("carry_armour_done", "nc"); a.ld_r_r("a", "c"); a.ld_abs_a(PLAYER_ARMOUR)
+    a.label("carry_armour_done")
+    for pool, register in enumerate("de"):
+        done = f"carry_pool_{pool}_done"
+        a.ld_a_abs(AMMO + pool); a.cp_n(INFINITE_AMMO); a.jr(done, "z")
+        a.ld_r_r("a", register); a.cp_n(INFINITE_AMMO); a.jr(done, "z")
+        a.ld_a_abs(AMMO + pool); a.cp_r(register); a.jr(done, "nc")
+        a.ld_r_r("a", register); a.ld_abs_a(AMMO + pool)
+        a.label(done)
+    a.ld_a_abs(WEAPONS_OWNED); a.or_r("h"); a.ld_abs_a(WEAPONS_OWNED); a.ret()
 
 
 def emit_placed(a: Assembler) -> None:
@@ -765,6 +877,15 @@ def emit_placed(a: Assembler) -> None:
     a.ld_r_n("a", 1); a.ldi_hl_a(); a.xor_r("a"); a.ld_hl_a()             # state opening, fraction 0
     a.jp("sound_door")
 
+    if CARRY_OVER: emit_carry(a)
+
+    # A ranged kind's wind-up: the game's own warning, or the locked door.
+    if "warn" in GAME.sound.effects:
+        from .music import emit_effect
+        emit_effect(a, "warn")
+    else:
+        a.label("sound_warn"); a.jp("sound_locked")
+
     a.label("take_item")           # A = item type, E = its index
     a.ld_r_r("d", "a")
     # C = its bit, HL = the byte of ITEMS_TAKEN that holds it.
@@ -773,38 +894,48 @@ def emit_placed(a: Assembler) -> None:
     a.ld_rr_nn("hl", ITEMS_TAKEN); a.cb("bit", "e", 3); a.jr("take_item_byte", "z"); a.inc_rr("hl")
     a.label("take_item_byte")
     a.ld_a_hl(); a.and_r("c"); a.ret("nz")                                   # already taken
-    a.push("hl"); a.push("bc")
-    a.ld_r_r("a", "d"); a.and_n(15); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.push("hl"); a.push("bc"); a.ld_r_r("a", "d"); a.call("apply_item"); a.pop("bc"); a.pop("hl"); a.ret("c")
+    a.ld_a_hl(); a.or_r("c"); a.ld_hl_a()
+    a.jp("sound_pickup")
+
+    a.label("apply_item")          # A = item type; carry: it had nothing to give, and nothing changed
+    a.and_n(15); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
     a.ld_rr_label("hl", "item_types"); a.add_hl_rr("de")
     a.ldi_a_hl(); a.ld_r_r("c", "a")
     a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_r_r("a", "c")                      # A = effect, B = value
-    a.or_r("a"); a.jr("take_armour", "nz")
-    a.ld_a_abs(PLAYER_HEALTH); a.cp_n(99); a.jr("take_refused", "nc")
-    a.add_a_r("b"); a.cp_n(100); a.jr("take_health_store", "c"); a.ld_r_n("a", 99)
-    a.label("take_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("take_done")
-    a.label("take_armour")
-    a.dec_r("a"); a.jr("take_ammo", "nz")
-    a.ld_a_abs(PLAYER_ARMOUR); a.cp_n(100); a.jr("take_refused", "nc")
-    a.add_a_r("b"); a.cp_n(101); a.jr("take_armour_store", "c"); a.ld_r_n("a", 100)
-    a.label("take_armour_store"); a.ld_abs_a(PLAYER_ARMOUR); a.jr("take_done")
-    a.label("take_ammo")
-    a.cp_n(3); a.jr("take_key", "nc")                                       # 1, 2: pool 0, pool 1
+    a.or_r("a"); a.jr("apply_armour", "nz")
+    a.ld_a_abs(PLAYER_HEALTH); a.cp_n(99); a.jr("apply_refused", "nc")
+    a.add_a_r("b"); a.cp_n(100); a.jr("apply_health_store", "c"); a.ld_r_n("a", 99)
+    a.label("apply_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("apply_done")
+    a.label("apply_armour")
+    a.dec_r("a"); a.jr("apply_ammo", "nz")
+    a.ld_a_abs(PLAYER_ARMOUR); a.cp_n(100); a.jr("apply_refused", "nc")
+    a.add_a_r("b"); a.cp_n(101); a.jr("apply_armour_store", "c"); a.ld_r_n("a", 100)
+    a.label("apply_armour_store"); a.ld_abs_a(PLAYER_ARMOUR); a.jr("apply_done")
+    a.label("apply_ammo")
+    a.cp_n(3); a.jr("apply_key", "nc")                                      # 1, 2: pool 0, pool 1
     a.ld_rr_nn("hl", AMMO - 1); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
     # Full, or infinite (255): nothing to give.
-    a.ld_a_hl(); a.cp_n(99); a.jr("take_refused", "nc")
-    a.add_a_r("b"); a.cp_n(100); a.jr("take_ammo_store", "c"); a.ld_r_n("a", 99)
-    a.label("take_ammo_store"); a.ld_hl_a(); a.jr("take_done")
-    a.label("take_key")
-    a.jr("take_weapon", "nz")                                               # 3: a key, B its bit
-    a.ld_a_abs(PLAYER_KEYS); a.or_r("b"); a.ld_abs_a(PLAYER_KEYS); a.jr("take_done")
-    a.label("take_weapon")                                                  # 4: weapon B, owned from now
+    a.ld_a_hl(); a.cp_n(99); a.jr("apply_refused", "nc")
+    a.add_a_r("b"); a.cp_n(100); a.jr("apply_ammo_store", "c"); a.ld_r_n("a", 99)
+    a.label("apply_ammo_store"); a.ld_hl_a(); a.jr("apply_done")
+    a.label("apply_key")
+    a.jr("apply_weapon", "nz")                                              # 3: a key, B its bit
+    a.ld_a_abs(PLAYER_KEYS); a.or_r("b"); a.ld_abs_a(PLAYER_KEYS); a.jr("apply_done")
+    a.label("apply_weapon")                                                 # 4: weapon B, owned from now
     a.ld_r_r("e", "b"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "weapon_bit_masks"); a.add_hl_rr("de")
     a.ld_a_abs(WEAPONS_OWNED); a.or_r("(hl)"); a.ld_abs_a(WEAPONS_OWNED)
-    a.label("take_done")
-    a.pop("bc"); a.pop("hl"); a.ld_a_hl(); a.or_r("c"); a.ld_hl_a()
-    a.jp("sound_pickup")
-    a.label("take_refused")
-    a.pop("bc"); a.pop("hl"); a.ret()
+    a.label("apply_done"); a.and_r("a"); a.ret()
+    a.label("apply_refused"); a.scf(); a.ret()
+
+    if ITEM_DROPS:
+        a.label("actor_drop_item")     # A = what the loaded actor leaves, plus one (0: nothing)
+        a.ld_a_abs(ENTITY_SLOT); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+        a.ldh_a_n(SVBK); a.ld_r_r("b", "a"); a.ld_r_n("a", SIM_EXTRAS_BANK); a.ldh_n_a(SVBK)
+        a.ld_rr_nn("hl", ACTOR_DROP); a.add_hl_rr("de")
+        a.ld_a_hl(); a.ld_r_r("c", "a")
+        a.ld_r_r("a", "b"); a.ldh_n_a(SVBK)
+        a.ld_r_r("a", "c"); a.inc_r("a"); a.ret()
 
     a.label("fire_ammo")           # carry: the weapon in hand is dry and the shot is refused
     # A shot takes its cost from the weapon's pool, unless it has none or the

@@ -260,8 +260,10 @@ regression contract.
   existing per-slot save/load and the bank-1 snapshot. `actor_kind_stats` gives
   each kind contact damage, attack recovery, Q8 step, OBJ palette and what it
   drops; records are `ACTOR_KIND_RECORD_BYTES` wide so `actor_kind_record` can
-  still index by shifting, and there are four because the kind byte is masked
-  to two bits. The fourth is the **boss** (kind 3): the Sentinel's cels and
+  still index by shifting, and there are four because the kind is the low two
+  bits of the kind byte, which every reader masks. Bits 4-5 pick an actor's
+  own wake radius (`WAKE_CELLS`, else the level's) and bit 6 makes waking
+  need sight as well. The fourth is the **boss** (kind 3): the Sentinel's cels and
   OBJ palette, the heaviest contact damage in the game, slow, with the health
   its level gives it; a corrupt kind byte still reads a playable actor. The
   last sector of an episode fields one.
@@ -273,20 +275,41 @@ regression contract.
   because the reticle is a single-colour crosshair that could share palette 4,
   and that still moved shipped pixels. Resolve the palette once per actor in
   `render_sentinel_actor`: every submission needs D for the cel.
-- A drop carries no kind byte: it is whatever the actor that left it was.
-  `KIND_DROPS` in `levels.py` and the table's drop column must agree, a level
-  declares the drops it fields, and the compiler refuses one whose keycard sits
-  behind the door it opens.
+- In a game with items (`ITEM_DROPS`) a drop is an item type: each actor's
+  (its level's `drop`, else its kind's, or none) waits in `ACTOR_DROP`
+  (WRAM bank 6, loaded with the level) and a kill writes it plus one into
+  `PICKUP_ACTIVE`; taking it runs `apply_item`, and one with nothing to give
+  stays down. The witnesses' `PICKUP_ACTIVE=1` is item 0, which the
+  showcase keeps as the medkit with the drop cel's pixels. Without items, a
+  drop is whatever the actor's kind leaves (`KIND_DROPS`, the table's drop
+  column), a level declares the drops it fields, and the compiler refuses
+  one whose keycard sits behind the door it opens.
+- A ranged kind (record bytes 5-7: range, damage, wind-up) in sight and
+  within its range holds its ground: `SENTINEL_AIM` (6) raises its arm
+  (`attack_raise`) for the wind-up with `sound_warn`, then the shot lands
+  if it still sees the player and it recovers before it aims again. A hit
+  while it aims (HURT) spends the shot. Damage from a touch or a shot goes
+  through `apply_player_damage`: armour takes half while it lasts.
+- B held with left or right strafes (`move_player` at the angle ± 64)
+  instead of turning. No route input or recorded tape holds B with left or
+  right.
+- `carry_over` games keep health (at least `CARRY_MINIMUM_HEALTH`), armour,
+  pools and weapons owned from a cleared level (`store_carry` in
+  `stamp_sector_result`, bank 6) and `apply_carry` ends every `load_level`,
+  so a death retries with the level's entry state; boot and the title's
+  START (`clear_carry`) begin from the loadout. The route checks the carry
+  rule at every intermission.
 - `DIFFICULTY` (0..2, chosen with left/right on the title) scales contact
   damage only — half, authored, or one and a half. Selection follows rising
   edges, so holding the pad is one step.
 - `sentinel_patrol_step` and `sentinel_chase_step` share four named stepping
   bodies at the kind's own speed; each returns Z when the step was taken.
-  Patrol walks a heading from `ACTOR_PATROL`, a parallel per-actor array in the
-  snapshot slack, and turns a quarter turn when a step is refused. The actor
+  Patrol walks a heading from `ACTOR_PATROL`, a parallel per-actor array in
+  fixed WRAM, and turns a quarter turn when a step is refused. The actor
   slot is exactly full: new per-actor state goes beside it, not in it.
-- A dormant actor wakes inside the level's authored `activation_radius_q4`,
-  folded to whole cells once at load. It is not a phase count.
+- A dormant actor wakes inside its own `wake` radius or the level's authored
+  `activation_radius_q4`, folded to whole cells once at load, and with
+  `sight` only once it also sees the player. It is not a phase count.
 - Contact is cell adjacency with line of sight, and across a diagonal only
   when the corner is clean (both cells the two share a side with are open):
   a wall corner that blocks the player's shot blocks the actor's reach too,

@@ -140,6 +140,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     if SABLE_ART or COMPACT_DISPLAY:
         a.xor_r("a")
         for address in (SIM_TICK,SIM_TICK+1,FRAME_TICK,FRAME_TICK+1):a.ld_abs_a(address)
+    # WRAM powers on random: the carry store must not hand the first load garbage.
+    if CARRY_OVER: a.call("clear_carry")
     a.call("load_level")
     a.xor_r("a"); a.ld_abs_a(BUTTONS); a.ld_abs_a(PREV_BUTTONS); a.ld_abs_a(FLASH); a.ld_abs_a(CURRENT_PAGE); a.ld_abs_a(DYN_HIGH_WATER)
     a.ld_abs_a(INPUT_LAST_RAW); a.ld_abs_a(INPUT_EDGE_LATCH); a.ld_abs_a(INPUT_SAMPLE_COUNT)
@@ -174,6 +176,8 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # SELECT opens code entry; a rejected or cancelled code returns here.
     a.call("password_entry"); a.or_r("a"); a.jr("title_screen", "z")
     a.label("title_start")
+    # A run begins from the first level's loadout, not what the last one carried.
+    if CARRY_OVER: a.call("clear_carry")
     # A continue code into a later episode opens it first; the title is
     # episode one's opening. Still in the title mode, so nothing is queued.
     a.call("show_episode_opening")
@@ -397,7 +401,14 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # fewer kinds repeats its first, so a corrupt kind byte still reads a
     # playable actor.
     kind_records = [bytes((kind.contact_damage, kind.recovery_ticks, kind.step_q8,
-                           GAME.actor_palette_slot(kind.palette), DROP_KIND_IDS[kind.drop], 0, 0, 0))
+                           GAME.actor_palette_slot(kind.palette),
+                           # A game with items drops item types (the level's
+                           # actor drops, WRAM bank 6); this byte is the
+                           # engine's own drops' and reads medkit for any item.
+                           DROP_KIND_IDS.get(kind.drop, 0),
+                           # A ranged kind: cells its shot reaches, what it
+                           # takes off, and the AI ticks it aims first.
+                           kind.range, kind.ranged_damage, kind.windup_ticks))
                     for kind in GAME.kinds]
     kind_records += [kind_records[0]] * (4 - len(kind_records))
     a.label("actor_kind_stats"); a.bytes(b"".join(kind_records), "enemy kind stats")

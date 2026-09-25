@@ -35,6 +35,7 @@ The top-level object.
 | `ammo` | no | up to two ammunition pool names, in pool order; a weapon's `ammo` and an ammo [`item`](#item) name one |
 | `keys` | no | up to two key colour names; key *n* is drawn in the effects palette (the first) or the decor palette (the second), and a card door and a key [`item`](#item) name one |
 | `items` | no | up to sixteen [`item`](#item) types a level can place |
+| `carry_over` | no | `true`: health (at least 50), armour, ammunition and weapons found carry from a cleared level into the next; a death retries a level with what it began with, and the title's START begins a run from the first level's loadout. Default `false`: every level begins full |
 | `textures` | yes | texture name → a 16×8 indexed PNG ([asset formats](asset-formats.md)); one to seven, each used by a theme |
 | `themes` | yes | one to four [`theme`](#theme) objects; a level names one as its `palette_profile` |
 | `shared_palettes` | yes | the palettes every theme shares: [`shared_palettes`](#shared_palettes) |
@@ -79,7 +80,10 @@ roles) in its own palette, so a kind costs ROM bytes, not VRAM.
 | `recovery_ticks` | yes | simulation ticks between two touches, 0..255 |
 | `step_q8` | yes | distance per step in 1/256 of a cell, 1..255 (8 is a steady walk, 15 a sprint) |
 | `palette` | yes | one of `actor_palettes` |
-| `drop` | yes | what it leaves when it dies: `medkit` (restores health) or `keycard` (opens the level's keycard doors) |
+| `drop` | yes | what it leaves when it dies. In a game with `items`: an [`item`](#item) type or `none` (a level may name another per actor); otherwise `medkit` (restores health) or `keycard` (opens the level's keycard doors) |
+| `range` | no | a ranged kind: how many cells its shot reaches (Chebyshev), 2..7. It holds its ground in reach and sight, raises its arm for `windup_ticks` (the `warn` sound), then shoots if it still sees the player; a hit while it aims spends the shot. Give all three ranged keys or none |
+| `ranged_damage` | with `range` | health a shot takes at the authored skill, 1..170, scaled by skill like `contact_damage` |
+| `windup_ticks` | with `range` | AI ticks (a fifteenth of a second each) it aims before the shot; its `recovery_ticks` pass before it aims again |
 
 ### `weapon`
 

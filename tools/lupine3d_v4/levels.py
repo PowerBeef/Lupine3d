@@ -59,6 +59,16 @@ KIND_DROPS = {kind.name: kind.drop for kind in _GAME.kinds}
 # Engine vocabulary in a level file. Each value has a neutral name and the
 # name the showcase was written with; both mean the same thing.
 UNLOCK_WHEN_CLEARED = ("enemies_cleared", "sentinel_dead")
+# A game with items drops item types: each actor leaves its kind's drop, or
+# the one its level names for it, or nothing (NO_DROP).
+ITEM_DROPS = bool(_GAME.items)
+NO_DROP = 0xFF
+# An actor's wake radius beside the level's: its kind byte's bits 4-5 pick
+# one of these (cells, exclusive, on both axes), and bit 6 asks for sight too.
+WAKE_RADII = {2: 1, 4: 2, 7: 3}            # authored cells -> the kind byte's code
+WAKE_CELLS = (3, 5, 8)                      # code 1..3 -> the radius the AI compares against
+KIND_WAKE_SHIFT = 4
+KIND_SIGHT = 0x40
 DROP_SOURCES = ("drop", "sentinel_drop")
 
 # Campaign levels are packed five to a ROM bank from LEVEL_ROM_BANK_BASE, in
@@ -87,7 +97,8 @@ EXTRAS_ITEMS = 1                 # after the item count: MAX_ITEMS (cell, type) 
 EXTRAS_LOADOUT = EXTRAS_ITEMS + 2 * MAX_ITEMS          # pool 0, pool 1, armour
 EXTRAS_TRIGGER_COUNT = EXTRAS_LOADOUT + 3
 EXTRAS_TRIGGERS = EXTRAS_TRIGGER_COUNT + 1             # MAX_TRIGGERS (cell, door index) pairs
-EXTRAS_BYTES = EXTRAS_TRIGGERS + 2 * MAX_TRIGGERS
+EXTRAS_DROPS = EXTRAS_TRIGGERS + 2 * MAX_TRIGGERS    # MAX_ACTORS item types an actor leaves
+EXTRAS_BYTES = EXTRAS_DROPS + MAX_ACTORS
 INFINITE_AMMO = 0xFF
 LEVEL_PAYLOAD_END = LEVEL_EXTRAS_OFFSET + EXTRAS_BYTES
 assert LEVEL_DOOR_OFFSET + MAX_DOORS * DOOR_RECORD_BYTES <= LEVEL_ACTOR_OFFSET
@@ -138,6 +149,13 @@ class EntitySpec:
     y_q8: int
     health: int
     activation_radius_q4: int
+    drop: int = NO_DROP        # with items: the item type it leaves, or NO_DROP
+    wake: int = 0              # 0: the level's radius; else WAKE_CELLS[wake - 1]
+    sight: bool = False        # waking needs a clear line to the player as well
+
+    @property
+    def kind_byte(self) -> int:
+        return ENTITY_KIND_IDS[self.kind] | (self.wake << KIND_WAKE_SHIFT) | (KIND_SIGHT if self.sight else 0)
 
 
 @dataclass(frozen=True)
@@ -217,15 +235,18 @@ class CompiledLevel:
 
     @property
     def medkit_value(self) -> int:
-        """The health a medkit drop restores; the only per-level drop number."""
-        return next(p.value for p in self.pickups if p.kind == "medkit")
+        """The health a medkit drop restores; the only per-level drop number
+        (a game with items gives each item type its own)."""
+        return next((p.value for p in self.pickups if p.kind == "medkit"), 0)
 
     def extras_bytes(self) -> bytes:
         """The slot tail load_level reads: items, loadout and triggers."""
         items = b"".join(bytes(((y << 4) | x, kind)) for x, y, kind in self.items)
         triggers = b"".join(bytes(((y << 4) | x, door)) for x, y, door in self.triggers)
+        drops = bytes(entity.drop for entity in self.entities).ljust(MAX_ACTORS, bytes((NO_DROP,)))
         data = (bytes((len(self.items),)) + items.ljust(2 * MAX_ITEMS, b"\0")
-                + bytes(self.loadout) + bytes((len(self.triggers),)) + triggers.ljust(2 * MAX_TRIGGERS, b"\0"))
+                + bytes(self.loadout) + bytes((len(self.triggers),)) + triggers.ljust(2 * MAX_TRIGGERS, b"\0")
+                + drops)
         assert len(data) == EXTRAS_BYTES
         return data
 
@@ -485,7 +506,7 @@ def _validate_keycard_gates(
     declared = {pickup.kind for pickup in pickups}
     dropped = {KIND_DROPS[entity.kind] for entity in entities}
     unauthored = declared - dropped
-    if unauthored:
+    if unauthored and not ITEM_DROPS:
         raise ValueError(f"declared drops no actor leaves: {sorted(unauthored)}")
     passable = _passable_cells(grid, width, height)
     # Every actor stands on a walkable cell the player can walk to with the
@@ -500,12 +521,12 @@ def _validate_keycard_gates(
             raise ValueError(f"actor at cell {cell} is not on a walkable cell")
         if cell not in engageable:
             raise ValueError(f"actor at cell {cell} is behind a door that opens only when the enemies are cleared, or unreachable")
+    if ITEM_DROPS or placed_cards:
+        return      # _validate_gates walks placed cards, drops and triggers together
     if not keyed:
         if "keycard" in declared:
             raise ValueError("a declared keycard drop opens nothing in this level")
         return
-    if placed_cards:
-        return      # _validate_gates walks placed cards, drops and triggers together
     if "keycard" not in declared:
         raise ValueError("a keycard door needs the level to declare its card drop")
     # Every keycard door is a wall until the card is in hand.
@@ -717,6 +738,9 @@ def compile_level(path: Path) -> CompiledLevel:
             y_q8=_bounded_int(item, "y_q8", 0, height * 256 - 1),
             health=_bounded_int(item, "health", 1, 255),
             activation_radius_q4=_bounded_int(item, "activation_radius_q4", 1, 127),
+            drop=_entity_drop(item, path),
+            wake=_entity_wake(item, path),
+            sight=_entity_sight(item, path),
         )
         for item in source.get("entities", [])
     )
@@ -732,16 +756,20 @@ def compile_level(path: Path) -> CompiledLevel:
                          f"{', '.join(ENTITY_KIND_IDS)} (game.json `kinds`)")
     # Every pickup is a drop from a dead actor; its kind follows from that
     # actor's kind, so a level declares which drops it fields rather than
-    # placing them. The medkit's value is the only per-level number.
-    if not 1 <= len(pickups) <= len(DROP_KIND_IDS):
+    # placing them. The medkit's value is the only per-level number. A game
+    # with items drops item types instead, named by kind or per actor.
+    if ITEM_DROPS:
+        pass
+    elif not 1 <= len(pickups) <= len(DROP_KIND_IDS):
         raise ValueError(f"levels declare one to {len(DROP_KIND_IDS)} drops")
-    if any(pickup.source not in DROP_SOURCES for pickup in pickups):
-        raise ValueError("every drop comes from a dead actor")
-    kinds = [pickup.kind for pickup in pickups]
-    if len(set(kinds)) != len(kinds) or set(kinds) - set(DROP_KIND_IDS):
-        raise ValueError(f"drop kinds must be distinct and one of {sorted(DROP_KIND_IDS)}")
-    if "medkit" not in kinds:
-        raise ValueError("a level must field the medkit drop its actors leave")
+    if not ITEM_DROPS:
+        if any(pickup.source not in DROP_SOURCES for pickup in pickups):
+            raise ValueError("every drop comes from a dead actor")
+        kinds = [pickup.kind for pickup in pickups]
+        if len(set(kinds)) != len(kinds) or set(kinds) - set(DROP_KIND_IDS):
+            raise ValueError(f"drop kinds must be distinct and one of {sorted(DROP_KIND_IDS)}")
+        if "medkit" not in kinds:
+            raise ValueError("a level must field the medkit drop its actors leave")
     exit_spec = ExitSpec(
         _bounded_int(source["exit"], "x", 0, width - 1),
         _bounded_int(source["exit"], "y", 0, height - 1),
@@ -855,6 +883,37 @@ def compile_level(path: Path) -> CompiledLevel:
     )
 
 
+def _entity_drop(item: dict[str, Any], path: Path) -> int:
+    """With items: the item type an actor leaves (its own `drop`, else its
+    kind's), or NO_DROP. Without items the kind alone decides."""
+    if not ITEM_DROPS:
+        if "drop" in item:
+            raise ValueError(f"{path.name}: an entity's drop needs the game to define items")
+        return NO_DROP
+    name = item.get("drop", KIND_DROPS.get(str(item.get("kind")), "none"))
+    if name == "none":
+        return NO_DROP
+    if name not in _GAME.item_ids:
+        raise ValueError(f"{path.name}: drop {name!r} is not one of {_GAME.id}'s items ({', '.join(_GAME.item_ids)}) or none")
+    return _GAME.item_ids[name]
+
+
+def _entity_wake(item: dict[str, Any], path: Path) -> int:
+    if "wake" not in item:
+        return 0
+    if item["wake"] not in WAKE_RADII:
+        raise ValueError(f"{path.name}: an entity's wake is {item['wake']!r}; it is one of "
+                         f"{', '.join(map(str, WAKE_RADII))} cells (or left out for the level's radius)")
+    return WAKE_RADII[item["wake"]]
+
+
+def _entity_sight(item: dict[str, Any], path: Path) -> bool:
+    sight = item.get("sight", False)
+    if not isinstance(sight, bool):
+        raise ValueError(f"{path.name}: an entity's sight is true or false")
+    return sight
+
+
 def _door_key(item: dict[str, Any], path: Path) -> int:
     """A card door's key colour, plus one (0: any card opens it)."""
     if "key" not in item:
@@ -935,7 +994,8 @@ def _validate_gates(grid: bytes, width: int, height: int, start: tuple[int, int]
     leaves, which is the first colour), remote doors once their trigger's cell
     is reached; the doors that open when the enemies are cleared stay shut.
     Everything must be reached that way."""
-    if not items and not triggers and not any(door.flags & (DOOR_FLAG_REMOTE | (3 << DOOR_KEY_SHIFT)) for door in doors):
+    if not ITEM_DROPS and not items and not triggers and not any(
+            door.flags & (DOOR_FLAG_REMOTE | (3 << DOOR_KEY_SHIFT)) for door in doors):
         return      # nothing but what _validate_keycard_gates already proves
     passable = _passable_cells(grid, width, height)
     locked = {(door.x, door.y) for door in doors if door.flags & DOOR_FLAG_LOCK_SENTINEL}
@@ -949,9 +1009,14 @@ def _validate_gates(grid: bytes, width: int, height: int, start: tuple[int, int]
         for x, y, kind in items:
             if (x, y) in reach and item_types[kind].effect == "key":
                 found |= item_types[kind].value
-        if any((entity.x_q8 >> 8, entity.y_q8 >> 8) in reach and KIND_DROPS[entity.kind] == "keycard"
-               for entity in entities):
-            found |= 1
+        for entity in entities:
+            if (entity.x_q8 >> 8, entity.y_q8 >> 8) not in reach:
+                continue
+            if ITEM_DROPS:
+                if entity.drop != NO_DROP and item_types[entity.drop].effect == "key":
+                    found |= item_types[entity.drop].value
+            elif KIND_DROPS[entity.kind] == "keycard":
+                found |= 1
         now = set(opened)
         for x, y, door in triggers:
             if (x, y) in reach:

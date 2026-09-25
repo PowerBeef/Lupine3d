@@ -47,7 +47,10 @@
           "kind": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "One of the kinds your game.json declares."},
           "x_q8": {"$ref": "#/$defs/q8"}, "y_q8": {"$ref": "#/$defs/q8"},
           "health": {"type": "integer", "minimum": 1, "maximum": 255},
-          "activation_radius_q4": {"type": "integer", "minimum": 1, "maximum": 127}
+          "activation_radius_q4": {"type": "integer", "minimum": 1, "maximum": 127},
+          "wake": {"enum": [2, 4, 7], "description": "The actor's own wake radius in cells, in place of the level's."},
+          "sight": {"type": "boolean", "default": false, "description": "It wakes only when it can also see the player."},
+          "drop": {"type": "string", "minLength": 1, "description": "With items: the item type it leaves, or none, in place of its kind's drop."}
         }
       }
     },

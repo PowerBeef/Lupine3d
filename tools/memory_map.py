@@ -22,7 +22,7 @@ PAGE = ROOT / "docs" / "reference" / "memory-map.md"
 SPACES = (("ROM", "ROM (4 MiB MBC5, 256 banks of 16 KiB; addresses are absolute ROM offsets)"),
           ("WRAM0", "Fixed WRAM (`$C000-$CFFF`)"), ("WRAM1", "WRAM bank 1: the render snapshot (`$D000-$DFFF`)"),
           ("WRAM2", "WRAM bank 2: the live world"), ("WRAM3", "WRAM bank 3"), ("WRAM4", "WRAM bank 4"),
-          ("WRAM5", "WRAM bank 5: music"), ("HRAM", "HRAM (`$FF80-$FFFE`)"), ("OAM", "OAM (object slots)"),
+          ("WRAM5", "WRAM bank 5: music"), ("WRAM6", "WRAM bank 6: simulation-only level data"), ("HRAM", "HRAM (`$FF80-$FFFE`)"), ("OAM", "OAM (object slots)"),
           ("VRAM0", "VRAM bank 0"), ("VRAM1", "VRAM bank 1"))
 
 

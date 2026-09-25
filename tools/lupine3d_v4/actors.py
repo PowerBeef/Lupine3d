@@ -12,7 +12,7 @@ def actor_records(level=None) -> bytes:
         records[index * 16:index * 16 + 6] = bytes((entity.x_q8 & 255, entity.x_q8 >> 8,
                                                     entity.y_q8 & 255, entity.y_q8 >> 8,
                                                     SENTINEL_DORMANT, entity.health))
-        records[index * 16 + ACTOR_KIND_OFFSET] = ENTITY_KIND_IDS[entity.kind]
+        records[index * 16 + ACTOR_KIND_OFFSET] = entity.kind_byte
     return bytes(records)
 
 

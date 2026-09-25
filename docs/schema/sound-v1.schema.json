@@ -232,6 +232,15 @@
             "$ref": "#/$defs/byte"
           },
           "description": "NR10..NR14"
+        },
+        "warn": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/byte"
+          },
+          "description": "NR10..NR14; optional: a ranged enemy's wind-up (else the locked sound)"
         }
       },
       "additionalProperties": false

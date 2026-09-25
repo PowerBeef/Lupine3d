@@ -1,5 +1,20 @@
 # Unreleased — after v0.12
 
+- **Enemies worth planning around.** A kind may shoot from range
+  (`range`, `ranged_damage`, `windup_ticks`): in sight and in reach it
+  holds its ground, raises its arm with a warning whine (the optional `warn`
+  effect), then fires if it still sees the player; a hit while it aims
+  spends the shot. Sable Outpost's Wardens reach five cells and its Overseer
+  six. An actor may carry its own wake radius (`wake`: 2, 4 or 7 cells) and
+  wake only on sight (`sight`), so sentries wait at their posts and a closet
+  stirs when it opens. In a game with items, drops are item types: a kind
+  names one or `none`, a level may give any actor its own (`drop`: the one
+  that carries the card), and a drop with nothing to give stays down.
+  Armour takes half of every blow while it lasts. B held with left or right
+  strafes. `carry_over` games keep health (at least 50), armour, ammunition
+  and weapons found from sector to sector; a death retries a sector with
+  what it began with, and the title's START starts over from the loadout.
+  Sable Outpost carries over; the starter does not.
 - **Items, ammunition, coloured keys and triggers.** A game defines item
   types (`game.json` `items`: health, armour, ammunition, a key or a weapon,
   each drawn from a new `items` sprite sheet in one of the shared palettes)

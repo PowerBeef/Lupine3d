@@ -20,6 +20,7 @@ enters its levels by continue code with every frame check.
 | `kinds` | 1 | 4 | enemy kinds | an actor's kind is two bits of its slot |
 | `actor_palettes` | 1 | 3 | enemy palettes | OBJ palettes 1, 6 and 7 are the enemies'; the other five draw the weapon, drops, effects, decor and reticle |
 | `contact_damage` | 0 | 170 | an enemy's contact damage | the hard skill adds half again, and the result must fit a byte |
+| `actor_range` | 2 | 7 | cells an enemy's ranged shot reaches | a level's sightlines are certified to at most six cells, and the AI compares the Chebyshev distance of whole cells |
 | `weapons` | 4 | 4 | weapons | the weapon index is two bits and SELECT walks all four |
 | `ammo_pools` | 0 | 2 | ammunition pools | a weapon record names its pool in one byte, and the render snapshot's slack holds two |
 | `ammo` | 0 | 99 | rounds in a pool | the HUD shows a pool in two digits |

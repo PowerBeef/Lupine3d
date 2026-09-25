@@ -15,6 +15,21 @@ from lupine3d_v4.levels import (  # noqa: E402
     KIND_DROPS,
 )
 from sm83emu import CGB, run_to_world  # noqa: E402
+from lupine3d_v4.game import GAME  # noqa: E402
+
+FIXTURE = ROOT / "tests" / "levels" / "placed_items.json"
+
+
+def drop_effect(entity):
+    """What an actor's drop does: an item effect with items, else the engine's drop name."""
+    if level_codec.ITEM_DROPS:
+        return None if entity.drop == level_codec.NO_DROP else GAME.items[entity.drop].effect
+    return {"medkit": "health", "keycard": "key"}[KIND_DROPS[entity.kind]]
+
+
+def pickup_byte(entity):
+    """PICKUP_ACTIVE as a kill leaves it."""
+    return entity.drop + 1 if level_codec.ITEM_DROPS else 1
 
 
 class DropTableTests(unittest.TestCase):
@@ -26,9 +41,16 @@ class DropTableTests(unittest.TestCase):
         cls.stats = [cls.rom[start + i * size:start + (i + 1) * size] for i in range(4)]
 
     def test_each_kind_drops_what_the_compiler_says_it_drops(self):
+        # The table's drop byte is the engine's own drop; a game with items
+        # drops item types from the level's actor drops (bank 6), and the
+        # byte reads the medkit for any of them.
         for kind, index in level_codec.ENTITY_KIND_IDS.items():
             self.assertEqual(self.stats[index][br.ACTOR_KIND_DROP],
-                             DROP_KIND_IDS[KIND_DROPS[kind]], kind)
+                             DROP_KIND_IDS.get(KIND_DROPS[kind], 0), kind)
+        if level_codec.ITEM_DROPS:
+            for level in br.CAMPAIGN:
+                drops = level.extras_bytes()[level_codec.EXTRAS_DROPS:level_codec.EXTRAS_DROPS + len(level.entities)]
+                self.assertEqual(list(drops), [entity.drop for entity in level.entities], level.name)
         # The kind byte is masked to two bits, so the spares must still drop
         # something a player can use.
         for spare in self.stats[len(level_codec.ENTITY_KIND_IDS):]:
@@ -68,14 +90,17 @@ class CompiledDoorTests(unittest.TestCase):
                 if door.flags & DOOR_FLAG_KEYCARD:
                     self.assertFalse(door.flags & (DOOR_FLAG_EXIT | DOOR_FLAG_LOCK_SENTINEL))
 
-    def test_a_keyed_level_declares_the_drop_that_opens_it(self):
+    def test_a_keyed_level_has_a_card_for_its_doors(self):
         for level in br.CAMPAIGN:
-            kinds = {pickup.kind for pickup in level.pickups}
-            if any(door.flags & DOOR_FLAG_KEYCARD for door in level.doors):
+            if not any(door.flags & DOOR_FLAG_KEYCARD for door in level.doors):
+                continue
+            placed = level_codec.ITEM_DROPS and any(GAME.items[kind].effect == "key" for _, _, kind in level.items)
+            dropped = any(drop_effect(entity) == "key" for entity in level.entities)
+            self.assertTrue(placed or dropped, level.name)
+            if not level_codec.ITEM_DROPS:
+                kinds = {pickup.kind for pickup in level.pickups}
                 self.assertIn("keycard", kinds, level.name)
-            self.assertIn("medkit", kinds, level.name)
-            for kind in kinds:
-                self.assertIn(kind, {KIND_DROPS[e.kind] for e in level.entities}, level.name)
+                self.assertIn("medkit", kinds, level.name)
 
 
 class CompilerRefusalTests(unittest.TestCase):
@@ -94,28 +119,39 @@ class CompilerRefusalTests(unittest.TestCase):
             path.write_text(json.dumps(source), encoding="utf-8")
             return level_codec.compile_level(path)
 
-    def test_the_authored_levels_still_compile(self):
-        self.assertIsNotNone(self._compile(self._source()))
+    @staticmethod
+    def _fixture():
+        return json.loads(FIXTURE.read_text())
 
-    def test_a_card_door_with_no_card_dropper_is_refused(self):
-        source = self._source()
-        for entity in source["entities"]:
-            entity["kind"] = "sentinel"          # nothing here carries a card
+    def test_the_authored_levels_still_compile(self):
+        self.assertIsNotNone(self._compile(self._fixture() if level_codec.ITEM_DROPS else self._source()))
+
+    def test_a_card_door_with_no_card_is_refused(self):
+        if level_codec.ITEM_DROPS:
+            source = self._fixture()
+            source["items"] = [item for item in source["items"] if "card" not in item["item"]]
+        else:
+            source = self._source()
+            for entity in source["entities"]:
+                entity["kind"] = "sentinel"          # nothing here carries a card
         with self.assertRaises(ValueError):
             self._compile(source)
 
+    @unittest.skipIf(level_codec.ITEM_DROPS, "a game with items drops item types; nothing is declared")
     def test_a_declared_drop_no_actor_leaves_is_refused(self):
         source = self._source("living_world.json")
         source["pickups"].append({"kind": "keycard", "source": "sentinel_drop", "value": 1})
         with self.assertRaises(ValueError):
             self._compile(source)
 
+    @unittest.skipIf(level_codec.ITEM_DROPS, "a game with items drops item types; nothing is declared")
     def test_a_card_drop_that_opens_nothing_is_refused(self):
         source = self._source("coolant_spine.json")
         source["pickups"].append({"kind": "keycard", "source": "sentinel_drop", "value": 1})
         with self.assertRaises(ValueError):
             self._compile(source)
 
+    @unittest.skipIf(level_codec.ITEM_DROPS, "a game with items drops item types; nothing is declared")
     def test_a_level_with_no_medkit_drop_is_refused(self):
         source = self._source()
         source["pickups"] = [p for p in source["pickups"] if p["kind"] != "medkit"]
@@ -123,9 +159,9 @@ class CompilerRefusalTests(unittest.TestCase):
             self._compile(source)
 
     def test_a_card_locked_behind_its_own_door_is_refused(self):
-        # Move every card dropper behind the door its card opens.
-        source = copy.deepcopy(self._source())
-        level = self._compile(self._source())
+        # Move every card - placed, or carried by an actor - behind the door it opens.
+        source = copy.deepcopy(self._fixture() if level_codec.ITEM_DROPS else self._source())
+        level = self._compile(copy.deepcopy(source))
         keyed = next(d for d in level.doors if d.flags & DOOR_FLAG_KEYCARD)
         from lupine3d_v4.levels import _passable_cells, _reachable_cells
         passable = _passable_cells(level.grid, level.width, level.height)
@@ -133,9 +169,12 @@ class CompilerRefusalTests(unittest.TestCase):
         before = _reachable_cells(passable - {(keyed.x, keyed.y)}, start)
         beyond = next(cell for cell in sorted(passable - before - {(keyed.x, keyed.y)}))
         for entity, authored in zip(source["entities"], level.entities):
-            if KIND_DROPS[authored.kind] == "keycard":
+            if drop_effect(authored) == "key":
                 entity["x_q8"] = (beyond[0] << 8) | 0x80
                 entity["y_q8"] = (beyond[1] << 8) | 0x80
+        for item in source.get("items", []):
+            if "card" in item["item"]:
+                item["x"], item["y"] = beyond
         with self.assertRaises(ValueError):
             self._compile(source)
 
@@ -170,14 +209,19 @@ class KeycardRuntimeTests(unittest.TestCase):
         cgb.call_subroutine("load_level", max_steps=2_000_000)
         self.assertEqual(cgb.read8(br.PLAYER_KEYS), 0)
 
-    def _try_door(self, cgb, door, keys):
-        """Stand one cell west of the door, face it, and press the use key."""
+    def _try_door(self, cgb, door, keys, level):
+        """Stand on an open side of the door, near enough for B's reach, face
+        it, and press the use key."""
         cgb.write8(br.PLAYER_KEYS, keys)
         base = br.DOOR_TABLE + self._door_index(cgb, door) * br.DOOR_RECORD_BYTES
         cgb.write8(base + br.DOOR_STATE_OFFSET, 0)
-        cgb.write8(br.PLAYER_XL, 0x80); cgb.write8(br.PLAYER_XH, door.x - 1)
-        cgb.write8(br.PLAYER_YL, 0x80); cgb.write8(br.PLAYER_YH, door.y)
-        cgb.write8(br.ANGLE, 0)                       # +x, at the door
+        for (dx, dy), angle, near in (((-1, 0), 0, (0xC0, 0x80)), ((1, 0), 128, (0x40, 0x80)),
+                                      ((0, -1), 64, (0x80, 0xC0)), ((0, 1), 192, (0x80, 0x40))):
+            if level.grid[(door.y + dy) * 16 + door.x + dx] == 0:
+                break
+        cgb.write8(br.PLAYER_XL, near[0]); cgb.write8(br.PLAYER_XH, door.x + dx)
+        cgb.write8(br.PLAYER_YL, near[1]); cgb.write8(br.PLAYER_YH, door.y + dy)
+        cgb.write8(br.ANGLE, angle)
         cgb.call_subroutine("open_door", max_steps=500_000)
         return cgb.read8(base + br.DOOR_STATE_OFFSET)
 
@@ -190,44 +234,56 @@ class KeycardRuntimeTests(unittest.TestCase):
         raise AssertionError("the loaded level does not carry that door")
 
     def test_a_card_door_refuses_an_empty_hand_and_opens_for_a_card(self):
-        index, _, door = self._keyed_sector()
+        index, level, door = self._keyed_sector()
         cgb = self._sector(index)
-        self.assertEqual(self._try_door(cgb, door, keys=0), 0, "it opened without a card")
-        self.assertEqual(self._try_door(cgb, door, keys=1), 1, "it stayed shut with a card")
+        colour = (door.flags >> level_codec.DOOR_KEY_SHIFT) & 3
+        card = colour or 1
+        self.assertEqual(self._try_door(cgb, door, 0, level), 0, "it opened without a card")
+        if colour:
+            self.assertEqual(self._try_door(cgb, door, 3 ^ card, level), 0, "it opened for the other colour")
+        self.assertEqual(self._try_door(cgb, door, card, level), 1, "it stayed shut with its card")
 
-    def test_taking_a_skirmishers_drop_puts_a_card_in_hand(self):
-        index, level, _ = self._keyed_sector()
+    @staticmethod
+    def _dropping(effect):
+        for index, level in enumerate(br.CAMPAIGN):
+            for slot, entity in enumerate(level.entities):
+                if drop_effect(entity) == effect:
+                    return index, level, slot
+        raise unittest.SkipTest(f"no campaign actor drops {effect}")
+
+    def test_taking_a_carriers_drop_puts_a_card_in_hand(self):
+        index, level, slot = self._dropping("key")
         cgb = self._sector(index)
-        slot = next(i for i, e in enumerate(level.entities) if KIND_DROPS[e.kind] == "keycard")
         cgb.write8(br.ENTITY_SLOT, slot)
         cgb.call_subroutine("actor_load", max_steps=100_000)
         cgb.write8(br.SENTINEL_STATE, br.SENTINEL_DEAD)
-        cgb.write8(br.PICKUP_ACTIVE, 1)
+        cgb.write8(br.PICKUP_ACTIVE, pickup_byte(level.entities[slot]))
         cgb.write8(br.PLAYER_KEYS, 0)
         health = cgb.read8(br.PLAYER_HEALTH)
         for address in (br.PLAYER_XL, br.PLAYER_YL): cgb.write8(address, 0x80)
         cgb.write8(br.PLAYER_XH, cgb.read8(br.SENTINEL_XH))
         cgb.write8(br.PLAYER_YH, cgb.read8(br.SENTINEL_YH))
         cgb.call_subroutine("collect_pickup_and_exit", max_steps=500_000)
+        expected = GAME.items[level.entities[slot].drop].value if level_codec.ITEM_DROPS else 1
         self.assertEqual(cgb.read8(br.PICKUP_ACTIVE), 0)
-        self.assertEqual(cgb.read8(br.PLAYER_KEYS), 1)
+        self.assertEqual(cgb.read8(br.PLAYER_KEYS), expected)
         self.assertEqual(cgb.read8(br.PLAYER_HEALTH), health, "a card is not a medkit")
 
-    def test_taking_a_sentinels_drop_still_heals(self):
-        index, level, _ = self._keyed_sector()
+    def test_taking_a_health_drop_heals(self):
+        index, level, slot = self._dropping("health")
         cgb = self._sector(index)
-        slot = next(i for i, e in enumerate(level.entities) if KIND_DROPS[e.kind] == "medkit")
         cgb.write8(br.ENTITY_SLOT, slot)
         cgb.call_subroutine("actor_load", max_steps=100_000)
         cgb.write8(br.SENTINEL_STATE, br.SENTINEL_DEAD)
-        cgb.write8(br.PICKUP_ACTIVE, 1)
+        cgb.write8(br.PICKUP_ACTIVE, pickup_byte(level.entities[slot]))
         cgb.write8(br.PLAYER_KEYS, 0)
         cgb.write8(br.PLAYER_HEALTH, 10)
         for address in (br.PLAYER_XL, br.PLAYER_YL): cgb.write8(address, 0x80)
         cgb.write8(br.PLAYER_XH, cgb.read8(br.SENTINEL_XH))
         cgb.write8(br.PLAYER_YH, cgb.read8(br.SENTINEL_YH))
         cgb.call_subroutine("collect_pickup_and_exit", max_steps=500_000)
-        self.assertEqual(cgb.read8(br.PLAYER_HEALTH), 10 + level.medkit_value)
+        healed = GAME.items[level.entities[slot].drop].value if level_codec.ITEM_DROPS else level.medkit_value
+        self.assertEqual(cgb.read8(br.PLAYER_HEALTH), 10 + healed)
         self.assertEqual(cgb.read8(br.PLAYER_KEYS), 0, "a medkit is not a card")
 
 

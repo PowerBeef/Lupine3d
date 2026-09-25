@@ -61,6 +61,8 @@ def emit_animation(a):
         a.label('actor_death_cel');a.ld_r_r('a','l');a.cp_n(12);a.ld_r_n('a',9);a.jr('actor_cel_ready','c')
         a.ld_r_r('a','l');a.cp_n(24);a.ld_r_n('a',10);a.jr('actor_cel_ready','c');a.ld_r_n('a',11);a.jr('actor_cel_ready')
         a.label('actor_cycle');a.ld_a_abs(SENTINEL_STATE);a.cp_n(SENTINEL_DORMANT);a.jr('actor_idle','z');a.cp_n(SENTINEL_ATTACK);a.jr('actor_idle','z')
+        # A ranged kind aiming holds its arm up (attack_raise) through the wind-up.
+        a.cp_n(SENTINEL_AIM);a.ld_r_n('a',6);a.jr('actor_cel_ready','z')
         a.ld_a_abs(FRAME_TICK)
         for _ in range(3):a.cb('srl','a')
         a.and_n(3);a.add_a_n(2);a.jr('actor_cel_ready')

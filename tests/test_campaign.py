@@ -134,7 +134,11 @@ class CampaignRulesTests(unittest.TestCase):
                 set_test_world_byte(cgb, address, value)
             cgb.write8(br.LEVEL_PICKUP_VALUE, 25)
             cgb.call_subroutine("collect_pickup_and_exit", max_steps=200_000)
-            self.assertEqual(cgb.read8(br.PICKUP_COLLECTED), 1, health)
+            # With items the drop is item 0, Sable's medkit (+25), and one
+            # with nothing to give stays on the floor; the engine's own
+            # medkit is always taken.
+            taken = health < 99 or not br.ITEM_DROPS
+            self.assertEqual(cgb.read8(br.PICKUP_COLLECTED), int(taken), health)
             self.assertEqual(cgb.read8(br.PLAYER_HEALTH), expected, health)
 
 

@@ -13,7 +13,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 
 | Budget | Value |
 |---|---:|
-| Free WRAM banks | 6, 7 |
+| Free WRAM banks | 7 |
 | Render snapshot copy | 496 bytes in 4 ranges: `$D000`+256, `$D140`+8, `$D720`+136, `$D990`+96 |
 | Prepared ray record | 16 bytes; packet records 241-250 |
 
@@ -32,7 +32,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
 | bank 238 `$4000-$52D0` | 4,816 | cold raw vectors and camera-plane tables | persistent |
 | bank 240 `$4000-$8000` | 16,384 | songs and note periods | persistent |
-| banks 241-244 (`$4000` in 241 to `$60E5` in 244) | 57,573 | campaign levels, 5 per bank in 2816-byte slots | persistent |
+| banks 241-244 (`$4000` in 241 to `$60EB` in 244) | 57,579 | campaign levels, 5 per bank in 2816-byte slots | persistent |
 | bank 245 `$4000-$5400` | 5,120 | weapon cel sheets, streamed into the OBJ window one at a time | persistent |
 | bank 246 `$4000-$8000` | 16,384 | texture row windows (three blocks per bank) | persistent |
 | bank 247 `$4000-$8000` | 16,384 | texture slopes, height-class rows and stride classes | persistent |
@@ -139,6 +139,12 @@ the linker refuses a build under the 3,000-byte resident reserve.
 |---|---:|---|---|
 | `$D000-$D080` | 128 | sequencer note periods | persistent |
 | `$D080-$E000` | 3,968 | copied song rows | one song |
+
+## WRAM bank 6: simulation-only level data
+
+| Range | Bytes | Owner | Lifetime |
+|---|---:|---|---|
+| `$D000-$D006` | 6 | the item type each actor leaves (simulation) | persistent |
 
 ## HRAM (`$FF80-$FFFE`)
 

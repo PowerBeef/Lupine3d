@@ -32,7 +32,7 @@ of the music:
 }
 ```
 
-(Every effect must be present; the example shows one.)
+(Every effect but `warn` must be present; the example shows one.)
 
 ## Instruments
 
@@ -61,6 +61,7 @@ with no per-frame service.
 | `kill` | an enemy dies |
 | `pickup` | the player picks up a drop |
 | `complete` | the player reaches the open exit |
+| `warn` | a ranged enemy raises its arm to aim (optional: without it the `locked` sound plays) |
 
 A zero register byte is emitted one byte shorter than any other value, so
 effects live in resident code that the [limits](limits.md) account for.

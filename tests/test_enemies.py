@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import build_rom as br  # noqa: E402
 from lupine3d_v4 import levels  # noqa: E402
 from lupine3d_v4.levels import ENTITY_KIND_IDS  # noqa: E402
+from lupine3d_v4.game import GAME  # noqa: E402
 from sm83emu import CGB, run_to_world  # noqa: E402
 
 DAMAGE, COOLDOWN, STEP, PALETTE, DROP = range(5)
@@ -92,8 +93,8 @@ class EnemyKindTests(unittest.TestCase):
         for index, level in enumerate(br.CAMPAIGN):
             records = br.actor_records(level)
             for slot, entity in enumerate(level.entities):
-                self.assertEqual(records[slot * 16 + br.ACTOR_KIND_OFFSET],
-                                 ENTITY_KIND_IDS[entity.kind], (level.name, slot))
+                self.assertEqual(records[slot * 16 + br.ACTOR_KIND_OFFSET], entity.kind_byte, (level.name, slot))
+                self.assertEqual(entity.kind_byte & 3, ENTITY_KIND_IDS[entity.kind], (level.name, slot))
             bank = br.level_rom_offset(index) + br.LEVEL_ACTOR_OFFSET - 0x4000
             self.assertEqual(self.rom[bank:bank + len(records)], records, level.name)
         # The campaign actually uses the variety it can express, the boss
@@ -105,7 +106,12 @@ class EnemyKindTests(unittest.TestCase):
         source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "cryo_vault.json").read_text())
         # Make the first actor that does not carry the card a boss, so the
         # vault's card door stays openable.
-        first = next(i for i, e in enumerate(source["entities"]) if levels.KIND_DROPS[e["kind"]] != "keycard")
+        compiled = levels.compile_level(ROOT / "games" / "sable_outpost" / "levels" / "cryo_vault.json")
+        def carries_card(e):
+            if levels.ITEM_DROPS:
+                return e.drop != levels.NO_DROP and GAME.items[e.drop].effect == "key"
+            return levels.KIND_DROPS[e.kind] == "keycard"
+        first = next(i for i, e in enumerate(compiled.entities) if not carries_card(e))
         entities = list(source["entities"])
         entities[first] = dict(entities[first], kind="boss", health=12)
         with tempfile.TemporaryDirectory() as directory:
@@ -115,6 +121,8 @@ class EnemyKindTests(unittest.TestCase):
         records = br.actor_records(level)
         self.assertEqual(records[first * 16 + br.ACTOR_KIND_OFFSET], ENTITY_KIND_IDS["boss"])
         self.assertEqual(levels.KIND_DROPS["boss"], "medkit")
+        # A boss keeps the actor it replaced its drop unless the level names one.
+        self.assertIsNotNone(level)
         # Contact with the boss costs more than any other kind, on every skill.
         boss = self.stats[ENTITY_KIND_IDS["boss"]]
         self.assertEqual(boss[DAMAGE], max(record[DAMAGE] for record in self.stats))
@@ -122,11 +130,10 @@ class EnemyKindTests(unittest.TestCase):
     def test_the_loaded_slot_carries_its_kind_through_save_and_load(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         live = br.ACTIVE_LEVEL.entities
-        self.assertEqual(cgb.wramx[2][br.SENTINEL_KIND - 0xD000], ENTITY_KIND_IDS[live[0].kind])
+        self.assertEqual(cgb.wramx[2][br.SENTINEL_KIND - 0xD000] & 3, ENTITY_KIND_IDS[live[0].kind])
         for slot, entity in enumerate(live):
             base = br.ENTITY_SLOTS + slot * 16 - 0xD000
-            self.assertEqual(cgb.wramx[2][base + br.ACTOR_KIND_OFFSET],
-                             ENTITY_KIND_IDS[entity.kind], slot)
+            self.assertEqual(cgb.wramx[2][base + br.ACTOR_KIND_OFFSET] & 3, ENTITY_KIND_IDS[entity.kind], slot)
 
 
 class SkillTests(unittest.TestCase):

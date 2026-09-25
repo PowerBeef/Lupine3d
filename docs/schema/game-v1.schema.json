@@ -119,6 +119,11 @@
       },
       "description": "the item types a level can place"
     },
+    "carry_over": {
+      "type": "boolean",
+      "default": false,
+      "description": "health (at least 50), armour, ammunition and weapons found carry from a cleared level into the next"
+    },
     "textures": {
       "type": "object",
       "minProperties": 1,
@@ -257,10 +262,27 @@
           "description": "one of actor_palettes"
         },
         "drop": {
-          "enum": [
-            "medkit",
-            "keycard"
-          ]
+          "description": "what it leaves when it dies: with items, an item type or none; otherwise medkit or keycard",
+          "type": "string",
+          "minLength": 1
+        },
+        "range": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 7,
+          "description": "a ranged kind: cells its shot reaches (Chebyshev); give range, ranged_damage and windup_ticks together"
+        },
+        "ranged_damage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 170,
+          "description": "health a ranged shot takes at the authored skill"
+        },
+        "windup_ticks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255,
+          "description": "AI ticks it aims before the shot"
         }
       },
       "additionalProperties": false

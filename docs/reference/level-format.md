@@ -121,8 +121,15 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 - `health` is 1..255 hit points before difficulty scaling, which changes
   contact damage only.
 - `activation_radius_q4` is how near the player must come before the actor
-  wakes, in sixteenths of a cell (1..127). Today the level header carries the
-  first actor's radius, folded to whole cells, for every actor.
+  wakes, in sixteenths of a cell (1..127). The level header carries the
+  first actor's radius, folded to whole cells, for every actor that does not
+  give its own `wake`.
+- `wake` (optional) is the actor's own radius: `2`, `4` or `7` cells. `sight:
+  true` makes it wake only when it can also see the player (a closed door
+  blocks sight), so a sentry stays put until the player steps into view.
+  Both ride the actor's kind byte (bits 4-5 and 6).
+- `drop` (optional, in a game with items) is the item type the actor leaves,
+  or `none`, in place of its kind's `drop`: the actor that carries the card.
 - The first entity is the level's headline actor: its cell is the critical
   path's target in the certificate and its position rides the level header.
 - The spawn must keep every actor at least `safe_radius_cells` walking steps

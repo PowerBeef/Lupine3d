@@ -94,6 +94,9 @@ DRUMS = ("kick", "snare", "hat")
 HOLD_STEP, REST_STEP = -1, -2     # '.' holds the previous note, '-' releases the channel
 # The CH1 effects the engine triggers, each one write of NR10..NR14.
 EFFECTS = ("shoot", "door", "swap", "keycard", "locked", "hurt", "kill", "pickup", "complete")
+# Effects a game may leave out: an enemy's wind-up before a ranged shot
+# falls back to the locked-door sound.
+OPTIONAL_EFFECTS = ("warn",)
 # The HUD's objective panel: a small caption over a status word. The caption
 # reads while enemies remain or the exit is open (GOAL over HUNT or EXIT in
 # the showcase); DEAD and DONE replace both. Each is at most four characters.
@@ -125,10 +128,13 @@ def _required(*names: str) -> tuple[frozenset[str], frozenset[str]]:
 _GAME_KEYS = ("format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
               "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds")
 KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
-    "game": (frozenset(_GAME_KEYS) | {"$schema", "profiles", "playtests", "preview", "ammo", "keys", "items"},
+    "game": (frozenset(_GAME_KEYS) | {"$schema", "profiles", "playtests", "preview", "ammo", "keys", "items",
+                                      "carry_over"},
              frozenset(_GAME_KEYS)),
     "episode": (frozenset({"name", "levels", "opening", "closing"}), frozenset({"name", "levels"})),
-    "kind": _required("name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"),
+    "kind": (frozenset({"name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop",
+                        "range", "ranged_damage", "windup_ticks"}),
+             frozenset({"name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"})),
     "weapon": (frozenset({"name", "sprite", "damage", "recovery_ticks", "from_level", "ammo", "cost"}),
                frozenset({"name", "sprite", "damage", "recovery_ticks", "from_level"})),
     "item": (frozenset({"name", "sprite", "effect", "value", "pool", "key", "weapon", "palette"}),
@@ -160,7 +166,7 @@ KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "sound.pulse": _required("duty", "envelope"),
     "sound.wave": _required("volume", "pattern"),
     "sound.noise": _required(*DRUMS),
-    "sound.effects": _required(*EFFECTS),
+    "sound.effects": (frozenset(EFFECTS + OPTIONAL_EFFECTS), frozenset(EFFECTS)),
 }
 
 
@@ -183,7 +189,10 @@ class Kind:
     recovery_ticks: int      # simulation ticks between two contacts
     step_q8: int             # distance per step, in 1/256 of a cell
     palette: str             # one of the game's actor palettes
-    drop: str                # what it leaves when it dies: medkit or keycard
+    drop: str                # what it leaves when it dies: an item type or none (with items), else medkit or keycard
+    range: int = 0           # cells a ranged shot reaches (Chebyshev); 0: it only strikes from beside the player
+    ranged_damage: int = 0   # health a ranged shot takes off at the authored skill
+    windup_ticks: int = 0    # AI ticks it aims, arm raised, before the shot
 
 
 @dataclass(frozen=True)
@@ -290,6 +299,7 @@ class Game:
     ammo: tuple[str, ...] = ()                   # ammunition pool names, in pool order
     keys: tuple[str, ...] = ()                   # key colour names; key n is bit n of the keys in hand
     items: tuple[ItemType, ...] = ()             # placeable item types, in type-number order
+    carry_over: bool = False                     # health, armour, rounds and found weapons carry from level to level
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -499,7 +509,7 @@ def _integer(record: dict, key: str, minimum: int, maximum: int, root: Path, con
     return value
 
 
-def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, ...]:
+def _kinds(data: object, palettes: tuple[str, ...], root: Path, items: tuple["ItemType", ...] = ()) -> tuple[Kind, ...]:
     if not isinstance(data, list) or not data:
         raise GameError(_where(root, "kinds must be a non-empty list of enemy kinds"))
     _limit("kinds", len(data), root, "kinds")
@@ -512,18 +522,35 @@ def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, .
             raise GameError(_where(root, f"{context}.palette {palette!r} is not one of the actor_palettes "
                                          f"({', '.join(palettes)})"))
         drop = _string(raw["drop"], root, f"{context}.drop")
-        if drop not in DROPS:
-            raise GameError(_where(root, f"{context}.drop {drop!r} must be one of {', '.join(DROPS)}"))
+        # A game with items drops them (or nothing); one without keeps the
+        # engine's two drops.
+        allowed = tuple(item.name for item in items) + ("none",) if items else DROPS
+        if drop not in allowed:
+            raise GameError(_where(root, f"{context}.drop {drop!r} must be one of {', '.join(allowed)}"))
         kinds.append(Kind(
             name=_string(raw["name"], root, f"{context}.name"),
             # The hard skill adds half again, which must still fit a byte.
             contact_damage=_integer(raw, "contact_damage", 0, LIMITS["contact_damage"].maximum, root, context),
             recovery_ticks=_integer(raw, "recovery_ticks", 0, 255, root, context),
             step_q8=_integer(raw, "step_q8", 1, 255, root, context),
-            palette=palette, drop=drop))
+            palette=palette, drop=drop,
+            **_ranged(raw, root, context)))
     if len({kind.name for kind in kinds}) != len(kinds):
         raise GameError(_where(root, "kind names must be distinct"))
     return tuple(kinds)
+
+
+def _ranged(raw: dict, root: Path, context: str) -> dict[str, int]:
+    """A kind's ranged attack: all three keys, or none."""
+    keys = ("range", "ranged_damage", "windup_ticks")
+    present = [key for key in keys if key in raw]
+    if not present:
+        return {}
+    if len(present) != len(keys):
+        raise GameError(_where(root, f"{context}: a ranged kind gives range, ranged_damage and windup_ticks together"))
+    return {"range": _integer(raw, "range", 2, LIMITS["actor_range"].maximum, root, context),
+            "ranged_damage": _integer(raw, "ranged_damage", 1, LIMITS["contact_damage"].maximum, root, context),
+            "windup_ticks": _integer(raw, "windup_ticks", 1, 255, root, context)}
 
 
 def _weapons(data: object, root: Path, level_count: int, pools: tuple[str, ...] = ()) -> tuple[Weapon, ...]:
@@ -561,6 +588,12 @@ def _weapons(data: object, root: Path, level_count: int, pools: tuple[str, ...] 
         raise GameError(_where(root, "weapons must be listed in the order the player gets them: "
                                      "from_level never decreases, and weapons never owned (null) come last"))
     return tuple(weapons)
+
+
+def _flag(value: object, root: Path, context: str) -> bool:
+    if not isinstance(value, bool):
+        raise GameError(_where(root, f"{context} must be true or false"))
+    return value
 
 
 def _optional_names(data: object, root: Path, context: str, limit: str) -> tuple[str, ...]:
@@ -973,7 +1006,8 @@ def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, S
         wave_volume=_byte(wave["volume"], root, f"{path.name} wave.volume"),
         wave_pattern=_bytes(wave["pattern"], 16, root, f"{path.name} wave.pattern"),
         drums={drum: _bytes(noise[drum], 4, root, f"{path.name} noise.{drum}") for drum in DRUMS},
-        effects={name: _bytes(effects[name], 5, root, f"{path.name} effects.{name}") for name in EFFECTS})
+        effects={name: _bytes(effects[name], 5, root, f"{path.name} effects.{name}")
+                 for name in EFFECTS + OPTIONAL_EFFECTS if name in effects})
 
 
 def _hud(data: object, root: Path) -> dict[str, str]:
@@ -1097,12 +1131,13 @@ def load_game(directory: Path) -> Game:
                 songs=songs, sound=sound, hud_words=_hud(data["hud"], root),
                 sprite_manifest=sprite_manifest, sprites=sprites,
                 fixture_kinds=_fixture_kinds(data["fixture_kinds"], root),
-                actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root),
+                actor_palettes=actor_palettes, kinds=_kinds(data["kinds"], actor_palettes, root, items),
                 weapons=weapons, textures=textures,
                 themes=_themes(data["themes"], textures, actor_palettes, root),
                 shared_palettes=_shared_palettes(data["shared_palettes"], root),
                 playtests=_playtests(data.get("playtests"), root), preview=_preview(data.get("preview"), root),
-                ammo=pools, keys=keys, items=items, files=files)
+                ammo=pools, keys=keys, items=items, carry_over=_flag(data.get("carry_over", False), root, "carry_over"),
+                files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:

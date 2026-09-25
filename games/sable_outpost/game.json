@@ -30,9 +30,11 @@
   "actor_palettes": ["sentinel", "warden", "skirmisher"],
   "kinds": [
     {"name": "sentinel", "contact_damage": 8, "recovery_ticks": 8, "step_q8": 8, "palette": "sentinel", "drop": "medkit"},
-    {"name": "skirmisher", "contact_damage": 4, "recovery_ticks": 8, "step_q8": 15, "palette": "skirmisher", "drop": "keycard"},
-    {"name": "warden", "contact_damage": 14, "recovery_ticks": 12, "step_q8": 5, "palette": "warden", "drop": "medkit"},
-    {"name": "boss", "contact_damage": 20, "recovery_ticks": 10, "step_q8": 6, "palette": "sentinel", "drop": "medkit"}
+    {"name": "skirmisher", "contact_damage": 4, "recovery_ticks": 8, "step_q8": 15, "palette": "skirmisher", "drop": "amber card"},
+    {"name": "warden", "contact_damage": 14, "recovery_ticks": 12, "step_q8": 5, "palette": "warden", "drop": "medkit",
+     "range": 5, "ranged_damage": 6, "windup_ticks": 10},
+    {"name": "boss", "contact_damage": 20, "recovery_ticks": 10, "step_q8": 6, "palette": "sentinel", "drop": "medkit",
+     "range": 6, "ranged_damage": 10, "windup_ticks": 6}
   ],
   "textures": {
     "steel_panel": "textures/steel_panel.png",
@@ -109,6 +111,7 @@
      "ammo": "cells", "cost": 1}
   ],
   "ammo": ["slugs", "cells"],
+  "carry_over": true,
   "keys": ["amber", "teal"],
   "items": [
     {"name": "medkit", "sprite": "medkit", "effect": "health", "value": 25},

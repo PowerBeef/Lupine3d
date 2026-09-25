@@ -596,7 +596,16 @@ def emit_input_system(a: Assembler) -> None:
     a.ld_a_abs(BUTTONS); a.ld_abs_a(PREV_BUTTONS)
     a.ei()
     a.label("apply_input_actions")
-    # Turn and move from one stable held-state snapshot.
+    # Turn and move from one stable held-state snapshot. With B held, left
+    # and right step sideways instead of turning: a strafe out of a doorway
+    # keeps the aim. B's press still opens a door.
+    a.ld_a_abs(PREV_BUTTONS); a.and_n(0x20); a.jr("no_strafe", "z")
+    a.ld_a_abs(PREV_BUTTONS); a.and_n(0x02); a.jr("no_strafe_left", "z")
+    a.ld_a_abs(ANGLE); a.sub_n(64); a.call("move_player")
+    a.label("no_strafe_left")
+    a.ld_a_abs(PREV_BUTTONS); a.and_n(0x01); a.jr("no_turn_right", "z")
+    a.ld_a_abs(ANGLE); a.add_a_n(64); a.call("move_player"); a.jr("no_turn_right")
+    a.label("no_strafe")
     a.ld_a_abs(PREV_BUTTONS); a.and_n(0x02); a.jr("no_turn_left", "z")
     a.ld_a_abs(ANGLE); a.sub_n(1 if FIXED_SIMULATION else 4); a.ld_abs_a(ANGLE)
     a.label("no_turn_left")

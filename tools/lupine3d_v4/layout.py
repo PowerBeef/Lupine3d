@@ -656,6 +656,27 @@ EXTRAS_TRIGGERS = level_codec.EXTRAS_TRIGGERS
 MAX_ITEMS = level_codec.MAX_ITEMS
 MAX_TRIGGERS = level_codec.MAX_TRIGGERS
 INFINITE_AMMO = level_codec.INFINITE_AMMO
+EXTRAS_DROPS = level_codec.EXTRAS_DROPS
+ITEM_DROPS = level_codec.ITEM_DROPS
+NO_DROP = level_codec.NO_DROP
+WAKE_CELLS = level_codec.WAKE_CELLS
+KIND_WAKE_SHIFT = level_codec.KIND_WAKE_SHIFT
+KIND_SIGHT = level_codec.KIND_SIGHT
+# WRAM bank 6 holds what only the simulation reads of a level and only now
+# and then: the item type each actor leaves (read when it dies).
+SIM_EXTRAS_BANK = 6
+ACTOR_DROP = 0xD000
+ACTOR_DROP_END = ACTOR_DROP + MAX_ACTORS
+# What the player carries out of a cleared level (game.json `carry_over`):
+# health, armour, the two pools and the weapons owned, then a flag that the
+# store holds a level's entry state. Written when a level is cleared, read
+# by every load_level (so a death retries with what the level began with),
+# and cleared by the title's START, which begins a run from the loadout.
+CARRY_OVER = GAME.carry_over
+CARRY = 0xD008
+CARRY_VALID = CARRY + 5
+CARRY_END = CARRY_VALID + 1
+CARRY_MINIMUM_HEALTH = 50
 if LEVEL_ROM_BANK_BASE + LEVEL_BANK_COUNT > 256:
     raise ValueError("campaign level banks exceed the 4 MiB MBC5 image")
 
@@ -685,6 +706,7 @@ HITSCAN_DEPTH_SLACK = 8
 # Eight bytes per kind: damage, recovery, step, palette, drop, three spare.
 ACTOR_KIND_RECORD_BYTES = 8
 ACTOR_KIND_DROP = 4
+ACTOR_KIND_RANGE = 5          # then the ranged damage and the wind-up
 KIND_DROPS = level_codec.KIND_DROPS
 EXIT_CELL_X = DOOR_TABLE + MAX_DOORS * DOOR_RECORD_BYTES
 EXIT_CELL_Y = EXIT_CELL_X + 1
@@ -1097,6 +1119,7 @@ SENTINEL_CHASE = 2
 SENTINEL_ATTACK = 3
 SENTINEL_HURT = 4
 SENTINEL_DEAD = 5
+SENTINEL_AIM = 6          # a ranged kind winding up its shot, arm raised
 AI_TICK_INTERVAL = 4
 PLAYER_RADIUS_Q8 = 0x38
 ENTITY_ATLAS_PATTERN_COUNT = len(ENTITY_ATLAS_TILES) // 16

@@ -116,6 +116,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM4", 0xD200, 0xD2A0, "sixteen ten-byte foreground event slots"),
         A("WRAM5", l.MUSIC_NOTE_TABLE, l.MUSIC_NOTE_TABLE + 128, "sequencer note periods"),
         A("WRAM5", l.MUSIC_ROWS, 0xE000, "copied song rows", "one song"),
+        A("WRAM6", l.ACTOR_DROP, l.ACTOR_DROP_END, "the item type each actor leaves (simulation)"),
         A("HRAM", 0xFF80, 0xFF80 + l.HRAM_BYTES_USED, "hot render / ISR state"),
         A("HRAM", 0xFFF4, 0xFFFE, "OAM DMA code"),
         A("OAM", 0, 40, "ten UI, sixteen world, fourteen unused objects"),
@@ -164,7 +165,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     assert l.SCREEN_STATE == 0xC600 and l.SCREEN_STATE_END <= 0xC600 + l.VIEW_MAP_BYTES
     assert l.SCREEN_STATE_END <= l.STRIP_SCRATCH or l.STRIP_SCRATCH + 16 <= 0xC600
     return dict(schema="lupine3d.allocations.v1", ranges=[asdict(r) for r in rows],
-                free_wram_banks=[6, 7], fixed_code_free_bytes=0x4000-code_end,
+                free_wram_banks=[7], fixed_code_free_bytes=0x4000-code_end,
                 resident_free_bytes=0x8000-resident_end,
                 snapshot_copy_ranges=list(l.WORLD_COPY_RANGES),
                 packet_records_per_yaw=[241, 251], prepared_record_bytes=16)

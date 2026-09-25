@@ -128,6 +128,12 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(MASK_BITS)
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(8); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
+    if ITEM_DROPS and ITEM_CEL_NAMES:
+        # The drop is an item type (PICKUP_ACTIVE less one): its cel and palette.
+        a.ld_a_abs(PICKUP_ACTIVE); a.dec_r("a"); a.and_n(15); a.add_a_r("a"); a.add_a_r("a")
+        a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "item_types"); a.add_hl_rr("de")
+        a.inc_rr("hl"); a.inc_rr("hl"); a.ldi_a_hl(); a.ld_r_r("d", "a"); a.ld_a_hl(); a.ld_r_r("e", "a")
+        a.jp("submit_masked_oam")
     # The cel follows the drop's kind, which follows the kind of the actor
     # that left it: a medkit and a card are different objects on the floor.
     a.call("actor_kind_drop")
