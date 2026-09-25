@@ -11,6 +11,16 @@ rules, armour, strafing, carry-over and an items tally. The cartridge header
 reads `SABLE OUTPOST` (mask ROM version 8, from 7) and the download is
 `SableOutpost_v0.13.gb`.
 
+**ROM SHA-256:** `248963771d9d2b730c34d2632199eccfbde088073a6ca947e074d02c9ceab2ca`.
+Emulator-qualified ([test report](docs/evidence/TEST_REPORT.md)): 367 tests
+and 90 release checks pass; the controller route clears all eighteen
+repopulated sectors in 22,437 verified updates and restarts the campaign;
+pinned SameBoy (CGB-0, CGB-E) and mGBA agree with the harness, as do all 87
+witness scenes; sustained replays run 7.2 to 10.0 full updates a second, as
+fast as v0.12 or faster. The original quality budget still fails on the
+closed-door case, and the owner's accepted tradeoff still stands. Physical
+hardware remains untested.
+
 - **The results screens tally the items.** In a game with items, a cleared
   sector stamps the share of its placed items the player took, and the
   intermission and every debrief report it after the time as a new `items`

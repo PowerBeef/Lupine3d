@@ -63,7 +63,7 @@ code is, the rules a change keeps, [development](engine/development.md)
 
 ## Evidence and history
 
-- [Test report](evidence/TEST_REPORT.md): the v0.12 release ROM's qualification.
+- [Test report](evidence/TEST_REPORT.md): the v0.13 release ROM's qualification.
 - [Performance after textures](evidence/PERFORMANCE_PHASE5.md): the current sustained measurements.
 - [Release notes](../RELEASE_NOTES.md): changes by version.
 - [Archive](archive/README.md): earlier reports and design documents, kept verbatim; [milestones](../milestones/): results bound to their ROMs.

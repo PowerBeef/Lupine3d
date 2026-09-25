@@ -1,0 +1,532 @@
+{
+  "schema": "sable.qualification.v1",
+  "rom_sha256": "263a6017a35d06883dffab482a2c4f60ff40fd88aa89239c88df3e74a26ac442",
+  "configuration": {
+    "compact_strips": true,
+    "incremental_certificate": false,
+    "camera_setup": true,
+    "dynamic_tile_cache": false,
+    "cache_key_mix": false,
+    "narrow_yields": true,
+    "attribute_padding": true,
+    "anchor_packets": false,
+    "packet_bounds_reuse": false,
+    "physical_depth": false,
+    "actor_precision": false,
+    "scanline_admission": false,
+    "door_identity": false,
+    "near_field": false,
+    "foreground_publication": false,
+    "projection_storage": "direct",
+    "display": "slim",
+    "art": "sable-v2",
+    "art_animation": true,
+    "hdma_streaming": true,
+    "textured_walls": true,
+    "overlap_publication": true
+  },
+  "checks": {
+    "cold_art_and_raster_boundary": true,
+    "texture_window_blocks_and_directory": true,
+    "texture_sets_per_episode": true,
+    "pixel_u_expansion_every_difference": true,
+    "textured_blind_composition_ring_lap_and_vram_half": true,
+    "complete_legal_strip_selector_domain": true,
+    "publication_cpu_and_dma_windows": true,
+    "hblank_streaming_bank_isolation_and_chaining": true,
+    "geometry_and_all_published_rows": true,
+    "independent_near_plane_clipping": true,
+    "all_36_emitted_enemy_cels": true,
+    "weapon_phases_rapid_restarts_wrap_pending_flash": true,
+    "reaction_and_death_clock_wrap": true,
+    "hud_portraits_snapshot_packet_and_bounds": true,
+    "hud_ammo_cells": true,
+    "objective_transition_and_terminal_publication": true,
+    "continuous_divider_all_dynamic_states_and_both_maps": true,
+    "steel_chassis_and_portrait_highlights_all_states": true,
+    "hud_icon_exit_and_all_actor_counts": true,
+    "atomic_capacity_fallback_no_partial_actor": true,
+    "snapshot_and_reload_clock_ownership": true,
+    "terminal_state_wrap_cannot_replay_cosmetics": true
+  },
+  "assets": {
+    "schema": "sable.native.v1",
+    "sha256": "24048096dee8e022ee61e4ee1a73de994124a1611ae6998b4641f761f6fbd903",
+    "assets": {
+      "sentinel_near": "4b79b7498d9815dfe1b88802142dd1a6cfa41945de13185a74c7169cf66b6360",
+      "sentinel_mid": "8580054d8f9d356e756683a4dcc1f0357f227ab29fd25dfc5eb548babaee3914",
+      "sentinel_far": "775602b9c2144514569b8991c53026f60eba5457a619b80cec2d078144c3bd64",
+      "sentinel_distant": "479dc4624edc3fe829651ebced4def200cba86fe1f67480e0849a7e7a74caa6d",
+      "shotgun": "e263117b95af0cb3b45624486811b5b3efd16037e6aa93eb3492a0d1f207c020",
+      "helmet": "79520ded9ac828b0ed43fe3f151d48b2240b5dc4df946ca37dde973f51fd068c",
+      "flash": "1781260965a298e75fc98be02ef287385e124b4ec8da4f4cb9c0c074ad520448",
+      "reticle": "ac2a7a8685a3d6d71fa4e258481ea072247022079157b63061dce75eab8894b9",
+      "hud": "9cde69004789a336a1ddc05beeebc63590498668f18a57952071d6260d816218",
+      "hud_slim": "a44b1d2552c0f661cfd5f215ffbb6445a6359dc317b23d13a67df27e4370e7e4",
+      "hud_steel": "9e2541d386d69b5eb0f3c3450d4babceb315f7dd1663e6fd491c5ae5eb700d96",
+      "helmet_steel": "c9e595bbc583df33c95dbeae9970c98a9b1fd4fa50a9eeb444ea64c3d59bc362",
+      "slug_rifle": "ebd87122448e38c82563c8ec8583ef8776f66d836280e3107b6f1942d8c3ac7c",
+      "arc_lance": "1cfb02f5b0ea61113e6f488c1ace942abd491394d06bace910385586f622a92a",
+      "pulse_carbine": "18eebce9deef56030a96da05377905b75decbff2918d5eb03b1515a6c38f13ff",
+      "drops": "57a8149130f7eddd082f0d111f2774ef452870e95232cc0595c480660c4f47ab",
+      "hit_effect": "d7d65779f5507967f544fb131219520d23e4cfbe5382e63a069b3edaf28a4334",
+      "exit_beacon": "dedd632a036de939aacd1ec4ac9914fccccb6300fb903bed7c5c25ef7352e2ca",
+      "fixtures": "8543f5f6accd9afeee0b73c363d97295722441cfb88417fa22c6c97ca008a724",
+      "items": "b2b46ee53645048f01fa232c22802f10dffc4b10f972f373f31589aa2f80cc39"
+    }
+  },
+  "publication_windows": [
+    {
+      "dynamic": 0,
+      "mask": 0,
+      "blocks": 60,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 0,
+      "blocks": 68,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 0,
+      "blocks": 69,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 16,
+      "blocks": 76,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 18,
+      "blocks": 78,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 0,
+      "mask": 32,
+      "blocks": 92,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 8,
+      "mask": 16,
+      "blocks": 84,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 9,
+      "mask": 16,
+      "blocks": 85,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 24,
+      "mask": 0,
+      "blocks": 84,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 25,
+      "mask": 0,
+      "blocks": 85,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 48,
+      "mask": 0,
+      "blocks": 108,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 49,
+      "mask": 0,
+      "blocks": 109,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 16,
+      "mask": 32,
+      "blocks": 108,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 17,
+      "mask": 32,
+      "blocks": 109,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 71,
+      "mask": 0,
+      "blocks": 131,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 72,
+      "mask": 0,
+      "blocks": 132,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 73,
+      "mask": 0,
+      "blocks": 133,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 40,
+      "mask": 32,
+      "blocks": 132,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 41,
+      "mask": 32,
+      "blocks": 133,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 0,
+      "blocks": 156,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 16,
+      "blocks": 172,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 96,
+      "mask": 32,
+      "blocks": 188,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 97,
+      "mask": 0,
+      "blocks": 157,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 127,
+      "mask": 16,
+      "blocks": 203,
+      "commit_ly": 150,
+      "staged": true
+    },
+    {
+      "dynamic": 128,
+      "mask": 0,
+      "blocks": 188,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 129,
+      "mask": 32,
+      "blocks": 221,
+      "commit_ly": 151,
+      "staged": true
+    },
+    {
+      "dynamic": 160,
+      "mask": 0,
+      "blocks": 220,
+      "commit_ly": 148,
+      "staged": true
+    },
+    {
+      "dynamic": 160,
+      "mask": 32,
+      "blocks": 252,
+      "commit_ly": 151,
+      "staged": true
+    }
+  ],
+  "captures": [
+    {
+      "file": "pose-0.png",
+      "pose": [
+        1152,
+        3456,
+        192
+      ],
+      "pixels_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+      "snapshot": {
+        "actual_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+        "status": "match",
+        "scene": "pose-0",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      }
+    },
+    {
+      "file": "pose-1.png",
+      "pose": [
+        1408,
+        3328,
+        192
+      ],
+      "pixels_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+      "snapshot": {
+        "actual_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+        "status": "match",
+        "scene": "pose-1",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      }
+    },
+    {
+      "file": "pose-2.png",
+      "pose": [
+        1152,
+        3136,
+        192
+      ],
+      "pixels_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+      "snapshot": {
+        "actual_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+        "status": "match",
+        "scene": "pose-2",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      }
+    },
+    {
+      "file": "pose-3.png",
+      "pose": [
+        1152,
+        3100,
+        191
+      ],
+      "pixels_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+      "snapshot": {
+        "actual_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+        "status": "match",
+        "scene": "pose-3",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      }
+    },
+    {
+      "file": "pose-4.png",
+      "pose": [
+        1152,
+        3100,
+        255
+      ],
+      "pixels_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",
+      "snapshot": {
+        "actual_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",
+        "status": "match",
+        "scene": "pose-4",
+        "accepted": {
+          "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+          "accepted_at": "2026-09-23T05:27:52+00:00",
+          "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+        }
+      }
+    },
+    {
+      "file": "pose-5.png",
+      "pose": [
+        1408,
+        3200,
+        0
+      ],
+      "pixels_sha256": "50969ef0d85351a78cb467b401150ff217b4c7a3990ba8850fdfa20494307f28",
+      "snapshot": {
+        "actual_sha256": "50969ef0d85351a78cb467b401150ff217b4c7a3990ba8850fdfa20494307f28",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "50969ef0d85351a78cb467b401150ff217b4c7a3990ba8850fdfa20494307f28",
+        "status": "match",
+        "scene": "pose-5",
+        "accepted": {
+          "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+          "accepted_at": "2026-09-23T05:27:52+00:00",
+          "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+        }
+      }
+    }
+  ],
+  "physical_hardware_tested": false,
+  "passed": true,
+  "snapshot": {
+    "schema": "lupine3d.snapshots.v1",
+    "suite": "sable",
+    "profile": "slim-sable-v2-textured",
+    "mode": "check",
+    "rom_sha256": "263a6017a35d06883dffab482a2c4f60ff40fd88aa89239c88df3e74a26ac442",
+    "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+    "golden_dir": "games/sable_outpost/snapshots/slim-sable-v2-textured/sable",
+    "counts": {
+      "match": 6,
+      "changed": 0,
+      "new": 0,
+      "missing": 0
+    },
+    "passed": true,
+    "scenes": [
+      {
+        "actual_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "f120d9c135735a2425a6d68129e832db202ce04a74c75e0c3c8ebd734991ed08",
+        "status": "match",
+        "scene": "pose-0",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      },
+      {
+        "actual_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "ddca4a7c6db8641281234dc595a1be51799344baa415150be33974dbe7e730ec",
+        "status": "match",
+        "scene": "pose-1",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      },
+      {
+        "actual_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "be1196bb57aae134d87b3454c8a00c3ccf00f21a94ea7f4e01bf7b124b717229",
+        "status": "match",
+        "scene": "pose-2",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      },
+      {
+        "actual_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "da8a1361974bfc99556804628f730e5952e7730d9bff60f7b81411883d36a151",
+        "status": "match",
+        "scene": "pose-3",
+        "accepted": {
+          "rom_sha256": "1c86ce1954cdaefa9f579529deabed1ea659c677f702778a27352210228ec224",
+          "accepted_at": "2026-09-24T17:37:46+00:00",
+          "note": "Wall fixtures sit on their walls: world_decor centred a fixture at 64 - B/2, legacy's horizon (48 + 16) fixed in, so on the slim horizon (60) every sign drew 12 px high and a distant one rose off its wall into the ceiling. It now uses HORIZON + 16; only fixture pixels move (12 px down), legacy is byte-identical."
+        }
+      },
+      {
+        "actual_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "cbcf4472630753457fe4edeac8e50695330e7daa5b55149835c17e0a6ed1ca76",
+        "status": "match",
+        "scene": "pose-4",
+        "accepted": {
+          "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+          "accepted_at": "2026-09-23T05:27:52+00:00",
+          "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+        }
+      },
+      {
+        "actual_sha256": "50969ef0d85351a78cb467b401150ff217b4c7a3990ba8850fdfa20494307f28",
+        "changed_pixels": 0,
+        "bbox": null,
+        "world_pixels": 0,
+        "hud_pixels": 0,
+        "expected_sha256": "50969ef0d85351a78cb467b401150ff217b4c7a3990ba8850fdfa20494307f28",
+        "status": "match",
+        "scene": "pose-5",
+        "accepted": {
+          "rom_sha256": "cc8b471b91bf691a7fd3d6e34f072cd03e47f9d720f1d235ba6caebcef0a74a8",
+          "accepted_at": "2026-09-23T05:27:52+00:00",
+          "note": "Wall and door textures overhauled into one coherent set (bolted steel panels, louvred vents, sliding doors with a hazard band, riveted reactor plates, coolant pipes, recessed hull panels, relay racks), and doors now darken along their own palette order instead of turning bright at distance: only wall and door pixels change; every frame check, including dynamic_tiles_exact against the reference read from VRAM, passes."
+        }
+      }
+    ]
+  }
+}

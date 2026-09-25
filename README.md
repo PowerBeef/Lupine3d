@@ -92,10 +92,10 @@ The engine is **emulator-qualified**: the host harness and the pinned
 SameBoy (CGB-0 and CGB-E) and mGBA cores pass on every build, including 87
 frozen scenes compared across all three. It has not been tested on physical
 hardware or with an original boot ROM. On the showcase, full geometry
-updates run at 7.1 to 9.9 a second over sixty-second replays; sprites and
+updates run at 7.2 to 10.0 a second over sixty-second replays; sprites and
 the HUD update between them ([performance](docs/explanation/performance.md)).
-The released version is [v0.12](RELEASE_NOTES.md), the first released
-under the showcase's own name.
+The released version is [v0.13](RELEASE_NOTES.md), the overhauled showcase
+([test report](docs/evidence/TEST_REPORT.md)).
 
 ## Build from source
 

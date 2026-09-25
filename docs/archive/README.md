@@ -9,6 +9,7 @@ manifest and `docs/evidence/TEST_REPORT.md` to resolve any conflict with a page 
 
 | Document | Release | What it records |
 |---|---|---|
+| [Test report v0.12](TEST_REPORT_V12.md) | v0.12 | The first release under the showcase's own name: the engine and its game separated, before the overhaul |
 | [Test report v0.11](TEST_REPORT_V11.md) | v0.11 | The three-episode, eighteen-sector campaign, before the engine and its game separated |
 | [Test report v0.10](TEST_REPORT_V10.md) | v0.10 | HBlank-streamed publication and the six-sector campaign |
 | [Test report v0.9](TEST_REPORT_V09.md) | v0.9 | ROM-bound qualification and performance of the v0.9 campaign build |
