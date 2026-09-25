@@ -64,12 +64,16 @@ builds it, plays it to its ending and restarts it on every change.
 
 <img src="docs/images/episodes_2x.png" width="640" alt="The first sector of each of Sable Outpost's three episodes: steel and cyan, rust and amber, blue and violet">
 
-[Sable Outpost](games/sable_outpost/README.md) is eighteen sectors in three
-episodes, from a surface outpost into the reactor and up the signal spire:
-four enemy kinds and a boss, four weapons, three themes, keycards, screens
-and music. It is the game the engine's evidence is recorded on, and it uses
-everything a game can. [Download Sable Outpost v0.12](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.12)
-(`SableOutpost_v0.12.gb`) or build it with `python tools/lupine.py build` (the showcase is the
+[Sable Outpost](games/sable_outpost/README.md) is a first-person shooter
+in eighteen sectors: a relay outpost on a black moon heard something, its
+security frames turned, and you go in to cut the uplink - from the outpost's
+decks down into the reactor and up the signal spire. Every room holds a
+fight, a card, ammunition, armour or a trap; Wardens shoot, an Overseer
+holds the end of each episode, and what you carry comes with you. Four
+weapons, three themes, a story told across 27 screens and eight songs. It
+is the game the engine's evidence is recorded on, and it uses everything a
+game can. [Download Sable Outpost v0.13](https://github.com/PowerBeef/Lupine3d/releases/tag/v0.13)
+(`SableOutpost_v0.13.gb`) or build it with `python tools/lupine.py build` (the showcase is the
 default game).
 
 ## Documentation

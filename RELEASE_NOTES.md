@@ -1,4 +1,15 @@
-# Unreleased — after v0.12
+# Sable Outpost v0.13 — Something answered
+
+Sable Outpost is overhauled into a game worth playing on its own: a story,
+a title with an identity, eight songs, and eighteen sectors rebuilt so that
+every room means something - an encounter, health, ammunition, armour, a
+card, a weapon case or a trap - with Wardens that shoot, an Overseer at the
+end of every episode, and what you carry riding from sector to sector. The
+engine grew what that needed: placed items and ammunition, coloured card
+doors, remote doors and their triggers, ranged enemies and per-actor wake
+rules, armour, strafing, carry-over and an items tally. The cartridge header
+reads `SABLE OUTPOST` (mask ROM version 8, from 7) and the download is
+`SableOutpost_v0.13.gb`.
 
 - **The results screens tally the items.** In a game with items, a cleared
   sector stamps the share of its placed items the player took, and the

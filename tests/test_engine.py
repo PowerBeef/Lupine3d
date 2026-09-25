@@ -62,7 +62,7 @@ class Lupine3DTests(unittest.TestCase):
         self.assertEqual(rom[0x0147], 0x19)
         self.assertEqual(rom[0x0148], 0x07)
         self.assertEqual(rom[0x0149], 0x00)
-        self.assertEqual(rom[0x014C], 0x07)
+        self.assertEqual(rom[0x014C], 0x08)   # the mask ROM version: v0.13 is 8
         self.assertEqual(rom[0x0040], 0xC3)
         self.assertEqual(rom[0x0041] | (rom[0x0042] << 8), self.symbols["vblank_isr"])
         self.assertLessEqual(br.HRAM_BYTES_USED, 0x7F)

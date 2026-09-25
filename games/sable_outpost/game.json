@@ -3,7 +3,7 @@
   "id": "sable_outpost",
   "title": "Sable Outpost",
   "profiles": ["slim", "compact", "legacy"],
-  "rom": {"header_title": "SABLE OUTPOST", "version": 7},
+  "rom": {"header_title": "SABLE OUTPOST", "version": 8},
   "screens": "screens.json",
   "sprites": {
     "manifest": "art/sprites.json",
