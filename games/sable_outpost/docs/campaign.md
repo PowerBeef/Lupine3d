@@ -13,16 +13,48 @@ Contracts live beside their source; this is the summary and the evidence.
 | Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity | 1–6 actors, **four kinds** including the boss that closes an episode |
 | Weapons | 1 | **2**, streamed through one 80-pattern window | **4**, owned by episode and restored by a continue code |
 | Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one | up to six per level |
-| Framing | none | title, intermission, results and ending screens, with **kills and time** | also episode opening and closing screens |
+| Framing | none | title, intermission, results and ending screens, with **kills and time** | a title with a wordmark, a prologue, a debrief with the story after every sector, episode pages, and the ending returning to the title |
 | Difficulty | fixed | **three skill settings**, chosen on the title | unchanged |
 | Persistence | none | **four-digit continue codes** | one per sector and skill |
-| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus nine effects on CH1 | unchanged |
+| Audio | three effects on CH1 | a **sequencer on CH2/CH3/CH4** plus nine effects on CH1 | **eight songs**: per episode and per guarded sector, and for the game over and the ending |
 
 A run starts at the title, where left and right choose a skill and Select opens
 code entry. Each sector is cleared by killing every actor and reaching the exit;
 clearing one shows the code for the next along with what the sector cost, dying
 retries the sector that was lost, and clearing the last one ends the campaign
 with the run's totals.
+
+## The story
+
+The Line is the chain of relay stations that carries every voice between the
+frontier colonies and home. Sable Outpost, sunk into the ice of the black
+moon Sable, is its last and deepest ear: a listening post with a reactor
+below it and the Signal Spire above. Its security is automated: Sentinel
+frames hold the corridors, fast Skirmishers carry access cards between the
+sealed decks, heavy Wardens guard the gates, and a guard frame holds the way
+out of each section. All of them take orders over the station's command band.
+
+Nine days ago the deep bore under the reactor broke into a hollow, and
+something down there was already transmitting on that band. Chief Engineer
+Oda's log counts the days: the hum, the frames refusing orders, a voice in
+the helmets, then a single order, COME DOWN. The crew went down; the frames
+stayed. The player is a Linewalker, the Line's lone repair marshal, sent in
+the old Mark I armoured helmet and respirator the HUD shows. It has no
+command receiver, so the call cannot reach them, and that is why they were
+sent.
+
+The title and a dispatch page set this up; after every sector a debrief
+gives a page of Oda's log and names the next sector. Episode one retakes the
+outpost down to the empty cryo pods. Episode two follows the crew into the
+reactor and starves the hollow by killing the core. Episode three climbs the
+Spire, which kept a copy of the call and sends it down the Line, and cuts the
+uplink. The ending says the Line is safe, but the call ran for nine days and
+something heard it. The words are in `screens.json`; the title's wordmark
+and emblem are derived by `art/tools/make_title_art.py`, the emblem from the
+approved helmet itself. Eight songs play the story: the title's leitmotif
+(E, B, A sharp, E an octave up), a world song for each episode, a song for
+each episode's guarded last sector, the debrief, the game over and the
+ending, which resolves the leitmotif.
 
 ## The decisions that shaped it
 

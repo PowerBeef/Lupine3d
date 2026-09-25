@@ -210,18 +210,29 @@ regression contract.
   because screens never rewrite palettes. Set 0 is byte-identical to the
   original table, so the outpost goldens do not move.
 - Episodes are the game's (`game.json` `episodes`; Sable's are six sectors
-  each, `EPISODE_LENGTHS`). The title opens episode one;
-  when `LEVEL_INDEX` is one of `EPISODE_STARTS` (6, 12) the episode's opening
+  each, `EPISODE_LENGTHS`). When `LEVEL_INDEX` is one of `OPENING_STARTS`
+  (Sable: 0, 6, 12; 0 is the first episode's prologue) the episode's opening
   screen shows before its first sector loads (`show_episode_opening`, from
   the title start, so a continue code opens its episode), and the intermission
   that advanced onto it shows the finished episode's closing first
   (`show_episode_closing`, intermission mode only, so a death retry never
   shows one). `SCREEN_EPISODE_CLOSINGS`/`OPENINGS` index `SCREEN_SOURCES`.
+- Screens: records carry their payload's bank (`SCREEN_ROM_BANK` 239, or the
+  overflow in 238 above the raw rays at `SCREEN_OVERFLOW_ADDRESS`), and text
+  screens share pattern pools (`screen_pools`). A game with `debriefs` shows
+  `DEBRIEF_BASE + LEVEL_INDEX - 1` after each sector in place of the
+  intermission. Every screen but the title also passes on START held for
+  `SCREEN_HOLD_FRAMES`, which is how the harness and both adapters, holding
+  START from power-on, get through the prologue.
 - A sector's time runs from the baseline `init_simulation` arms after it resets
   `SIM_CLOCK` (every load reaches it through `enter_world`), never from a clock
   captured in `load_level`, which runs first.
 - Death retries the current sector; completion advances `LEVEL_INDEX` through an
-  intermission, and the last sector's ending restarts the campaign. Host
+  intermission, and the last sector's ending returns to the title
+  (`return_to_title`, keeping the skill). The run's time is whole seconds
+  (`stamp_sector_result`), stopping at 9,999; its kills stop at 255. Music
+  follows the mode and the level: `enter_world` plays `LEVEL_SONG` (header
+  byte 21), a loss the game over song, the ending the ending song. Host
   geometry oracles must follow the ROM: select the reference level from the
   running machine's `LEVEL_INDEX`, never from the build-time first level.
 

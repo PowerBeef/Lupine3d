@@ -18,7 +18,7 @@ counter in fixed WRAM.
 """
 from .layout import *  # noqa: F401,F403
 from .game import (DRUMS, EFFECTS, HOLD_STEP, LOWEST_OCTAVE, MUSIC_ROW_LIMIT, NOTE_COUNT, NOTE_NAMES,  # noqa: F401
-                   REST_STEP, SONG_ROLES)
+                   REST_STEP, SONG_ROLES, SONG_EXTRA_ROLES)
 
 # 64 periods: five octaves of twelve semitones from C2, then four spare slots
 # (NOTE_NAMES, NOTE_COUNT and LOWEST_OCTAVE are the song format's, game.py).
@@ -79,10 +79,14 @@ def _game_song(role: str):
     return build
 
 
-# The game's songs (game.json `audio.songs`), in the sequencer's order.
+# The game's songs (game.json `audio`), in the sequencer's order: the title,
+# world and victory songs, then the game over and ending songs a game may
+# have, then the songs its levels name. A missing game over song is silence
+# and a missing ending song is the victory song.
 SONG_TITLE, SONG_WORLD, SONG_VICTORY = range(3)
-assert SONG_ROLES == ("title", "world", "victory")
-SONG_SOURCES = tuple((role, _game_song(role)) for role in SONG_ROLES)
+assert SONG_ROLES == ("title", "world", "victory") and tuple(GAME.songs)[:3] == SONG_ROLES
+SONG_GAMEOVER, SONG_ENDING = (GAME.song_ids.get(role) for role in SONG_EXTRA_ROLES)
+SONG_SOURCES = tuple((name, _game_song(name)) for name in GAME.songs)
 
 
 def songs() -> list[tuple[str, int, int, bytes]]:

@@ -8,7 +8,7 @@ ifdef GAME
 export LUPINE3D_GAME := $(GAME)
 endif
 
-.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check limits scaffold-check research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art qa preview package clean
+.PHONY: all setup build test docs-check memory-map lupine ci-local identity game-check limits scaffold-check research research-v3 research-atlas research-atlas-entity research-atlas-all research-atlas-pareto research-tail verify playtest playtest-world playtest-art screens qa preview package clean
 
 all: build
 
@@ -109,6 +109,11 @@ playtest-world:
 	$(PYTHON) tools/build_rom.py
 	$(PYTHON) tools/playtest.py --role world
 
+# Every full-screen mode, captured from the ROM and checked against the
+# `screens` goldens (tools/check_screens.py).
+screens: build
+	$(PYTHON) tools/check_screens.py
+
 .PHONY: playthrough sameboy mgba variants wall-reuse motion snapshot snapshot-diff snapshot-accept
 # The whole campaign by default; SECTORS=A-B plays one range (an episode in
 # CI's matrix, one sector to reproduce a failure) into ROUTE_DIR (default the
@@ -124,7 +129,7 @@ snapshot: build
 	$(PYTHON) tools/snapshot.py run --suite all
 
 snapshot-diff:
-	$(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable --suite witnesses
+	$(PYTHON) tools/snapshot.py diff --suite tour --suite world --suite art --suite sable --suite witnesses --suite screens
 
 snapshot-accept:
 	test -n "$(SUITE)" && test -n "$(NOTE)"

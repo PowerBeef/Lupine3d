@@ -142,6 +142,7 @@ change colour between levels.
 | Key | Required | Value |
 |---|---|---|
 | `songs` | yes | [`audio.songs`](#audiosongs) |
+| `level_songs` | no | songs a level can name with its `music` key besides the world song: a lower-case name to a [song file](song-format.md) |
 | `sound` | yes | the instruments and effects: a [sound file](sound.md) |
 
 ### `audio.songs`
@@ -151,8 +152,10 @@ Each is a [song file](song-format.md).
 | Key | Required | Value |
 |---|---|---|
 | `title` | yes | plays on the title screen and code entry |
-| `world` | yes | plays in the world, from every level's start |
-| `victory` | yes | plays on a cleared level's intermission and on the ending (the game over screen is silent) |
+| `world` | yes | plays in the world, from the start of every level that names no other song |
+| `victory` | yes | plays on a cleared level's intermission or debrief, and on the ending when there is no `ending` song |
+| `gameover` | no | plays on the game over screen, which is silent without it |
+| `ending` | no | plays on the ending |
 
 ### `hud`
 

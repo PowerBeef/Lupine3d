@@ -28,8 +28,8 @@ LIMITS: dict[str, Limit] = {
     "levels": Limit(1, 20, "levels in the campaign",
                     "levels pack five to a ROM bank in banks 241-244; bank 245 holds the weapons"),
     "episodes": Limit(1, 3, "episodes",
-                      "each episode after the first adds its screen dispatch to the fixed half of bank 0, "
-                      "which keeps 64 bytes free with three"),
+                      "each episode adds its screen dispatch to the fixed half of bank 0, and the continue codes, "
+                      "the route chunks and the showcase's evidence are laid out for three"),
     # Enemies and weapons.
     "kinds": Limit(1, 4, "enemy kinds", "an actor's kind is two bits of its slot"),
     "actor_palettes": Limit(1, 3, "enemy palettes",
@@ -40,8 +40,8 @@ LIMITS: dict[str, Limit] = {
     "weapons": Limit(4, 4, "weapons", "the weapon index is two bits and SELECT walks all four"),
     # Looks.
     "themes": Limit(1, 4, "themes",
-                    "each theme's 36-byte texture directory sits in the fixed half of bank 0 beside the resident "
-                    "engine, which leaves 64 bytes with three themes and three episodes"),
+                    "each theme's 36-byte texture directory and 128-byte palette set sit in the fixed half of "
+                    "bank 0 beside the resident engine"),
     "textures": Limit(1, 7, "wall textures",
                       "a texture is four 5 KiB shade blocks, three to a bank, and the textured kernel owns "
                       "ten banks: thirty blocks"),
@@ -51,6 +51,9 @@ LIMITS: dict[str, Limit] = {
     # Sound.
     "song_rows": Limit(1, 1322, "rows in one song",
                        "a playing song is copied into WRAM bank 5 above the sequencer's state, three bytes a row"),
+    "songs": Limit(3, 16, "songs, the title, world and victory songs included",
+                   "a song's number is one byte of a level's header, and the directory in the music bank is "
+                   "sized for sixteen eight-byte records"),
     # One level (docs/reference/level-format.md).
     "level_size": Limit(16, 16, "cells on a side of a level", "the map is a 16x16 byte grid, one page"),
     "doors_per_level": Limit(0, 6, "doors in a level", "a level's six-byte door records fill 48 bytes of its slot"),

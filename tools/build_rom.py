@@ -47,9 +47,9 @@ from lupine3d_v4.simulation import emit_simulation, emit_copy_bulk, emit_snapsho
 from lupine3d_v4.masked_entities import emit_masked_entities, emit_entity_renderer_v7
 from lupine3d_v4.actors import actor_records, emit_actors
 from lupine3d_v4.screens import (SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING,
-                                 SCREEN_INTERMISSION, SCREEN_PASSWORD,
+                                 SCREEN_INTERMISSION, SCREEN_PASSWORD, DEBRIEF_BASE,
                                  continue_codes, emit_screens, screen_directory)
-from lupine3d_v4.music import (SONG_TITLE, SONG_WORLD, SONG_VICTORY,
+from lupine3d_v4.music import (SONG_TITLE, SONG_WORLD, SONG_VICTORY, SONG_GAMEOVER, SONG_ENDING,
                                emit_audio, emit_music, music_payload)
 from lupine3d_v4.surfaces import emit_surfaces, surface_attributes
 from lupine3d_v4.artwork import hud_assets
@@ -153,8 +153,6 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.xor_r("a"); a.ld_abs_a(0xFF0F)
     a.ld_r_n("a", 1); a.ld_abs_a(0xFFFF)
     a.ei(); a.nop()
-    a.ld_r_n("a", MODE_TITLE); a.ld_abs_a(GAME_MODE)
-    a.ld_r_n("a", SONG_TITLE); a.call("music_start")
     # Skill starts at the middle setting and the title shows it as a digit.
     a.ld_r_n("a", 1); a.ld_abs_a(DIFFICULTY)
     # A cartridge powers on with whatever was in WRAM. Fixed-WRAM state the
@@ -163,6 +161,11 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     a.xor_r("a")
     for address in (WEAPON_INDEX, WEAPON_RELOAD, WEAPON_COOLDOWN):
         a.ld_abs_a(address)
+    # The ending comes back here, keeping the skill: a finished run returns
+    # to the title rather than straight into a new one.
+    a.label("return_to_title")
+    a.ld_r_n("a", MODE_TITLE); a.ld_abs_a(GAME_MODE)
+    a.ld_r_n("a", SONG_TITLE); a.call("music_start")
     a.label("title_screen")
     a.ld_a_abs(DIFFICULTY); a.inc_r("a"); a.ld_abs_a(SCREEN_DIGIT)
     a.ld_r_n("a", SCREEN_TITLE); a.call("show_screen")
@@ -184,7 +187,7 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # palettes (it owns only BG palette 1), so the world's own set is the one
     # thing a transition has to put back, and load_level has already chosen it.
     a.call("init_palettes")
-    a.ld_r_n("a", SONG_WORLD); a.call("music_start")
+    a.ld_a_abs(LEVEL_SONG); a.call("music_start")        # the level's own song
     a.call("init_vram"); a.call("prepare_hud_tiles"); a.call("update_hud_tiles"); a.call("init_oam")
     if FOREGROUND_PUBLICATION:
         for i in range(2): a.ld_a_abs(WALL_EPOCH+i); a.ld_abs_a(FG_FRAME_GENERATION+i)
@@ -263,27 +266,42 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     if LEVEL_COUNT > 1:
         a.ld_a_abs(GAME_MODE); a.cp_n(MODE_INTERMISSION); a.jr("present_next_sector", "z")
     a.call("screen_campaign_stats")         # the whole run, before it is reset
-    a.xor_r("a"); a.ld_abs_a(LEVEL_INDEX)   # the ending restarts the campaign
+    a.xor_r("a"); a.ld_abs_a(LEVEL_INDEX)   # the next run starts from the first level
     a.ld_r_n("a", SCREEN_ENDING); a.jr("present_mode_show")
     if LEVEL_COUNT > 1:
         a.label("present_next_sector")
         a.ld_a_abs(LEVEL_INDEX); a.inc_r("a"); a.ld_abs_a(LEVEL_INDEX)
         a.call("password_for_progress")          # the code to continue from here
         a.call("screen_sector_stats")            # and what the sector cost
-        a.ld_r_n("a", SCREEN_INTERMISSION)
+        if DEBRIEF_BASE is None:
+            a.ld_r_n("a", SCREEN_INTERMISSION)
+        else:
+            # The debrief of the level just cleared: LEVEL_INDEX already names the next.
+            a.ld_a_abs(LEVEL_INDEX); a.add_a_n(DEBRIEF_BASE - 1)
     a.label("present_mode_show")
-    # A results screen carries its own music: silence for a loss, the victory
-    # loop for a cleared sector or a finished campaign.
+    # A results screen carries its own music: the game over song (or silence)
+    # for a loss, the victory loop for a cleared sector, and the ending song
+    # (or the victory loop) for a finished campaign.
     a.push("af")
-    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_GAMEOVER)
-    a.call("music_stop", "z"); a.jr("present_mode_music_ready", "z")
-    a.ld_r_n("a", SONG_VICTORY); a.call("music_start")
+    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_GAMEOVER); a.jr("present_mode_not_lost", "nz")
+    if SONG_GAMEOVER is None:
+        a.call("music_stop"); a.jr("present_mode_music_ready")
+    else:
+        a.ld_r_n("a", SONG_GAMEOVER); a.jr("present_mode_song")
+    a.label("present_mode_not_lost")
+    a.cp_n(MODE_ENDING); a.ld_r_n("a", SONG_VICTORY); a.jr("present_mode_song", "nz")
+    if SONG_ENDING is not None:
+        a.ld_r_n("a", SONG_ENDING)
+    a.label("present_mode_song")
+    a.call("music_start")
     a.label("present_mode_music_ready")
     a.pop("af")
     a.call("show_screen")
     # Edges latched while the world was frozen are not an answer to this screen.
     a.di(); a.xor_r("a"); a.ld_abs_a(INPUT_EDGE_LATCH); a.ei()
     a.call("screen_wait_start")
+    # A finished campaign goes back to the title.
+    a.ld_a_abs(GAME_MODE); a.cp_n(MODE_ENDING); a.jp("return_to_title", "z")
     # An intermission that crossed into the next episode closes the one just
     # finished and opens the next before its first sector loads.
     a.call("show_episode_closing")
@@ -803,9 +821,13 @@ def make_rom() -> tuple[bytes, Assembler, dict[str, object]]:
     raw_ray_payload = b"".join(payload for _, payload in make_raw_ray_assets(make_tables()))
     raw_ray_start = RAW_RAY_ROM_BANK * 0x4000
     rom[raw_ray_start:raw_ray_start + len(raw_ray_payload)] = raw_ray_payload
-    screen_payload = screen_directory()
+    # Screens past the screen bank continue in the raw rays' bank, above them.
+    assert RAW_RAY_ROM_ADDRESS + len(raw_ray_payload) <= SCREEN_OVERFLOW_ADDRESS, "the raw rays run into the screens"
+    screen_payload, screen_overflow = screen_directory()
     screen_start = SCREEN_ROM_BANK * 0x4000
     rom[screen_start:screen_start + len(screen_payload)] = screen_payload
+    overflow_start = SCREEN_OVERFLOW_ROM_BANK * 0x4000 + SCREEN_OVERFLOW_ADDRESS - 0x4000
+    rom[overflow_start:overflow_start + len(screen_overflow)] = screen_overflow
     song_payload = music_payload()
     song_start = MUSIC_ROM_BANK * 0x4000
     rom[song_start:song_start + len(song_payload)] = song_payload

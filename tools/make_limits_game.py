@@ -7,8 +7,10 @@ fixed half of bank 0 takes every theme's texture directory and every
 episode's screen dispatch). It writes a copy of the showcase with the most
 levels, episodes, themes, textures and kinds the table allows, the heaviest
 contact damage, weapons that unlock one level at a time (each later unlock is
-a compare in resident code), songs of the most rows, and sound effects with
-no zero byte (a zero is emitted one byte shorter).
+a compare in resident code), the most songs with one of them the most rows
+(the songs share one bank, so those two maxima are proven together), a
+debrief after every level, and sound effects with no zero byte (a zero is
+emitted one byte shorter).
 
 `make limits` writes it, builds it, and runs `--check` in a process that
 builds that game: each episode's first level, the last level and a level in
@@ -70,7 +72,7 @@ def generate(output: Path) -> dict:
     while len(levels) < maximum("levels"):
         source = output / levels[extra % 6]
         data = json.loads(source.read_text(encoding="utf-8"))
-        data["name"] = f"{data['name']} Copy {extra + 1}"
+        data["name"] = f"Limit Copy {extra + 1}"
         data["palette_profile"] = themes[3]["name"]
         name = f"levels/limit_copy_{extra + 1}.json"
         write_json(output / name, data)
@@ -92,15 +94,32 @@ def generate(output: Path) -> dict:
     for index, weapon in enumerate(manifest["weapons"]):
         weapon["from_level"] = index + 1
 
-    # Songs: each the most rows the sequencer holds.
-    for role, relative in manifest["audio"]["songs"].items():
-        path = output / relative
-        song = json.loads(path.read_text(encoding="utf-8"))
-        for channel in ("pulse", "wave", "noise"):
-            steps = "".join(song[channel]["rows"])
-            steps = (steps * (maximum("song_rows") // len(steps) + 1))[:maximum("song_rows")]
-            song[channel]["rows"] = [steps[i:i + 16] for i in range(0, len(steps), 16)]
-        write_json(path, song)
+    # Songs: the title the most rows the sequencer holds, and one-bar cuts of
+    # the world song as level songs until the game has the most songs (full
+    # copies would overflow the music bank the songs share).
+    path = output / manifest["audio"]["songs"]["title"]
+    song = json.loads(path.read_text(encoding="utf-8"))
+    for channel in ("pulse", "wave", "noise"):
+        steps = "".join(song[channel]["rows"])
+        steps = (steps * (maximum("song_rows") // len(steps) + 1))[:maximum("song_rows")]
+        song[channel]["rows"] = [steps[i:i + 16] for i in range(0, len(steps), 16)]
+    write_json(path, song)
+    bar = json.loads((output / manifest["audio"]["songs"]["world"]).read_text(encoding="utf-8"))
+    bar["loop_row"] = 0
+    for channel in ("pulse", "wave", "noise"):
+        bar[channel]["rows"] = bar[channel]["rows"][:1]
+    level_songs = manifest["audio"].setdefault("level_songs", {})
+    while len(manifest["audio"]["songs"]) + len(level_songs) < maximum("songs"):
+        name = f"limit_song_{len(level_songs) + 1}"
+        write_json(output / "audio" / f"{name}.json", bar)
+        level_songs[name] = f"audio/{name}.json"
+    # Debriefs: one after every level but the last, as the loader requires.
+    screens_path = output / manifest["screens"]
+    screens = json.loads(screens_path.read_text(encoding="utf-8"))
+    if "debriefs" in screens:
+        while len(screens["debriefs"]) < len(levels) - 1:
+            screens["debriefs"].append(screens["debriefs"][-1])
+        write_json(screens_path, screens)
     # Sound effects: no zero register byte, each emitted as a two-byte load.
     sound_path = output / manifest["audio"]["sound"]
     sound = json.loads(sound_path.read_text(encoding="utf-8"))
@@ -124,8 +143,8 @@ def check() -> dict:
         raise SystemExit(f"--check runs on the limits game; LUPINE3D_GAME selects {br.GAME.id}")
     game = br.GAME
     counts = {"levels": len(game.level_paths), "episodes": len(game.episodes), "themes": len(game.themes),
-              "textures": len(game.textures), "kinds": len(game.kinds),
-              "song_rows": min(len(song.pulse) for song in game.songs.values())}
+              "textures": len(game.textures), "kinds": len(game.kinds), "songs": len(game.songs),
+              "song_rows": max(len(song.pulse) for song in game.songs.values())}
     for name, count in counts.items():
         assert count == maximum(name), (name, count, maximum(name))
     rom_path = br.GAME_BUILD / "lupine3d.gb"

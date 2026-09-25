@@ -56,7 +56,8 @@ texture (`docs/explanation/textured-walls.md`).
 | Key | Required | Meaning |
 |---|---|---|
 | `format` | yes | `lupine-level-v2` for gameplay levels; `lupine-level-v1` keeps the older, laxer checks for benchmark levels |
-| `name` | yes | Display name, used in reports and the manifest |
+| `name` | yes | Display name, used in reports, the manifest and a debrief's `{sector}` and `{next}` |
+| `music` | no | the song the level plays: `world` (the default) or one of `game.json` `audio.level_songs` |
 | `width`, `height` | yes | 16 and 16 |
 | `rows` | yes | sixteen strings of sixteen material digits |
 | `player_spawn` | yes | `x_q8`, `y_q8`, `angle`, optional `safe_radius_cells` (0..15) |
@@ -177,7 +178,7 @@ below are the first slot's:
 | `$4000` | 1024 | segment IDs, `(cell × 4 + side)`, one ID per contiguous exposed face run |
 | `$4400` | 1024 | surface profiles, same index (must stay exactly 1024 above the segments: one pointer reads both) |
 | `$4800` | 256 | the 16×16 material grid |
-| `$4900` | 24 | header: size, profiles, spawn, first actor, exit, counts, medkit value |
+| `$4900` | 24 | header: size, profiles, spawn, first actor, exit, counts, medkit value, song |
 | `$4920` | 36 | six six-byte door records |
 | `$4950` | 96 | six sixteen-byte actor slots |
 | `$49B0` | 256 | sixteen sixteen-byte fixture records |

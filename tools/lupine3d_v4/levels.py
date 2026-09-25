@@ -24,6 +24,10 @@ ENTITY_KIND_IDS = _GAME.kind_ids
 # 128-byte palette set `init_palettes` uploads at every world entry and the
 # texture set the textured kernel reads, so levels of one campaign may differ.
 PALETTE_IDS = _GAME.theme_ids
+# Songs are the game's (game.json `audio`): a level's optional `music` names
+# one, the world song by default, and its index is header byte 21, which
+# load_level keeps in LEVEL_SONG for enter_world to play.
+SONG_IDS = _GAME.song_ids
 ORIENTATION_IDS = {"vertical": 0, "horizontal": 1}
 MAX_DOORS = 6
 DOOR_RECORD_BYTES = 6
@@ -172,6 +176,7 @@ class CompiledLevel:
     vram_profile: int
     readability: ReadabilityReport | None = None
     fixtures: tuple[tuple[int, int, int, int], ...] = ()
+    song: int = 1                      # the world song, SONG_IDS["world"]
 
     def header_bytes(self) -> bytes:
         """Fixed per-level header consumed by the SM83 loader.
@@ -191,7 +196,7 @@ class CompiledLevel:
             sentinel.health, sentinel.activation_radius_q4,
             self.exit.x, self.exit.y,
             len(self.doors),
-            len(self.entities), len(self.fixtures), self.medkit_value,
+            len(self.entities), len(self.fixtures), self.medkit_value, self.song,
         )).ljust(LEVEL_HEADER_BYTES, b"\0")
 
     @property
@@ -808,7 +813,14 @@ def compile_level(path: Path) -> CompiledLevel:
         vram_profile=PROFILE_IDS[str(source["vram_profile"])],
         readability=readability,
         fixtures=tuple(fixtures),
+        song=_song_id(source.get("music", "world"), path),
     )
+
+
+def _song_id(name: object, path: Path) -> int:
+    if name not in SONG_IDS:
+        raise ValueError(f"{path.name}: music {name!r} is not one of the game's songs ({', '.join(SONG_IDS)})")
+    return SONG_IDS[name]
 
 
 # The engine's evidence (goldens, witnesses, cycle gates, the sustained tapes)

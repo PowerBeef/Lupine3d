@@ -178,7 +178,7 @@
         "opening": {
           "type": "string",
           "minLength": 1,
-          "description": "the screen shown before its first level (every episode but the first)"
+          "description": "the screen shown before its first level: every episode but the first needs one, and the first episode's is a prologue shown after the title"
         },
         "closing": {
           "type": "string",
@@ -479,6 +479,18 @@
           "type": "string",
           "minLength": 1,
           "description": "a file inside the game directory, relative to game.json"
+        },
+        "level_songs": {
+          "type": "object",
+          "description": "songs a level can name with its `music` key, besides the world song: lower-case name to a song file",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "description": "a file inside the game directory, relative to game.json"
+          }
         }
       },
       "additionalProperties": false
@@ -505,6 +517,16 @@
           "type": "string",
           "minLength": 1,
           "description": "a file inside the game directory, relative to game.json"
+        },
+        "gameover": {
+          "type": "string",
+          "minLength": 1,
+          "description": "played on the game over screen (silence without it); a file inside the game directory"
+        },
+        "ending": {
+          "type": "string",
+          "minLength": 1,
+          "description": "played on the ending screen (the victory song without it); a file inside the game directory"
         }
       },
       "additionalProperties": false

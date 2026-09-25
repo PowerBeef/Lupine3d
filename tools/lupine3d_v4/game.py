@@ -26,7 +26,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .fonts import FONT, GLYPH_ADVANCE, GLYPH_HEIGHT, HUD_FONT
+from .fonts import FONT, GLYPH_ADVANCE, GLYPH_HEIGHT, HUD_FONT, SCREEN_FACE
 from .limits import LIMITS, refuse
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -64,10 +64,22 @@ SCREEN_FIELDS = {
     "intermission": {"code": 4, "kills": 2, "time": 3},
     "password": {"code": 4},
 }
+# A debrief (screens.json `debriefs`, one per level but the last) replaces the
+# intermission after its level and writes the intermission's fields.
+DEBRIEF_FIELDS = SCREEN_FIELDS["intermission"]
+# In a debrief's text these become the cleared level's name and the next one's.
+DEBRIEF_TOKENS = ("{sector}", "{next}")
 SCREENS_FORMAT = "lupine-screens-v1"
-# Music: the sequencer plays three songs (title, world, victory) on CH2
-# (pulse lead), CH3 (wave bass) and CH4 (noise drums); CH1 is the effects'.
+# The full-screen map: 20 columns of 8x8 tiles by 18 rows. A screen's steel
+# frame takes the outermost ring, so framed reading-face text and images sit
+# in columns 1-18 and rows 1-16.
+SCREEN_MAP_COLUMNS, SCREEN_MAP_ROWS = 20, 18
+# Music: the sequencer plays songs on CH2 (pulse lead), CH3 (wave bass) and
+# CH4 (noise drums); CH1 is the effects'. Every game has a title, a world and
+# a victory song; the engine also plays a game over and an ending song when a
+# game has them, and any other song is one a level can name (`music`).
 SONG_ROLES = ("title", "world", "victory")
+SONG_EXTRA_ROLES = ("gameover", "ending")
 SONG_FORMAT = "lupine-song-v1"
 SOUND_FORMAT = "lupine-sound-v1"
 NOTE_NAMES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
@@ -117,16 +129,20 @@ KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "theme.colours": _required("ceiling", "floor", "structure", "door", "machinery"),
     "shared_palettes": _required(*SHARED_PALETTES),
     "rom": (frozenset({"header_title", "version"}), frozenset({"header_title"})),
-    "audio": _required("songs", "sound"),
-    "audio.songs": _required(*SONG_ROLES),
+    "audio": (frozenset({"songs", "sound", "level_songs"}), frozenset({"songs", "sound"})),
+    "audio.songs": (frozenset(SONG_ROLES + SONG_EXTRA_ROLES), frozenset(SONG_ROLES)),
     "hud": _required("words"),
     "hud.words": _required(*HUD_WORDS),
     "sprites": _required("manifest", *SPRITE_ROLES),
     "playtests": (frozenset(PLAYTEST_ROLES), frozenset({"tour"})),
     "preview": _required("x", "y", "angle"),
-    "screens": (frozenset({"$schema", "format", "screens"}), frozenset({"format", "screens"})),
+    "screens": (frozenset({"$schema", "format", "screens", "debriefs"}), frozenset({"format", "screens"})),
+    "screen": (frozenset({"frame", "lines"}), frozenset({"lines"})),
     "screen.text": (frozenset({"text", "y", "colour", "scale"}), frozenset({"text", "y", "colour"})),
     "screen.field": (frozenset({"field", "label", "y", "colour", "scale"}), frozenset({"field", "label", "y", "colour"})),
+    "screen.say": (frozenset({"say", "row", "colour", "column"}), frozenset({"say", "row", "colour"})),
+    "screen.say_field": (frozenset({"field", "label", "row", "colour", "column"}), frozenset({"field", "label", "row", "colour"})),
+    "screen.image": (frozenset({"image", "row", "column"}), frozenset({"image", "row"})),
     "song": (frozenset({"$schema", "format", "speed", "loop_row", "pulse", "wave", "noise"}),
              frozenset({"format", "speed", "loop_row", "pulse", "wave", "noise"})),
     "song.channel": _required("notes", "rows"),
@@ -147,7 +163,7 @@ class GameError(ValueError):
 class Episode:
     name: str
     levels: tuple[Path, ...]
-    opening: str | None      # the screen shown before its first level (not the first episode's: the title opens it)
+    opening: str | None      # the screen shown before its first level (the first episode's, a prologue, shows after the title)
     closing: str | None      # the screen shown after its last level (not the last episode's: the ending closes it)
 
 
@@ -189,10 +205,16 @@ class Theme:
 @dataclass(frozen=True)
 class ScreenLine:
     text: str                # a text line's words, or a field's label
-    y: int                   # top pixel row
+    y: int                   # top pixel row (the reading face and images: row * 8)
     colour: int              # BG palette 1 colour index, 0..3
     scale: int               # pixel size of the 3x5 font
     field: str | None = None # a runtime field after the label (its digits come from SCREEN_FIELDS)
+    # "small": the 3x5 face at a pixel row and scale; "reading": the 8x8
+    # SCREEN_FACE on a tile row; "image": an indexed PNG on the tile grid.
+    face: str = "small"
+    row: int | None = None       # tile row of a reading-face line or an image
+    column: int | None = None    # its first tile column; None centres it
+    image: Path | None = None    # an image line's PNG
 
 
 @dataclass(frozen=True)
@@ -229,10 +251,10 @@ class Game:
     textures: dict[str, Path]                # texture name -> indexed 16x8 PNG
     themes: tuple[Theme, ...]
     shared_palettes: dict[str, tuple[Colour, ...]]
-    screens: dict[str, tuple[ScreenLine, ...]]   # in runtime order: FIXED_SCREENS, then the episode screens
+    screens: dict[str, tuple[ScreenLine, ...]]   # in runtime order: FIXED_SCREENS, the episode screens, the debriefs
     rom_title: str                               # the cartridge header title
     rom_version: int                             # the cartridge header's mask ROM version byte
-    songs: dict[str, Song]                       # by role: title, world, victory
+    songs: dict[str, Song]                       # by name: title, world, victory, then the game's others in order
     sound: Sound
     hud_words: dict[str, str]                    # HUD_WORDS -> the text shown
     sprite_manifest: Path                        # the game's sprite manifest (records of indexed PNG sheets)
@@ -241,6 +263,8 @@ class Game:
     playtests: dict[str, Path] = field(default_factory=dict)   # PLAYTEST_ROLES -> scenario (tools only)
     # The pose `tools/make_preview.py` films: Q8.8 position and the angle byte.
     preview: tuple[int, int, int] | None = None
+    screen_frames: dict[str, bool] = field(default_factory=dict)   # screen name -> steel frame drawn (default)
+    debriefs: int = 0                            # debrief screens, one per level but the last, or none
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -324,7 +348,27 @@ class Game:
     def episode_screen_names(self) -> tuple[str, ...]:
         """The episode screens in runtime order: every closing, then every opening."""
         return (tuple(e.closing for e in self.episodes[:-1])
-                + tuple(e.opening for e in self.episodes[1:]))
+                + tuple(e.opening for e in self.episodes if e.opening is not None))
+
+    @property
+    def opening_starts(self) -> tuple[int, ...]:
+        """The level index each opening screen is shown before, in the order
+        of the openings: 0 first when the first episode has a prologue."""
+        starts, total = [], 0
+        for episode in self.episodes:
+            if episode.opening is not None:
+                starts.append(total)
+            total += len(episode.levels)
+        return tuple(starts)
+
+    @property
+    def debrief_names(self) -> tuple[str, ...]:
+        return tuple(f"debrief_{n}" for n in range(1, self.debriefs + 1))
+
+    @property
+    def song_ids(self) -> dict[str, int]:
+        """Song name to its index in the sequencer's directory: declaration order."""
+        return {name: index for index, name in enumerate(self.songs)}
 
 
 def _where(root: Path, context: str) -> str:
@@ -390,8 +434,6 @@ def _episodes(data: object, root: Path, files: dict[str, str]) -> tuple[Episode,
         paths = tuple(_game_file(root, level, f"{context}.levels[{n}]", files) for n, level in enumerate(levels))
         first, last = index == 0, index == len(data) - 1
         opening, closing = raw.get("opening"), raw.get("closing")
-        if first and opening is not None:
-            raise GameError(_where(root, f"{context} has an opening screen, but the title screen opens the first episode"))
         if last and closing is not None:
             raise GameError(_where(root, f"{context} has a closing screen, but the ending screen closes the last episode"))
         if not first and opening is None:
@@ -564,7 +606,102 @@ def _screen_text(line: ScreenLine, root: Path, where: str) -> None:
                                      f"top is at least {SCREEN_TEXT_TOP} and its bottom above {SCREEN_TEXT_BOTTOM}"))
 
 
-def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files: dict[str, str]) -> dict:
+def _reading_text(text: str, row: int, column: int | None, cells: int, frame: bool,
+                  root: Path, where: str) -> None:
+    """A reading-face line: glyphs the face has, on the map, inside the frame."""
+    unknown = sorted({c for c in text if c != " " and c not in SCREEN_FACE})
+    if unknown:
+        raise GameError(_where(root, f"{where} {text!r} uses {', '.join(repr(c) for c in unknown)}, which the "
+                                     f"reading face does not have (it draws {''.join(SCREEN_FACE)} and space)"))
+    first, last = (1, SCREEN_MAP_COLUMNS - 2) if frame else (0, SCREEN_MAP_COLUMNS - 1)
+    top, bottom = (1, SCREEN_MAP_ROWS - 2) if frame else (0, SCREEN_MAP_ROWS - 1)
+    if not top <= row <= bottom:
+        raise GameError(_where(root, f"{where} is on row {row}; a {'framed ' if frame else ''}screen's "
+                                     f"reading-face rows are {top}-{bottom}"))
+    if cells > last - first + 1:
+        raise GameError(_where(root, f"{where} {text!r} needs {cells} columns and a {'framed ' if frame else ''}"
+                                     f"screen has {last - first + 1}: one character a column"))
+    if column is not None and not (first <= column and column + cells - 1 <= last):
+        raise GameError(_where(root, f"{where} {text!r} at column {column} runs past column {last}"))
+
+
+def _screen_lines(name: str, lines: object, fields_wanted: dict[str, int], frame: bool,
+                  tokens: dict[str, str], root: Path, context: str, files: dict[str, str]) -> tuple[ScreenLine, ...]:
+    if not isinstance(lines, list) or not lines:
+        raise GameError(_where(root, f"{context} screen {name!r} must be a non-empty list of lines"))
+    parsed = []
+    for n, raw in enumerate(lines):
+        where = f"{context} {name}[{n}]"
+        if not isinstance(raw, dict):
+            raise GameError(_where(root, f"{where} must be an object"))
+        if "image" in raw:
+            raw = _keys(raw, *KEYS["screen.image"], root, where)
+            path = _game_file(root, raw["image"], f"{where}.image", files)
+            if path.suffix.lower() != ".png":
+                raise GameError(_where(root, f"{where}.image must be an indexed PNG"))
+            row = _integer(raw, "row", 0, SCREEN_MAP_ROWS - 1, root, where)
+            column = _integer(raw, "column", 0, SCREEN_MAP_COLUMNS - 1, root, where) if "column" in raw else None
+            parsed.append(ScreenLine(text="", y=row * 8, colour=0, scale=1, face="image", row=row,
+                                     column=column, image=path))
+            continue
+        reading = "say" in raw or ("field" in raw and "row" in raw)
+        if reading:
+            raw = _keys(raw, *KEYS["screen.say_field" if "field" in raw else "screen.say"], root, where)
+            field_name = _string(raw["field"], root, f"{where}.field") if "field" in raw else None
+            text = _string(raw["label"] if field_name else raw["say"], root, f"{where}.{'label' if field_name else 'say'}")
+            for token, value in tokens.items():
+                text = text.replace(token, value)
+            row = _integer(raw, "row", 0, SCREEN_MAP_ROWS - 1, root, where)
+            column = _integer(raw, "column", 0, SCREEN_MAP_COLUMNS - 1, root, where) if "column" in raw else None
+            cells = len(text) + (1 + fields_wanted.get(field_name, 0) if field_name else 0)
+            _reading_text(text, row, column, cells, frame, root, where)
+            parsed.append(ScreenLine(text=text, y=row * 8, colour=_integer(raw, "colour", 0, 3, root, where),
+                                     scale=1, field=field_name, face="reading", row=row, column=column))
+            continue
+        if "field" in raw:
+            raw = _keys(raw, *KEYS["screen.field"], root, where)
+            text, field_name = _string(raw["label"], root, f"{where}.label"), _string(raw["field"], root, f"{where}.field")
+        else:
+            raw = _keys(raw, *KEYS["screen.text"], root, where)
+            text, field_name = _string(raw["text"], root, f"{where}.text"), None
+        for token, value in tokens.items():
+            text = text.replace(token, value)
+        raw.setdefault("scale", 1)
+        line = ScreenLine(text=text, y=_integer(raw, "y", 0, 143, root, where),
+                          colour=_integer(raw, "colour", 0, 3, root, where),
+                          scale=_integer(raw, "scale", 1, 4, root, where), field=field_name)
+        _screen_text(line, root, where)
+        parsed.append(line)
+    fields = [line.field for line in parsed if line.field]
+    expected = list(fields_wanted)
+    if fields != expected:
+        shown = ", ".join(expected) if expected else "none"
+        raise GameError(_where(root, f"{context} screen {name!r} has fields {fields or 'none'}; the engine writes "
+                                     f"{shown} there, in that order"))
+    return tuple(parsed)
+
+
+def _screen_record(raw: object, root: Path, where: str) -> tuple[object, bool]:
+    """A screen is a list of lines, or {"frame": false, "lines": [...]}."""
+    if isinstance(raw, dict):
+        raw = _keys(raw, *KEYS["screen"], root, where)
+        frame = raw.get("frame", True)
+        if not isinstance(frame, bool):
+            raise GameError(_where(root, f"{where}.frame must be true or false"))
+        return raw["lines"], frame
+    return raw, True
+
+
+def _level_name(path: Path) -> str:
+    try:
+        name = json.loads(path.read_text(encoding="utf-8")).get("name", path.stem)
+    except (OSError, json.JSONDecodeError, AttributeError):
+        name = path.stem
+    return str(name).upper()
+
+
+def _screens(relative: object, episodes: tuple[Episode, ...], root: Path,
+             files: dict[str, str]) -> tuple[dict, dict[str, bool], int]:
     path = _game_file(root, relative, "screens", files)
     context = path.name
     try:
@@ -574,7 +711,8 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files:
     data = _keys(data, *KEYS["screens"], root, context)
     if data["format"] != SCREENS_FORMAT:
         raise GameError(_where(root, f"{context} format is {data['format']!r}; this engine reads {SCREENS_FORMAT!r}"))
-    episode_screens = tuple(e.closing for e in episodes[:-1]) + tuple(e.opening for e in episodes[1:])
+    episode_screens = (tuple(e.closing for e in episodes[:-1])
+                       + tuple(e.opening for e in episodes if e.opening is not None))
     wanted = FIXED_SCREENS + episode_screens
     authored = data["screens"]
     if not isinstance(authored, dict):
@@ -587,34 +725,27 @@ def _screens(relative: object, episodes: tuple[Episode, ...], root: Path, files:
         if name not in wanted:
             raise GameError(_where(root, f"{context} screen {name!r} is never shown: the engine shows "
                                          f"{', '.join(FIXED_SCREENS)} and the screens your episodes name"))
-    screens = {}
+    screens, frames = {}, {}
     for name in wanted:
-        lines = authored[name]
-        if not isinstance(lines, list) or not lines:
-            raise GameError(_where(root, f"{context} screen {name!r} must be a non-empty list of lines"))
-        parsed = []
-        for n, raw in enumerate(lines):
-            where = f"{context} {name}[{n}]"
-            if isinstance(raw, dict) and "field" in raw:
-                raw = _keys(raw, *KEYS["screen.field"], root, where)
-                text, field_name = _string(raw["label"], root, f"{where}.label"), _string(raw["field"], root, f"{where}.field")
-            else:
-                raw = _keys(raw, *KEYS["screen.text"], root, where)
-                text, field_name = _string(raw["text"], root, f"{where}.text"), None
-            raw.setdefault("scale", 1)
-            line = ScreenLine(text=text, y=_integer(raw, "y", 0, 143, root, where),
-                              colour=_integer(raw, "colour", 0, 3, root, where),
-                              scale=_integer(raw, "scale", 1, 4, root, where), field=field_name)
-            _screen_text(line, root, where)
-            parsed.append(line)
-        fields = [line.field for line in parsed if line.field]
-        expected = list(SCREEN_FIELDS.get(name, {}))
-        if fields != expected:
-            shown = ", ".join(expected) if expected else "none"
-            raise GameError(_where(root, f"{context} screen {name!r} has fields {fields or 'none'}; the engine writes "
-                                         f"{shown} there, in that order"))
-        screens[name] = tuple(parsed)
-    return screens
+        lines, frames[name] = _screen_record(authored[name], root, f"{context} screen {name!r}")
+        screens[name] = _screen_lines(name, lines, SCREEN_FIELDS.get(name, {}), frames[name], {},
+                                      root, context, files)
+    # Debriefs: the screen after each level but the last, in place of the
+    # intermission, with the cleared level's name and the next one's.
+    debriefs = data.get("debriefs")
+    count = 0
+    if debriefs is not None:
+        levels = [level for episode in episodes for level in episode.levels]
+        if not isinstance(debriefs, list) or len(debriefs) != len(levels) - 1:
+            raise GameError(_where(root, f"{context} debriefs must list one screen per level but the last: "
+                                         f"{len(levels) - 1} for this campaign"))
+        for index, raw in enumerate(debriefs):
+            name = f"debrief_{index + 1}"
+            lines, frames[name] = _screen_record(raw, root, f"{context} debriefs[{index}]")
+            tokens = dict(zip(DEBRIEF_TOKENS, (_level_name(levels[index]), _level_name(levels[index + 1]))))
+            screens[name] = _screen_lines(name, lines, DEBRIEF_FIELDS, frames[name], tokens, root, context, files)
+        count = len(debriefs)
+    return screens, frames, count
 
 
 def _rom(data: object, root: Path) -> tuple[str, int]:
@@ -712,7 +843,17 @@ def _audio(data: object, root: Path, files: dict[str, str]) -> tuple[dict[str, S
     data = _keys(data, *KEYS["audio"], root, "audio")
     songs_raw = _keys(data["songs"], *KEYS["audio.songs"], root, "audio.songs")
     songs = {role: _song(_game_file(root, songs_raw[role], f"audio.songs.{role}", files), root, role)
-             for role in SONG_ROLES}
+             for role in SONG_ROLES + SONG_EXTRA_ROLES if role in songs_raw}
+    # Songs a level can name (`music` in a level file) besides the world song.
+    level_songs = data.get("level_songs", {})
+    if not isinstance(level_songs, dict):
+        raise GameError(_where(root, "audio.level_songs must map song names to song files"))
+    for name, relative in level_songs.items():
+        if name in songs or not isinstance(name, str) or not name.replace("_", "").isalnum() or name.lower() != name:
+            raise GameError(_where(root, f"audio.level_songs {name!r} must be a new lower-case name "
+                                         "(letters, digits and underscores)"))
+        songs[name] = _song(_game_file(root, relative, f"audio.level_songs.{name}", files), root, name)
+    _limit("songs", len(songs), root, "audio")
     path = _game_file(root, data["sound"], "audio.sound", files)
     sound = _keys(_json_file(path, root, SOUND_FORMAT), *KEYS["sound"], root, path.name)
     instruments = _keys(sound["instruments"], *KEYS["sound.instruments"], root, f"{path.name} instruments")
@@ -823,11 +964,13 @@ def load_game(directory: Path) -> Game:
     episodes = _episodes(data["episodes"], root, files)
     rom_title, rom_version = _rom(data["rom"], root)
     songs, sound = _audio(data["audio"], root, files)
+    screens, screen_frames, debriefs = _screens(data["screens"], episodes, root, files)
     weapons = _weapons(data["weapons"], root, 0)
     sprite_manifest, sprites = _sprites(data["sprites"], weapons, root, files)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=episodes,
-                screens=_screens(data["screens"], episodes, root, files), rom_title=rom_title, rom_version=rom_version,
+                screens=screens, screen_frames=screen_frames, debriefs=debriefs,
+                rom_title=rom_title, rom_version=rom_version,
                 songs=songs, sound=sound, hud_words=_hud(data["hud"], root),
                 sprite_manifest=sprite_manifest, sprites=sprites,
                 fixture_kinds=_fixture_kinds(data["fixture_kinds"], root),

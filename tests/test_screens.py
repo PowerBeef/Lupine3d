@@ -23,13 +23,38 @@ class ScreenCompositionTests(unittest.TestCase):
     def test_digits_are_the_first_patterns_so_a_map_write_shows_a_number(self):
         for name, patterns, _, _ in screens.screen_assets():
             self.assertGreaterEqual(len(patterns) // 16, screens.DIGIT_PATTERNS, name)
-        reference = screens.compose_screen(())[0][:screens.DIGIT_PATTERNS * 16]
+        # The 3x5 digits, or the reading face's in a screen's field colour.
+        size = screens.DIGIT_PATTERNS * 16
+        faces = {b"".join(screens._digit_tiles("small"))} | {b"".join(screens._digit_tiles("reading", colour))
+                                                             for colour in range(1, 4)}
+        self.assertEqual(screens.compose_screen(())[0][:size], b"".join(screens._digit_tiles("small")))
         for name, patterns, _, _ in screens.screen_assets():
-            self.assertEqual(patterns[:screens.DIGIT_PATTERNS * 16], reference, name)
+            self.assertIn(patterns[:size], faces, name)
 
-    def test_composition_is_deterministic_and_fits_one_bank(self):
-        self.assertEqual(screens.screen_directory(), screens.screen_directory())
-        self.assertLessEqual(len(screens.screen_directory()), 0x4000)
+    def test_composition_is_deterministic_and_fits_its_banks(self):
+        directory, overflow = screens.screen_directory()
+        self.assertEqual((directory, overflow), screens.screen_directory())
+        self.assertLessEqual(len(directory), 0x4000)
+        self.assertLessEqual(len(overflow), 0x8000 - br.SCREEN_OVERFLOW_ADDRESS)
+
+    def test_text_screens_share_pattern_pools(self):
+        # A pool keeps the runtime digits and the blank first, holds at most
+        # a screen's worth of patterns, and every screen is in exactly one.
+        pools = screens.screen_pools()
+        members = sorted(n for _, group in pools for n in group)
+        self.assertEqual(members, list(range(len(screens.screen_assets()))))
+        for block, group in pools:
+            self.assertLessEqual(len(block) // 16, screens.SCREEN_PATTERN_CAPACITY)
+            for n in group:
+                own = screens.screen_assets()[n][1]
+                self.assertEqual(block[:(screens.BLANK_PATTERN + 1) * 16], own[:(screens.BLANK_PATTERN + 1) * 16])
+        self.assertLess(len(pools), len(screens.screen_assets()), "no screen shares its patterns")
+
+    def test_a_record_names_the_bank_its_patterns_and_map_are_in(self):
+        directory, _ = screens.screen_directory()
+        for number in range(len(screens.screen_assets())):
+            record = directory[number * br.SCREEN_RECORD_BYTES:(number + 1) * br.SCREEN_RECORD_BYTES]
+            self.assertIn(record[5], (br.SCREEN_ROM_BANK, br.SCREEN_OVERFLOW_ROM_BANK), number)
 
     def test_screens_reserve_the_runtime_slots_they_need(self):
         slots = {name: offsets for name, _, _, offsets in screens.screen_assets()}
@@ -362,8 +387,8 @@ class ResultsStatisticsTests(unittest.TestCase):
         cgb = self._world()
         cgb.io[br.SVBK & 0x7F] = 2
         cgb.write8(br.CAMPAIGN_KILLS, 14)
-        cgb.write8(br.CAMPAIGN_TIME, 36_000 & 0xFF)   # ten minutes
-        cgb.write8(br.CAMPAIGN_TIME + 1, 36_000 >> 8)
+        cgb.write8(br.CAMPAIGN_TIME, 600 & 0xFF)      # ten minutes, kept in seconds
+        cgb.write8(br.CAMPAIGN_TIME + 1, 600 >> 8)
         cgb.call_subroutine("screen_campaign_stats", max_steps=8_000_000)
         self.assertEqual(self._digits(cgb, 0, 3), [0, 1, 4])
         self.assertEqual(self._digits(cgb, 3, 4), [0, 6, 0, 0])
@@ -399,8 +424,23 @@ class ResultsStatisticsTests(unittest.TestCase):
         cgb.write8(br.SECTOR_START, start & 0xFF); cgb.write8(br.SECTOR_START + 1, start >> 8)
         cgb.call_subroutine("stamp_sector_result", max_steps=100_000)
         self.assertEqual(cgb.read8(br.SECTOR_TIME) | cgb.read8(br.SECTOR_TIME + 1) << 8, 750)
-        self.assertEqual(cgb.read8(br.CAMPAIGN_TIME) | cgb.read8(br.CAMPAIGN_TIME + 1) << 8, 1_750)
+        # The run is kept in whole seconds: 750 VBlanks are twelve of them.
+        self.assertEqual(cgb.read8(br.CAMPAIGN_TIME) | cgb.read8(br.CAMPAIGN_TIME + 1) << 8, 1_012)
         self.assertEqual(cgb.read8(br.CAMPAIGN_KILLS), 9)
+
+    def test_a_long_run_stops_at_what_the_ending_shows(self):
+        """A campaign outlasts the eighteen minutes a sixteen-bit count of
+        VBlanks holds: the run's seconds stop at 9,999 and its kills at 255."""
+        cgb = self._world()
+        cgb.io[br.SVBK & 0x7F] = 2
+        cgb.write8(br.CAMPAIGN_KILLS, 250); cgb.write8(br.SECTOR_KILLS, 9)
+        cgb.write8(br.CAMPAIGN_TIME, 9_990 & 0xFF); cgb.write8(br.CAMPAIGN_TIME + 1, 9_990 >> 8)
+        clock = cgb.read8(br.SIM_CLOCK) | cgb.read8(br.SIM_CLOCK + 1) << 8
+        start = (clock - 60_000) & 0xFFFF      # a sector of almost seventeen minutes
+        cgb.write8(br.SECTOR_START, start & 0xFF); cgb.write8(br.SECTOR_START + 1, start >> 8)
+        cgb.call_subroutine("stamp_sector_result", max_steps=1_000_000)
+        self.assertEqual(cgb.read8(br.CAMPAIGN_TIME) | cgb.read8(br.CAMPAIGN_TIME + 1) << 8, 9_999)
+        self.assertEqual(cgb.read8(br.CAMPAIGN_KILLS), 255)
 
 
 class EpisodeScreenTests(unittest.TestCase):
@@ -424,9 +464,11 @@ class EpisodeScreenTests(unittest.TestCase):
         cgb.call_subroutine(routine, max_steps=3_000_000)
 
     def test_the_screens_exist_in_order_and_fit_the_bank(self):
-        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS, SCREEN_SOURCES
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS, SCREEN_SOURCES, OPENING_STARTS
         self.assertEqual(len(SCREEN_EPISODE_CLOSINGS), len(br.EPISODE_STARTS))
-        self.assertEqual(len(SCREEN_EPISODE_OPENINGS), len(br.EPISODE_STARTS))
+        # The showcase's first episode has a prologue: an opening before level 0.
+        self.assertEqual(OPENING_STARTS, (0,) + br.EPISODE_STARTS)
+        self.assertEqual(len(SCREEN_EPISODE_OPENINGS), len(OPENING_STARTS))
         for index in SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS:
             self.assertLess(index, len(SCREEN_SOURCES))
         # Each later episode starts where the ones before it end.
@@ -436,7 +478,8 @@ class EpisodeScreenTests(unittest.TestCase):
         from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         cgb.rom_bank = 1
-        for index in (0, 3, br.EPISODE_STARTS[0] - 1, br.EPISODE_STARTS[0] + 1):
+        cgb.write8(br.SCREEN_INDEX, br.SCREEN_TITLE)   # the boot has just shown the prologue
+        for index in (1, 3, br.EPISODE_STARTS[0] - 1, br.EPISODE_STARTS[0] + 1):
             cgb.write8(br.LEVEL_INDEX, index)
             cgb.write8(br.GAME_MODE, br.MODE_INTERMISSION)
             before = cgb.read8(br.SCREEN_INDEX)
@@ -446,16 +489,54 @@ class EpisodeScreenTests(unittest.TestCase):
             self.assertEqual(cgb.read8(br.SCREEN_INDEX), before, index)
             self.assertNotIn(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS)
 
+    def test_the_first_level_opens_on_the_prologue(self):
+        from lupine3d_v4.screens import SCREEN_EPISODE_OPENINGS
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.rom_bank = 1
+        cgb.write8(br.LEVEL_INDEX, 0)
+        cgb.write8(br.GAME_MODE, br.MODE_TITLE)
+        self._call(cgb, "show_episode_opening")
+        self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[0])
+        # A death retry of the first level shows nothing: only the title's
+        # START (or a code into the level) leads to the prologue.
+        cgb.write8(br.GAME_MODE, br.MODE_GAMEOVER)
+        cgb.write8(br.SCREEN_INDEX, 0)
+        cgb.button_provider = lambda *_: 0
+        cgb.call_subroutine("show_episode_closing", max_steps=20_000)
+        self.assertEqual(cgb.read8(br.SCREEN_INDEX), 0)
+
+    def test_a_story_screen_also_passes_on_start_held(self):
+        from lupine3d_v4.screens import SCREEN_EPISODE_OPENINGS
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        cgb.rom_bank = 1
+        cgb.write8(br.LEVEL_INDEX, 0); cgb.write8(br.GAME_MODE, br.MODE_TITLE)
+        # START already down when the screen comes up and held throughout:
+        # never a rising edge, so only the hold can pass the screen.
+        cgb.button_provider = lambda *_: 0x80
+        cgb.write8(br.INPUT_LAST_RAW, 0x80); cgb.write8(br.INPUT_EDGE_LATCH, 0)
+        start = cgb.frame_count
+        cgb.call_subroutine("show_episode_opening", max_steps=8_000_000)
+        # About a second: the frame the LCD comes back on in is not counted.
+        self.assertGreaterEqual(cgb.frame_count - start, br.SCREEN_HOLD_FRAMES - 1)
+        # The title still wants a rising edge.
+        cgb.write8(br.SCREEN_INDEX, br.SCREEN_TITLE); cgb.write8(br.SCREEN_HOLD, 0)
+        cgb.a = br.SCREEN_TITLE
+        cgb.call_subroutine("show_screen", max_steps=2_000_000)
+        cgb.write8(br.INPUT_EDGE_LATCH, 0)
+        with self.assertRaises(Exception):
+            cgb.call_subroutine("screen_wait_start", max_steps=3_000_000)
+
     def test_an_episode_start_opens_it_and_an_intermission_onto_it_closes_the_last(self):
-        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
+        from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS, OPENING_STARTS
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         cgb.rom_bank = 1
         for episode, start in enumerate(br.EPISODE_STARTS):
+            opening = OPENING_STARTS.index(start)
             cgb.write8(br.LEVEL_INDEX, start)
             # A continue code into the episode: the opening alone.
             cgb.write8(br.GAME_MODE, br.MODE_TITLE)
             self._call(cgb, "show_episode_opening")
-            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[episode], episode)
+            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[opening], episode)
             # The intermission that advanced onto it: the closing, then the
             # opening, each waiting for its own START.
             cgb.write8(br.GAME_MODE, br.MODE_INTERMISSION)
@@ -468,9 +549,9 @@ class EpisodeScreenTests(unittest.TestCase):
             cgb.write8 = spy
             self._call(cgb, "show_episode_closing")
             cgb.write8 = original
-            self.assertEqual(shown, [SCREEN_EPISODE_CLOSINGS[episode], SCREEN_EPISODE_OPENINGS[episode]], episode)
+            self.assertEqual(shown, [SCREEN_EPISODE_CLOSINGS[episode], SCREEN_EPISODE_OPENINGS[opening]], episode)
             # A death retry onto the same index shows nothing.
             cgb.write8(br.GAME_MODE, br.MODE_GAMEOVER)
             cgb.button_provider = lambda *_: 0
             cgb.call_subroutine("show_episode_closing", max_steps=20_000)
-            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[episode])
+            self.assertEqual(cgb.read8(br.SCREEN_INDEX), SCREEN_EPISODE_OPENINGS[opening])

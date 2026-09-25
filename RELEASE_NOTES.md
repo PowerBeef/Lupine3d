@@ -1,5 +1,31 @@
 # Unreleased — after v0.12
 
+- **Sable Outpost has a story, a title and a soundtrack.** The title is a
+  SABLE wordmark over the approved helmet (both derived by
+  `art/tools/make_title_art.py`) with a tagline, "SOMETHING ANSWERED.".
+  START leads to a dispatch page, the first episode's new prologue.
+  After every sector a debrief replaces the intermission: the cleared
+  sector's name, a page of Chief Engineer Oda's nine-day log, the continue
+  code, kills and time, and the next sector's name. The episode pages, game
+  over and ending carry the story to an open end, and the ending now
+  returns to the title instead of starting a new run. Sector 1 is named
+  Landing Deck. Eight new songs share one leitmotif. Each episode has its own
+  song, the guarded last sector of each has another, and the debrief,
+  game over (no longer silent) and ending have theirs.
+- **Screens for stories.** Screens gain the reading face (one 8×8 tile a
+  character, readable at the console's size), images (indexed PNGs on the
+  tile grid), an unframed option, a prologue for the first episode, and
+  per-level debriefs whose `{sector}` and `{next}` become level names. Text
+  screens share pattern pools, and records name their payload's bank, so 27
+  screens fit where nine used to (bank 239, with room above the raw rays in
+  238). Every screen but the title also passes when START is held for a
+  second, which is how the harness and both adapters reach the world. A level
+  may name its song (`music`, header byte 21), and a game may add game over,
+  ending and level songs (at most sixteen). The run's time on the ending is
+  whole seconds now: the old count of VBlanks wrapped after eighteen
+  minutes. It stops at 9,999, as kills stop at 255. The screens are a new
+  `screens` golden suite (`tools/check_screens.py`, `make screens`, CI's fast
+  lane). The starter game's content is unchanged.
 - **Room below $4000, and cheaper enemies.** The showcase overhaul needs
   code in the fixed half of bank 0, which had 64 bytes left. Actor admission
   and animation never switch banks and no interrupt reaches them, so they

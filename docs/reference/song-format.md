@@ -1,9 +1,14 @@
 # Song format (`lupine-song-v1`)
 
-A game has three songs, named in `game.json` `audio.songs`: `title` (the
-title screen and code entry), `world` (every level) and `victory` (a cleared
-level's intermission and the ending; the game over screen is silent). Each
-is one JSON file; `docs/schema/song-v1.schema.json` states its shape.
+Every game has three songs, named in `game.json` `audio.songs`: `title`
+(the title screen and code entry), `world` (every level that names no other)
+and `victory` (a cleared level's intermission or debrief). It may add a
+`gameover` song (the game over screen is silent without one), an `ending`
+song (the ending plays `victory` without one), and in `audio.level_songs`
+songs its levels name with their `music` key: the showcase plays a song per
+episode and one for each episode's last, guarded sector. A game has at most
+sixteen ([limits](limits.md)). Each is one JSON file;
+`docs/schema/song-v1.schema.json` states its shape.
 
 ```json
 {
@@ -61,7 +66,7 @@ notes are `kick`, `snare` or `hat`, whose sounds are the game's
 When a mode starts a song, the engine copies it into WRAM bank 5 (three bytes
 a row) and plays it from there, so the sequencer never switches the ROM bank.
 The world ticks the sequencer from the viewport's STAT boundary and a
-full-screen mode from its wait loop; it never runs in VBlank. The three songs
+full-screen mode from its wait loop; it never runs in VBlank. A game's songs
 share one 16 KiB ROM bank.
 
 The showcase's songs are in `games/sable_outpost/audio/`; the starter's in

@@ -1,6 +1,7 @@
 {
   "format": "lupine-level-v2",
   "name": "Control Gallery",
+  "music": "reactor",
   "width": 16,
   "height": 16,
   "rows": [

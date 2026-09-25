@@ -16,16 +16,17 @@ enters its levels by continue code with every frame check.
 | Limit | Minimum | Maximum | Counts | Why |
 |---|---|---|---|---|
 | `levels` | 1 | 20 | levels in the campaign | levels pack five to a ROM bank in banks 241-244; bank 245 holds the weapons |
-| `episodes` | 1 | 3 | episodes | each episode after the first adds its screen dispatch to the fixed half of bank 0, which keeps 64 bytes free with three |
+| `episodes` | 1 | 3 | episodes | each episode adds its screen dispatch to the fixed half of bank 0, and the continue codes, the route chunks and the showcase's evidence are laid out for three |
 | `kinds` | 1 | 4 | enemy kinds | an actor's kind is two bits of its slot |
 | `actor_palettes` | 1 | 3 | enemy palettes | OBJ palettes 1, 6 and 7 are the enemies'; the other five draw the weapon, drops, effects, decor and reticle |
 | `contact_damage` | 0 | 170 | an enemy's contact damage | the hard skill adds half again, and the result must fit a byte |
 | `weapons` | 4 | 4 | weapons | the weapon index is two bits and SELECT walks all four |
-| `themes` | 1 | 4 | themes | each theme's 36-byte texture directory sits in the fixed half of bank 0 beside the resident engine, which leaves 64 bytes with three themes and three episodes |
+| `themes` | 1 | 4 | themes | each theme's 36-byte texture directory and 128-byte palette set sit in the fixed half of bank 0 beside the resident engine |
 | `textures` | 1 | 7 | wall textures | a texture is four 5 KiB shade blocks, three to a bank, and the textured kernel owns ten banks: thirty blocks |
 | `screen_patterns` | 11 | 128 | distinct 8x8 patterns on one screen, the ten digits and a blank included | a screen's patterns are copied to $9000-$97FF, 128 patterns below the map |
 | `hud_word` | 1 | 4 | characters in a HUD word | the HUD's objective panel is four characters wide |
 | `song_rows` | 1 | 1322 | rows in one song | a playing song is copied into WRAM bank 5 above the sequencer's state, three bytes a row |
+| `songs` | 3 | 16 | songs, the title, world and victory songs included | a song's number is one byte of a level's header, and the directory in the music bank is sized for sixteen eight-byte records |
 
 ## A level
 

@@ -12,8 +12,8 @@ write a level number or a count straight into a map cell without touching VRAM.
 """
 from .artwork import canvas, rect, text_pixels, tiles
 from .layout import *  # noqa: F401,F403
-from .game import FIXED_SCREENS, SCREEN_FIELDS
-from .fonts import GLYPH_ADVANCE, GLYPH_HEIGHT, GLYPH_WIDTH  # noqa: F401
+from .game import DEBRIEF_FIELDS, FIXED_SCREENS, SCREEN_FIELDS, ScreenLine
+from .fonts import GLYPH_ADVANCE, GLYPH_HEIGHT, GLYPH_WIDTH, SCREEN_FACE  # noqa: F401
 from .limits import LIMITS
 
 SCREEN_COLUMNS = 20
@@ -29,14 +29,42 @@ BLANK_PATTERN = DIGIT_PATTERNS
 NO_SLOT = 0xFFFF
 
 
-def _digit_tiles() -> list[bytes]:
-    """Patterns 0..9, so a map write alone can show a number."""
+def _digit_tiles(face: str = "small", colour: int = 2) -> list[bytes]:
+    """Patterns 0..9, so a map write alone can show a number: the 3x5 digit
+    in ivory, or the reading face's in the colour of the screen's fields."""
     out = []
     for digit in "0123456789":
         px = canvas(8, 8, 0)
-        text_pixels(px, digit, 2, 1, 2)
+        if face == "reading":
+            _reading_glyph(px, digit, 0, 0, colour)
+        else:
+            text_pixels(px, digit, 2, 1, 2)
         out.append(tiles(px))
     return out
+
+
+def _reading_glyph(px, char: str, x: int, y: int, colour: int) -> None:
+    """One reading-face glyph in the 8x8 cell at pixel (x, y)."""
+    for row, bits in enumerate(SCREEN_FACE.get(char, ())):
+        for column, bit in enumerate(bits):
+            if bit == "#":
+                px[y + row][x + 1 + column] = colour
+
+
+def _image_pixels(path) -> list[list[int]]:
+    """An image line's indexed pixels, refused unless they draw in the
+    screen palette's four colours on whole tiles."""
+    from PIL import Image
+    image = Image.open(path)
+    if image.mode != "P":
+        raise ValueError(f"{path.name} is {image.mode}, not an indexed (P) PNG")
+    width, height = image.size
+    if width % 8 or height % 8:
+        raise ValueError(f"{path.name} is {width}x{height}; an image covers whole 8x8 tiles")
+    pixels = [[image.getpixel((x, y)) for x in range(width)] for y in range(height)]
+    if max(max(row) for row in pixels) > 3:
+        raise ValueError(f"{path.name} uses palette index {max(max(row) for row in pixels)}; a screen draws indices 0-3")
+    return pixels
 
 
 def _frame(px) -> None:
@@ -85,29 +113,83 @@ def _field_layout(label, digits, y, scale):
     return start, tuple((first + index, row) for index in range(digits))
 
 
-def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
+def _as_line(line) -> ScreenLine:
+    """The composer's input: a ScreenLine, or the historical tuple form
+    (text, y, colour, scale[, digits]) of the 3x5 face."""
+    if isinstance(line, ScreenLine):
+        return line
+    text, y, colour, scale = line[:4]
+    return ScreenLine(text=text, y=y, colour=colour, scale=scale, field="digits" if len(line) > 4 else None)
+
+
+def compose_screen(lines, slots=(), frame: bool = True, digits: dict | None = None
+                   ) -> tuple[bytes, bytes, tuple[int, ...]]:
     """Render one screen to (patterns, 20x18 map, runtime slot offsets).
 
-    `lines` are (text, y, colour, scale) with the text centred horizontally,
-    or (label, y, colour, scale, digits) for a label followed by that many
-    cells the runtime rewrites. Field cells become slots in line order.
-    `slots` are extra (column, row) map cells reserved by hand.
+    Lines are 3x5 text centred at a pixel row, a 3x5 label followed by the
+    cells the runtime rewrites, reading-face text on a tile row (centred, or
+    from a column), a reading-face label and its cells, or an image on the
+    tile grid. `digits` maps a field to its cell count (the historical tuple
+    form carries it as the fifth element). Field cells become slots in line
+    order; `slots` are extra (column, row) map cells reserved by hand.
     """
     px = canvas(160, 144, 0)
-    _frame(px)
+    if frame:
+        _frame(px)
     reserved = list(slots)
-    for line in lines:
-        text, y, colour, scale = line[:4]
-        digits = line[4] if len(line) > 4 else 0
-        if digits:
-            x, cells = _field_layout(text, digits, y, scale)
+    claimed: dict[tuple[int, int], int] = {}   # tile cell -> line index, for reading text and images
+    field_faces, field_colours = set(), set()
+
+    def claim(cells, index):
+        for cell in cells:
+            if cell in claimed:
+                raise ValueError(f"line {index} overlaps line {claimed[cell]} at column {cell[0]}, row {cell[1]}")
+            claimed[cell] = index
+
+    for index, raw in enumerate(lines):
+        line = _as_line(raw)
+        count = (raw[4] if not isinstance(raw, ScreenLine) and len(raw) > 4
+                 else (digits or {}).get(line.field, 0))
+        if line.face == "image":
+            pixels = _image_pixels(line.image)
+            width, height = len(pixels[0]) // 8, len(pixels) // 8
+            column = line.column if line.column is not None else (SCREEN_COLUMNS - width) // 2
+            first, last = (1, SCREEN_COLUMNS - 2) if frame else (0, SCREEN_COLUMNS - 1)
+            top, bottom = (1, SCREEN_ROWS - 2) if frame else (0, SCREEN_ROWS - 1)
+            if column < first or column + width - 1 > last or line.row < top or line.row + height - 1 > bottom:
+                raise ValueError(f"{line.image.name} ({width}x{height} tiles) at column {column}, row {line.row} "
+                                 f"leaves the {'frame' if frame else 'screen'}")
+            claim([(column + x, line.row + y) for y in range(height) for x in range(width)], index)
+            for y, row in enumerate(pixels):
+                for x, value in enumerate(row):
+                    if value:
+                        px[line.row * 8 + y][column * 8 + x] = value
+            continue
+        if line.face == "reading":
+            cells = len(line.text) + (1 + count if line.field else 0)
+            column = line.column if line.column is not None else (SCREEN_COLUMNS - cells) // 2
+            claim([(column + n, line.row) for n in range(cells)], index)
+            for n, char in enumerate(line.text):
+                if char != " ":
+                    _reading_glyph(px, char, (column + n) * 8, line.row * 8, line.colour)
+            if line.field:
+                reserved.extend((column + len(line.text) + 1 + n, line.row) for n in range(count))
+                field_faces.add("reading"); field_colours.add(line.colour)
+            continue
+        if line.field:
+            x, cells = _field_layout(line.text, count, line.y, line.scale)
             reserved.extend(cells)
+            field_faces.add("small")
         else:
-            x = (160 - len(text) * GLYPH_ADVANCE * scale) // 2
-        text_pixels(px, text, x, y, colour, scale)
+            x = (160 - len(line.text) * GLYPH_ADVANCE * line.scale) // 2
+        text_pixels(px, line.text, x, line.y, line.colour, line.scale)
+    if len(field_faces) > 1 or len(field_colours) > 1:
+        raise ValueError("a screen's runtime digits are one set of patterns: its fields must share one face "
+                         "and one colour")
     # Digits first, then a blank: a runtime map write alone can show a number
     # or clear a cell, which is how the code entry blinks its cursor.
-    patterns = _digit_tiles() + [tiles(canvas(8, 8, 0))]
+    face = next(iter(field_faces), "small")
+    patterns = _digit_tiles(face, next(iter(field_colours), 2)) + [tiles(canvas(8, 8, 0))]
     index = {pattern: number for number, pattern in enumerate(patterns)}
     tilemap = bytearray(SCREEN_MAP_BYTES)
     raw = tiles(px)
@@ -139,35 +221,38 @@ def compose_screen(lines, slots=()) -> tuple[bytes, bytes, tuple[int, ...]]:
 # Authored screens. Order is the runtime screen index; keep it stable, the
 # emitter indexes a directory by it.
 SCREEN_TITLE, SCREEN_GAMEOVER, SCREEN_ENDING, SCREEN_INTERMISSION, SCREEN_PASSWORD = range(5)
-# Episode screens follow the fixed five: every closing but the last episode's,
-# then every opening but the first's (the title opens episode one, the ending
-# closes the last). EPISODE_STARTS in layout.py names the levels they sit
-# before; with three episodes these are screens 5, 6 and 7, 8.
+# Episode screens follow the fixed five: every closing but the last episode's
+# (the ending closes it), then every opening, the first episode's prologue
+# included when it has one. OPENING_STARTS gives the level each opening is
+# shown before, in the same order. The debriefs, one per level but the last,
+# come after them: DEBRIEF_BASE is the one shown after the first level.
 SCREEN_EPISODE_CLOSINGS = tuple(len(FIXED_SCREENS) + n for n in range(len(EPISODE_STARTS)))
-SCREEN_EPISODE_OPENINGS = tuple(len(FIXED_SCREENS) + len(EPISODE_STARTS) + n for n in range(len(EPISODE_STARTS)))
+OPENING_STARTS = GAME.opening_starts
+SCREEN_EPISODE_OPENINGS = tuple(len(FIXED_SCREENS) + len(EPISODE_STARTS) + n for n in range(len(OPENING_STARTS)))
+DEBRIEF_BASE = len(FIXED_SCREENS) + len(EPISODE_STARTS) + len(OPENING_STARTS) if GAME.debriefs else None
 
 # The game's screens (games/<id>/screens.json, loaded by game.py), in
-# runtime order: the five fixed modes, then the episode screens its episodes
-# name. A field line is a label and the map cells the runtime writes after
-# it; its cells become slots in the order the lines appear.
+# runtime order: the five fixed modes, the episode screens its episodes
+# name, then its debriefs. A field is a label and the map cells the runtime
+# writes after it; its cells become slots in the order the lines appear.
 assert FIXED_SCREENS[:5] == ("title", "gameover", "ending", "intermission", "password")
 assert SCREEN_FIELDS["intermission"]["code"] == SCREEN_FIELDS["password"]["code"] == PASSWORD_DIGITS
 SCREEN_SOURCES = tuple(
-    (name, tuple((line.text, line.y, line.colour, line.scale) if line.field is None
-                 else (line.text, line.y, line.colour, line.scale, SCREEN_FIELDS[name][line.field])
-                 for line in lines), ())
+    (name, lines, GAME.screen_frames.get(name, True),
+     DEBRIEF_FIELDS if name.startswith("debrief_") else SCREEN_FIELDS.get(name, {}))
     for name, lines in GAME.screens.items())
-assert tuple(name for name, _, _ in SCREEN_SOURCES[5:]) == GAME.episode_screen_names, (
+assert tuple(name for name, _, _, _ in SCREEN_SOURCES[5:]) == GAME.episode_screen_names + GAME.debrief_names, (
     f"the game's episode screens {GAME.episode_screen_names} are not the authored ones")
+assert len(SCREEN_SOURCES) < 256, "a screen index is one byte"
 
 
 @lru_cache(maxsize=1)
 def screen_assets() -> list[tuple[str, bytes, bytes, tuple[int, ...]]]:
     """(name, patterns, map, slot offsets) for every authored screen."""
     composed = []
-    for name, lines, slots in SCREEN_SOURCES:
+    for name, lines, frame, digits in SCREEN_SOURCES:
         try:
-            patterns, tilemap, offsets = compose_screen(lines, slots)
+            patterns, tilemap, offsets = compose_screen(lines, (), frame, digits)
         except ValueError as error:
             raise ValueError(f"{GAME.id}: screens.json screen {name!r}: {error}") from None
         composed.append((name, patterns, tilemap, offsets))
@@ -190,32 +275,82 @@ def continue_codes(levels: int, skills: int) -> list[tuple[int, ...]]:
     return codes
 
 
-def screen_directory() -> bytes:
-    """Per-screen header: pattern bytes, map offset and the runtime slots.
+def screen_pools() -> list[tuple[bytes, list[int]]]:
+    """Screens that can share one pattern block, and the block.
 
-    Layout is pattern count, pattern address, map address, slot count and then
+    show_screen copies a record's patterns wherever they are, so text screens
+    that draw with the same digits compose against one shared block: each
+    keeps only its map. A screen joins the first pool whose union with it
+    stays within SCREEN_PATTERN_CAPACITY; pools never mix digit styles,
+    because patterns 0-10 are the runtime digits and the blank.
+    Returns (pattern block, member screen indices) per pool."""
+    pools: list[tuple[list[bytes], list[int]]] = []
+    for number, (name, patterns, _, _) in enumerate(screen_assets()):
+        own = [patterns[i:i + 16] for i in range(0, len(patterns), 16)]
+        for block, members in pools:
+            if block[:BLANK_PATTERN + 1] != own[:BLANK_PATTERN + 1]:
+                continue
+            extra = [pattern for pattern in own if pattern not in block]
+            if len(block) + len(extra) <= SCREEN_PATTERN_CAPACITY:
+                block.extend(extra); members.append(number)
+                break
+        else:
+            pools.append((list(own), [number]))
+    return [(b"".join(block), members) for block, members in pools]
+
+
+def screen_directory() -> tuple[bytes, bytes]:
+    """The screen bank and the overflow: (bank SCREEN_ROM_BANK from $4000,
+    bank SCREEN_OVERFLOW_ROM_BANK from SCREEN_OVERFLOW_ADDRESS).
+
+    The directory comes first, one record per screen: pattern count, pattern
+    address, map address, the payload's bank, slot count and then
     SCREEN_SLOT_CAPACITY screen-relative offsets, so the loader streams both
-    payloads and learns its rewritable cells without a second table.
-    """
-    payloads, records = [], bytearray()
-    address = SCREEN_ROM_ADDRESS + len(SCREEN_SOURCES) * SCREEN_RECORD_BYTES
-    for _, patterns, tilemap, offsets in screen_assets():
-        records.extend((len(patterns) // 16, address & 255, address >> 8))
-        payloads.append(patterns)
-        address += len(patterns)
-        records.extend((address & 255, address >> 8))
-        payloads.append(tilemap)
-        address += len(tilemap)
-        records.append(len(offsets))
-        for index in range(SCREEN_SLOT_CAPACITY):
-            slot = offsets[index] if index < len(offsets) else NO_SLOT
-            records.extend((slot & 255, slot >> 8))
-    assert len(records) == len(SCREEN_SOURCES) * SCREEN_RECORD_BYTES
-    if address > 0x8000:
-        raise ValueError(f"{GAME.id}: the {len(SCREEN_SOURCES)} screens need {address - 0x4000} bytes and the screen "
-                         f"bank holds 16384; each distinct pattern costs 16 bytes ("
-                         + ", ".join(f"{name} {len(patterns) // 16}" for name, patterns, _, _ in screen_assets()) + ")")
-    return bytes(records) + b"".join(payloads)
+    payloads and learns its rewritable cells without a second table. Pattern
+    blocks are pooled (screen_pools); maps are remapped to their pool."""
+    assets = screen_assets()
+    places = {SCREEN_ROM_BANK: [SCREEN_ROM_ADDRESS + len(assets) * SCREEN_RECORD_BYTES, bytearray(), 0x8000],
+              SCREEN_OVERFLOW_ROM_BANK: [SCREEN_OVERFLOW_ADDRESS, bytearray(), 0x8000]}
+
+    def place(data: bytes) -> tuple[int, int]:
+        for bank, spot in places.items():
+            if spot[0] + len(data) <= spot[2]:
+                address = spot[0]; spot[0] += len(data); spot[1].extend(data)
+                return bank, address
+        raise ValueError(f"{GAME.id}: the {len(assets)} screens do not fit the screen bank and its overflow; "
+                         "each distinct pattern costs 16 bytes and each screen's map 360: "
+                         + ", ".join(f"{name} {len(patterns) // 16}" for name, patterns, _, _ in assets))
+
+    records: dict[int, bytes] = {}
+    for block, members in screen_pools():
+        pool = [block[i:i + 16] for i in range(0, len(block), 16)]
+        where = {pattern: n for n, pattern in reversed(list(enumerate(pool)))}
+        # A record has one bank byte for its patterns and its map, so a pool's
+        # block sits in the bank of every map that uses it: a pool that runs
+        # out of room carries on with a second copy of its block in the next.
+        remaining = list(members)
+        while remaining:
+            bank = next((b for b, spot in places.items()
+                         if spot[0] + len(block) + SCREEN_MAP_BYTES <= spot[2]), None)
+            if bank is None:
+                place(bytes(len(block) + SCREEN_MAP_BYTES))      # raises, naming every screen
+            spot = places[bank]
+            pattern_address = spot[0]; spot[0] += len(block); spot[1].extend(block)
+            while remaining and spot[0] + SCREEN_MAP_BYTES <= spot[2]:
+                number = remaining.pop(0)
+                name, patterns, tilemap, offsets = assets[number]
+                own = [patterns[i:i + 16] for i in range(0, len(patterns), 16)]
+                remapped = bytes(where[own[cell]] for cell in tilemap)
+                map_address = spot[0]; spot[0] += len(remapped); spot[1].extend(remapped)
+                record = bytearray((len(pool), pattern_address & 255, pattern_address >> 8,
+                                    map_address & 255, map_address >> 8, bank, len(offsets)))
+                for index in range(SCREEN_SLOT_CAPACITY):
+                    slot = offsets[index] if index < len(offsets) else NO_SLOT
+                    record.extend((slot & 255, slot >> 8))
+                records[number] = bytes(record)
+    directory = b"".join(records[number] for number in range(len(assets)))
+    assert len(directory) == len(assets) * SCREEN_RECORD_BYTES
+    return directory + bytes(places[SCREEN_ROM_BANK][1]), bytes(places[SCREEN_OVERFLOW_ROM_BANK][1])
 
 
 def emit_screens(a: Assembler) -> None:
@@ -245,9 +380,13 @@ def emit_screens(a: Assembler) -> None:
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_PATTERN_COUNT)
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_SOURCE_L); a.ldi_a_hl(); a.ld_abs_a(SCREEN_SOURCE_H)
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_MAP_L); a.ldi_a_hl(); a.ld_abs_a(SCREEN_MAP_H)
+    a.ldi_a_hl(); a.ld_abs_a(SCREEN_PAYLOAD_BANK)
     a.ldi_a_hl(); a.ld_abs_a(SCREEN_SLOT_COUNT)
     a.ld_rr_nn("de", SCREEN_SLOTS)
     a.ld_rr_nn("bc", 2 * SCREEN_SLOT_CAPACITY); a.call("copy_bc")
+    # The patterns and the map are in the bank the record names.
+    a.ld_a_abs(SCREEN_PAYLOAD_BANK); a.ld_abs_a(0x2000)
+    a.xor_r("a"); a.ld_abs_a(SCREEN_HOLD)
     # Patterns occupy the idle composition window at $9000.
     load_hl_abs(a, SCREEN_SOURCE_L, SCREEN_SOURCE_H)
     a.ld_rr_nn("de", DYNAMIC_TILE_VRAM)
@@ -388,8 +527,8 @@ def emit_screens(a: Assembler) -> None:
     a.ld_a_abs(CAMPAIGN_KILLS); a.ld_abs_a(SCREEN_VALUE)
     a.xor_r("a"); a.ld_abs_a(SCREEN_VALUE + 1)
     a.ld_r_n("b", 3); a.ld_r_n("c", 0); a.call("screen_write_number")
-    a.ld_rr_nn("hl", CAMPAIGN_TIME)
-    a.ld_r_n("b", 4); a.ld_r_n("c", 3); a.jp("screen_seconds_from")
+    a.ld_rr_nn("hl", CAMPAIGN_TIME)                 # already whole seconds
+    a.ld_r_n("b", 4); a.ld_r_n("c", 3); a.jp("screen_number_from")
 
     # Episode screens. The title opens episode one; a later episode's opening
     # shows whenever its first sector is about to load (a cleared sector or a
@@ -408,13 +547,15 @@ def emit_screens(a: Assembler) -> None:
         a.ld_r_n("a", SCREEN_EPISODE_CLOSINGS[episode]); a.call("show_screen"); a.call("screen_wait_start")
         a.jr("show_episode_opening")
     a.label("show_episode_opening")
+    # The first episode's opening, when a game has one, is a prologue: the
+    # title (or a continue code into the first level) leads to it.
     a.ld_a_abs(LEVEL_INDEX)
-    for episode, start in enumerate(EPISODE_STARTS):
-        a.cp_n(start); a.jr(f"episode_opening_{episode}", "z")
+    for opening, start in enumerate(OPENING_STARTS):
+        a.cp_n(start); a.jr(f"episode_opening_{opening}", "z")
     a.ret()
-    for episode in range(len(EPISODE_STARTS)):
-        a.label(f"episode_opening_{episode}")
-        a.ld_r_n("a", SCREEN_EPISODE_OPENINGS[episode]); a.call("show_screen"); a.jp("screen_wait_start")
+    for opening in range(len(OPENING_STARTS)):
+        a.label(f"episode_opening_{opening}")
+        a.ld_r_n("a", SCREEN_EPISODE_OPENINGS[opening]); a.call("show_screen"); a.jp("screen_wait_start")
 
     a.label("screen_wait_start")
     a.call("wait_vblank")
@@ -431,7 +572,16 @@ def emit_screens(a: Assembler) -> None:
     # A full-screen mode enables VBlank only, so the sequencer has no STAT
     # boundary to ride; this loop is its once-per-frame tick.
     a.call("music_tick")
-    a.jr("screen_wait_start")
+    # Every screen but the title also passes when START has been held for a
+    # second: story pages come one after another, and a hand (or a harness)
+    # that holds START through them should not have to let go at each.
+    a.ld_a_abs(SCREEN_INDEX); a.cp_n(SCREEN_TITLE); a.jr("screen_wait_start", "z")
+    a.ld_a_abs(INPUT_LAST_RAW); a.and_n(0x80); a.jr("screen_start_held", "nz")
+    a.ld_abs_a(SCREEN_HOLD); a.jr("screen_wait_start")
+    a.label("screen_start_held")
+    a.ld_a_abs(SCREEN_HOLD); a.inc_r("a"); a.ld_abs_a(SCREEN_HOLD)
+    a.cp_n(SCREEN_HOLD_FRAMES); a.jr("screen_wait_start", "c")
+    a.ld_r_n("a", 0x80); a.ret()
 
     a.label("screen_adjust_skill")   # B = edge bits, bit 0 right, bit 1 left
     a.ld_a_abs(SCREEN_INDEX); a.cp_n(SCREEN_TITLE); a.ret("nz")

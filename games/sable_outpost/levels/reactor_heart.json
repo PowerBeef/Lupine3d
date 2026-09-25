@@ -1,6 +1,7 @@
 {
   "format": "lupine-level-v2",
   "name": "Reactor Heart",
+  "music": "overseer",
   "width": 16,
   "height": 16,
   "rows": [

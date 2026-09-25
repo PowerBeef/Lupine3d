@@ -41,6 +41,7 @@ build).
 | `art` | `make playtest-art` | 6 |
 | `sable` | `tools/check_sable.py` (six diagnostic poses) | 6 |
 | `witnesses` | `tools/independent_witnesses.py` (host images of the frozen scenes) | 87 |
+| `screens` | `make screens` (`tools/check_screens.py`: every full-screen mode as the ROM draws it) | 27 |
 | `route` | `tools/playthrough.py` captures, **recorded, not checked**: where a capture lands depends on the steering script | ~25 |
 
 Every producer runs in `check` mode by default: a scene that changed, is new
@@ -113,8 +114,9 @@ not a defect.
 
 - `make test` — the regression suite (historical tests under the legacy
   profile, then fresh-process production checks).
-- `make playtest playtest-world playtest-art` — the driven routes with
-  snapshot checks (CI `fast` job, with the visual-diff artifact).
+- `make playtest playtest-world playtest-art` and `make screens` — the
+  driven routes and every full-screen mode, with snapshot checks (CI `fast`
+  job, with the visual-diff artifact).
 - `make variants wall-reuse motion`, `make sameboy`, `make mgba`,
   `python tools/independent_witnesses.py` — exact A/B equality, timed motion
   and the pinned cores (CI `slow` job).

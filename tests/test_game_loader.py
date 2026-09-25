@@ -94,10 +94,21 @@ def extra_texture(data):
     data["textures"]["eighth"] = "textures/steel_panel.png"
 
 
-def title_line(**fields):
+def small_line(**fields):
+    """The game over screen's first line as 3x5 text, with `fields` changed."""
     def change(data):
-        data["screens"]["title"][0].update(fields)
+        data["screens"]["gameover"][0] = dict({"text": "LUPINE", "y": 20, "colour": 2, "scale": 3}, **fields)
     return change
+
+
+def reading_line(**fields):
+    def change(data):
+        data["screens"]["gameover"][0].update(fields)
+    return change
+
+
+def drop_title_field(data):
+    data["screens"]["title"]["lines"] = [line for line in data["screens"]["title"]["lines"] if "field" not in line]
 
 
 def song_rows(rows):
@@ -128,8 +139,8 @@ CASES = [
      r"level living_world\.json appears twice in the campaign"),
     ("too many levels", game(more_levels), r"episodes: 21 levels in the campaign is more than the engine's 20: levels pack five"),
     ("too many episodes", game(fourth_episode), r"episodes: 4 episodes is more than the engine's 3"),
-    ("first episode opening", game(set_key(["episodes", 0, "opening"], "x")),
-     r"episodes\[0\] has an opening screen, but the title screen opens the first episode"),
+    ("prologue without a screen", game(set_key(["episodes", 0, "opening"], "x")),
+     r"screens\.json has no 'x' screen \(an episode names it\)"),
     ("later episode without opening", game(delete_key(["episodes", 1, "opening"])),
      r"episodes\[1\] needs an 'opening' screen"),
     ("too many kinds", game(extra_kind), r"kinds: 5 enemy kinds is more than the engine's 4: an actor's kind is two bits"),
@@ -161,13 +172,20 @@ CASES = [
      r"fixture_kinds must name the 4 wall fixture families"),
     ("playtests need a tour", game(delete_key(["playtests", "tour"])), r"playtests is missing 'tour'"),
     ("preview", game(set_key(["preview", "x"], 70)), r"preview\.x must be a position in cells, above 0 and below 64"),
-    ("screen glyph", screens(title_line(text="LUPINE~")), r"screens\.json title\[0\] 'LUPINE~' uses '~', which the screen font does not have"),
-    ("screen width", screens(title_line(text="LUPINE THREE D")), r"screens\.json title\[0\] 'LUPINE THREE D' is 168 pixels wide at scale 3; a line fits 152"),
-    ("screen frame", screens(title_line(y=130)), r"screens\.json title\[0\] at y=130, scale 3, leaves the frame"),
+    ("screen glyph", screens(small_line(text="LUPINE~")), r"screens\.json gameover\[0\] 'LUPINE~' uses '~', which the screen font does not have"),
+    ("screen width", screens(small_line(text="LUPINE THREE D")), r"screens\.json gameover\[0\] 'LUPINE THREE D' is 168 pixels wide at scale 3; a line fits 152"),
+    ("screen frame", screens(small_line(y=130)), r"screens\.json gameover\[0\] at y=130, scale 3, leaves the frame"),
+    ("reading glyph", screens(reading_line(say="SIGNAL LOST~")), r"screens\.json gameover\[0\] 'SIGNAL LOST~' uses '~', which the reading face does not have"),
+    ("reading width", screens(reading_line(say="THE SIGNAL IS LOST NOW")),
+     r"screens\.json gameover\[0\] 'THE SIGNAL IS LOST NOW' needs 22 columns and a framed screen has 18"),
+    ("reading row", screens(reading_line(row=17)), r"screens\.json gameover\[0\] is on row 17; a framed screen's reading-face rows are 1-16"),
+    ("image kind", screens(set_key(["screens", "gameover", 0], {"image": "screens.json", "row": 2})),
+     r"screens\.json gameover\[0\]\.image must be an indexed PNG"),
+    ("debrief count", screens(lambda d: d["debriefs"].pop()), r"screens\.json debriefs must list one screen per level but the last: 17"),
     ("missing screen", screens(delete_key(["screens", "gameover"])), r"screens\.json has no 'gameover' screen"),
     ("extra screen", screens(set_key(["screens", "credits"], [{"text": "HI", "y": 20, "colour": 1}])),
      r"screens\.json screen 'credits' is never shown"),
-    ("screen fields", screens(lambda d: d["screens"]["title"].pop()),
+    ("screen fields", screens(drop_title_field),
      r"screens\.json screen 'title' has fields none; the engine writes skill there"),
     ("song channels", edit("audio/title.json", lambda d: d["noise"]["rows"].pop()),
      r"title\.json: the three channels must have the same number of rows"),
@@ -224,8 +242,11 @@ class GameLoaderTests(unittest.TestCase):
                                                "reactor_pipes", "spire_hull", "spire_array"))
         self.assertEqual(sable.texture_sets, ((0, 1, 2), (3, 4, 2), (5, 6, 2)))
         self.assertEqual([w.from_level for w in sable.weapons], [1, 1, 7, 13])
-        self.assertEqual(sable.episode_screen_names, ("episode_one_closing", "episode_two_closing",
+        self.assertEqual(sable.episode_screen_names, ("episode_one_closing", "episode_two_closing", "episode_one_opening",
                                                       "episode_two_opening", "episode_three_opening"))
+        self.assertEqual(sable.opening_starts, (0, 6, 12))
+        self.assertEqual(sable.debriefs, 17)
+        self.assertEqual(list(sable.songs), ["title", "world", "victory", "gameover", "ending", "reactor", "spire", "overseer"])
 
     def test_the_starter_is_a_complete_small_game(self):
         starter = load_game(ROOT / "games" / "starter")
@@ -246,8 +267,8 @@ class GameLoaderTests(unittest.TestCase):
     def test_the_key_table_covers_every_object_the_loader_reads(self):
         self.assertEqual(set(KEYS), {
             "game", "episode", "kind", "weapon", "theme", "theme.textures", "theme.colours", "shared_palettes", "rom",
-            "audio", "audio.songs", "hud", "hud.words", "sprites", "playtests", "preview", "screens", "screen.text",
-            "screen.field", "song", "song.channel", "sound", "sound.instruments", "sound.pulse", "sound.wave",
+            "audio", "audio.songs", "hud", "hud.words", "sprites", "playtests", "preview", "screens", "screen",
+            "screen.text", "screen.field", "screen.say", "screen.say_field", "screen.image", "song", "song.channel", "sound", "sound.instruments", "sound.pulse", "sound.wave",
             "sound.noise", "sound.effects"})
         for name, (allowed, required) in KEYS.items():
             self.assertLessEqual(required, allowed, name)

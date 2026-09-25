@@ -44,14 +44,15 @@ SCHEMA = "lupine3d.snapshots.v1"
 SNAPSHOT_ROOT = GAME.snapshot_root
 # The showcase's suites. `tour`, `world` and `art` are the game's playtests
 # (game.json `playtests`); `sable` and `witnesses` are the showcase's own
-# qualification producers; `route` is the controller playthrough.
-FAST_SUITES = ("tour", "world", "art", "sable", "witnesses")
+# qualification producers; `screens` is every full-screen mode
+# (tools/check_screens.py); `route` is the controller playthrough.
+FAST_SUITES = ("tour", "world", "art", "sable", "witnesses", "screens")
 ALL_SUITES = FAST_SUITES + ("route",)
 PLAYTEST_SUITES = ("tour", "world", "art")
 # The engine's evidence suites are recorded on the showcase's first sector as
 # v0.12 populated it (the evidence population, lupine3d_v4/levels.py); the
-# route plays the game as it ships, and so does every other game.
-EVIDENCE_SUITES = FAST_SUITES
+# screens and the route are the game as it ships, and so is every other game.
+EVIDENCE_SUITES = ("tour", "world", "art", "sable", "witnesses")
 
 
 def suite_population(suite: str) -> str:
@@ -397,6 +398,9 @@ def run_suite(suite: str, mode: str) -> dict[str, Any]:
             _, image, _ = capture(rom, asm.labels, scene)
             session.observe(scene.name, image)
         return session.finish()
+    if suite == "screens":
+        from check_screens import check
+        return check(br.GAME_BUILD / "screens", snapshot_mode=mode)["snapshot"]
     if suite == "route":
         from playthrough import run
         run(br.GAME_BUILD / "playthrough", snapshot_mode=mode)

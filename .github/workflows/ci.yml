@@ -91,9 +91,12 @@ jobs:
       - name: Run driven playtests against the golden snapshots
         run: make playtest playtest-world playtest-art
 
+      - name: Check every full-screen mode against its golden
+        run: make screens
+
       - name: Summarise snapshot suites
         if: always()
-        run: python tools/snapshot.py diff --suite tour --suite world --suite art --suite sable || true
+        run: python tools/snapshot.py diff --suite tour --suite world --suite art --suite sable --suite screens || true
 
       - name: Upload the visual diff
         uses: actions/upload-artifact@v4

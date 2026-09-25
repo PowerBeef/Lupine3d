@@ -44,7 +44,7 @@ def emit_level_loader(a: Assembler) -> None:
     # Counts and the pickup value used to be assembled as immediate operands
     # from the single build-time level; a campaign has to read them per level.
     for address in (EXIT_CELL_X, EXIT_CELL_Y, DOOR_COUNT,
-                    ACTOR_COUNT, LEVEL_FIXTURE_COUNT, LEVEL_PICKUP_VALUE):
+                    ACTOR_COUNT, LEVEL_FIXTURE_COUNT, LEVEL_PICKUP_VALUE, LEVEL_SONG):
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); add_level_page(a); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
@@ -642,12 +642,25 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(SIM_CLOCK + 1); a.ld_r_r("b", "a")
     a.ld_a_abs(SECTOR_START + 1); a.ld_r_r("c", "a")
     a.ld_r_r("a", "b"); a.sbc_a_r("c"); a.ld_abs_a(SECTOR_TIME + 1)
-    a.ld_a_abs(CAMPAIGN_TIME); a.ld_r_r("b", "a")
-    a.ld_a_abs(SECTOR_TIME); a.add_a_r("b"); a.ld_abs_a(CAMPAIGN_TIME)
-    a.ld_a_abs(CAMPAIGN_TIME + 1); a.ld_r_r("b", "a")
-    a.ld_a_abs(SECTOR_TIME + 1); a.adc_a_r("b"); a.ld_abs_a(CAMPAIGN_TIME + 1)
+    # The run's time is whole seconds: a sixteen-bit count of VBlanks wrapped
+    # after eighteen minutes, and a campaign takes longer than that. It stops
+    # at 9,999, the most the ending's four digits show; kills stop at 255.
+    a.ld_a_abs(SECTOR_TIME); a.ld_r_r("l", "a"); a.ld_a_abs(SECTOR_TIME + 1); a.ld_r_r("h", "a")
+    a.ld_rr_nn("de", 0)
+    a.label("sector_seconds_loop")
+    a.ld_r_r("a", "l"); a.sub_n(VBLANKS_PER_SECOND); a.ld_r_r("c", "a")
+    a.ld_r_r("a", "h"); a.sbc_a_n(0); a.jr("sector_seconds_done", "c")
+    a.ld_r_r("h", "a"); a.ld_r_r("l", "c"); a.inc_rr("de"); a.jr("sector_seconds_loop")
+    a.label("sector_seconds_done")
+    a.ld_a_abs(CAMPAIGN_TIME); a.add_a_r("e"); a.ld_r_r("l", "a")
+    a.ld_a_abs(CAMPAIGN_TIME + 1); a.adc_a_r("d"); a.ld_r_r("h", "a")
+    a.ld_r_r("a", "l"); a.sub_n(CAMPAIGN_SECONDS_LIMIT & 255); a.ld_r_r("a", "h"); a.sbc_a_n(CAMPAIGN_SECONDS_LIMIT >> 8)
+    a.jr("campaign_time_store", "c"); a.ld_rr_nn("hl", CAMPAIGN_SECONDS_LIMIT - 1)
+    a.label("campaign_time_store")
+    a.ld_r_r("a", "l"); a.ld_abs_a(CAMPAIGN_TIME); a.ld_r_r("a", "h"); a.ld_abs_a(CAMPAIGN_TIME + 1)
     a.ld_a_abs(CAMPAIGN_KILLS); a.ld_r_r("b", "a")
-    a.ld_a_abs(SECTOR_KILLS); a.add_a_r("b"); a.ld_abs_a(CAMPAIGN_KILLS); a.ret()
+    a.ld_a_abs(SECTOR_KILLS); a.add_a_r("b"); a.jr("campaign_kills_store", "nc"); a.ld_r_n("a", 255)
+    a.label("campaign_kills_store"); a.ld_abs_a(CAMPAIGN_KILLS); a.ret()
 
     a.label("player_fire_single")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")

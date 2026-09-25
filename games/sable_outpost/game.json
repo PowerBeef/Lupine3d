@@ -21,7 +21,9 @@
   "preview": {"x": 8.4, "y": 8.7, "angle": 12},
   "hud": {"words": {"caption": "GOAL", "hunt": "HUNT", "exit": "EXIT", "dead": "DEAD", "done": "DONE"}},
   "audio": {
-    "songs": {"title": "audio/title.json", "world": "audio/world.json", "victory": "audio/victory.json"},
+    "songs": {"title": "audio/title.json", "world": "audio/world.json", "victory": "audio/victory.json",
+              "gameover": "audio/gameover.json", "ending": "audio/ending.json"},
+    "level_songs": {"reactor": "audio/reactor.json", "spire": "audio/spire.json", "overseer": "audio/overseer.json"},
     "sound": "audio/sound.json"
   },
   "actor_palettes": ["sentinel", "warden", "skirmisher"],
@@ -113,6 +115,7 @@
         "levels/signal_deck.json",
         "levels/cryo_vault.json"
       ],
+      "opening": "episode_one_opening",
       "closing": "episode_one_closing"
     },
     {

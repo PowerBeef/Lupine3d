@@ -8,6 +8,7 @@
   "properties": {
     "format": {"enum": ["lupine-level-v2", "lupine-level-v1"]},
     "name": {"type": "string", "minLength": 1},
+    "music": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "The song the level plays: world (the default) or one of your game.json audio.level_songs."},
     "width": {"const": 16},
     "height": {"const": 16},
     "rows": {

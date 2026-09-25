@@ -690,9 +690,12 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         # START is released before the world returns, so the ROM's own edge
         # shadow clears itself across the VBlanks that rebuild the world. An
         # intermission that crossed into the next episode shows that
-        # episode's closing and opening on the way, each on its own START.
+        # episode's closing and opening on the way, each on its own START;
+        # the ending returns to the title, whose START leads to the prologue.
         from lupine3d_v4.screens import SCREEN_EPISODE_CLOSINGS, SCREEN_EPISODE_OPENINGS
         episode_screens = SCREEN_EPISODE_CLOSINGS + SCREEN_EPISODE_OPENINGS
+        if expected_mode == br.MODE_ENDING:
+            episode_screens += (br.SCREEN_TITLE,)
         shown = cgb.read8(br.SCREEN_INDEX)
         for _ in range(1 + len(episode_screens)):
             drive(0x80, lambda: cgb.read8(br.GAME_MODE) == br.MODE_PLAYING or cgb.read8(br.SCREEN_INDEX) != shown,
@@ -744,7 +747,8 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
     if restart:
         generation=cgb.read16(br.WALL_EPOCH)
         if "select_level" in cgb.symbols:
-            # The last sector ends the campaign; the ending screen restarts it.
+            # The last sector ends the campaign; the ending returns to the
+            # title, and its START begins the next run from the first sector.
             cross_screen(br.MODE_ENDING, "campaign_ending")
             assert cgb.read8(br.LEVEL_INDEX) == 0
         else:

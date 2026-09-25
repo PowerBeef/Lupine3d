@@ -1,60 +1,315 @@
 {
   "format": "lupine-screens-v1",
   "screens": {
-    "title": [
-      {"text": "LUPINE", "y": 28, "colour": 2, "scale": 3},
-      {"text": "SABLE OUTPOST", "y": 58, "colour": 3, "scale": 1},
-      {"text": "PRESS START", "y": 92, "colour": 2, "scale": 1},
-      {"field": "skill", "label": "SKILL", "y": 114, "colour": 3, "scale": 1}
-    ],
+    "title": {"frame": false, "lines": [
+      {"image": "art/title/wordmark.png", "row": 1},
+      {"say": "O U T P O S T", "row": 6, "colour": 3},
+      {"image": "art/title/emblem.png", "row": 8},
+      {"say": "SOMETHING ANSWERED.", "row": 12, "colour": 1},
+      {"say": "PRESS START", "row": 14, "colour": 2},
+      {"field": "skill", "label": "SKILL", "row": 15, "colour": 1},
+      {"say": "A LUPINE 3D GAME", "row": 17, "colour": 1}
+    ]},
     "gameover": [
-      {"text": "SIGNAL LOST", "y": 48, "colour": 3, "scale": 2},
-      {"text": "THE OUTPOST HOLDS", "y": 84, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 110, "colour": 2, "scale": 1}
+      {"say": "SIGNAL LOST", "row": 4, "colour": 3},
+      {"say": "THE OUTPOST HOLDS.", "row": 6, "colour": 2},
+      {"say": "THE CALL GOES ON.", "row": 7, "colour": 2},
+      {"say": "START TRIES AGAIN", "row": 9, "colour": 1},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "ending": [
-      {"text": "OUTPOST CLEARED", "y": 34, "colour": 2, "scale": 2},
-      {"text": "THE SABLE LINE IS OPEN", "y": 66, "colour": 3, "scale": 1},
-      {"field": "kills", "label": "KILLS", "y": 90, "colour": 1, "scale": 1},
-      {"field": "time", "label": "TIME", "y": 106, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 122, "colour": 2, "scale": 1}
+      {"say": "UPLINK CUT", "row": 2, "colour": 3},
+      {"say": "THE LINE IS SAFE.", "row": 4, "colour": 2},
+      {"say": "THE CALL RAN FOR", "row": 6, "colour": 2},
+      {"say": "NINE DAYS.", "row": 7, "colour": 2},
+      {"say": "SOMETHING HEARD.", "row": 9, "colour": 3},
+      {"field": "kills", "label": "KILLS", "row": 11, "colour": 2, "column": 5},
+      {"field": "time", "label": "SECS ", "row": 12, "colour": 2, "column": 5},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "intermission": [
-      {"text": "SECTOR CLEAR", "y": 28, "colour": 2, "scale": 2},
-      {"field": "code", "label": "CODE", "y": 58, "colour": 3, "scale": 1},
-      {"field": "kills", "label": "KILLS", "y": 82, "colour": 1, "scale": 1},
-      {"field": "time", "label": "TIME", "y": 98, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+      {"say": "SECTOR CLEAR", "row": 2, "colour": 3},
+      {"field": "code", "label": "CODE ", "row": 6, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 8, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "password": [
-      {"text": "CONTINUE", "y": 32, "colour": 2, "scale": 2},
-      {"field": "code", "label": "CODE", "y": 74, "colour": 3, "scale": 1},
-      {"text": "START ACCEPTS", "y": 104, "colour": 1, "scale": 1},
-      {"text": "SELECT CANCELS", "y": 118, "colour": 1, "scale": 1}
+      {"say": "RELAY CODE", "row": 3, "colour": 3},
+      {"field": "code", "label": "CODE", "row": 7, "colour": 2},
+      {"say": "UP/DOWN CHANGES", "row": 11, "colour": 1},
+      {"say": "START ACCEPTS", "row": 12, "colour": 1},
+      {"say": "SELECT CANCELS", "row": 13, "colour": 1}
+    ],
+    "episode_one_opening": [
+      {"say": "DISPATCH", "row": 1, "colour": 3},
+      {"say": "TO: LINEWALKER", "row": 2, "colour": 1},
+      {"say": "SABLE OUTPOST WAS", "row": 4, "colour": 2},
+      {"say": "BUILT TO LISTEN.", "row": 5, "colour": 2},
+      {"say": "NINE DAYS AGO", "row": 6, "colour": 2},
+      {"say": "SOMETHING ANSWERED", "row": 7, "colour": 3},
+      {"say": "THE CREW IS GONE.", "row": 9, "colour": 2},
+      {"say": "THE FRAMES STILL", "row": 10, "colour": 2},
+      {"say": "WALK THE DECKS.", "row": 11, "colour": 2},
+      {"say": "YOUR OLD HELMET", "row": 12, "colour": 2},
+      {"say": "CANNOT HEAR THEM.", "row": 13, "colour": 2},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "episode_one_closing": [
-      {"text": "OUTPOST SECURED", "y": 30, "colour": 2, "scale": 2},
-      {"text": "THE SIGNAL CAME", "y": 62, "colour": 1, "scale": 1},
-      {"text": "FROM BELOW", "y": 76, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
-    ],
-    "episode_two_closing": [
-      {"text": "REACTOR SEALED", "y": 30, "colour": 2, "scale": 2},
-      {"text": "THE SPIRE STILL", "y": 62, "colour": 1, "scale": 1},
-      {"text": "TRANSMITS", "y": 76, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+      {"say": "OUTPOST SECURED", "row": 3, "colour": 3},
+      {"say": "THE PODS STAND", "row": 5, "colour": 2},
+      {"say": "OPEN AND EMPTY.", "row": 6, "colour": 2},
+      {"say": "THE CREW WENT DOWN", "row": 8, "colour": 2},
+      {"say": "INTO THE REACTOR.", "row": 9, "colour": 2},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "episode_two_opening": [
-      {"text": "EPISODE TWO", "y": 26, "colour": 3, "scale": 2},
-      {"text": "REACTOR DEEP", "y": 58, "colour": 2, "scale": 2},
-      {"text": "COOLANT DARK", "y": 90, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+      {"say": "EPISODE TWO", "row": 3, "colour": 3},
+      {"say": "REACTOR DEEP", "row": 5, "colour": 1},
+      {"say": "FOLLOW THEM DOWN.", "row": 7, "colour": 2},
+      {"say": "THE CORE STILL", "row": 8, "colour": 2},
+      {"say": "BURNS FOR IT.", "row": 9, "colour": 2},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    "episode_two_closing": [
+      {"say": "REACTOR SEALED", "row": 3, "colour": 3},
+      {"say": "THE HOLLOW IS DARK", "row": 5, "colour": 2},
+      {"say": "BUT THE SPIRE KEPT", "row": 7, "colour": 2},
+      {"say": "A COPY OF THE CALL", "row": 8, "colour": 2},
+      {"say": "AND SENDS IT DOWN", "row": 9, "colour": 2},
+      {"say": "THE LINE.", "row": 10, "colour": 2},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ],
     "episode_three_opening": [
-      {"text": "EPISODE THREE", "y": 26, "colour": 3, "scale": 2},
-      {"text": "SIGNAL SPIRE", "y": 58, "colour": 2, "scale": 2},
-      {"text": "OPEN SKY", "y": 90, "colour": 1, "scale": 1},
-      {"text": "PRESS START", "y": 118, "colour": 2, "scale": 1}
+      {"say": "EPISODE THREE", "row": 3, "colour": 3},
+      {"say": "SIGNAL SPIRE", "row": 5, "colour": 1},
+      {"say": "CLIMB THE ANTENNA.", "row": 7, "colour": 2},
+      {"say": "CUT THE UPLINK.", "row": 8, "colour": 2},
+      {"say": "END THE CALL.", "row": 9, "colour": 2},
+      {"say": "PRESS START", "row": 15, "colour": 1}
     ]
-  }
+  },
+  "debriefs": [
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "THE SUITS ARE", "row": 4, "colour": 2},
+      {"say": "EMPTY. YOURS IS", "row": 5, "colour": 2},
+      {"say": "TOO OLD TO HEAR.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "ODA LOG, DAY 1:", "row": 4, "colour": 2},
+      {"say": "THE BORE HIT A", "row": 5, "colour": 2},
+      {"say": "HOLLOW. IT HUMS.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 2: THE FRAMES", "row": 4, "colour": 2},
+      {"say": "STOPPED TAKING", "row": 5, "colour": 2},
+      {"say": "OUR ORDERS.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 3: THE HUM IS", "row": 4, "colour": 2},
+      {"say": "IN OUR HELMETS", "row": 5, "colour": 2},
+      {"say": "NOW. ALL OF US.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 5: IT SAYS", "row": 4, "colour": 2},
+      {"say": "COME DOWN. HALF", "row": 5, "colour": 2},
+      {"say": "OF US WENT.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "THE VAULT GUARD", "row": 4, "colour": 2},
+      {"say": "IS DOWN. THE WAY", "row": 5, "colour": 2},
+      {"say": "BELOW IS OPEN.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 6: ODA HERE.", "row": 4, "colour": 2},
+      {"say": "I AM STAYING UP.", "row": 5, "colour": 2},
+      {"say": "SOMEONE MUST.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 7: THE CORE", "row": 4, "colour": 2},
+      {"say": "FEEDS THE HOLLOW.", "row": 5, "colour": 2},
+      {"say": "EVERY WATT.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "THE MACHINE BELOW", "row": 4, "colour": 2},
+      {"say": "IS OLDER THAN", "row": 5, "colour": 2},
+      {"say": "THE STATION.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 8: IT WANTS", "row": 4, "colour": 2},
+      {"say": "THE SPIRE. IT", "row": 5, "colour": 2},
+      {"say": "WANTS THE LINE.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "SCRAM CODES FOUND.", "row": 4, "colour": 2},
+      {"say": "KILL THE CORE.", "row": 5, "colour": 2},
+      {"say": "STARVE IT.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "THE CORE IS COLD.", "row": 4, "colour": 2},
+      {"say": "THE HOLLOW IS", "row": 5, "colour": 2},
+      {"say": "QUIET. FOR NOW.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "RELAY LOG: TWO", "row": 4, "colour": 2},
+      {"say": "STATIONS DOWN THE", "row": 5, "colour": 2},
+      {"say": "LINE WENT QUIET.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DAY 9: ODA. THE", "row": 4, "colour": 2},
+      {"say": "SPIRE IS SENDING.", "row": 5, "colour": 2},
+      {"say": "CUT IT. PLEASE.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "FOUR STATIONS", "row": 4, "colour": 2},
+      {"say": "SILENT. THE CALL", "row": 5, "colour": 2},
+      {"say": "TRAVELS ON.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "DECODED AT LAST.", "row": 4, "colour": 2},
+      {"say": "NOT A MESSAGE.", "row": 5, "colour": 2},
+      {"say": "A HOMING CALL.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ],
+    [
+      {"say": "{sector}", "row": 1, "colour": 3},
+      {"say": "SECURED", "row": 2, "colour": 1},
+      {"say": "THE UPLINK IS", "row": 4, "colour": 2},
+      {"say": "ABOVE YOU. THE", "row": 5, "colour": 2},
+      {"say": "CROWN IS GUARDED.", "row": 6, "colour": 2},
+      {"field": "code", "label": "CODE ", "row": 8, "colour": 2, "column": 4},
+      {"field": "kills", "label": "KILLS", "row": 9, "colour": 2, "column": 4},
+      {"field": "time", "label": "TIME ", "row": 10, "colour": 2, "column": 4},
+      {"say": "NEXT", "row": 12, "colour": 1},
+      {"say": "{next}", "row": 13, "colour": 3},
+      {"say": "PRESS START", "row": 15, "colour": 1}
+    ]
+  ]
 }

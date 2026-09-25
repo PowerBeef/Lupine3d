@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/powerbeef/lupine3d/docs/schema/screens-v1.schema.json",
   "title": "Lupine 3D screens (lupine-screens-v1)",
-  "description": "The game's full-screen modes: title, gameover, ending, intermission, password, and the screens its episodes name. Text is drawn in the engine's 3x5 font; the loader refuses a character the font lacks and a line that leaves the frame. See docs/reference/screen-format.md.",
+  "description": "The game's full-screen modes: title, gameover, ending, intermission, password, the screens its episodes name (the first episode's opening is a prologue after the title), and optionally one debrief per level but the last. A line is 3x5 text at a pixel row, reading-face text on a tile row, a field (a label and the cells the runtime writes), or an indexed PNG on the tile grid. See docs/reference/screen-format.md.",
   "type": "object",
   "required": [
     "format",
@@ -18,18 +18,68 @@
     "screens": {
       "type": "object",
       "additionalProperties": {
-        "type": "array",
-        "minItems": 1,
-        "items": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/screen.text"
-            },
-            {
-              "$ref": "#/$defs/screen.field"
+        "anyOf": [
+          {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/screen.text"
+                },
+                {
+                  "$ref": "#/$defs/screen.field"
+                },
+                {
+                  "$ref": "#/$defs/screen.say"
+                },
+                {
+                  "$ref": "#/$defs/screen.say_field"
+                },
+                {
+                  "$ref": "#/$defs/screen.image"
+                }
+              ]
             }
-          ]
-        }
+          },
+          {
+            "$ref": "#/$defs/screen"
+          }
+        ]
+      }
+    },
+    "debriefs": {
+      "type": "array",
+      "description": "One screen per level but the last, shown after it in place of the intermission. {sector} and {next} become the cleared level's name and the next one's.",
+      "items": {
+        "anyOf": [
+          {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/screen.text"
+                },
+                {
+                  "$ref": "#/$defs/screen.field"
+                },
+                {
+                  "$ref": "#/$defs/screen.say"
+                },
+                {
+                  "$ref": "#/$defs/screen.say_field"
+                },
+                {
+                  "$ref": "#/$defs/screen.image"
+                }
+              ]
+            }
+          },
+          {
+            "$ref": "#/$defs/screen"
+          }
+        ]
       }
     }
   },
@@ -45,7 +95,7 @@
       "properties": {
         "text": {
           "type": "string",
-          "pattern": "^[A-Z0-9 ./:!?,'-]+$"
+          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
         },
         "y": {
           "type": "integer",
@@ -84,7 +134,7 @@
         },
         "label": {
           "type": "string",
-          "pattern": "^[A-Z0-9 ./:!?,'-]+$"
+          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
         },
         "y": {
           "type": "integer",
@@ -100,6 +150,136 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 4
+        }
+      },
+      "additionalProperties": false
+    },
+    "screen": {
+      "type": "object",
+      "required": [
+        "lines"
+      ],
+      "properties": {
+        "frame": {
+          "type": "boolean",
+          "description": "Draw the steel frame (default true)."
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/screen.text"
+              },
+              {
+                "$ref": "#/$defs/screen.field"
+              },
+              {
+                "$ref": "#/$defs/screen.say"
+              },
+              {
+                "$ref": "#/$defs/screen.say_field"
+              },
+              {
+                "$ref": "#/$defs/screen.image"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "screen.say": {
+      "type": "object",
+      "required": [
+        "colour",
+        "row",
+        "say"
+      ],
+      "properties": {
+        "say": {
+          "type": "string",
+          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "colour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 19
+        }
+      },
+      "additionalProperties": false
+    },
+    "screen.say_field": {
+      "type": "object",
+      "required": [
+        "colour",
+        "field",
+        "label",
+        "row"
+      ],
+      "properties": {
+        "field": {
+          "enum": [
+            "skill",
+            "code",
+            "kills",
+            "time"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "pattern": "^([A-Z0-9 ./:!?,'-]|\\{sector\\}|\\{next\\})+$"
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "colour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 19
+        }
+      },
+      "additionalProperties": false
+    },
+    "screen.image": {
+      "type": "object",
+      "required": [
+        "image",
+        "row"
+      ],
+      "properties": {
+        "image": {
+          "type": "string",
+          "pattern": "\\.png$",
+          "description": "An indexed PNG in the game directory, whole 8x8 tiles, indices 0-3."
+        },
+        "row": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 17
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 19
         }
       },
       "additionalProperties": false

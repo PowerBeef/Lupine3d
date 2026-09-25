@@ -328,7 +328,12 @@ RAW_RAY_ROM_ADDRESS = 0x4000
 SCREEN_ROM_BANK = 239
 SCREEN_ROM_ADDRESS = 0x4000
 SCREEN_SLOT_CAPACITY = 10      # digits one screen can rewrite at runtime
-SCREEN_RECORD_BYTES = 6 + 2 * SCREEN_SLOT_CAPACITY
+# Pattern count, pattern address, map address, the payload's ROM bank, slot
+# count, then the slots. The directory is always in SCREEN_ROM_BANK; payloads
+# that do not fit it continue in SCREEN_OVERFLOW_ROM_BANK after its raw rays.
+SCREEN_RECORD_BYTES = 7 + 2 * SCREEN_SLOT_CAPACITY
+SCREEN_OVERFLOW_ROM_BANK = 238
+SCREEN_OVERFLOW_ADDRESS = 0x6000   # the raw rays below it take 4.8 KiB (build_rom asserts they fit)
 # Songs. The VBlank sequencer must never switch the ROM bank: it could land
 # between a banked lookup's switch and its read. The selected song is copied
 # into a WRAM bank instead, and the tick saves and restores SVBK.
@@ -459,6 +464,9 @@ SCREEN_INDEX = 0xC8F0
 SCREEN_PATTERN_COUNT = 0xC8F1
 SCREEN_SOURCE_L, SCREEN_SOURCE_H = 0xC8F2, 0xC8F3
 SCREEN_MAP_L, SCREEN_MAP_H = 0xC8F4, 0xC8F5
+SCREEN_PAYLOAD_BANK = 0xC8F6   # the ROM bank a screen's patterns and map are in
+SCREEN_HOLD = 0xC8F7          # frames START has been held on a story screen
+SCREEN_HOLD_FRAMES = 60       # a story screen also passes after a second of START held
 SCREEN_ROW_COUNT = 0xC8F8
 SCREEN_PALETTE = 1            # the reserved steel HUD palette
 # The world holds its last frame briefly after death or completion so the HUD
@@ -475,6 +483,8 @@ LEVEL_INDEX = 0xC8FB
 LEVEL_BANK = 0xC8FC
 LEVEL_FIXTURE_COUNT = 0xC8FD
 LEVEL_PICKUP_VALUE = 0xC8FE
+LEVEL_SONG = 0xC8FF           # the song the level's header names (enter_world plays it)
+CAMPAIGN_SECONDS_LIMIT = 10_000   # the run's time stops at 9,999 seconds, what the ending shows
 Q14_RECORD = 0xD8A0            # 255 disables the certificate for raw ABI probes
 Q14_X = 0xD8A2                 # unsigned Q14 component after sign decoding
 Q14_Y = 0xD8A4

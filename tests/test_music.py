@@ -110,6 +110,24 @@ class SequencerTests(unittest.TestCase):
         self.assertEqual(cgb.io[0x1A], 0x80)          # CH3 DAC enabled
         self.assertTrue(cgb.io[0x21])                 # CH4 envelope
 
+    def test_every_level_plays_the_song_it_names(self):
+        """A level's `music` is header byte 21; load_level keeps it for
+        enter_world. The showcase gives each episode its song and each
+        episode's guarded last sector another."""
+        songs = br.GAME.song_ids
+        episode_songs = ("world", "reactor", "spire")
+        cgb = run_to_world(CGB(self.rom, self.asm.labels))
+        for index, level in enumerate(br.CAMPAIGN):
+            episode = next(n for n, start in enumerate((0,) + br.EPISODE_STARTS + (len(br.CAMPAIGN),)) if start > index) - 1
+            last = index + 1 in br.EPISODE_STARTS + (len(br.CAMPAIGN),)
+            self.assertEqual(level.song, songs["overseer" if last else episode_songs[episode]], level.name)
+            cgb.write8(br.LEVEL_INDEX, index)
+            cgb.call_subroutine("load_level", max_steps=4_000_000)
+            self.assertEqual(cgb.read8(br.LEVEL_SONG), level.song, level.name)
+        # Every directory record is a song the sequencer can start.
+        self.assertEqual(len(music.songs()), len(songs))
+        self.assertEqual((br.SONG_GAMEOVER, br.SONG_ENDING), (songs["gameover"], songs["ending"]))
+
     def test_entering_the_world_switches_songs_and_keeps_playing(self):
         cgb = run_to_world(CGB(self.rom, self.asm.labels))
         self.assertEqual(cgb.read8(br.MUSIC_SONG), br.SONG_WORLD)

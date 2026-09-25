@@ -9,8 +9,9 @@ codes fit together.
 `game.json` `episodes` lists one to three episodes; each lists its level
 files. The campaign is every episode's levels in order, at most 20. Death
 retries the current level; clearing one shows the intermission (the level's
-kills, time and continue code) and loads the next; the last level shows the
-ending, and START there restarts the campaign.
+kills, time and continue code), or that level's debrief if the game has
+debriefs ([screens](screens.md)), and loads the next; the last level shows
+the ending, and START there returns to the title.
 
 ```json
 "episodes": [
@@ -23,8 +24,8 @@ ending, and START there restarts the campaign.
 
 Every episode but the first has an `opening` screen, shown before its first
 level; every episode but the last has a `closing` screen, shown on the
-intermission after its last level. The title opens the first episode and the
-ending closes the last. The names are yours; author each one in
+intermission after its last level. The first episode may have an `opening`
+too: a prologue, shown after the title's START. The ending closes the last. The names are yours; author each one in
 `screens.json` ([screens](screens.md)). A continue code into an episode's
 first level shows that episode's opening.
 

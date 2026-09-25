@@ -62,6 +62,7 @@ LANES: dict[str, list[list[str]]] = {
         ["make", "test"],
         ["make", "docs-check"],
         ["make", "playtest", "playtest-world", "playtest-art"],
+        ["make", "screens"],
     ],
     "profiles": [
         ["make", "playtest-sync"],
