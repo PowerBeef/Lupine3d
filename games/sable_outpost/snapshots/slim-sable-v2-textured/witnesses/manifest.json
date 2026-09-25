@@ -2,12 +2,12 @@
   "schema": "lupine3d.snapshots.v1",
   "scenes": {
     "actor_covered_discontinuity": {
-      "rgb_sha256": "1173873d0de726f76ac8e99937920459dc8ee6c126d23af3a17a5239660ac45d",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "7a30e82e30229e3be58e845f00cd9d122832b0c6650a29c7a7a786959efbca2d",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "close_clipped_wall": {
       "rgb_sha256": "1f5d597100227f8990b491ec898569fa7cd59d9020fb9f2c19c227679e4a64a2",
@@ -26,28 +26,28 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "finite_door_128": {
-      "rgb_sha256": "b3270df8859b565c915dba527ac7f29bb5d3ad97d73e6e3cba933a54df5db745",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "1ff1bbfbbfa3ab01ba39e301df4591a497b67cb3975aea0cc0f488541b5fafa8",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "finite_door_192": {
-      "rgb_sha256": "5b0852aace7723137ff644cf4672b06d4d79be2aa587f3ddac1c7888325fed2e",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "f2e72bc0843779e946fbaf082f31dc8127f22fa1aa1f6cea859190fb3e0495d7",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "finite_door_224": {
-      "rgb_sha256": "f39bbcae3f303f1cbd0e81d25a7cb438d30dcb2f26009c18bd4c11968c7baeca",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "87054c435601153e787ec8859dc8db40e7ca804fb76c71d86f3cebf83551e187",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "finite_door_64": {
       "rgb_sha256": "73ebef4a9b08a5e290be5868e89ecc529784df6d5360f3095e0ec139b29fe8ad",
@@ -58,148 +58,148 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "four_actor_coverage": {
-      "rgb_sha256": "3d7a52bd21e4c4671bae88436a1acb39043fb992b19fafd1ae57d11da7d16fb7",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "c2c47f9b4ce91a1099ec5cb8ae57ab8d3fdbbeb3930e9182f4737b0bdfc08ed2",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_00": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_01": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_02": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_03": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_04": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_05": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_06": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_07": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_08": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_09": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_10": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_11": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_12": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_13": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_14": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "fractional_actor_15": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "height_class_occlusion": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0064": {
       "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
@@ -218,92 +218,92 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "near_lod_0080": {
-      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3e6e5711eeaab739f35d584742f332481c4f5ec99ea0defc169d94a3fe535c77",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0081": {
-      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3e6e5711eeaab739f35d584742f332481c4f5ec99ea0defc169d94a3fe535c77",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0095": {
-      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3e6e5711eeaab739f35d584742f332481c4f5ec99ea0defc169d94a3fe535c77",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0096": {
-      "rgb_sha256": "054d72f1baa03318a2e40b7b2c68321327238def6441e20f95b66fdf5dbe589a",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3e6e5711eeaab739f35d584742f332481c4f5ec99ea0defc169d94a3fe535c77",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0447": {
-      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0448": {
-      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0449": {
-      "rgb_sha256": "268e06934efe1673aa5ace70511ef59893e086714da1c1bfe4c667f345f6cb99",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "91b35aead2abc96a54967596e4e8d38a848b58f77062671678f87b04aa72c078",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0575": {
-      "rgb_sha256": "8c5e3213b39b0414d69caa80d486750d30ffc034bbb8b0c062e3a836296b3d26",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "bb73dae95d6d3b7eb2d24b436ce7d84016757bd67156f353b2ad4cdee8de5d10",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0576": {
-      "rgb_sha256": "8c5e3213b39b0414d69caa80d486750d30ffc034bbb8b0c062e3a836296b3d26",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "bb73dae95d6d3b7eb2d24b436ce7d84016757bd67156f353b2ad4cdee8de5d10",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0959": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_0960": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "near_lod_1087": {
       "rgb_sha256": "608f1f2cac2bee79bc4f84604b969cd135d4e3b00f3520a72b064502db8858b3",
@@ -522,108 +522,108 @@
       "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
     },
     "sable_near_00": {
-      "rgb_sha256": "f4e6da5f543c0bdd012199adbd9d457cb5160017def7702f880fbef36327b644",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "5cb00c3f487d6ec6108ec1a6ad47e8d5d1168d07cf594a1788b6d8e68d164fde",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_01": {
-      "rgb_sha256": "d5d1a73669a8a44f171ff800b03a96bdc95938766c0ad43cbc83ef7e13f03f8e",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "3248825d40cdf4d95029f1f3d03bcee60d85cb1c9075977fc3b6b27f1c3f3049",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_02": {
-      "rgb_sha256": "902ff31c486834f513e3ddd95c11d230adfcc6687d824335aa6d399b37e72118",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "5c7159471ead0792329f4dbece1e339a56237aac9cd331d9005fe5e7a1756dcc",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_03": {
-      "rgb_sha256": "96c3bc9b4bd2bec696f732c4919fcb315ed29d749026c0c4c28ecb0c51fb3afb",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "241322b2ed0504c7c159735fea9dea0a44dfd5dbaf506dd68dce73f06a4084df",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_04": {
-      "rgb_sha256": "c95195cd96aac88df79c7420f5fc3795973770cb51a601e08c704777fb2decdc",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "9682c89386e67a9ec0a6d5f047a04c08a8265f1458e1b99f916a9244600e8cbf",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_05": {
-      "rgb_sha256": "b962fd2d9274babc95385b96ce5e1befd5fd1acc6c02eb63924775f0b28a05bd",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "0b005287160ddfe661d59f9f5038db59e6a38fd4f5f3564af3dd1f4a54b682f1",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_06": {
-      "rgb_sha256": "380f78cb6b5325ba85db91e4ba461d12e839c7c46960fc1e6433a5faf3cb2dfd",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "ed5e58d4aa032a5ab73945847a72cef420a460a583f4b4cd57222e50d84e2f72",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_07": {
-      "rgb_sha256": "7160a2a19842b1a87a5a9856b7e8657ccb919c0143c3a2b2aee5377315d7ac85",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "208f0e0fa76eb13766f3630206b4a5dffedd3af6658bd055e1be01991bb62fe1",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_08": {
-      "rgb_sha256": "7b8b5cfdc882bdc5af406a80d837279a86bc590f69f8c6d0e48ec2dd662dc4dd",
-      "rom_sha256": "2535c7c822896ff487290d41eb35286de7b55823974411561c47cdaad5dfd344",
-      "configuration_id": "10abbe6f03bc4625ab7ca37df97e38da272056dd5a51b271b8213d6b7b909d8b",
-      "accepted_at": "2026-09-23T07:28:30+00:00",
+      "rgb_sha256": "a7de1d92ab6e041b7ccc35aeb768da5381f49f7b26c32e9004c141db582a80e2",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
+      "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_09": {
-      "rgb_sha256": "3f3f995d46e925fd7f3ff07dfbfa3aa6f50713736f528cf808f30073300aa97d",
-      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "rgb_sha256": "250f7b920d361e0555838ec713a88b970b962f28839df1596f8cf8589c58e29d",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-25T04:24:21+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_10": {
-      "rgb_sha256": "2fe5580c9418f9981cd01145aef47949cb4a5c31d731bdd6f35b799f41503b73",
-      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "rgb_sha256": "d9c2052cc1eee6d3c00e8add4f74e0f0159b12497a4415a3c29ce75134a22944",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-25T04:24:21+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "sable_near_11": {
-      "rgb_sha256": "15b71ed90ad026c785bfb16af04abfeee78b8ebad777f470f0f8a43872b04a22",
-      "rom_sha256": "75a18056694b3b0a48f70ea9519228547eb1c589d4951452538200ce7cf45090",
+      "rgb_sha256": "296cc10a767b5486ef59e27bb8de4b9865333b9d6f37aaea8d9fd6d9cc15c06f",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-25T04:24:21+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Drop cels padded: a medkit is the top of an 8x16 object over an empty pattern, so the keycard cel no longer shows beneath it"
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "shallow_angle": {
-      "rgb_sha256": "a739d517d0660a009571816398f2d98c75b0144b2fb7d3244d02de811ed014df",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "30ebb8b744a1a98ce935f46b6885d8e287b2baabd097f337feca414e4cac0706",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "thin_occluder": {
       "rgb_sha256": "e9e72dceea8613a510b26e8d523bda7f6db575d33396c55e11be91443bb803a6",
@@ -634,68 +634,68 @@
       "note": "Sable Outpost (sector 1) is redrawn as a named place: the landing airlock, a U-shaped decon passage, the bunk room and mess hall off it, and the comms room where the Sentinel guards the lift, which stands in a machinery frame. The spawn, the airlock door ahead of it, the Sentinel, the exit door and the lift keep their cells, so every pose names the same place; the zig-zag door became the mess hatch (tour captures renamed). Only the world view changes, apart from the helmet blink landing on other captures because update timing moved; every frame check passes."
     },
     "touching_doors_axis_0": {
-      "rgb_sha256": "514bba97f4773c29836ebe0e45dd1dd82e0af7a164f45287dd2100c0e3661ea9",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "93f261283516cb9a5a5bdebbff11f0f0993b2757ffef467d5f23c5eb7a2435cf",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "touching_doors_axis_1": {
-      "rgb_sha256": "e09014382b1fe92417ef1ccad1c69fd2dce8d9fbe2f44910d936f5aedf8d8260",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "0997b879a45e8717423d7b049fcdade45011d1b94e308f86b453f163d90cf2f2",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "two_actor_corner": {
-      "rgb_sha256": "bcfa02ae8154b6abc8b4097632483aa63f2e9bb4a4e9882b4d610e58ab6649d6",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "c088b9142f07e45fd27a669a132f001fa01bc3d981f9223802f6e555303d23db",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "yaw_wrap_000": {
-      "rgb_sha256": "f62311aada85eb8171ef137b7f27200bc2e60841f5bc748c2adbc7ac3c4407da",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "a1c403bf3a2c770e8a5fe75cc195bd183dd5ff906245b37c20421611cf6627c6",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "yaw_wrap_001": {
-      "rgb_sha256": "46fc0fa8365514014db44f66eea54e5db701e980a98e76e672be0a76d303d440",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "f494ff0313f27dac9b0c5dee745ff2346cdc98ce2eb9e078b8ce65eedfae05e9",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "yaw_wrap_002": {
-      "rgb_sha256": "303508768866b93eaf2c2494d48da7dc1f52c30e7a7fe6b3f52cb27cfc7ee55e",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "2e880d05763d0ee56ed385485abbaca0ccb8ff76cfd4ee62a0fff6e743aa4e76",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "yaw_wrap_254": {
-      "rgb_sha256": "d714576bf5b2c70f3095e9b4ff002a37811e09a3e25739fdbd4481474eb98728",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "dd9625a354037babfc8e92e2f78ccfa71bfc95ec91f72a37e6a1bdb1b04edfdb",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     },
     "yaw_wrap_255": {
-      "rgb_sha256": "d80263d65a71419d7f4958c4f15e64619c6193c82ed781b8fc57c1fd36563ede",
-      "rom_sha256": "7dd300d762dfd4edb4b6b9083e6ad52ffc8d73747b757e2ed4f8bc5a4213e8f9",
+      "rgb_sha256": "c56951601d660cfcec381bdc77442ced82cdf94c990b6cfee8f74f33a347e3b3",
+      "rom_sha256": "9e059849e8d75de055020c07e48a0b273f342536975ee27bf514d67c136d4c36",
       "configuration_id": "53e85d8ef99e998c489d19e5fc8b401e4a7d8dea5520d818d811cfd7dada0101",
-      "accepted_at": "2026-09-24T20:18:30+00:00",
+      "accepted_at": "2026-09-25T20:27:22+00:00",
       "accepted_by": "noreply@anthropic.com",
-      "note": "Enemy size ladder: actors at the middle and far distances now draw the 8x16 half-scale and the 4x8 quarter-scale figures (were a squat 16x16 at both), switching where neighbouring sizes are equally wrong. Only actor pixels change; the host and all three pinned cores agree in every scene."
+      "note": "Enemies grew: a 16x48 close figure is drawn within about 1.2 cells and the 16x32 and 8x16 figures take over 1.5x further out (switches 18/22, 32/37, 63/73 Q4), so every witness holding an actor in those ranges shows it taller; only actor pixels change, and host and cores still agree byte for byte."
     }
   }
 }
