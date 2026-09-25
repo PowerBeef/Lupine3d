@@ -120,7 +120,9 @@ class EnemyKindTests(unittest.TestCase):
             path.write_text(json.dumps(dict(source, entities=entities)))
             level = levels.compile_level(path)
         records = br.actor_records(level)
-        self.assertEqual(records[first * 16 + br.ACTOR_KIND_OFFSET], ENTITY_KIND_IDS["boss"])
+        # The kind is the byte's low two bits; the actor it replaced keeps
+        # its wake radius and sight bits above them.
+        self.assertEqual(records[first * 16 + br.ACTOR_KIND_OFFSET] & 3, ENTITY_KIND_IDS["boss"])
         self.assertEqual(levels.KIND_DROPS["boss"], "medkit")
         # A boss keeps the actor it replaced its drop unless the level names one.
         self.assertIsNotNone(level)

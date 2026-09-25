@@ -43,7 +43,8 @@
       "y": 8,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard",
+      "key": "amber"
     },
     {
       "id": "gallery_west",
@@ -64,46 +65,61 @@
   ],
   "entities": [
     {
-      "kind": "sentinel",
+      "kind": "warden",
       "x_q8": 3456,
       "y_q8": 384,
-      "health": 3,
-      "activation_radius_q4": 96
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
-      "x_q8": 1408,
-      "y_q8": 640,
+      "x_q8": 2944,
+      "y_q8": 1664,
       "health": 2,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 2,
+      "drop": "amber card"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 896,
+      "y_q8": 1408,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 2,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 1920,
+      "y_q8": 1152,
+      "health": 4,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 1664,
+      "y_q8": 3712,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 2,
+      "drop": "none"
     },
     {
       "kind": "warden",
-      "x_q8": 2176,
-      "y_q8": 1152,
-      "health": 5,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "sentinel",
-      "x_q8": 640,
-      "y_q8": 1920,
-      "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "sentinel",
       "x_q8": 2432,
-      "y_q8": 2944,
-      "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "skirmisher",
-      "x_q8": 640,
-      "y_q8": 3712,
-      "health": 2,
-      "activation_radius_q4": 96
+      "y_q8": 2688,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -218,5 +234,57 @@
     }
   ],
   "palette_profile": "reactor",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "medkit",
+      "x": 6,
+      "y": 9
+    },
+    {
+      "item": "stim",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "item": "cells",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "item": "medkit",
+      "x": 11,
+      "y": 7
+    },
+    {
+      "item": "pulse carbine",
+      "x": 1,
+      "y": 14
+    },
+    {
+      "item": "cells",
+      "x": 1,
+      "y": 13
+    },
+    {
+      "item": "cells",
+      "x": 5,
+      "y": 13
+    },
+    {
+      "item": "medkit",
+      "x": 13,
+      "y": 11
+    },
+    {
+      "item": "cells",
+      "x": 13,
+      "y": 9
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 24,
+    "armour": 0
+  }
 }

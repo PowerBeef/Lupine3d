@@ -6,12 +6,12 @@
   "height": 16,
   "rows": [
     "1111111111111111",
-    "1111000001111111",
-    "1111000001111111",
-    "1111113111111111",
+    "1000010000011111",
+    "1000010000011111",
+    "1311113111111111",
     "1001100000011001",
     "1001002002001001",
-    "1003020000201001",
+    "1203020000201001",
     "1001020000203001",
     "1001002002001001",
     "1001100000011001",
@@ -43,7 +43,8 @@
       "y": 6,
       "orientation": "vertical",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard",
+      "key": "amber"
     },
     {
       "id": "crown_east",
@@ -68,50 +69,73 @@
       "orientation": "vertical",
       "kind": "standard",
       "unlock": "none"
+    },
+    {
+      "id": "crown_closet",
+      "x": 1,
+      "y": 3,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
     }
   ],
   "entities": [
     {
-      "kind": "skirmisher",
-      "x_q8": 2688,
-      "y_q8": 1152,
-      "health": 2,
-      "activation_radius_q4": 96
+      "kind": "boss",
+      "x_q8": 1920,
+      "y_q8": 1920,
+      "health": 60,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true
     },
     {
       "kind": "warden",
       "x_q8": 384,
-      "y_q8": 1408,
-      "health": 5,
-      "activation_radius_q4": 96
+      "y_q8": 1152,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "sentinel",
-      "x_q8": 1152,
-      "y_q8": 1408,
-      "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "boss",
-      "x_q8": 1920,
-      "y_q8": 1920,
-      "health": 12,
-      "activation_radius_q4": 96
+      "x_q8": 2688,
+      "y_q8": 1152,
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "none"
     },
     {
       "kind": "warden",
       "x_q8": 3712,
-      "y_q8": 2176,
-      "health": 5,
-      "activation_radius_q4": 96
+      "y_q8": 1152,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "cells"
     },
     {
-      "kind": "sentinel",
-      "x_q8": 2176,
-      "y_q8": 2432,
-      "health": 3,
-      "activation_radius_q4": 96
+      "kind": "skirmisher",
+      "x_q8": 384,
+      "y_q8": 384,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 896,
+      "y_q8": 640,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -125,11 +149,17 @@
     {
       "kind": "activate_exit",
       "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "crown_closet",
+      "x": 2,
+      "y": 9
     }
   ],
   "exit": {
-    "x": 6,
-    "y": 2,
+    "x": 9,
+    "y": 1,
     "marker": "beacon"
   },
   "readability": {
@@ -171,27 +201,27 @@
       "kind": "access"
     },
     {
-      "x": 3,
+      "x": 5,
       "y": 1,
       "side": "east",
       "kind": "light"
     },
     {
-      "x": 9,
+      "x": 11,
       "y": 1,
       "side": "west",
       "kind": "vent"
     },
     {
-      "x": 1,
-      "y": 3,
-      "side": "south",
+      "x": 0,
+      "y": 4,
+      "side": "east",
       "kind": "sector"
     },
     {
       "x": 5,
       "y": 3,
-      "side": "north",
+      "side": "south",
       "kind": "light"
     },
     {
@@ -226,5 +256,67 @@
     }
   ],
   "palette_profile": "spire",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "stim",
+      "x": 1,
+      "y": 11
+    },
+    {
+      "item": "slugs",
+      "x": 3,
+      "y": 11
+    },
+    {
+      "item": "cells",
+      "x": 1,
+      "y": 14
+    },
+    {
+      "item": "medkit",
+      "x": 9,
+      "y": 11
+    },
+    {
+      "item": "medkit",
+      "x": 4,
+      "y": 8
+    },
+    {
+      "item": "cells",
+      "x": 11,
+      "y": 5
+    },
+    {
+      "item": "amber card",
+      "x": 14,
+      "y": 9
+    },
+    {
+      "item": "cells",
+      "x": 13,
+      "y": 4
+    },
+    {
+      "item": "armour",
+      "x": 2,
+      "y": 9
+    },
+    {
+      "item": "medkit",
+      "x": 1,
+      "y": 8
+    },
+    {
+      "item": "armour",
+      "x": 3,
+      "y": 13
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 40,
+    "armour": 0
+  }
 }

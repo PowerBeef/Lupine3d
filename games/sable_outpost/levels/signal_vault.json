@@ -7,9 +7,9 @@
   "rows": [
     "1111111111111111",
     "1000010000010001",
-    "1022010000010201",
+    "1022010202030201",
     "1000010000010001",
-    "1220011131110021",
+    "1220011131111121",
     "1000010000010001",
     "1002210000010201",
     "1000010020012001",
@@ -17,9 +17,9 @@
     "1000010000010001",
     "1131111131111011",
     "1000000100000011",
-    "1113110001111111",
-    "1000001111111111",
-    "1000001111111111",
+    "1113110001131111",
+    "1000001111000001",
+    "1000001111000001",
     "1111111111111111"
   ],
   "player_spawn": {
@@ -31,9 +31,9 @@
   "doors": [
     {
       "id": "vault_lock",
-      "x": 8,
-      "y": 4,
-      "orientation": "horizontal",
+      "x": 11,
+      "y": 2,
+      "orientation": "vertical",
       "kind": "exit",
       "unlock": "sentinel_dead"
     },
@@ -51,11 +51,29 @@
       "y": 10,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "keycard"
+      "unlock": "keycard",
+      "key": "amber"
     },
     {
       "id": "vault_stair",
       "x": 3,
+      "y": 12,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "vault_core",
+      "x": 8,
+      "y": 4,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "keycard",
+      "key": "teal"
+    },
+    {
+      "id": "vault_store",
+      "x": 11,
       "y": 12,
       "orientation": "horizontal",
       "kind": "standard",
@@ -65,38 +83,62 @@
   "entities": [
     {
       "kind": "sentinel",
-      "x_q8": 3200,
-      "y_q8": 384,
-      "health": 3,
-      "activation_radius_q4": 96
+      "x_q8": 3456,
+      "y_q8": 1920,
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
-      "x_q8": 384,
+      "x_q8": 3200,
       "y_q8": 1408,
-      "health": 2,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "warden",
-      "x_q8": 1920,
-      "y_q8": 1664,
-      "health": 5,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "warden",
-      "x_q8": 2432,
-      "y_q8": 2176,
-      "health": 5,
-      "activation_radius_q4": 96
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "amber card"
     },
     {
       "kind": "sentinel",
-      "x_q8": 1152,
-      "y_q8": 2432,
-      "health": 3,
-      "activation_radius_q4": 96
+      "x_q8": 896,
+      "y_q8": 1408,
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "none"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 1664,
+      "y_q8": 1408,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2688,
+      "y_q8": 1408,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "cells"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2688,
+      "y_q8": 384,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -118,7 +160,7 @@
     }
   ],
   "exit": {
-    "x": 8,
+    "x": 14,
     "y": 2,
     "marker": "beacon"
   },
@@ -133,7 +175,7 @@
     {
       "x": 8,
       "y": 4,
-      "side": "north",
+      "side": "south",
       "kind": "access"
     },
     {
@@ -150,6 +192,18 @@
     },
     {
       "x": 3,
+      "y": 12,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 11,
+      "y": 2,
+      "side": "west",
+      "kind": "access"
+    },
+    {
+      "x": 11,
       "y": 12,
       "side": "north",
       "kind": "access"
@@ -187,7 +241,7 @@
     {
       "x": 14,
       "y": 4,
-      "side": "west",
+      "side": "south",
       "kind": "light"
     },
     {
@@ -216,5 +270,62 @@
     }
   ],
   "palette_profile": "spire",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "stim",
+      "x": 5,
+      "y": 13
+    },
+    {
+      "item": "slugs",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "item": "slugs",
+      "x": 4,
+      "y": 3
+    },
+    {
+      "item": "stim",
+      "x": 1,
+      "y": 9
+    },
+    {
+      "item": "medkit",
+      "x": 14,
+      "y": 5
+    },
+    {
+      "item": "cells",
+      "x": 14,
+      "y": 9
+    },
+    {
+      "item": "armour",
+      "x": 14,
+      "y": 14
+    },
+    {
+      "item": "cells",
+      "x": 10,
+      "y": 14
+    },
+    {
+      "item": "teal card",
+      "x": 10,
+      "y": 9
+    },
+    {
+      "item": "medkit",
+      "x": 6,
+      "y": 3
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 30,
+    "armour": 0
+  }
 }

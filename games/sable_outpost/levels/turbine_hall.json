@@ -17,9 +17,9 @@
     "1000000110000001",
     "1000000110000001",
     "1113111111113111",
-    "1000001111000001",
-    "1000001111020001",
-    "1000001111000001",
+    "1000010001000001",
+    "1000010003020001",
+    "1000010001000001",
     "1111111111111111"
   ],
   "player_spawn": {
@@ -43,7 +43,8 @@
       "y": 4,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "keycard"
+      "unlock": "keycard",
+      "key": "teal"
     },
     {
       "id": "turbine_stair",
@@ -60,36 +61,73 @@
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
+    },
+    {
+      "id": "drain_hatch",
+      "x": 9,
+      "y": 13,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
     }
   ],
   "entities": [
     {
       "kind": "warden",
-      "x_q8": 1152,
-      "y_q8": 640,
+      "x_q8": 1664,
+      "y_q8": 384,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 1408,
+      "y_q8": 1408,
       "health": 5,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 3456,
+      "y_q8": 2688,
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "cells"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 384,
+      "y_q8": 1664,
+      "health": 4,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "drop": "none"
     },
     {
       "kind": "sentinel",
       "x_q8": 2688,
-      "y_q8": 1664,
-      "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "sentinel",
-      "x_q8": 1408,
-      "y_q8": 2432,
-      "health": 3,
-      "activation_radius_q4": 96
+      "y_q8": 1408,
+      "health": 4,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
       "x_q8": 3456,
       "y_q8": 3456,
       "health": 2,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "teal card"
     }
   ],
   "pickups": [
@@ -209,5 +247,57 @@
     }
   ],
   "palette_profile": "reactor",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "slugs",
+      "x": 1,
+      "y": 14
+    },
+    {
+      "item": "stim",
+      "x": 3,
+      "y": 12
+    },
+    {
+      "item": "stim",
+      "x": 1,
+      "y": 10
+    },
+    {
+      "item": "cells",
+      "x": 14,
+      "y": 5
+    },
+    {
+      "item": "medkit",
+      "x": 10,
+      "y": 14
+    },
+    {
+      "item": "cells",
+      "x": 14,
+      "y": 12
+    },
+    {
+      "item": "armour",
+      "x": 7,
+      "y": 13
+    },
+    {
+      "item": "cells",
+      "x": 8,
+      "y": 14
+    },
+    {
+      "item": "medkit",
+      "x": 1,
+      "y": 1
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 24,
+    "armour": 0
+  }
 }

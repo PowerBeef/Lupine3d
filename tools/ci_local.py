@@ -13,7 +13,7 @@ configuration as CI does.
 
     python tools/ci_local.py                 # every lane, one per CPU
     python tools/ci_local.py --changed       # only what the change needs
-    python tools/ci_local.py --lanes fast,route-10-10 --jobs 2
+    python tools/ci_local.py --lanes fast,route-10-12 --jobs 2
     python tools/ci_local.py --list
     python tools/ci_local.py --changed --dry-run
 

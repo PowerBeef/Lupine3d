@@ -10,9 +10,11 @@ Contracts live beside their source; this is the summary and the evidence.
 | | v0.8 | v0.9 | main |
 | --- | --- | --- | --- |
 | Levels | 1, chosen at build time | **5**, chosen at runtime from their own ROM banks | **18** in three episodes, five to a ROM bank behind a resident directory |
-| Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity | 1–6 actors, **four kinds** including the boss that closes an episode |
+| Enemies | 1 Sentinel | 1–4 actors, **three kinds**, patrolling and waking on proximity | **six in every sector**, four kinds: Wardens that **shoot** after a telegraphed wind-up, and an Overseer closing each episode; each actor wakes by its own radius or on sight, and drops what its level says |
 | Weapons | 1 | **2**, streamed through one 80-pattern window | **4**, owned by episode and restored by a continue code |
-| Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one | up to six per level |
+| Doors | open or wait on the Sentinels | also **keycard**, carried by the kind that drops one | up to six per level: **amber and teal** card doors, and **remote** doors a trigger opens |
+| Items | none | a medkit or card dropped by a kill | up to sixteen **placed** per sector: stims, medkits, armour, slugs, cells, cards and weapon cases |
+| Resources | health | health | health, **armour** (half of every hit), two **ammunition** pools, keys, all **carried** from sector to sector |
 | Framing | none | title, intermission, results and ending screens, with **kills and time** | a title with a wordmark, a prologue, a debrief with the story after every sector, episode pages, and the ending returning to the title |
 | Difficulty | fixed | **three skill settings**, chosen on the title | unchanged |
 | Persistence | none | **four-digit continue codes** | one per sector and skill |
@@ -234,22 +236,22 @@ The campaign is three episodes of six sectors, each with its own palette set
 (`docs/reference/asset-formats.md`) and its own opening and closing screens
 (`AGENTS.md`, "Campaign, modes and screens"). Levels are packed five to a
 ROM bank from 241; the arsenal grows by episode (`WEAPON_UNLOCK_SECTORS`:
-the arc lance from sector 7, the pulse carbine from sector 13) and the
-continue codes carry it. The episode-closing sectors of Reactor Deep and
-Signal Spire field the boss kind.
+the arc lance from sector 7, the pulse carbine from sector 13, and
+earlier from a weapon case) and the continue codes carry it. The last
+sector of every episode fields the boss.
 
 | Episode | Palette set | Sectors |
 |---|---|---|
-| 1 Sable Outpost | `outpost` | Sable Outpost, Coolant Spine, Reactor Gate, Vent Stacks, Signal Deck, Cryo Vault |
-| 2 Reactor Deep | `reactor` | Coolant Intake, Pump Gallery, Turbine Hall (keycard), Coolant Dark, Control Gallery, Reactor Heart (boss) |
-| 3 Signal Spire | `spire` | Antenna Base, Relay Deck (keycard), Hull Walk, Signal Vault (keycard), Transmitter Ring, Spire Crown (boss) |
+| 1 Sable Outpost | `outpost` | Landing Deck, Coolant Spine, Reactor Gate, Vent Stacks, Signal Deck, Cryo Vault (boss) |
+| 2 Reactor Deep | `reactor` | Coolant Intake, Pump Gallery, Turbine Hall, Coolant Dark, Control Gallery, Reactor Heart (boss) |
+| 3 Signal Spire | `spire` | Antenna Base, Relay Deck, Hull Walk, Signal Vault, Transmitter Ring, Spire Crown (boss) |
 
 Every sector carries the same compiler certificate as the first six
 (`docs/reference/level-certificate.md`; `tests/test_campaign.py` pins it for all
 eighteen), and the controller route plays all of them in CI's `route` matrix:
-eight chunks sized by route updates (`tools/ci_lanes.py`), each on its own
-runner and entered by continue code (`make playthrough SECTORS=8-9
-ROUTE_DIR=build/playthrough-8-9`), the first from the title and the last
+seven chunks sized by route updates (`tools/ci_lanes.py`), each on its own
+runner and entered by continue code (`make playthrough SECTORS=7-9
+ROUTE_DIR=build/playthrough-7-9`), the first from the title and the last
 restarting the campaign from the ending. `release_check.py`
 unions the reports for the current ROM. Regenerating the continue-code table
 for eighteen sectors changed every code.
@@ -261,7 +263,7 @@ follows how the place would be used rather than a grid of rooms:
 
 | Sector | Place |
 |---|---|
-| 1 Sable Outpost | the landing airlock, a U-shaped decon passage, the bunk room and the mess hall off it, the comms room where the Sentinel guards the lift |
+| 1 Landing Deck | the landing airlock, a U-shaped decon passage, the bunk room and the mess hall off it, the comms room where the Sentinel guards the lift |
 | 2 Coolant Spine | a pump house, then a pipe-lined spine climbing to the valve head and the lift, with the coolant shaft off to one side |
 | 3 Reactor Gate | a security checkpoint: a lobby, a ring corridor round the guard block, the cell block and turbine stair off it, the Warden at the reactor gate |
 | 4 Vent Stacks | two shafts from the stack base: west to the fan room and the card, east to the carded upper walk and the exhaust hall |
@@ -290,3 +292,66 @@ Reactor Heart's ring is two cells wide. A door should not open between two
 enemies that wake together. And a lone pillar in a small room can hide an
 actor from every firing position; Relay Deck's Warden walks the deck instead
 of the operations room.
+
+## Every room means something
+
+The first eighteen sectors were places with almost nothing in them: most
+fielded two to five enemies and nothing lay on the floor, so the first
+sector had eight rooms to walk and one Sentinel to shoot. The overhaul
+gave the engine what a Doom level is built from and then rebuilt every
+sector around it:
+
+- **Placed items** (`game.json` `items`): stims (+10) and medkits (+25),
+  armour (+50, which takes half of every hit while it lasts), slugs for the
+  slug rifle and cells for the arc lance and pulse carbine, amber and teal
+  cards, and the two weapon cases. An item with nothing to give stays on
+  the floor: a medkit at full health waits for you.
+- **Coloured card doors and remote doors.** A card door wants its colour;
+  a remote door refuses B and opens only when its trigger cell is stepped
+  on, once. A trigger under a card is a trap: take the card and the closet
+  behind you opens.
+- **Encounters by wake rule.** Every actor has its own wake radius, and a
+  sentry that also needs **sight** holds its post until it sees you. A
+  closet's occupants stand in their door's line, so they come out the
+  moment it opens.
+- **Wardens shoot.** Inside five cells and in sight, a Warden holds its
+  ground, raises its arm with a whine for most of a second, and fires if it
+  still sees you. Every Warden is placed with cover (a door frame, a
+  corner, a pillar) within two steps of where you meet it.
+- **Carry-over.** Health (at least 50), armour, ammunition and weapons
+  found ride from one sector to the next; a continue code starts from the
+  sector's own loadout.
+
+Every sector now fields six actors, eight to thirteen items and at least
+one card door, and every room holds an encounter, health, ammunition,
+armour, a card, a weapon case or a trigger. Each episode's first sector
+teaches its idea and its last is a boss arena: 30 health for Cryo Vault's
+Overseer, 40 for Reactor Heart's and 60 for Spire Crown's. The level
+files hold the details; this is what each sector asks of the player:
+
+| Sector | What happens there |
+|---|---|
+| 1 Landing Deck | the first card: a locked bunk room seen early, the amber card on the mess table, the first Warden in comms, and the trip back for the bunk room's armour |
+| 2 Coolant Spine | the teal card under the shaft hatch: taking it drops two Hounds down the column; the Warden holds the spine behind the teal valve |
+| 3 Reactor Gate | a key carried by an enemy: the stair room's threshold springs a closet, and its Hound runs out with the amber card for the cell block's prisoner Warden |
+| 4 Vent Stacks | the arc lance's case in the fan room; bait slugs in the exhaust hall open a closet of Hounds behind the Warden |
+| 5 Signal Deck | two keys in sequence round a patrolled ring: teal from the mast top (and its closet), amber from the radio room, down to the lower deck's Warden |
+| 6 Cryo Vault | the Vault Overseer (30) behind the teal sump lock; the control room's card opens the hatch behind you |
+| 7 Coolant Intake | cells and Wardens: a crossfire in the four-column cistern, the amber card's closet in the settling tank |
+| 8 Pump Gallery | drains that open under your feet as you pass, a Hound climbing after you each time; the teal card in the pump room |
+| 9 Turbine Hall | two Wardens, one by each turbine; a courier with the teal card in the condenser, a secret drain with armour |
+| 10 Coolant Dark | the pulse carbine's case in a hidden gallery; tunnels that loop, a courier by the stair |
+| 11 Control Gallery | Wardens at both ends of a console field; the teal card in the offices opens the records closet |
+| 12 Reactor Heart | the Core Overseer (40) on a two-wide ring; each loop's card springs its sump |
+| 13 Antenna Base | Wardens firing down a switchback stair: break the line at the landings; a landing opens a closet |
+| 14 Relay Deck | a crossfire among relay racks; the teal card at the top of the west aisle brings two Hounds down it |
+| 15 Hull Walk | a walk round the hull with a Hound on each side; the amber card on a trap threshold, two Sentinels behind it |
+| 16 Signal Vault | the courier's amber card opens the vault's two Wardens; the teal card inside opens the data core |
+| 17 Transmitter Ring | three arcs, three phases; the teal card brings a Sentinel and a Hound down the west arc; a cache to carry into the last sector |
+| 18 Spire Crown | the Overseer (60) among eight pillars, a Warden in each bay; the heavy armour's closet in the west bay |
+
+The level compiler gates every one of them as before, and more: every item,
+card door, remote door and enemy must be reachable in play (cards before
+their doors, triggers before theirs), and sector 1 keeps the grid, spawn,
+exit, doors and fixtures the engine's evidence is recorded on (its v0.12
+population is kept as `tests/levels/living_world_v012.json`).

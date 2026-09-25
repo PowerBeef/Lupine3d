@@ -9,15 +9,15 @@
     "1100010000111111",
     "1100010200000111",
     "1111111111100211",
-    "1111111111100211",
-    "1111111111100211",
-    "1111111111100211",
+    "1000001111100211",
+    "1000001111100211",
+    "1113111111100211",
     "1000000100300211",
-    "1022000100111111",
-    "1002000300111111",
-    "1111111100111111",
-    "1000000100111111",
-    "1020200300111111",
+    "1020000100111111",
+    "1000200300111111",
+    "1111111100100011",
+    "1000000100300011",
+    "1020200300100011",
     "1000000111111111",
     "1111111111111111"
   ],
@@ -42,7 +42,8 @@
       "y": 8,
       "orientation": "vertical",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard",
+      "key": "teal"
     },
     {
       "id": "coolant_shaft",
@@ -59,22 +60,85 @@
       "orientation": "vertical",
       "kind": "standard",
       "unlock": "none"
+    },
+    {
+      "id": "shaft_hatch",
+      "x": 3,
+      "y": 7,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
+    },
+    {
+      "id": "pump_store",
+      "x": 10,
+      "y": 12,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
     }
   ],
   "entities": [
     {
+      "kind": "warden",
+      "x_q8": 3200,
+      "y_q8": 1408,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
       "kind": "sentinel",
-      "x_q8": 2176,
-      "y_q8": 640,
+      "x_q8": 2432,
+      "y_q8": 2432,
       "health": 3,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
-      "x_q8": 1408,
-      "y_q8": 2688,
+      "x_q8": 896,
+      "y_q8": 1664,
       "health": 2,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 896,
+      "y_q8": 1408,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 1664,
+      "y_q8": 640,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 2432,
+      "y_q8": 896,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -88,6 +152,12 @@
     {
       "kind": "activate_exit",
       "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "shaft_hatch",
+      "x": 3,
+      "y": 10
     }
   ],
   "exit": {
@@ -186,8 +256,66 @@
       "y": 7,
       "side": "east",
       "kind": "light"
+    },
+    {
+      "x": 14,
+      "y": 12,
+      "side": "west",
+      "kind": "light"
     }
   ],
   "palette_profile": "outpost",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "slugs",
+      "x": 1,
+      "y": 12
+    },
+    {
+      "item": "stim",
+      "x": 6,
+      "y": 14
+    },
+    {
+      "item": "teal card",
+      "x": 3,
+      "y": 10
+    },
+    {
+      "item": "medkit",
+      "x": 6,
+      "y": 8
+    },
+    {
+      "item": "slugs",
+      "x": 11,
+      "y": 4
+    },
+    {
+      "item": "slugs",
+      "x": 12,
+      "y": 4
+    },
+    {
+      "item": "medkit",
+      "x": 9,
+      "y": 1
+    },
+    {
+      "item": "armour",
+      "x": 12,
+      "y": 12
+    },
+    {
+      "item": "slugs",
+      "x": 13,
+      "y": 11
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 0,
+    "armour": 0
+  }
 }

@@ -42,7 +42,7 @@
       "y": 5,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard"
     },
     {
       "id": "mess_hatch",
@@ -68,6 +68,56 @@
       "y_q8": 2176,
       "health": 3,
       "activation_radius_q4": 96
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 1664,
+      "y_q8": 1920,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 1920,
+      "y_q8": 640,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 2688,
+      "y_q8": 896,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "slugs"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2944,
+      "y_q8": 1664,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 640,
+      "y_q8": 640,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 2,
+      "sight": true,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -194,5 +244,52 @@
     }
   ],
   "palette_profile": "outpost",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "slugs",
+      "x": 2,
+      "y": 12
+    },
+    {
+      "item": "stim",
+      "x": 1,
+      "y": 9
+    },
+    {
+      "item": "amber card",
+      "x": 10,
+      "y": 1
+    },
+    {
+      "item": "medkit",
+      "x": 7,
+      "y": 4
+    },
+    {
+      "item": "slugs",
+      "x": 11,
+      "y": 10
+    },
+    {
+      "item": "stim",
+      "x": 8,
+      "y": 10
+    },
+    {
+      "item": "armour",
+      "x": 4,
+      "y": 1
+    },
+    {
+      "item": "slugs",
+      "x": 1,
+      "y": 1
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 0,
+    "armour": 0
+  }
 }

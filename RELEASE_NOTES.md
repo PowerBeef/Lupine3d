@@ -1,5 +1,22 @@
 # Unreleased — after v0.12
 
+- **Every room of Sable Outpost means something.** All eighteen sectors are
+  repopulated (and most extended) around the new systems: six actors in
+  each, eight to thirteen placed items, at least one coloured card door,
+  and closets that open from a trigger under a card or a threshold, so
+  every room holds an encounter, health, ammunition, armour, a card, a
+  weapon case or a trigger. Each episode's first sector teaches its idea
+  and its last is a boss arena (Cryo Vault now fields the Vault Overseer;
+  30, 40 and 60 health across the three). Sector 1 keeps the grid, spawn,
+  exit, doors and fixtures the engine's evidence is recorded on.
+  `games/sable_outpost/docs/campaign.md` ("Every room means something")
+  says what each sector asks of the player. The controller route takes a
+  drop a few steps away as soon as its kill leaves it, and CI's route runs
+  in seven chunks rebalanced to the new sectors' measured updates.
+- **Placed items and triggers work in play.** The fixed-rate simulation
+  never called `update_placed`, so no placed item was taken and no trigger
+  fired outside the tests that called it directly; `simulation_tick` now
+  runs it once a tick, and a test proves it through the running game.
 - **Enemies worth planning around.** A kind may shoot from range
   (`range`, `ranged_damage`, `windup_ticks`): in sight and in reach it
   holds its ground, raises its arm with a warning whine (the optional `warn`
@@ -30,8 +47,8 @@
   costs two compares a tick, so the evidence population and the starter
   play as before. The compiler walks each level as a player can and refuses
   an item, enemy, card door or remote door it cannot reach. Sable Outpost
-  defines nine item types (`art/tools/make_item_art.py` draws the cels);
-  its levels place none yet. `make limits` now also proves sixteen item
+  defines nine item types (`art/tools/make_item_art.py` draws the cels).
+  `make limits` now also proves sixteen item
   types and a level with sixteen items and eight triggers.
 - **Sable Outpost has a story, a title and a soundtrack.** The title is a
   SABLE wordmark over the approved helmet (both derived by

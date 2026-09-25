@@ -9,17 +9,17 @@
     "1000011000000111",
     "1000011000000111",
     "1020030020202111",
-    "1111111000000111",
-    "1111111000000111",
-    "1111111131110111",
+    "1113111000000111",
+    "1000001000000111",
+    "1000001131110111",
     "1111111000010111",
     "1111111000013111",
     "1110001000010001",
     "1110003020012001",
     "1110001000010001",
     "1111111111110001",
-    "1111111111110001",
-    "1111111111110001",
+    "1111110020030001",
+    "1111110000010001",
     "1111111111111111"
   ],
   "player_spawn": {
@@ -43,7 +43,8 @@
       "y": 6,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "keycard"
+      "unlock": "keycard",
+      "key": "teal"
     },
     {
       "id": "vault_gate",
@@ -60,36 +61,85 @@
       "orientation": "vertical",
       "kind": "exit",
       "unlock": "sentinel_dead"
+    },
+    {
+      "id": "control_closet",
+      "x": 3,
+      "y": 4,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
+    },
+    {
+      "id": "cold_store",
+      "x": 11,
+      "y": 13,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none"
     }
   ],
   "entities": [
     {
-      "kind": "skirmisher",
-      "x_q8": 640,
+      "kind": "boss",
+      "x_q8": 2432,
+      "y_q8": 2432,
+      "health": 30,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "medkit"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2944,
       "y_q8": 384,
-      "health": 2,
-      "activation_radius_q4": 96
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "sentinel",
       "x_q8": 2432,
       "y_q8": 1408,
       "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "warden",
-      "x_q8": 2176,
-      "y_q8": 2176,
-      "health": 5,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
-      "x_q8": 2688,
-      "y_q8": 2944,
+      "x_q8": 3200,
+      "y_q8": 1664,
       "health": 2,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 896,
+      "y_q8": 1408,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "sentinel",
+      "x_q8": 896,
+      "y_q8": 1664,
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     }
   ],
   "pickups": [
@@ -108,6 +158,12 @@
     {
       "kind": "activate_exit",
       "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "control_closet",
+      "x": 3,
+      "y": 1
     }
   ],
   "exit": {
@@ -206,8 +262,76 @@
       "y": 9,
       "side": "west",
       "kind": "light"
+    },
+    {
+      "x": 11,
+      "y": 14,
+      "side": "west",
+      "kind": "light"
     }
   ],
   "palette_profile": "outpost",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "slugs",
+      "x": 12,
+      "y": 14
+    },
+    {
+      "item": "stim",
+      "x": 14,
+      "y": 9
+    },
+    {
+      "item": "medkit",
+      "x": 11,
+      "y": 5
+    },
+    {
+      "item": "slugs",
+      "x": 7,
+      "y": 4
+    },
+    {
+      "item": "slugs",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "item": "teal card",
+      "x": 3,
+      "y": 1
+    },
+    {
+      "item": "stim",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "item": "armour",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "item": "medkit",
+      "x": 7,
+      "y": 11
+    },
+    {
+      "item": "armour",
+      "x": 6,
+      "y": 14
+    },
+    {
+      "item": "cells",
+      "x": 9,
+      "y": 14
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 0,
+    "armour": 0
+  }
 }

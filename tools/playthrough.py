@@ -576,6 +576,20 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 continue
             navigate(cell); step(0)
 
+    def take_near_drops(limit=8):
+        """Pick up what a kill left when it is a few steps away, as a player
+        does. Only once nothing was reachable did the route go back for
+        drops, and Signal Vault's courier left its card at the far end of the
+        east stacks: the route crossed the sector to the west stacks and back
+        for it, and ran out of time before the last Warden."""
+        for actor in actors():
+            if not actor["pickup"] or worthless(actor):
+                continue
+            cell = actor["x"] >> 8, actor["y"] >> 8
+            path = path_to(cell, reachable_only=True)
+            if path is not None and len(path) <= limit:
+                navigate(cell); step(0)
+
     def clear_sector(name):
         """Kill every actor the route can walk to, taking drops as it goes."""
         opened = cgb.frame_count
@@ -671,6 +685,7 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                     continue
             if len(living()) < opening:
                 fruitless.clear()
+                take_near_drops()
             elif survivor is not None:
                 count = fruitless[survivor["slot"]] = fruitless.get(survivor["slot"], 0) + 1
                 awake = survivor["state"] in (br.SENTINEL_CHASE, br.SENTINEL_ATTACK)

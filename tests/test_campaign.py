@@ -32,9 +32,6 @@ class CampaignTests(unittest.TestCase):
         for episode in range(len(br.CAMPAIGN) // SECTORS):
             last = br.CAMPAIGN[(episode + 1) * SECTORS - 1]
             kinds = {entity.kind for entity in last.entities}
-            if episode == 0:
-                # Episode one predates the boss and keeps its shipped sector.
-                continue
             self.assertIn("boss", kinds, last.name)
 
     def test_every_sector_keeps_the_campaign_certificate(self):

@@ -11,11 +11,11 @@
     "1011111100202201",
     "1000000100002001",
     "1111110111111311",
-    "1000000110000001",
-    "1011111110020001",
-    "1000000110000201",
-    "1111110110002001",
-    "1000000110000001",
+    "1000000111100001",
+    "1011111100100201",
+    "1000000100100001",
+    "1111110300102001",
+    "1000000100100001",
     "1111311111113111",
     "1000000111000001",
     "1020002111000001",
@@ -43,7 +43,8 @@
       "y": 5,
       "orientation": "horizontal",
       "kind": "standard",
-      "unlock": "none"
+      "unlock": "keycard",
+      "key": "amber"
     },
     {
       "id": "base_hatch",
@@ -60,36 +61,76 @@
       "orientation": "horizontal",
       "kind": "exit",
       "unlock": "sentinel_dead"
+    },
+    {
+      "id": "stair_closet",
+      "x": 7,
+      "y": 9,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
     }
   ],
   "entities": [
     {
-      "kind": "skirmisher",
-      "x_q8": 2432,
-      "y_q8": 640,
-      "health": 2,
-      "activation_radius_q4": 96
-    },
-    {
       "kind": "sentinel",
-      "x_q8": 1408,
-      "y_q8": 1152,
-      "health": 3,
-      "activation_radius_q4": 96
-    },
-    {
-      "kind": "sentinel",
-      "x_q8": 640,
-      "y_q8": 2176,
-      "health": 3,
-      "activation_radius_q4": 96
+      "x_q8": 2944,
+      "y_q8": 896,
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "none"
     },
     {
       "kind": "warden",
+      "x_q8": 1664,
+      "y_q8": 1664,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
+      "x_q8": 2176,
+      "y_q8": 2432,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "skirmisher",
       "x_q8": 2432,
       "y_q8": 2432,
-      "health": 5,
-      "activation_radius_q4": 96
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "sight": true,
+      "drop": "stim"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 2944,
+      "y_q8": 2432,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 3712,
+      "y_q8": 2688,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "cells"
     }
   ],
   "pickups": [
@@ -103,6 +144,12 @@
     {
       "kind": "activate_exit",
       "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "stair_closet",
+      "x": 6,
+      "y": 9
     }
   ],
   "exit": {
@@ -140,6 +187,12 @@
       "x": 12,
       "y": 11,
       "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 7,
+      "y": 9,
+      "side": "west",
       "kind": "access"
     },
     {
@@ -204,5 +257,57 @@
     }
   ],
   "palette_profile": "spire",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "cells",
+      "x": 1,
+      "y": 12
+    },
+    {
+      "item": "stim",
+      "x": 6,
+      "y": 14
+    },
+    {
+      "item": "medkit",
+      "x": 1,
+      "y": 3
+    },
+    {
+      "item": "slugs",
+      "x": 9,
+      "y": 7
+    },
+    {
+      "item": "slugs",
+      "x": 8,
+      "y": 10
+    },
+    {
+      "item": "armour",
+      "x": 9,
+      "y": 1
+    },
+    {
+      "item": "cells",
+      "x": 8,
+      "y": 4
+    },
+    {
+      "item": "amber card",
+      "x": 14,
+      "y": 1
+    },
+    {
+      "item": "medkit",
+      "x": 14,
+      "y": 6
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 30,
+    "armour": 0
+  }
 }

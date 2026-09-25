@@ -38,17 +38,16 @@ class RouteChunk:
             ["RESTART=1"] if self.restart else [])
 
 
-# Measured updates per chunk: 3,617 / 3,188 / 2,779 / 3,043 / 3,707 / 2,907 /
-# 3,456 / 1,750 plus the ending and the restart.
+# Measured updates per chunk on the repopulated campaign: 3,038 / 2,953 /
+# 3,178 / 3,184 / 3,075 / 3,181 / 3,031 plus the ending and the restart.
 ROUTE_CHUNKS = (
-    RouteChunk(1, 4),
-    RouteChunk(5, 7),
-    RouteChunk(8, 9),
-    RouteChunk(10, 10),
-    RouteChunk(11, 13),
-    RouteChunk(14, 15),
-    RouteChunk(16, 17),
-    RouteChunk(18, 18, restart=True),
+    RouteChunk(1, 3),
+    RouteChunk(4, 6),
+    RouteChunk(7, 9),
+    RouteChunk(10, 12),
+    RouteChunk(13, 14),
+    RouteChunk(15, 16),
+    RouteChunk(17, 18, restart=True),
 )
 
 SAMEBOY_DIR = "build/deps/SameBoy"

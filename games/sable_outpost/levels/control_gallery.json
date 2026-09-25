@@ -7,14 +7,14 @@
   "rows": [
     "1111111111111111",
     "1000100000100001",
-    "1020100000100001",
+    "1020300001100001",
     "1000111131111311",
-    "1002100200002011",
-    "1200020000200011",
-    "1000100020000211",
+    "1111100200011011",
+    "1200020000220011",
+    "1000100020030211",
     "1020102000020011",
-    "1002100002000011",
-    "1000000200002011",
+    "1002100002020011",
+    "1000000200002211",
     "1000120000200011",
     "1131111111111111",
     "1000011111111111",
@@ -52,43 +52,84 @@
       "orientation": "horizontal",
       "kind": "standard",
       "unlock": "none"
+    },
+    {
+      "id": "control_door",
+      "x": 11,
+      "y": 6,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "keycard",
+      "key": "teal"
+    },
+    {
+      "id": "records_closet",
+      "x": 4,
+      "y": 2,
+      "orientation": "vertical",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
     }
   ],
   "entities": [
     {
       "kind": "warden",
-      "x_q8": 1664,
-      "y_q8": 384,
-      "health": 5,
-      "activation_radius_q4": 96
+      "x_q8": 2688,
+      "y_q8": 2432,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "cells"
+    },
+    {
+      "kind": "warden",
+      "x_q8": 1408,
+      "y_q8": 1664,
+      "health": 6,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
       "kind": "sentinel",
       "x_q8": 2176,
       "y_q8": 1408,
-      "health": 3,
-      "activation_radius_q4": 96
+      "health": 5,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
       "x_q8": 2432,
       "y_q8": 1920,
-      "health": 2,
-      "activation_radius_q4": 96
+      "health": 3,
+      "activation_radius_q4": 96,
+      "wake": 4,
+      "drop": "none"
     },
     {
       "kind": "skirmisher",
-      "x_q8": 640,
-      "y_q8": 2432,
+      "x_q8": 896,
+      "y_q8": 640,
       "health": 2,
-      "activation_radius_q4": 96
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "none"
     },
     {
-      "kind": "warden",
-      "x_q8": 3200,
-      "y_q8": 2688,
-      "health": 5,
-      "activation_radius_q4": 96
+      "kind": "skirmisher",
+      "x_q8": 384,
+      "y_q8": 896,
+      "health": 2,
+      "activation_radius_q4": 96,
+      "wake": 7,
+      "sight": true,
+      "drop": "stim"
     }
   ],
   "pickups": [
@@ -102,6 +143,12 @@
     {
       "kind": "activate_exit",
       "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "records_closet",
+      "x": 9,
+      "y": 1
     }
   ],
   "exit": {
@@ -136,9 +183,15 @@
       "kind": "access"
     },
     {
+      "x": 11,
+      "y": 6,
+      "side": "west",
+      "kind": "access"
+    },
+    {
       "x": 4,
       "y": 1,
-      "side": "west",
+      "side": "east",
       "kind": "light"
     },
     {
@@ -162,7 +215,7 @@
     {
       "x": 3,
       "y": 4,
-      "side": "west",
+      "side": "south",
       "kind": "vent"
     },
     {
@@ -194,14 +247,60 @@
       "y": 8,
       "side": "west",
       "kind": "light"
-    },
-    {
-      "x": 12,
-      "y": 9,
-      "side": "west",
-      "kind": "vent"
     }
   ],
   "palette_profile": "reactor",
-  "vram_profile": "entity-heavy"
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "stim",
+      "x": 4,
+      "y": 13
+    },
+    {
+      "item": "cells",
+      "x": 6,
+      "y": 10
+    },
+    {
+      "item": "teal card",
+      "x": 9,
+      "y": 1
+    },
+    {
+      "item": "medkit",
+      "x": 5,
+      "y": 1
+    },
+    {
+      "item": "medkit",
+      "x": 7,
+      "y": 2
+    },
+    {
+      "item": "cells",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "item": "armour",
+      "x": 12,
+      "y": 5
+    },
+    {
+      "item": "slugs",
+      "x": 12,
+      "y": 8
+    },
+    {
+      "item": "slugs",
+      "x": 13,
+      "y": 8
+    }
+  ],
+  "loadout": {
+    "slugs": 6,
+    "cells": 28,
+    "armour": 0
+  }
 }
