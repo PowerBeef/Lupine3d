@@ -202,4 +202,7 @@ def emit_simulation(a: Assembler) -> None:
     a.call("apply_input_actions")
     if SABLE_ART or COMPACT_DISPLAY: a.call("advance_art_clocks")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
-    a.call("update_animated_doors"); a.call("update_actors"); a.ret()
+    # Placed items and triggers are the level's, not an actor's: once a tick,
+    # after the actors (a trigger's door starts moving on the next tick's
+    # door update). A level without either costs two compares.
+    a.call("update_animated_doors"); a.call("update_actors"); a.jp("update_placed")

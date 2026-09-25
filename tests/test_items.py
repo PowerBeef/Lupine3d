@@ -188,6 +188,27 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(self.live(cgb, state), 1, "the trigger did not start the door")
         self.assertEqual(cgb.read8(br.TRIGGERS_FIRED), 1)
 
+    def test_the_running_game_takes_items_and_springs_triggers(self):
+        """Items and triggers are the simulation's, taken on every tick the
+        game runs, not only when a test calls update_placed: stand on the
+        slugs, then on the trigger, and let the game run."""
+        cgb = self.world()
+        door = next(i for i, d in enumerate(level_codec.compile_level(FIXTURE).doors) if d.name == "bunk_room")
+        state = br.DOOR_TABLE + door * br.DOOR_RECORD_BYTES + br.DOOR_STATE_OFFSET
+        live = cgb.wramx[2]
+        cgb.button_provider = lambda *_: 0
+        for (x, y), done in (((3, 12), lambda: live[br.ITEMS_TAKEN - 0xD000] & 2),
+                             ((2, 9), lambda: live[state - 0xD000])):
+            cgb.diagnostic_barrier()
+            for address, value in ((br.PLAYER_XL, 128), (br.PLAYER_XH, x), (br.PLAYER_YL, 128), (br.PLAYER_YH, y)):
+                live[address - 0xD000] = value
+            for _ in range(8):
+                cgb.run(until_presentations=cgb.presentations + 1, max_steps=6_000_000)
+            cgb.diagnostic_barrier()
+            self.assertTrue(done(), f"standing on {(x, y)} in the running game did nothing")
+        self.assertEqual(live[br.AMMO - 0xD000], 9)
+        self.assertEqual(cgb.read8(br.TRIGGERS_FIRED), 1)
+
     def test_b_refuses_a_remote_door_and_a_card_door_wants_its_colour(self):
         cgb = self.world()
         level = level_codec.compile_level(FIXTURE)
