@@ -14,7 +14,7 @@ from lupine3d_v4 import levels, tmx_import  # noqa: E402
 class TmxRoundTripTests(unittest.TestCase):
     def test_every_authored_level_round_trips_exactly(self):
         paths = sorted((ROOT / "games" / "sable_outpost" / "levels").glob("*.json")) + sorted((ROOT / "tests" / "levels").glob("*.json"))
-        self.assertEqual(len(paths), 21)
+        self.assertEqual(len(paths), 22)
         for path in paths:
             with self.subTest(level=path.name):
                 source = json.loads(path.read_text(encoding="utf-8"))
@@ -37,6 +37,7 @@ class TmxRoundTripTests(unittest.TestCase):
                 self.assertEqual(restored.surface_table, original.surface_table, name)
                 self.assertEqual(restored.door_bytes(), original.door_bytes(), name)
                 self.assertEqual(restored.fixtures, original.fixtures, name)
+                self.assertEqual(restored.extras_bytes(), original.extras_bytes(), name)
 
     def test_tmx_is_a_tiled_map_at_32_pixel_cells(self):
         source = json.loads((ROOT / "games" / "sable_outpost" / "levels" / "living_world.json").read_text())

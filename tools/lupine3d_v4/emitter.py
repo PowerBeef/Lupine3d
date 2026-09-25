@@ -134,8 +134,34 @@ def emit_hud_system(a: Assembler) -> None:
     a.ld_rr_label("hl", "hud_status_records"); a.add_hl_rr("de")
     for i in range(5 if COMPACT_DISPLAY else 3):
         a.ldi_a_hl(); a.ld_abs_a(HUD_PACKET + HUD_STATUS_OFFSET + i)
+    if SLIM_DISPLAY:
+        # The pool of the weapon in hand: plain steel for none or infinite,
+        # else two small digits with no leading zero.
+        a.call("weapon_record"); a.inc_rr("hl"); a.inc_rr("hl"); a.ld_a_hl()
+        a.ld_rr_nn("de", HUD_PLAIN_TILE * 257); a.or_r("a"); a.jr("hud_ammo_ready", "z")
+        a.ld_rr_nn("hl", AMMO - 1); a.ld_r_r("c", "a"); a.ld_r_n("b", 0); a.add_hl_rr("bc")
+        a.ld_a_hl(); a.cp_n(INFINITE_AMMO); a.jr("hud_ammo_ready", "z")
+        a.ld_r_n("b", 0)
+        a.label("hud_ammo_divide"); a.cp_n(10); a.jr("hud_ammo_digits", "c"); a.sub_n(10); a.inc_r("b"); a.jr("hud_ammo_divide")
+        a.label("hud_ammo_digits")
+        a.add_a_n(HUD_SMALL_DIGIT_BASE); a.ld_r_r("e", "a")
+        a.ld_r_r("a", "b"); a.or_r("a"); a.jr("hud_ammo_ready", "z")
+        a.add_a_n(HUD_SMALL_DIGIT_BASE); a.ld_r_r("d", "a")
+        a.label("hud_ammo_ready")
+        a.ld_r_r("a", "d"); a.ld_abs_a(HUD_PACKET + HUD_AMMO_OFFSET)
+        a.ld_r_r("a", "e"); a.ld_abs_a(HUD_PACKET + HUD_AMMO_OFFSET + 1)
+    if KEY_HUD: a.call("update_key_oam")
     if COMPACT_DISPLAY: a.jp("prepare_compact_hud")
     a.ret()
+    if KEY_HUD:
+        a.label("update_key_oam")   # a key's object shows while it is held
+        for key in range(len(GAME.keys)):
+            a.ld_a_abs(PLAYER_KEYS); a.and_n(1 << key); a.jr(f"key_{key}_y", "z"); a.ld_r_n("a", KEY_OAM_Y)
+            a.label(f"key_{key}_y"); a.ld_r_r("b", "a")
+            a.ld_a_abs(OAM_SHADOW + (KEY_OAM + key) * 4); a.cp_r("b"); a.jr(f"key_{key}_same", "z")
+            a.ld_r_r("a", "b"); a.ld_abs_a(OAM_SHADOW + (KEY_OAM + key) * 4); a.ld_r_n("a", 1); a.ld_abs_a(OAM_DIRTY)
+            a.label(f"key_{key}_same")
+        a.ret()
     if not OVERLAP_PUBLICATION: emit_update_hud_tiles(a)
 
 
@@ -168,6 +194,10 @@ def emit_update_hud_tiles(a: Assembler) -> None:
         for i in range(HUD_PORTRAIT_TILES):
             a.ldi_a_hl()
             for base in (0x9800,0x9C00):a.ld_abs_a(base+(HUD_PORTRAIT_ROW+i//2)*32+9+i%2)
+    if SLIM_DISPLAY:
+        for i in range(2):
+            a.ldi_a_hl()
+            for base in (0x9800,0x9C00):a.ld_abs_a(base+HUD_AMMO_ROW*32+HUD_AMMO_X+i)
     a.ret()
 def emit_vram_init(a: Assembler) -> None:
     def copy_atlas(length: int) -> None:
@@ -288,7 +318,8 @@ def emit_vram_init(a: Assembler) -> None:
     a.ld_r_n("a", WEAPON_ROM_BANK); a.ld_abs_a(0x2000)
     a.ld_rr_nn("de", 0x8000 + WEAPON_TILE_BASE * 16); a.ld_rr_nn("bc", WEAPON_TILE_BYTES); a.call("copy_bc")
     a.ld_r_n("a", BOOT_ASSETS_ROM_BANK); a.ld_abs_a(0x2000)
-    a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16); a.ld_rr_nn("bc", 96 if SABLE_ART else 64); a.call("copy_bc")
+    a.ld_rr_label("hl", "obj_ui_tiles"); a.ld_rr_nn("de", 0x8000 + RETICLE_TILE*16)
+    a.ld_rr_nn("bc", (128 if KEY_HUD else 96) if SABLE_ART else 64); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page0"); a.ld_rr_nn("de", 0x9800); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.ld_rr_label("hl", "attrmap_page1"); a.ld_rr_nn("de", 0x9C00); a.ld_rr_nn("bc", 1024); a.call("copy_bc")
     a.xor_r("a"); a.ldh_n_a(VBK)
@@ -590,6 +621,7 @@ def emit_input_system(a: Assembler) -> None:
     a.dec_r("a"); a.ld_abs_a(WEAPON_COOLDOWN); a.jr("no_shoot")
     a.label("weapon_recovered")
     a.ld_a_abs(PRESSED); a.and_n(0x10); a.jr("no_shoot", "z")
+    a.call("fire_ammo"); a.jr("no_shoot", "c")          # a dry pool refuses the shot
     a.call("weapon_record"); a.inc_rr("hl"); a.ld_a_hl(); a.ld_abs_a(WEAPON_COOLDOWN)
     if SABLE_ART: a.call("stamp_shot")
     a.ld_r_n("a", 9 if FIXED_SIMULATION else 3); a.ld_abs_a(FLASH)

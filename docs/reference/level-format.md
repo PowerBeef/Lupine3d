@@ -70,7 +70,9 @@ texture (`docs/explanation/textured-walls.md`).
 | `readability` | no (v2) | per-level certificate limits; defaults below |
 | `fixtures` | no | up to sixteen wall-mounted landmarks |
 | `surfaces` | no | per-face presentation overrides |
-| `triggers` | no | retained for authoring intent; the v2 rule (one exit door that opens when the enemies are cleared) is what the compiler enforces |
+| `items` | no | up to sixteen placed items (see [Items](#items)) |
+| `loadout` | no | what the level starts the player with (see [Items](#items)); without it every ammunition pool is infinite |
+| `triggers` | no | up to eight `open_door` records (see [Triggers](#triggers)); `activate_exit` records are retained authoring intent, and the v2 rule (one exit door that opens when the enemies are cleared) is what the compiler enforces |
 
 Unknown keys are ignored by the compiler and preserved by the TMX round trip.
 
@@ -89,10 +91,16 @@ Unknown keys are ignored by the compiler and preserved by the TMX round trip.
   does not match.
 - `kind` is `standard` or `exit`. `unlock` is `none`, `enemies_cleared`
   (opens once every actor is dead; the showcase writes `sentinel_dead`, the
-  same thing) or `keycard` (opens once the player holds the card). A v2
+  same thing) or `keycard` (opens once the player holds a card). A v2
   level has exactly one `exit` door, and it is `enemies_cleared`.
+- `key` (with `unlock: keycard`) names the colour of card the door wants,
+  one of the game's `keys`; without it any card opens it. A card an enemy
+  drops is the first colour.
+- `remote: true` makes a door that only a [trigger](#triggers) opens: B is
+  refused. It cannot also be the exit or wait for a card.
 - The record compiles to six bytes: x, y, orientation, flags (`0x01` exit,
-  `0x02` locked until the actors are dead, `0x04` keycard), state, fraction.
+  `0x02` locked until the actors are dead, `0x04` keycard, `0x08` remote,
+  bits 4-5 the key colour plus one), state, fraction.
   Up to six doors ride the wall key and the snapshot copy, so the limit is an
   engine contract, not a style choice (`docs/explanation/architecture.md`).
 
@@ -135,6 +143,37 @@ medkit's `value` (1..255,
 health restored) is the only per-level number. The compiler refuses a declared
 drop no actor leaves, a keycard drop that opens nothing, a keycard door with no
 declared card, and a keycard door whose only card-carrying actor is behind it.
+
+### Items
+
+```json
+"items": [{"item": "stim", "x": 2, "y": 13}, {"item": "amber card", "x": 2, "y": 2}],
+"loadout": {"slugs": 3, "cells": 0, "armour": 0}
+```
+
+- Each item is one of the game's item types (`game.json` `items`) on its own
+  walkable cell, not the exit or the spawn. Walking onto the cell takes it;
+  one with nothing to give (health or armour full, a pool full or infinite)
+  stays until it has.
+- `loadout` gives the pools (by the game's `ammo` names; a pool left out
+  starts empty) and armour the level starts with. A level without a
+  `loadout` has infinite pools, so a weapon with ammunition never runs dry
+  there.
+- The compiler walks the level as the player can, with the doors that open
+  when the enemies are cleared shut, card doors opening once a card of their
+  colour has been reached (placed, or dropped by a reachable card-carrying
+  enemy) and remote doors once a trigger's cell has: every item, every
+  enemy, every card door and every remote door must be reached that way.
+
+### Triggers
+
+```json
+{"kind": "open_door", "door": "closet", "x": 5, "y": 7}
+```
+
+Stepping onto `(x, y)` opens the remote door `door`, once. Put one on a
+card's cell to spring a closet when the card is taken. Every remote door
+needs a trigger, and a trigger's cell must be walkable and its own.
 
 ### Fixtures
 
@@ -182,6 +221,7 @@ below are the first slot's:
 | `$4920` | 36 | six six-byte door records |
 | `$4950` | 96 | six sixteen-byte actor slots |
 | `$49B0` | 256 | sixteen sixteen-byte fixture records |
+| `$4AB0` | 53 | the item count and sixteen (cell, type) records, the loadout (two pools, armour), the trigger count and eight (cell, door) records |
 
 `levels.py` names these offsets; `docs/explanation/architecture.md` explains how
 `LEVEL_INDEX`, `LEVEL_BANK` and `LEVEL_PAGE` select a level at runtime.

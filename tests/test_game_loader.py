@@ -153,6 +153,20 @@ CASES = [
     ("weapon count", game(lambda d: d["weapons"].pop()), r"weapons must list exactly 4 weapons"),
     ("first weapon", game(set_key(["weapons", 0, "from_level"], 2)), r"weapons\[0\]\.from_level must be 1"),
     ("weapon order", game(set_key(["weapons", 2, "from_level"], 20)), r"weapons must be listed in the order the player gets them"),
+    ("weapon pool", game(set_key(["weapons", 1, "ammo"], "shells")),
+     r"weapons\[1\]\.ammo 'shells' is not one of the game's ammo pools \(slugs, cells\)"),
+    ("cost without a pool", game(lambda d: d["weapons"][1].pop("ammo")), r"weapons\[1\]\.cost needs weapons\[1\]\.ammo"),
+    ("first weapon runs dry", game(set_key(["weapons", 0, "ammo"], "slugs")), r"weapons\[0\] must have no ammo"),
+    ("too many pools", game(set_key(["ammo"], ["a", "b", "c"])), r"ammo: 3 ammunition pools is more than the engine's 2"),
+    ("item effect", game(set_key(["items", 0, "effect"], "shield")),
+     r"items\[0\]\.effect 'shield' must be one of health, armour, ammo, key, weapon"),
+    ("item needs its pool", game(lambda d: d["items"][2].pop("pool")), r"items\[2\]: an ammo item takes value and pool"),
+    ("item key", game(set_key(["items", 5, "key"], "violet")), r"items\[5\]\.key 'violet' is not one of the game's keys \(amber, teal\)"),
+    ("item weapon", game(set_key(["items", 7, "weapon"], "railgun")), r"items\[7\]\.weapon 'railgun' is not one of the weapons"),
+    ("item sprite", game(set_key(["items", 0, "sprite"], "banana")), r"items\[0\]\.sprite 'banana' is not a frame of the items sheet"),
+    ("items need a sheet", game(delete_key(["sprites", "items"])), r"items need an `items` sprite sheet"),
+    ("too many item types", game(lambda d: d["items"].extend(dict(d["items"][0], name=f"x{n}") for n in range(8))),
+     r"items: 17 item types is more than the engine's 16"),
     ("too many themes", game(extra_theme(5)), r"themes: 5 themes is more than the engine's 4"),
     ("theme texture", game(set_key(["themes", 0, "textures", "structure"], "marble")),
      r"themes\[0\]\.textures\.structure 'marble' is not in textures"),
@@ -267,7 +281,7 @@ class GameLoaderTests(unittest.TestCase):
     def test_the_key_table_covers_every_object_the_loader_reads(self):
         self.assertEqual(set(KEYS), {
             "game", "episode", "kind", "weapon", "theme", "theme.textures", "theme.colours", "shared_palettes", "rom",
-            "audio", "audio.songs", "hud", "hud.words", "sprites", "playtests", "preview", "screens", "screen",
+            "audio", "audio.songs", "hud", "hud.words", "sprites", "playtests", "preview", "screens", "screen", "item",
             "screen.text", "screen.field", "screen.say", "screen.say_field", "screen.image", "song", "song.channel", "sound", "sound.instruments", "sound.pulse", "sound.wave",
             "sound.noise", "sound.effects"})
         for name, (allowed, required) in KEYS.items():

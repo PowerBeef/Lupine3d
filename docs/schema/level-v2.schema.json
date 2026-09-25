@@ -33,7 +33,9 @@
           "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"},
           "orientation": {"enum": ["horizontal", "vertical"]},
           "kind": {"enum": ["standard", "exit"], "default": "standard"},
-          "unlock": {"enum": ["none", "enemies_cleared", "sentinel_dead", "keycard"], "default": "none", "description": "enemies_cleared and sentinel_dead are the same rule: the door opens once every actor is dead."}
+          "unlock": {"enum": ["none", "enemies_cleared", "sentinel_dead", "keycard"], "default": "none", "description": "enemies_cleared and sentinel_dead are the same rule: the door opens once every actor is dead."},
+          "key": {"type": "string", "minLength": 1, "description": "With unlock keycard: the colour of card it wants, one of your game.json keys. Without it, any card."},
+          "remote": {"type": "boolean", "default": false, "description": "Only a trigger opens it; B is refused."}
         }
       }
     },
@@ -101,8 +103,28 @@
     },
     "triggers": {
       "type": "array",
-      "items": {"type": "object", "properties": {"kind": {"type": "string"}, "condition": {"type": "string"}}},
-      "description": "Retained authoring intent; the compiler enforces the v2 rule (one Sentinel-locked exit door) directly."
+      "items": {"type": "object", "properties": {
+        "kind": {"enum": ["activate_exit", "open_door"]},
+        "condition": {"type": "string"},
+        "door": {"type": "string", "minLength": 1},
+        "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"}
+      }},
+      "description": "open_door (at most 8): stepping onto (x, y) opens the remote door named. activate_exit is retained authoring intent; the compiler enforces the v2 rule (one exit door that opens when the enemies are cleared) directly."
+    },
+    "items": {
+      "type": "array", "maxItems": 16,
+      "items": {
+        "type": "object", "required": ["item", "x", "y"],
+        "properties": {"item": {"type": "string", "minLength": 1}, "x": {"$ref": "#/$defs/cell"}, "y": {"$ref": "#/$defs/cell"}},
+        "additionalProperties": false
+      },
+      "description": "Placed items, one of your game.json items each, one to a walkable cell; taken by walking onto it."
+    },
+    "loadout": {
+      "type": "object",
+      "properties": {"armour": {"type": "integer", "minimum": 0, "maximum": 100}},
+      "additionalProperties": {"type": "integer", "minimum": 0, "maximum": 99},
+      "description": "What the level starts the player with: rounds per ammo pool (your game.json ammo names) and armour. Without it every pool is infinite."
     }
   },
   "$defs": {

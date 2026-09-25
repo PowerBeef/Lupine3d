@@ -72,6 +72,7 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.jr("render_world_decor", "z")
     a.ld_a_abs(VRAM_PROFILE); a.cp_n(VRAM_PROFILE_ENTITY); a.jr("render_world_decor", "nz")
     a.call("render_actor_slots"); a.call("render_exit_beacon")
+    if ITEM_CEL_NAMES: a.call("render_placed_items")
     if SABLE_ART and ART_ANIMATION: a.call("render_cosmetic_deaths")
     a.label("render_world_decor"); a.jp("render_wall_fixtures")
 
@@ -134,6 +135,8 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.add_a_n(PICKUP_TILE); a.ld_r_r("d", "a")
     a.ld_r_n("e", 2); a.jp("submit_masked_oam")
 
+    if ITEM_CEL_NAMES: emit_placed_item_renderer(a)
+
     a.label("render_exit_beacon")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
     a.ld_r_n("a", MAX_ACTORS); a.ld_abs_a(ENTITY_SLOT)   # the beacon's own LOD history slot
@@ -146,3 +149,58 @@ def emit_entity_renderer_v7(a: Assembler) -> None:
     a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(8); a.ld_r_r("b", "a")
     a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
     a.ld_r_n("e", 4); a.jp("submit_masked_oam")
+
+
+# Items further than this many cells along either axis are not projected:
+# no level's sightline reaches that far (the readability certificate).
+ITEM_DRAW_REACH = 6
+ITEMS_DRAWN = 4
+
+
+def emit_placed_item_renderer(a: Assembler) -> None:
+    """The level's untaken items, after the actors and the exit beacon.
+
+    Each is an 8x8 cel over an empty pattern at the centre of its cell, drawn
+    like a drop: projected without a level of detail (DECAL_PROJECTING), then
+    masked strip by strip against the walls. Living actors and the beacon
+    have already taken what the frame's objects allow, so an item never
+    pushes one out; at most ITEMS_DRAWN are drawn. The fixture pass that
+    follows sets up its own scratch, so its index and count bytes are
+    borrowed for the loop."""
+    a.label("render_placed_items")
+    a.ld_a_abs(ITEM_TABLE); a.or_r("a"); a.ret("z")
+    a.xor_r("a"); a.ld_abs_a(DECAL_INDEX)
+    a.ld_r_n("a", ITEMS_DRAWN); a.ld_abs_a(DECAL_USED)
+    a.ld_r_n("a", 1); a.ld_abs_a(DECAL_PROJECTING)
+    a.label("item_draw_loop")
+    a.ld_a_abs(DECAL_INDEX); a.ld_r_r("e", "a"); a.ld_a_abs(ITEM_TABLE); a.cp_r("e"); a.jp("item_draw_done", "z")
+    # Taken: bit E of ITEMS_TAKEN.
+    a.ld_r_r("a", "e"); a.and_n(7); a.ld_r_r("b", "a"); a.inc_r("b"); a.ld_r_n("c", 0x80)
+    a.label("item_draw_bit"); a.cb("rlc", "c"); a.dec_r("b"); a.jr("item_draw_bit", "nz")
+    a.ld_rr_nn("hl", ITEMS_TAKEN); a.cb("bit", "e", 3); a.jr("item_draw_byte", "z"); a.inc_rr("hl")
+    a.label("item_draw_byte"); a.ld_a_hl(); a.and_r("c"); a.jp("item_draw_next", "nz")
+    # The record: the cell, then the type.
+    a.ld_r_r("a", "e"); a.add_a_r("a"); a.add_a_n((ITEM_TABLE + 1) & 0xFF); a.ld_r_r("l", "a")
+    a.ld_r_n("h", (ITEM_TABLE + 1) >> 8); a.ld_a_hl(); a.ld_r_r("b", "a")
+    for axis, (player, target) in enumerate(((PLAYER_XH, ENTITY_WORLD_XH), (PLAYER_YH, ENTITY_WORLD_YH))):
+        a.ld_r_r("a", "b")
+        if axis: a.cb("swap", "a")
+        a.and_n(15); a.ld_abs_a(target); a.ld_r_r("c", "a")
+        a.ld_a_abs(player); a.sub_r("c"); a.jr(f"item_reach_{axis}", "nc"); a.cpl(); a.inc_r("a")
+        a.label(f"item_reach_{axis}"); a.cp_n(ITEM_DRAW_REACH + 1); a.jp("item_draw_next", "nc")
+    a.ld_r_n("a", 0x80); a.ld_abs_a(ENTITY_WORLD_XL); a.ld_abs_a(ENTITY_WORLD_YL)
+    a.call("project_entity"); a.ld_a_abs(SENTINEL_VISIBLE); a.or_r("a"); a.jr("item_draw_next", "z")
+    a.ld_a_abs(SENTINEL_SCREEN_X); a.call("entity_column_visible"); a.ld_abs_a(MASK_BITS)
+    # Its type's cel and palette.
+    a.ld_a_abs(DECAL_INDEX); a.add_a_r("a"); a.add_a_n((ITEM_TABLE + 2) & 0xFF); a.ld_r_r("l", "a")
+    a.ld_r_n("h", (ITEM_TABLE + 2) >> 8); a.ld_a_hl(); a.and_n(15); a.add_a_r("a"); a.add_a_r("a")
+    a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "item_types"); a.add_hl_rr("de")
+    a.inc_rr("hl"); a.inc_rr("hl"); a.ldi_a_hl(); a.ld_r_r("d", "a"); a.ld_a_hl(); a.ld_r_r("e", "a")
+    a.ld_a_abs(ENTITY_FOOT_Y); a.sub_n(8); a.ld_r_r("b", "a")
+    a.ld_a_abs(SENTINEL_SCREEN_X); a.add_a_n(4); a.ld_r_r("c", "a")
+    a.call("submit_masked_oam")
+    a.ld_rr_nn("hl", DECAL_USED); a.dec_r("(hl)"); a.jr("item_draw_done", "z")
+    a.label("item_draw_next")
+    a.ld_rr_nn("hl", DECAL_INDEX); a.inc_r("(hl)"); a.jp("item_draw_loop")
+    a.label("item_draw_done")
+    a.xor_r("a"); a.ld_abs_a(DECAL_PROJECTING); a.ret()

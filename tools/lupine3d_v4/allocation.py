@@ -52,6 +52,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
           "campaign scalars: actor count, palette set, weapons owned, level page, texture directory"),
         A("WRAM0", l.LIVE_MAP_GEN, l.MAP_GENERATION_END, "live and snapshot map generations"),
         A("WRAM0", l.TAIL_PENDING, l.TAIL_PENDING_END, "overlapped publication hand-off"),
+        A("WRAM0", l.LEVEL_TRIGGER_COUNT, l.TRIGGER_STATE_END, "level trigger count and fired triggers (simulation)"),
         A("WRAM0", 0xC800, 0xC8BA, "OAM, publication and world epoch state"),
         A("WRAM0", 0xC8BA, 0xC8CE, "foreground queue and publication ownership"),
         A("WRAM0", l.DYN_STREAMED, l.DYN_STREAMED + 1, "dynamic patterns already streamed by HBlank DMA", "composition through publication"),
@@ -61,6 +62,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM0", l.WORLD_COPY_BUFFER, l.WORLD_COPY_BUFFER + l.WORLD_COPY_BYTES,
           "snapshot copy / later fixture visibility", "exclusive sequential reuse"),
         A("WRAM0", l.COLUMN_ROWS, l.COLUMN_ROWS + l.FOLDED_ROWS, "folded column tile IDs", "one composed column"),
+        A("WRAM0", l.ACTOR_PATROL, l.ACTOR_SIM_STATE_END, "actor patrol headings and wake radius (simulation only)"),
         A("WRAM0", 0xCB00, 0xCB6F, "saved render HRAM", "simulation service"),
         A("WRAM0", 0xCB70, 0xCB80, "dynamic cache key staging and pointer", "one tile lookup/composition"),
         A("WRAM0", 0xCB80, 0xCB9A, "atomic actor admission staging", "entity rendering, no yields"),
@@ -82,6 +84,7 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
         A("WRAM1", 0xD400, 0xD720, "physical descriptors and ray depth/segments"),
         A("WRAM1", l.VRAM_PROFILE, l.VRAM_PROFILE + l.WORLD_WINDOW_BYTES, "snapshot world, entity projection and campaign state"),
         A("WRAM1", l.ACTOR_PROJECTION, l.ACTOR_PROJECTED + l.MAX_ACTORS, "per-slot actor projection records", "entity rendering"),
+        A("WRAM1", l.ITEM_TABLE, l.ITEM_TABLE_END, "placed items: count, then cell and type (the same in bank 2 for the simulation)"),
         A("WRAM1", 0xD800, 0xD8A0, "physical segments"),
         A("WRAM1", 0xD8A0, 0xD8C8, "Q14 and door/LOS scratch"),
         A("WRAM1", 0xD8D0, 0xD8DA, "mask submission scratch"),
@@ -139,15 +142,20 @@ def memory_ledger(layout, code_end, resident_end, boot_bytes, raw_ray_bytes=0):
     # Campaign state rides the copy that is already made; it never grows it.
     assert l.ART_STATE_END == l.GAME_STATE and l.GAME_STATE_END <= l.VRAM_PROFILE + l.WORLD_WINDOW_BYTES
     assert l.HUD_PACKET + l.HUD_PACKET_BYTES <= 0xD400
+    # Bank 2's copy of the items and its trigger records: the simulation
+    # otherwise leaves both ranges alone (bank 1's row-window caches end at
+    # the trigger table, and its projection records at the item table).
+    assert l.ACTOR_PROJECTED + l.MAX_ACTORS <= l.ITEM_TABLE and l.TRIGGER_TABLE >= 0xD1F0
     assert l.WEAPON_TILE_BASE >= 32
-    assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) <= 128
+    assert l.RETICLE_TILE + (6 if l.SABLE_ART else 4) + (2 if l.KEY_HUD else 0) <= 128
+    assert not l.KEY_HUD or (l.KEY_TILE == l.RETICLE_TILE + 6 and l.KEY_OAM >= l.ENTITY_OAM_FIRST + l.ENTITY_OAM_COUNT)
     assert l.SENTINEL_MID_TILE_BASE + l.SENTINEL_MID_FRAMES*l.SENTINEL_MID_TILES_PER_FRAME + 64 <= 256
     # The copy is a contract: the map, the camera, the world window and every
     # actor slot, and nothing else. A change here changes what the renderer
     # can see of the simulation.
     assert l.WORLD_COPY_BYTES == 256 + 8 + l.WORLD_WINDOW_BYTES + l.MAX_ACTORS * 16
     assert l.WORLD_COPY_BUFFER + l.WORLD_COPY_BYTES <= l.COLUMN_ROWS
-    assert l.COLUMN_ROWS + l.FOLDED_ROWS <= l.RENDER_HRAM_SAVE
+    assert l.COLUMN_ROWS + l.FOLDED_ROWS <= l.ACTOR_PATROL and l.ACTOR_SIM_STATE_END <= l.RENDER_HRAM_SAVE
     # The sequencer state sits above the BG map in every display profile and
     # never overlaps the diagnostic strip scratch. Screen state borrows the
     # bottom of the map buffer, which composition refills on every enter_world,

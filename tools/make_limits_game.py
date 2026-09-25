@@ -9,8 +9,9 @@ levels, episodes, themes, textures and kinds the table allows, the heaviest
 contact damage, weapons that unlock one level at a time (each later unlock is
 a compare in resident code), the most songs with one of them the most rows
 (the songs share one bank, so those two maxima are proven together), a
-debrief after every level, and sound effects with no zero byte (a zero is
-emitted one byte shorter).
+debrief after every level, the most item types, a first level holding the
+most placed items and triggers (all opening one remote door), and sound
+effects with no zero byte (a zero is emitted one byte shorter).
 
 `make limits` writes it, builds it, and runs `--check` in a process that
 builds that game: each episode's first level, the last level and a level in
@@ -113,6 +114,12 @@ def generate(output: Path) -> dict:
         name = f"limit_song_{len(level_songs) + 1}"
         write_json(output / "audio" / f"{name}.json", bar)
         level_songs[name] = f"audio/{name}.json"
+    # Items: the most types, and the first level with the most placed items
+    # and the most triggers, every trigger opening one door made remote.
+    items = manifest.setdefault("items", [])
+    while len(items) < maximum("item_types"):
+        items.append({**items[0], "name": f"limit item {len(items) + 1}"})
+    place_items_and_triggers(output / levels[0], [item["name"] for item in items], manifest.get("ammo", []))
     # Debriefs: one after every level but the last, as the loader requires.
     screens_path = output / manifest["screens"]
     screens = json.loads(screens_path.read_text(encoding="utf-8"))
@@ -132,6 +139,43 @@ def generate(output: Path) -> dict:
             "textures": len(manifest["textures"]), "kinds": len(manifest["kinds"])}
 
 
+def place_items_and_triggers(path: Path, names: list[str], pools: list[str]) -> None:
+    """The most items and triggers in one level: the items on the cells the
+    spawn reaches with only the standard doors open, the triggers on the
+    cells it reaches before the door they open, which becomes remote."""
+    from collections import deque
+    level = json.loads(path.read_text(encoding="utf-8"))
+    rows = level["rows"]
+    spawn = (level["player_spawn"]["x_q8"] >> 8, level["player_spawn"]["y_q8"] >> 8)
+    exit_cell = (level["exit"]["x"], level["exit"]["y"])
+    standard = [door for door in level["doors"]
+                if door.get("kind", "standard") == "standard" and door.get("unlock", "none") == "none"]
+
+    def reach(open_doors: set[tuple[int, int]]) -> list[tuple[int, int]]:
+        seen, queue = {spawn}, deque([spawn])
+        while queue:
+            x, y = queue.popleft()
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                code = rows[ny][nx]
+                if (nx, ny) not in seen and (code == "0" or (code == "3" and (nx, ny) in open_doors)):
+                    seen.add((nx, ny)); queue.append((nx, ny))
+        return sorted(cell for cell in seen if rows[cell[1]][cell[0]] == "0" and cell not in (spawn, exit_cell))
+
+    remote = standard[-1]
+    others = {(door["x"], door["y"]) for door in standard if door is not remote}
+    before = reach(others)
+    anywhere = reach(others | {(remote["x"], remote["y"])})
+    assert len(anywhere) >= maximum("items_per_level") and len(before) >= maximum("triggers_per_level"), path.name
+    remote["remote"] = True
+    level["items"] = [{"item": names[n % len(names)], "x": x, "y": y}
+                      for n, (x, y) in enumerate(anywhere[:maximum("items_per_level")])]
+    level["triggers"] = list(level.get("triggers", [])) + [
+        {"kind": "open_door", "door": remote["id"], "x": x, "y": y}
+        for x, y in before[:maximum("triggers_per_level")]]
+    level["loadout"] = {pool: maximum("ammo") for pool in pools}
+    write_json(path, level)
+
+
 def check() -> dict:
     """Run in a process that builds the limits game (LUPINE3D_GAME)."""
     import hashlib
@@ -144,7 +188,9 @@ def check() -> dict:
     game = br.GAME
     counts = {"levels": len(game.level_paths), "episodes": len(game.episodes), "themes": len(game.themes),
               "textures": len(game.textures), "kinds": len(game.kinds), "songs": len(game.songs),
-              "song_rows": max(len(song.pulse) for song in game.songs.values())}
+              "song_rows": max(len(song.pulse) for song in game.songs.values()),
+              "item_types": len(game.items), "items_per_level": len(br.CAMPAIGN[0].items),
+              "triggers_per_level": len(br.CAMPAIGN[0].triggers)}
     for name, count in counts.items():
         assert count == maximum(name), (name, count, maximum(name))
     rom_path = br.GAME_BUILD / "lupine3d.gb"

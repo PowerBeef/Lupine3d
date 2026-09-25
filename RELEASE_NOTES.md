@@ -1,5 +1,22 @@
 # Unreleased — after v0.12
 
+- **Items, ammunition, coloured keys and triggers.** A game defines item
+  types (`game.json` `items`: health, armour, ammunition, a key or a weapon,
+  each drawn from a new `items` sprite sheet in one of the shared palettes)
+  and up to two ammunition pools and two key colours; a level places up to
+  sixteen items, gives a `loadout`, colours its card doors (`key`), makes a
+  door `remote` and opens it from up to eight `open_door` triggers. Walking
+  onto an item takes it unless it has nothing to give. Weapons may draw on a
+  pool (`ammo`, `cost`): a dry weapon clicks and falls back to the first.
+  The slim HUD shows the pool of the weapon in hand (two small digits after
+  health; the packet is 18 bytes) and each key held (OAM 28-29). A level
+  without a loadout has infinite pools, and one without items or triggers
+  costs two compares a tick, so the evidence population and the starter
+  play as before. The compiler walks each level as a player can and refuses
+  an item, enemy, card door or remote door it cannot reach. Sable Outpost
+  defines nine item types (`art/tools/make_item_art.py` draws the cels);
+  its levels place none yet. `make limits` now also proves sixteen item
+  types and a level with sixteen items and eight triggers.
 - **Sable Outpost has a story, a title and a soundtrack.** The title is a
   SABLE wordmark over the approved helmet (both derived by
   `art/tools/make_title_art.py`) with a tagline, "SOMETHING ANSWERED.".

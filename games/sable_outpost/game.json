@@ -10,7 +10,8 @@
     "actor_near": "sentinel_near", "actor_mid": "sentinel_far", "actor_far": "sentinel_distant",
     "reticle": "reticle", "muzzle_flash": "flash",
     "hud": "hud_steel", "portrait": "helmet_steel",
-    "drops": "drops", "hit_effect": "hit_effect", "exit_beacon": "exit_beacon", "fixtures": "fixtures"
+    "drops": "drops", "hit_effect": "hit_effect", "exit_beacon": "exit_beacon", "fixtures": "fixtures",
+    "items": "items"
   },
   "fixture_kinds": ["vent", "light", "access", "sector"],
   "playtests": {
@@ -100,9 +101,25 @@
   },
   "weapons": [
     {"name": "shotgun", "sprite": "shotgun", "damage": 1, "recovery_ticks": 0, "from_level": 1},
-    {"name": "slug rifle", "sprite": "slug_rifle", "damage": 2, "recovery_ticks": 15, "from_level": 1},
-    {"name": "arc lance", "sprite": "arc_lance", "damage": 4, "recovery_ticks": 40, "from_level": 7},
-    {"name": "pulse carbine", "sprite": "pulse_carbine", "damage": 2, "recovery_ticks": 6, "from_level": 13}
+    {"name": "slug rifle", "sprite": "slug_rifle", "damage": 2, "recovery_ticks": 15, "from_level": 1,
+     "ammo": "slugs", "cost": 1},
+    {"name": "arc lance", "sprite": "arc_lance", "damage": 4, "recovery_ticks": 40, "from_level": 7,
+     "ammo": "cells", "cost": 4},
+    {"name": "pulse carbine", "sprite": "pulse_carbine", "damage": 2, "recovery_ticks": 6, "from_level": 13,
+     "ammo": "cells", "cost": 1}
+  ],
+  "ammo": ["slugs", "cells"],
+  "keys": ["amber", "teal"],
+  "items": [
+    {"name": "medkit", "sprite": "medkit", "effect": "health", "value": 25},
+    {"name": "stim", "sprite": "stim", "effect": "health", "value": 10},
+    {"name": "slugs", "sprite": "slugs", "effect": "ammo", "pool": "slugs", "value": 6, "palette": "effects"},
+    {"name": "cells", "sprite": "cells", "effect": "ammo", "pool": "cells", "value": 20, "palette": "decor"},
+    {"name": "armour", "sprite": "armour", "effect": "armour", "value": 50, "palette": "decor"},
+    {"name": "amber card", "sprite": "card", "effect": "key", "key": "amber", "palette": "effects"},
+    {"name": "teal card", "sprite": "card", "effect": "key", "key": "teal", "palette": "decor"},
+    {"name": "arc lance", "sprite": "case", "effect": "weapon", "weapon": "arc lance", "palette": "effects"},
+    {"name": "pulse carbine", "sprite": "case", "effect": "weapon", "weapon": "pulse carbine", "palette": "decor"}
   ],
   "episodes": [
     {

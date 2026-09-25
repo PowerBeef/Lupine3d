@@ -21,6 +21,10 @@ enters its levels by continue code with every frame check.
 | `actor_palettes` | 1 | 3 | enemy palettes | OBJ palettes 1, 6 and 7 are the enemies'; the other five draw the weapon, drops, effects, decor and reticle |
 | `contact_damage` | 0 | 170 | an enemy's contact damage | the hard skill adds half again, and the result must fit a byte |
 | `weapons` | 4 | 4 | weapons | the weapon index is two bits and SELECT walks all four |
+| `ammo_pools` | 0 | 2 | ammunition pools | a weapon record names its pool in one byte, and the render snapshot's slack holds two |
+| `ammo` | 0 | 99 | rounds in a pool | the HUD shows a pool in two digits |
+| `item_types` | 0 | 16 | item types | a placed item names its type in four bits of its record |
+| `keys` | 0 | 2 | key colours | a door names its key in two bits of its flags, zero meaning any card |
 | `themes` | 1 | 4 | themes | each theme's 36-byte texture directory and 128-byte palette set sit in the fixed half of bank 0 beside the resident engine |
 | `textures` | 1 | 7 | wall textures | a texture is four 5 KiB shade blocks, three to a bank, and the textured kernel owns ten banks: thirty blocks |
 | `screen_patterns` | 11 | 128 | distinct 8x8 patterns on one screen, the ten digits and a blank included | a screen's patterns are copied to $9000-$97FF, 128 patterns below the map |
@@ -36,6 +40,8 @@ enters its levels by continue code with every frame check.
 | `doors_per_level` | 0 | 6 | doors in a level | a level's six-byte door records fill 48 bytes of its slot |
 | `actors_per_level` | 0 | 6 | enemies in a level | six simulated actor slots; the OBJ budget admits four on screen at once |
 | `fixtures_per_level` | 0 | 16 | wall fixtures in a level | a level's fixture records fill 256 bytes |
+| `items_per_level` | 0 | 16 | placed items in a level | which items are taken is a sixteen-bit mask in the render snapshot |
+| `triggers_per_level` | 0 | 8 | triggers in a level | which triggers have fired is one byte of fixed WRAM |
 
 ## Shared budgets
 

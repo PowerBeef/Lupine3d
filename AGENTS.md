@@ -311,6 +311,15 @@ regression contract.
   `LEVEL_INDEX` and `WEAPON_UNLOCK_SECTORS` (0, 0, 6, 12), so a continue
   code restores the arsenal for free and one that moves backwards takes a
   weapon away; a weapon in hand that is no longer owned drops to the first.
+  A weapon item (see **Items, keys and triggers**) ORs its bit in for the
+  rest of the sector: the simulation is `WEAPONS_OWNED`'s second writer.
+- A weapon may draw on one of two ammunition pools (`AMMO`, in the copied
+  window's slack; 255 is infinite, which is every pool of a level without a
+  `loadout`, so the evidence and the starter never run dry). `weapon_stats`
+  records are four bytes: damage, recovery, pool (0 none, else pool + 1),
+  cost. `fire_ammo` (cold) takes the cost before the shot; a dry weapon
+  clicks (`sound_locked`), refuses the shot and falls back to weapon 0 by
+  the ordinary LCD-off swap. Weapon 0 never has a pool.
 - Pattern IDs never change, only their contents, so no OAM is rewritten and the
   animation code is weapon-agnostic. Every weapon must compile to exactly
   `WEAPON_TILE_BYTES`; the sheets are rendered from 3D models by
@@ -331,6 +340,30 @@ regression contract.
   cell): a chaser pressed flush against a wall has its centre on that wall's
   plane and must still be hittable, while an actor behind a wall or a closed
   panel is at least half a cell further. `tests/test_hitscan.py` pins both.
+
+## Items, keys and triggers
+
+- A game's item types (`game.json` `items`: health, armour, ammo, key or
+  weapon) and a level's placed items (at most 16, one to a cell), loadout
+  and `open_door` triggers (at most 8) compile into the slot tail at
+  `LEVEL_EXTRAS_OFFSET` ($4AB0). `load_level` copies the items to
+  `ITEM_TABLE` ($D7DE) in the bank it loads into (1) and in bank 2, the
+  triggers to `TRIGGER_TABLE` ($D1F0, bank 2 only), and restores SVBK.
+  `ITEMS_TAKEN` (a bit per item), `AMMO` and `PLAYER_ARMOUR` ride the copied
+  window's slack; `LEVEL_TRIGGER_COUNT`/`TRIGGERS_FIRED` are fixed WRAM.
+  `ACTOR_PATROL` and `ACTIVATION_RADIUS` moved to fixed `$CAF8` to make
+  that room: only the simulation reads them.
+- `update_placed` (cold, every tick) takes the item under the player unless
+  it has nothing to give, and springs an unfired trigger on the player's
+  cell; a level without either costs two compares. `render_placed_items`
+  draws at most four untaken items within six cells after the actors and
+  the beacon (never at their expense) on the Sable profiles; the legacy
+  profile applies items but draws none.
+- `PLAYER_KEYS` is a bit per key colour; a dropped keycard is the first.
+  Door flags: `0x08` remote (B refused; only a trigger opens it) and bits
+  4-5 the colour a card door wants, plus one (0: any card). The compiler
+  walks the level as the player can and refuses an item, enemy, card door
+  or remote door it cannot reach.
 
 ## Sound contracts
 
@@ -415,15 +448,20 @@ uncovered human face. The skull counts living enemies remaining. Slim reads
 GOAL/HUNT until enemies are defeated, then GOAL/EXIT; DEAD/DONE clear GOAL.
 Internal LOCK/OPEN keys remain for the packet ABI. No controls footer/hint tiles.
 
-The 16-byte HUD packet at `$D3D8` owns health 4, count 1, caption 2, status 3 and
-portrait 6 bytes. HUD source uses **94/96 patterns**. Objective text starts at
+The HUD packet at `$D3D8` owns health 4, count 1, caption 2, status 3 and
+portrait 6 bytes, and on slim (18 bytes) the ammunition of the weapon in
+hand, 2: small digits on the plain steel of row 16, columns 6-7, plain
+(pattern 73) for no pool or an infinite one. Slim Sable shows held keys as
+OAM 28-29 (the key cel after the reticle and muzzle, OBJ patterns 118-119,
+the cards' effects and decor palettes) over column 12 of row 16;
+`clear_entity_oam_shadow` clears only the sixteen world entries there. HUD source uses **94/96 patterns**. Objective text starts at
 HUD y=4/y=10; status IDs reference vertical tile pairs and publication writes
 ID+1 into the third HUD row on both maps. Preserve all chassis/framing pixels.
 Slim helmet blink uses accepted snapshot ticks 62–63 modulo 64.
 
 Weapon/UI occupies 86 preloaded bank-1 OBJ patterns, separate from the 32 masked
 patterns; eighty of them are one weapon's cels and are streamed, not resident
-per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 220 patterns (242 before the middle distance became one column; each drop keeps an empty pattern after it); source IDs
+per weapon (see **Weapons**). The enemy/fixture ROM source dictionary has 220 patterns (242 before the middle distance became one column; each drop keeps an empty pattern after it), then the placed items' cels (two patterns each, `ITEM_TILE_BASE`); source IDs
 are not resident VRAM IDs. Preserve cold-bank capacity. Animation follows
 accepted snapshot ticks; pending flashes cannot expire unseen. Cosmetic death
 must never delay gameplay death, pickups or exit activation; living actors and

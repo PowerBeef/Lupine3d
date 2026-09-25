@@ -262,7 +262,16 @@ def _sentinel_far_frame(frame):
 def make_obj_ui_tiles():
     if not SABLE_ART:return _legacy_obj_ui_tiles()
     from .sprite_assets import compile_sheet
-    return compile_sheet(GAME.sprites['reticle'])+compile_sheet(GAME.sprites['muzzle_flash'])
+    tiles_out = compile_sheet(GAME.sprites['reticle'])+compile_sheet(GAME.sprites['muzzle_flash'])
+    if KEY_HUD:
+        # A key four pixels wide, a bow over a toothed shaft, over an empty
+        # pattern: each colour's object shows it in its own half of the cell.
+        key = canvas(8, 16)
+        for y, row in enumerate((".33.", "3..3", "3..3", ".33.", ".3..", ".33.", ".3..", ".33.")):
+            for x, pixel in enumerate(row):
+                key[y][x] = 3 if pixel == "3" else 0
+        tiles_out += tiles(key)
+    return tiles_out
 
 
 def compact_hud_pixels(height=32):

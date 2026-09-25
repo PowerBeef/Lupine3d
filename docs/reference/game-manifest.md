@@ -32,6 +32,9 @@ The top-level object.
 | `actor_palettes` | yes | one to three names for the enemy palettes (OBJ 1, 6 and 7, in that order); a [`kind`](#kind) and every [`theme`](#theme) refer to them |
 | `kinds` | yes | one to four [`kind`](#kind) objects; a level's actors name them |
 | `weapons` | yes | exactly four [`weapon`](#weapon) objects, in the order the player gets them |
+| `ammo` | no | up to two ammunition pool names, in pool order; a weapon's `ammo` and an ammo [`item`](#item) name one |
+| `keys` | no | up to two key colour names; key *n* is drawn in the effects palette (the first) or the decor palette (the second), and a card door and a key [`item`](#item) name one |
+| `items` | no | up to sixteen [`item`](#item) types a level can place |
 | `textures` | yes | texture name → a 16×8 indexed PNG ([asset formats](asset-formats.md)); one to seven, each used by a theme |
 | `themes` | yes | one to four [`theme`](#theme) objects; a level names one as its `palette_profile` |
 | `shared_palettes` | yes | the palettes every theme shares: [`shared_palettes`](#shared_palettes) |
@@ -89,7 +92,26 @@ next one the player owns.
 | `sprite` | yes | its cel sheet: a record of the sprite manifest (40×32, four cels) |
 | `damage` | yes | health a hit takes off an enemy, 1..255 |
 | `recovery_ticks` | yes | simulation ticks before it fires again, 0..255; kept across a swap |
-| `from_level` | yes | the first level (1-based) that owns it, or `null` for never. The first weapon's is 1, and the list never goes back down |
+| `from_level` | yes | the first level (1-based) that owns it, or `null` for never. The first weapon's is 1, and the list never goes back down. A weapon [`item`](#item) also gives it for the rest of that level |
+| `ammo` | no | the pool a shot draws on, one of `ammo`. Without it the weapon never runs dry; the first weapon has none, and a dry weapon falls back to it |
+| `cost` | no | rounds a shot takes, 1..9; default 1, and only with `ammo` |
+
+### `item`
+
+Something placed on a level's floor ([level format](level-format.md#items)),
+taken by walking onto its cell. An item with nothing to give (health or
+armour already full, a pool full or infinite) stays where it is.
+
+| Key | Required | Value |
+|---|---|---|
+| `name` | yes | what a level's `items` call it |
+| `sprite` | yes | a cel of the `items` sprite sheet |
+| `effect` | yes | `health`, `armour`, `ammo`, `key` or `weapon` |
+| `value` | for health, armour and ammo | health given (up to 99), armour points (up to 100) or rounds (up to 99) |
+| `pool` | for ammo | the pool it fills, one of `ammo` |
+| `key` | for key | the key colour it gives, one of `keys` |
+| `weapon` | for weapon | the weapon it gives, by name |
+| `palette` | no | the shared OBJ palette it is drawn in: `drops` (the default), `effects` or `decor` |
 
 ### `theme`
 
@@ -196,6 +218,7 @@ Every value but `manifest` names a record of the sprite manifest
 | `hit_effect` | yes | the hit spark, 8×8, two cels |
 | `exit_beacon` | yes | the exit marker, 8×8, two cels |
 | `fixtures` | yes | the wall fixtures, 16×16, three distances per family |
+| `items` | with items | the placed items' cels, 8×8, one per `item` sprite |
 
 ### `playtests`
 

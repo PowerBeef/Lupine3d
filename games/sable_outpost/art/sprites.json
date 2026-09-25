@@ -962,6 +962,58 @@
         ]
       ],
       "sha256": "8543f5f6accd9afeee0b73c363d97295722441cfb88417fa22c6c97ca008a724"
+    },
+    "items": {
+      "file": "native/items.png",
+      "size": [
+        8,
+        8
+      ],
+      "frames": [
+        "medkit",
+        "stim",
+        "slugs",
+        "cells",
+        "armour",
+        "card",
+        "case"
+      ],
+      "ticks": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "anchor": [
+        4,
+        8
+      ],
+      "palette": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          40,
+          32
+        ],
+        [
+          40,
+          146,
+          90
+        ],
+        [
+          219,
+          235,
+          186
+        ]
+      ],
+      "sha256": "b2b46ee53645048f01fa232c22802f10dffc4b10f972f373f31589aa2f80cc39"
     }
   },
   "preview_note": "Inspection 240 ms/cel; presentation preview 100 ms/cel is illustrative. ROM-driven previews record actual cadence."

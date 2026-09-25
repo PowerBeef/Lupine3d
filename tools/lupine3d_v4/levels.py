@@ -50,6 +50,8 @@ DOOR_FRACTION = 5
 DOOR_FLAG_EXIT = 0x01
 DOOR_FLAG_LOCK_SENTINEL = 0x02
 DOOR_FLAG_KEYCARD = 0x04
+DOOR_FLAG_REMOTE = 0x08          # only a trigger opens it; B is refused
+DOOR_KEY_SHIFT = 4               # bits 4-5: the key colour a card door wants, plus one; 0 is any card
 # What a dead actor leaves behind, selected by its kind rather than by a byte
 # in its slot: the slot is exactly full, and the kind is already there.
 DROP_KIND_IDS = {name: index for index, name in enumerate(DROPS)}
@@ -76,10 +78,21 @@ LEVEL_HEADER_OFFSET = 0x4900
 LEVEL_DOOR_OFFSET = 0x4920      # MAX_DOORS * DOOR_RECORD_BYTES, 16-aligned
 LEVEL_ACTOR_OFFSET = 0x4950     # MAX_ACTORS * 16 bounded Sentinel slots
 LEVEL_FIXTURE_OFFSET = 0x49B0   # MAX_FIXTURES * 16 wall-mounted landmarks
-LEVEL_PAYLOAD_END = 0x4AB0
+# The slot's tail holds the placed items, the loadout and the triggers
+# (CompiledLevel.extras_bytes), inside the slot pitch.
+LEVEL_EXTRAS_OFFSET = 0x4AB0
+MAX_ITEMS = _LIMITS["items_per_level"].maximum
+MAX_TRIGGERS = _LIMITS["triggers_per_level"].maximum
+EXTRAS_ITEMS = 1                 # after the item count: MAX_ITEMS (cell, type) pairs
+EXTRAS_LOADOUT = EXTRAS_ITEMS + 2 * MAX_ITEMS          # pool 0, pool 1, armour
+EXTRAS_TRIGGER_COUNT = EXTRAS_LOADOUT + 3
+EXTRAS_TRIGGERS = EXTRAS_TRIGGER_COUNT + 1             # MAX_TRIGGERS (cell, door index) pairs
+EXTRAS_BYTES = EXTRAS_TRIGGERS + 2 * MAX_TRIGGERS
+INFINITE_AMMO = 0xFF
+LEVEL_PAYLOAD_END = LEVEL_EXTRAS_OFFSET + EXTRAS_BYTES
 assert LEVEL_DOOR_OFFSET + MAX_DOORS * DOOR_RECORD_BYTES <= LEVEL_ACTOR_OFFSET
 assert LEVEL_ACTOR_OFFSET + MAX_ACTORS * 16 <= LEVEL_FIXTURE_OFFSET
-assert LEVEL_FIXTURE_OFFSET + MAX_FIXTURES * 16 <= LEVEL_PAYLOAD_END
+assert LEVEL_FIXTURE_OFFSET + MAX_FIXTURES * 16 <= LEVEL_EXTRAS_OFFSET
 assert LEVEL_PAYLOAD_END - 0x4000 <= LEVEL_SLOT_PITCH, "a level payload overruns its slot"
 assert LEVELS_PER_BANK * LEVEL_SLOT_PITCH <= 0x4000, "level slots overrun their bank"
 assert LEVEL_SLOT_PITCH % 256 == 0, "the loader adds a slot's page to the high byte alone"
@@ -177,6 +190,9 @@ class CompiledLevel:
     readability: ReadabilityReport | None = None
     fixtures: tuple[tuple[int, int, int, int], ...] = ()
     song: int = 1                      # the world song, SONG_IDS["world"]
+    items: tuple[tuple[int, int, int], ...] = ()       # (x, y, item type)
+    loadout: tuple[int, int, int] = (INFINITE_AMMO, INFINITE_AMMO, 0)   # pool 0, pool 1, armour
+    triggers: tuple[tuple[int, int, int], ...] = ()    # (x, y, door index) a step onto the cell opens
 
     def header_bytes(self) -> bytes:
         """Fixed per-level header consumed by the SM83 loader.
@@ -203,6 +219,15 @@ class CompiledLevel:
     def medkit_value(self) -> int:
         """The health a medkit drop restores; the only per-level drop number."""
         return next(p.value for p in self.pickups if p.kind == "medkit")
+
+    def extras_bytes(self) -> bytes:
+        """The slot tail load_level reads: items, loadout and triggers."""
+        items = b"".join(bytes(((y << 4) | x, kind)) for x, y, kind in self.items)
+        triggers = b"".join(bytes(((y << 4) | x, door)) for x, y, door in self.triggers)
+        data = (bytes((len(self.items),)) + items.ljust(2 * MAX_ITEMS, b"\0")
+                + bytes(self.loadout) + bytes((len(self.triggers),)) + triggers.ljust(2 * MAX_TRIGGERS, b"\0"))
+        assert len(data) == EXTRAS_BYTES
+        return data
 
     def door_bytes(self) -> bytes:
         """Fixed-capacity door records copied into active WRAM at level load."""
@@ -445,7 +470,7 @@ def _material_run_metrics(grid: bytes, width: int, height: int) -> tuple[int, in
 def _validate_keycard_gates(
     grid: bytes, width: int, height: int, start: tuple[int, int],
     entities: tuple[EntitySpec, ...], doors: tuple[DoorSpec, ...],
-    pickups: tuple[PickupSpec, ...],
+    pickups: tuple[PickupSpec, ...], placed_cards: bool = False,
 ) -> None:
     """A keycard door has to be openable, which is a property of the level.
 
@@ -479,6 +504,8 @@ def _validate_keycard_gates(
         if "keycard" in declared:
             raise ValueError("a declared keycard drop opens nothing in this level")
         return
+    if placed_cards:
+        return      # _validate_gates walks placed cards, drops and triggers together
     if "keycard" not in declared:
         raise ValueError("a keycard door needs the level to declare its card drop")
     # Every keycard door is a wall until the card is in hand.
@@ -645,7 +672,9 @@ def compile_level(path: Path) -> CompiledLevel:
             ORIENTATION_IDS[str(item["orientation"])],
             (DOOR_FLAG_EXIT if str(item.get("kind", "standard")) == "exit" else 0)
             | (DOOR_FLAG_LOCK_SENTINEL if str(item.get("unlock", "none")) in UNLOCK_WHEN_CLEARED else 0)
-            | (DOOR_FLAG_KEYCARD if str(item.get("unlock", "none")) == "keycard" else 0),
+            | (DOOR_FLAG_KEYCARD if str(item.get("unlock", "none")) == "keycard" else 0)
+            | (DOOR_FLAG_REMOTE if item.get("remote", False) is True else 0)
+            | (_door_key(item, path) << DOOR_KEY_SHIFT),
         )
         for index, item in enumerate(source.get("doors", []))
     )
@@ -677,6 +706,10 @@ def compile_level(path: Path) -> CompiledLevel:
     }
     if authored_door_cells != seen_door_cells:
         raise ValueError("every material-3 cell must have exactly one authored door record")
+    for door in doors:
+        if door.flags & DOOR_FLAG_REMOTE and door.flags & (DOOR_FLAG_EXIT | DOOR_FLAG_LOCK_SENTINEL | DOOR_FLAG_KEYCARD):
+            raise ValueError(f"door {door.name}: a remote door opens only by its trigger, so it cannot also be "
+                             "the exit or wait for a card or for the enemies")
     entities = tuple(
         EntitySpec(
             kind=str(item["kind"]),
@@ -731,8 +764,11 @@ def compile_level(path: Path) -> CompiledLevel:
         exit_doors = [door for door in doors if door.flags & DOOR_FLAG_EXIT]
         if len(exit_doors) != 1 or not (exit_doors[0].flags & DOOR_FLAG_LOCK_SENTINEL):
             raise ValueError("v2 gameplay levels require exactly one exit door (\"kind\": \"exit\") that opens when the enemies are cleared (\"unlock\": \"enemies_cleared\")")
+    items, loadout, triggers = _extras(source, path, grid, width, height, doors, exit_spec,
+                                       (player_x_q8 >> 8, player_y_q8 >> 8))
     _validate_keycard_gates(grid, width, height,
-                            (player_x_q8 >> 8, player_y_q8 >> 8), entities, doors, pickups)
+                            (player_x_q8 >> 8, player_y_q8 >> 8), entities, doors, pickups,
+                            any(_GAME.items[kind].effect == "key" for _, _, kind in items))
     readability = analyze_level_readability(
         grid, width, height,
         (player_x_q8 >> 8, player_y_q8 >> 8),
@@ -779,6 +815,7 @@ def compile_level(path: Path) -> CompiledLevel:
                 "readability: exposed material paint is too fragmented "
                 f"({readability.material_singleton_runs} singleton runs > {max_singletons})"
             )
+    _validate_gates(grid, width, height, (player_x_q8 >> 8, player_y_q8 >> 8), entities, doors, items, triggers, exit_spec)
     fixtures = []
     sides = {"west": 0, "east": 1, "north": 2, "south": 3}
     kinds = {name: index for index, name in enumerate(_GAME.fixture_kinds)}
@@ -814,7 +851,129 @@ def compile_level(path: Path) -> CompiledLevel:
         readability=readability,
         fixtures=tuple(fixtures),
         song=_song_id(source.get("music", "world"), path),
+        items=items, loadout=loadout, triggers=triggers,
     )
+
+
+def _door_key(item: dict[str, Any], path: Path) -> int:
+    """A card door's key colour, plus one (0: any card opens it)."""
+    if "key" not in item:
+        return 0
+    if str(item.get("unlock", "none")) != "keycard":
+        raise ValueError(f"{path.name}: door {item.get('id')}: a key colour needs \"unlock\": \"keycard\"")
+    if item["key"] not in _GAME.keys:
+        raise ValueError(f"{path.name}: door {item.get('id')}: key {item['key']!r} is not one of {_GAME.id}'s keys "
+                         f"({', '.join(_GAME.keys) or 'none: add `keys` to game.json'})")
+    return _GAME.keys.index(item["key"]) + 1
+
+
+def _extras(source: dict[str, Any], path: Path, grid: bytes, width: int, height: int,
+            doors: tuple[DoorSpec, ...], exit_spec: ExitSpec, spawn: tuple[int, int],
+            ) -> tuple[tuple[tuple[int, int, int], ...], tuple[int, int, int], tuple[tuple[int, int, int], ...]]:
+    """Placed items, the loadout and the triggers: what the slot tail holds."""
+    item_ids = _GAME.item_ids
+    raw_items = source.get("items", [])
+    if len(raw_items) > MAX_ITEMS:
+        raise ValueError(f"{path.name}: {_LIMITS['items_per_level'].what}: {len(raw_items)} is more than {MAX_ITEMS}")
+    items, cells = [], set()
+    for index, raw in enumerate(raw_items):
+        name = str(raw.get("item"))
+        if name not in item_ids:
+            raise ValueError(f"{path.name}: items[{index}] {name!r} is not one of {_GAME.id}'s items "
+                             f"({', '.join(item_ids) or 'none: add `items` to game.json'})")
+        x, y = _bounded_int(raw, "x", 1, width - 2), _bounded_int(raw, "y", 1, height - 2)
+        if grid[y * width + x]:
+            raise ValueError(f"{path.name}: items[{index}] {name} at ({x}, {y}) is not on a walkable cell")
+        if (x, y) in cells or (x, y) in ((exit_spec.x, exit_spec.y), spawn):
+            raise ValueError(f"{path.name}: items[{index}] {name} at ({x}, {y}) shares its cell with another item, "
+                             "the exit or the player's spawn")
+        cells.add((x, y))
+        items.append((x, y, item_ids[name]))
+    loadout = (INFINITE_AMMO, INFINITE_AMMO, 0)
+    if "loadout" in source:
+        raw = source["loadout"]
+        allowed = set(_GAME.ammo) | {"armour"}
+        unknown = sorted(set(raw) - allowed)
+        if unknown:
+            raise ValueError(f"{path.name}: loadout names {unknown}; it takes {', '.join(sorted(allowed))}")
+        pools = [_bounded_int(raw, name, 0, _LIMITS["ammo"].maximum) if name in raw else 0 for name in _GAME.ammo]
+        pools += [INFINITE_AMMO] * (2 - len(pools))
+        loadout = (pools[0], pools[1], _bounded_int(raw, "armour", 0, 100) if "armour" in raw else 0)
+    names = {door.name: index for index, door in enumerate(doors)}
+    triggers, trigger_cells = [], set()
+    for index, raw in enumerate(source.get("triggers", [])):
+        kind = str(raw.get("kind"))
+        if kind == "activate_exit":
+            continue        # the exit opening when the enemies are cleared: every level's, stated in its doors
+        if kind != "open_door":
+            raise ValueError(f"{path.name}: triggers[{index}] kind {kind!r} must be open_door or activate_exit")
+        door = str(raw.get("door"))
+        if door not in names or not doors[names[door]].flags & DOOR_FLAG_REMOTE:
+            raise ValueError(f"{path.name}: triggers[{index}] opens {door!r}, which is not a remote door of this level")
+        x, y = _bounded_int(raw, "x", 1, width - 2), _bounded_int(raw, "y", 1, height - 2)
+        if grid[y * width + x] or (x, y) in trigger_cells:
+            raise ValueError(f"{path.name}: triggers[{index}] at ({x}, {y}) must be a walkable cell of its own")
+        trigger_cells.add((x, y))
+        triggers.append((x, y, names[door]))
+    if len(triggers) > MAX_TRIGGERS:
+        raise ValueError(f"{path.name}: {_LIMITS['triggers_per_level'].what}: {len(triggers)} is more than {MAX_TRIGGERS}")
+    opened = {door for _, _, door in triggers}
+    for index, door in enumerate(doors):
+        if door.flags & DOOR_FLAG_REMOTE and index not in opened:
+            raise ValueError(f"{path.name}: remote door {door.name} has no trigger that opens it")
+    return tuple(items), loadout, tuple(triggers)
+
+
+def _validate_gates(grid: bytes, width: int, height: int, start: tuple[int, int],
+                    entities: tuple[EntitySpec, ...], doors: tuple[DoorSpec, ...],
+                    items: tuple[tuple[int, int, int], ...], triggers: tuple[tuple[int, int, int], ...],
+                    exit_spec: ExitSpec) -> None:
+    """Every card door, remote door and placed item has to be reachable in play.
+
+    Walk the level as the player can: card doors open once a card of their
+    colour is in hand (a placed card, or the one a card-dropping actor
+    leaves, which is the first colour), remote doors once their trigger's cell
+    is reached; the doors that open when the enemies are cleared stay shut.
+    Everything must be reached that way."""
+    if not items and not triggers and not any(door.flags & (DOOR_FLAG_REMOTE | (3 << DOOR_KEY_SHIFT)) for door in doors):
+        return      # nothing but what _validate_keycard_gates already proves
+    passable = _passable_cells(grid, width, height)
+    locked = {(door.x, door.y) for door in doors if door.flags & DOOR_FLAG_LOCK_SENTINEL}
+    gated = {index for index, door in enumerate(doors) if door.flags & (DOOR_FLAG_KEYCARD | DOOR_FLAG_REMOTE)}
+    item_types = _GAME.items
+    keys, opened = 0, set()
+    while True:
+        closed = locked | {(doors[i].x, doors[i].y) for i in gated - opened}
+        reach = _reachable_cells(passable - closed, start)
+        found = keys
+        for x, y, kind in items:
+            if (x, y) in reach and item_types[kind].effect == "key":
+                found |= item_types[kind].value
+        if any((entity.x_q8 >> 8, entity.y_q8 >> 8) in reach and KIND_DROPS[entity.kind] == "keycard"
+               for entity in entities):
+            found |= 1
+        now = set(opened)
+        for x, y, door in triggers:
+            if (x, y) in reach:
+                now.add(door)
+        for index in gated:
+            flags = doors[index].flags
+            if flags & DOOR_FLAG_KEYCARD:
+                colour = (flags >> DOOR_KEY_SHIFT) & 3
+                if (colour == 0 and found) or (colour and found & (1 << (colour - 1))):
+                    now.add(index)
+        if (found, now) == (keys, opened):
+            break
+        keys, opened = found, now
+    for index in sorted(gated - opened):
+        raise ValueError(f"door {doors[index].name} can never be opened: its card or its trigger is out of reach")
+    for x, y, kind in items:
+        if (x, y) not in reach:
+            raise ValueError(f"the {item_types[kind].name} at ({x}, {y}) can never be reached")
+    for entity in entities:
+        cell = (entity.x_q8 >> 8, entity.y_q8 >> 8)
+        if cell not in reach:
+            raise ValueError(f"the {entity.kind} at cell {cell} can never be reached")
 
 
 def _song_id(name: object, path: Path) -> int:

@@ -1,0 +1,237 @@
+{
+  "format": "lupine-level-v2",
+  "name": "Placed Items Fixture",
+  "width": 16,
+  "height": 16,
+  "rows": [
+    "1111111111111111",
+    "1000010000011111",
+    "1000010000011111",
+    "1202012000011111",
+    "1000010000011111",
+    "1311113101111111",
+    "1011110100001111",
+    "1011110120001111",
+    "1011110100001111",
+    "1000000102001111",
+    "1111011100001111",
+    "1111311123211111",
+    "1000001100001111",
+    "1000001102001111",
+    "1000001100001111",
+    "1111111111111111"
+  ],
+  "player_spawn": {
+    "x_q8": 1152,
+    "y_q8": 3456,
+    "angle": 192,
+    "safe_radius_cells": 5
+  },
+  "doors": [
+    {
+      "id": "start_airlock",
+      "x": 4,
+      "y": 11,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none"
+    },
+    {
+      "id": "bunk_room",
+      "x": 1,
+      "y": 5,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "none",
+      "remote": true
+    },
+    {
+      "id": "mess_hatch",
+      "x": 6,
+      "y": 5,
+      "orientation": "horizontal",
+      "kind": "standard",
+      "unlock": "keycard",
+      "key": "amber"
+    },
+    {
+      "id": "exit_lock",
+      "x": 9,
+      "y": 11,
+      "orientation": "horizontal",
+      "kind": "exit",
+      "unlock": "sentinel_dead"
+    }
+  ],
+  "entities": [
+    {
+      "kind": "sentinel",
+      "x_q8": 2688,
+      "y_q8": 2176,
+      "health": 3,
+      "activation_radius_q4": 96
+    }
+  ],
+  "pickups": [
+    {
+      "kind": "medkit",
+      "source": "sentinel_drop",
+      "value": 25
+    }
+  ],
+  "triggers": [
+    {
+      "kind": "activate_exit",
+      "condition": "sentinel_dead"
+    },
+    {
+      "kind": "open_door",
+      "door": "bunk_room",
+      "x": 2,
+      "y": 9
+    }
+  ],
+  "exit": {
+    "x": 10,
+    "y": 13,
+    "marker": "beacon"
+  },
+  "readability": {
+    "maximum_sightline": 6,
+    "minimum_door_separation": 8,
+    "minimum_critical_path_steps": 12,
+    "minimum_critical_path_turns": 3,
+    "maximum_material_singletons": 16
+  },
+  "fixtures": [
+    {
+      "x": 4,
+      "y": 11,
+      "side": "south",
+      "kind": "access"
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "side": "south",
+      "kind": "access"
+    },
+    {
+      "x": 6,
+      "y": 5,
+      "side": "south",
+      "kind": "access"
+    },
+    {
+      "x": 9,
+      "y": 11,
+      "side": "north",
+      "kind": "access"
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "side": "south",
+      "kind": "light"
+    },
+    {
+      "x": 5,
+      "y": 11,
+      "side": "south",
+      "kind": "vent"
+    },
+    {
+      "x": 0,
+      "y": 13,
+      "side": "east",
+      "kind": "sector"
+    },
+    {
+      "x": 6,
+      "y": 13,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "side": "south",
+      "kind": "light"
+    },
+    {
+      "x": 2,
+      "y": 8,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "side": "east",
+      "kind": "vent"
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 11,
+      "y": 3,
+      "side": "west",
+      "kind": "vent"
+    },
+    {
+      "x": 8,
+      "y": 7,
+      "side": "east",
+      "kind": "sector"
+    },
+    {
+      "x": 12,
+      "y": 8,
+      "side": "west",
+      "kind": "light"
+    },
+    {
+      "x": 12,
+      "y": 13,
+      "side": "west",
+      "kind": "light"
+    }
+  ],
+  "palette_profile": "outpost",
+  "vram_profile": "entity-heavy",
+  "items": [
+    {
+      "item": "stim",
+      "x": 2,
+      "y": 13
+    },
+    {
+      "item": "slugs",
+      "x": 3,
+      "y": 12
+    },
+    {
+      "item": "amber card",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "item": "armour",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "item": "cells",
+      "x": 9,
+      "y": 7
+    }
+  ],
+  "loadout": {
+    "slugs": 3,
+    "cells": 0
+  }
+}

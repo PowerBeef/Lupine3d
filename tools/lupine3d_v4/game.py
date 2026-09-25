@@ -45,6 +45,11 @@ ACTOR_PALETTE_SLOTS = (1, 6, 7)
 assert len(ACTOR_PALETTE_SLOTS) == LIMITS["actor_palettes"].maximum
 # The weapon index is masked, so the arsenal is exactly this many weapons.
 WEAPON_COUNT = LIMITS["weapons"].maximum
+# What a placed item does when the player walks onto it (game.json `items`).
+ITEM_EFFECTS = ("health", "armour", "ammo", "key", "weapon")
+# The OBJ palettes an item may be drawn in: the shared drops, effects and
+# decor palettes (OBJ 2, 3 and 4), the same in every theme.
+ITEM_PALETTES = {"drops": 2, "effects": 3, "decor": 4}
 # The roles a wall face can have; a theme gives each a texture.
 TEXTURE_ROLES = ("structure", "machinery", "door")
 # The palettes that are the same in every theme (docs/reference/asset-formats.md):
@@ -120,10 +125,14 @@ def _required(*names: str) -> tuple[frozenset[str], frozenset[str]]:
 _GAME_KEYS = ("format", "id", "title", "episodes", "actor_palettes", "kinds", "weapons", "textures", "themes",
               "shared_palettes", "screens", "rom", "audio", "hud", "sprites", "fixture_kinds")
 KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
-    "game": (frozenset(_GAME_KEYS) | {"$schema", "profiles", "playtests", "preview"}, frozenset(_GAME_KEYS)),
+    "game": (frozenset(_GAME_KEYS) | {"$schema", "profiles", "playtests", "preview", "ammo", "keys", "items"},
+             frozenset(_GAME_KEYS)),
     "episode": (frozenset({"name", "levels", "opening", "closing"}), frozenset({"name", "levels"})),
     "kind": _required("name", "contact_damage", "recovery_ticks", "step_q8", "palette", "drop"),
-    "weapon": _required("name", "sprite", "damage", "recovery_ticks", "from_level"),
+    "weapon": (frozenset({"name", "sprite", "damage", "recovery_ticks", "from_level", "ammo", "cost"}),
+               frozenset({"name", "sprite", "damage", "recovery_ticks", "from_level"})),
+    "item": (frozenset({"name", "sprite", "effect", "value", "pool", "key", "weapon", "palette"}),
+             frozenset({"name", "sprite", "effect"})),
     "theme": _required("name", "textures", "colours", "actors"),
     "theme.textures": _required(*TEXTURE_ROLES),
     "theme.colours": _required("ceiling", "floor", "structure", "door", "machinery"),
@@ -133,7 +142,7 @@ KEYS: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "audio.songs": (frozenset(SONG_ROLES + SONG_EXTRA_ROLES), frozenset(SONG_ROLES)),
     "hud": _required("words"),
     "hud.words": _required(*HUD_WORDS),
-    "sprites": _required("manifest", *SPRITE_ROLES),
+    "sprites": (frozenset({"manifest", *SPRITE_ROLES, "items"}), frozenset({"manifest", *SPRITE_ROLES})),
     "playtests": (frozenset(PLAYTEST_ROLES), frozenset({"tour"})),
     "preview": _required("x", "y", "angle"),
     "screens": (frozenset({"$schema", "format", "screens", "debriefs"}), frozenset({"format", "screens"})),
@@ -184,6 +193,19 @@ class Weapon:
     damage: int              # health a hit takes off an actor
     recovery_ticks: int      # simulation ticks before it can fire again (kept across a swap)
     from_level: int | None   # the first level (1-based) that owns it; None: never owned
+    ammo: str | None = None  # the pool a shot draws on; None: it never runs dry
+    cost: int = 0            # rounds a shot takes from the pool
+
+
+@dataclass(frozen=True)
+class ItemType:
+    """Something placed on a level's floor, taken by walking onto its cell."""
+    name: str
+    sprite: str              # a frame of the game's `items` sprite sheet
+    effect: str              # one of ITEM_EFFECTS
+    value: int               # health, armour or rounds given; for a key, its bit; for a weapon, its index
+    palette: int             # the OBJ palette it is drawn in (ITEM_PALETTES)
+    pool: int = 0            # for ammo: the pool's index
 
 
 @dataclass(frozen=True)
@@ -265,6 +287,9 @@ class Game:
     preview: tuple[int, int, int] | None = None
     screen_frames: dict[str, bool] = field(default_factory=dict)   # screen name -> steel frame drawn (default)
     debriefs: int = 0                            # debrief screens, one per level but the last, or none
+    ammo: tuple[str, ...] = ()                   # ammunition pool names, in pool order
+    keys: tuple[str, ...] = ()                   # key colour names; key n is bit n of the keys in hand
+    items: tuple[ItemType, ...] = ()             # placeable item types, in type-number order
     # Every file the loader read, relative to the game directory, with its
     # SHA-256: the build manifest records it so a ROM names its sources.
     files: dict[str, str] = field(default_factory=dict, compare=False)
@@ -364,6 +389,11 @@ class Game:
     @property
     def debrief_names(self) -> tuple[str, ...]:
         return tuple(f"debrief_{n}" for n in range(1, self.debriefs + 1))
+
+    @property
+    def item_ids(self) -> dict[str, int]:
+        """Item type name to the type number a placed item's record carries."""
+        return {item.name: index for index, item in enumerate(self.items)}
 
     @property
     def song_ids(self) -> dict[str, int]:
@@ -496,7 +526,7 @@ def _kinds(data: object, palettes: tuple[str, ...], root: Path) -> tuple[Kind, .
     return tuple(kinds)
 
 
-def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
+def _weapons(data: object, root: Path, level_count: int, pools: tuple[str, ...] = ()) -> tuple[Weapon, ...]:
     if not isinstance(data, list) or len(data) != WEAPON_COUNT:
         raise GameError(_where(root, f"weapons must list exactly {WEAPON_COUNT} weapons "
                                      "(the weapon index is masked to two bits)"))
@@ -507,12 +537,23 @@ def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
         from_level = raw["from_level"]
         if from_level is not None:
             from_level = _integer(raw, "from_level", 1, 255, root, context)
+        ammo, cost = raw.get("ammo"), 0
+        if ammo is not None:
+            ammo = _string(ammo, root, f"{context}.ammo")
+            if ammo not in pools:
+                raise GameError(_where(root, f"{context}.ammo {ammo!r} is not one of the game's ammo pools "
+                                             f"({', '.join(pools) or 'none: add `ammo` to game.json'})"))
+            cost = _integer(raw, "cost", 1, 9, root, context) if "cost" in raw else 1
+        elif "cost" in raw:
+            raise GameError(_where(root, f"{context}.cost needs {context}.ammo: a weapon without a pool never runs dry"))
         weapons.append(Weapon(
             name=_string(raw["name"], root, f"{context}.name"),
             sprite=_string(raw["sprite"], root, f"{context}.sprite"),
             damage=_integer(raw, "damage", 1, 255, root, context),
             recovery_ticks=_integer(raw, "recovery_ticks", 0, 255, root, context),
-            from_level=from_level))
+            from_level=from_level, ammo=ammo, cost=cost))
+    if weapons[0].ammo is not None:
+        raise GameError(_where(root, "weapons[0] must have no ammo: it is what the player falls back on when a pool runs dry"))
     if weapons[0].from_level != 1:
         raise GameError(_where(root, "weapons[0].from_level must be 1: the player starts every level with the first weapon"))
     owned = [w.from_level for w in weapons if w.from_level is not None]
@@ -520,6 +561,71 @@ def _weapons(data: object, root: Path, level_count: int) -> tuple[Weapon, ...]:
         raise GameError(_where(root, "weapons must be listed in the order the player gets them: "
                                      "from_level never decreases, and weapons never owned (null) come last"))
     return tuple(weapons)
+
+
+def _optional_names(data: object, root: Path, context: str, limit: str) -> tuple[str, ...]:
+    """A list of distinct names that may be absent or empty (ammo pools, key colours)."""
+    if data is None:
+        return ()
+    if not isinstance(data, list):
+        raise GameError(_where(root, f"{context} must be a list of names"))
+    _limit(limit, len(data), root, context)
+    names = tuple(_string(name, root, f"{context}[{n}]") for n, name in enumerate(data))
+    if len(set(names)) != len(names):
+        raise GameError(_where(root, f"{context} names must be distinct"))
+    return names
+
+
+def _items(data: object, pools: tuple[str, ...], keys: tuple[str, ...], weapons: tuple[Weapon, ...],
+           root: Path) -> tuple[ItemType, ...]:
+    if data is None:
+        return ()
+    if not isinstance(data, list):
+        raise GameError(_where(root, "items must be a list of item types"))
+    _limit("item_types", len(data), root, "items")
+    items = []
+    for index, raw in enumerate(data):
+        context = f"items[{index}]"
+        raw = _keys(raw, *KEYS["item"], root, context)
+        effect = _string(raw["effect"], root, f"{context}.effect")
+        if effect not in ITEM_EFFECTS:
+            raise GameError(_where(root, f"{context}.effect {effect!r} must be one of {', '.join(ITEM_EFFECTS)}"))
+        wanted = {"health": "value", "armour": "value", "ammo": "pool", "key": "key", "weapon": "weapon"}[effect]
+        extra = sorted({"value", "pool", "key", "weapon"} & set(raw) - {wanted} - ({"value"} if effect == "ammo" else set()))
+        if extra or wanted not in raw or (effect == "ammo" and "value" not in raw):
+            need = "value and pool" if effect == "ammo" else wanted
+            raise GameError(_where(root, f"{context}: {'an' if effect[0] in 'aeiou' else 'a'} {effect} item takes {need}"
+                                         + (f", not {', '.join(extra)}" if extra else "")))
+        pool = 0
+        if effect in ("health", "armour"):
+            value = _integer(raw, "value", 1, 99 if effect == "health" else 100, root, context)
+        elif effect == "ammo":
+            name = _string(raw["pool"], root, f"{context}.pool")
+            if name not in pools:
+                raise GameError(_where(root, f"{context}.pool {name!r} is not one of the game's ammo pools "
+                                             f"({', '.join(pools) or 'none: add `ammo` to game.json'})"))
+            pool, value = pools.index(name), _integer(raw, "value", 1, LIMITS["ammo"].maximum, root, context)
+        elif effect == "key":
+            name = _string(raw["key"], root, f"{context}.key")
+            if name not in keys:
+                raise GameError(_where(root, f"{context}.key {name!r} is not one of the game's keys "
+                                             f"({', '.join(keys) or 'none: add `keys` to game.json'})"))
+            value = 1 << keys.index(name)
+        else:
+            name = _string(raw["weapon"], root, f"{context}.weapon")
+            names = [weapon.name for weapon in weapons]
+            if name not in names:
+                raise GameError(_where(root, f"{context}.weapon {name!r} is not one of the weapons ({', '.join(names)})"))
+            value = names.index(name)
+        palette = _string(raw.get("palette", "drops"), root, f"{context}.palette")
+        if palette not in ITEM_PALETTES:
+            raise GameError(_where(root, f"{context}.palette {palette!r} must be one of {', '.join(ITEM_PALETTES)}"))
+        items.append(ItemType(name=_string(raw["name"], root, f"{context}.name"),
+                              sprite=_string(raw["sprite"], root, f"{context}.sprite"),
+                              effect=effect, value=value, palette=ITEM_PALETTES[palette], pool=pool))
+    if len({item.name for item in items}) != len(items):
+        raise GameError(_where(root, "item names must be distinct"))
+    return tuple(items)
 
 
 def _colour(value: object, root: Path, context: str) -> Colour:
@@ -886,7 +992,8 @@ def _hud(data: object, root: Path) -> dict[str, str]:
     return out
 
 
-def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str]) -> tuple[Path, dict[str, str]]:
+def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str],
+             items: tuple[ItemType, ...] = ()) -> tuple[Path, dict[str, str]]:
     data = _keys(data, *KEYS["sprites"], root, "sprites")
     path = _game_file(root, data["manifest"], "sprites.manifest", files)
     try:
@@ -897,6 +1004,10 @@ def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str]) ->
         raise GameError(_where(root, f"{path.name} must be a sprite manifest (\"schema\": \"{SPRITE_SCHEMAS[0]}\")"))
     records = manifest.get("assets", {})
     roles = {role: _string(data[role], root, f"sprites.{role}") for role in SPRITE_ROLES}
+    if "items" in data:
+        roles["items"] = _string(data["items"], root, "sprites.items")
+    elif items:
+        raise GameError(_where(root, "items need an `items` sprite sheet (sprites.items)"))
     wanted = [(f"sprites.{role}", name) for role, name in roles.items()]
     wanted += [(f"weapons[{n}].sprite", weapon.sprite) for n, weapon in enumerate(weapons)]
     for context, name in wanted:
@@ -906,6 +1017,15 @@ def _sprites(data: object, weapons: tuple, root: Path, files: dict[str, str]) ->
         if not sheet.is_relative_to(root.resolve()) or not sheet.is_file():
             raise GameError(_where(root, f"{path.name} record {name!r} names a file that does not exist in the game"))
         files[sheet.relative_to(root.resolve()).as_posix()] = hashlib.sha256(sheet.read_bytes()).hexdigest()
+    if items:
+        frames = records[roles["items"]].get("frames", [])
+        size = records[roles["items"]].get("size")
+        if size != [8, 8]:
+            raise GameError(_where(root, f"the items sheet {roles['items']!r} must be 8x8 cels, not {size}"))
+        for n, item in enumerate(items):
+            if item.sprite not in frames:
+                raise GameError(_where(root, f"items[{n}].sprite {item.sprite!r} is not a frame of the items sheet "
+                                             f"({', '.join(frames)})"))
     return path, roles
 
 
@@ -965,8 +1085,11 @@ def load_game(directory: Path) -> Game:
     rom_title, rom_version = _rom(data["rom"], root)
     songs, sound = _audio(data["audio"], root, files)
     screens, screen_frames, debriefs = _screens(data["screens"], episodes, root, files)
-    weapons = _weapons(data["weapons"], root, 0)
-    sprite_manifest, sprites = _sprites(data["sprites"], weapons, root, files)
+    pools = _optional_names(data.get("ammo"), root, "ammo", "ammo_pools")
+    keys = _optional_names(data.get("keys"), root, "keys", "keys")
+    weapons = _weapons(data["weapons"], root, 0, pools)
+    items = _items(data.get("items"), pools, keys, weapons, root)
+    sprite_manifest, sprites = _sprites(data["sprites"], weapons, root, files, items)
     return Game(root=root, id=game_id, title=_string(data["title"], root, "title"),
                 profiles=tuple(profiles), episodes=episodes,
                 screens=screens, screen_frames=screen_frames, debriefs=debriefs,
@@ -979,7 +1102,7 @@ def load_game(directory: Path) -> Game:
                 themes=_themes(data["themes"], textures, actor_palettes, root),
                 shared_palettes=_shared_palettes(data["shared_palettes"], root),
                 playtests=_playtests(data.get("playtests"), root), preview=_preview(data.get("preview"), root),
-                files=files)
+                ammo=pools, keys=keys, items=items, files=files)
 
 
 def resolve_game_dir(environ: dict[str, str] | os._Environ = os.environ) -> Path:

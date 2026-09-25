@@ -48,6 +48,23 @@ def emit_level_loader(a: Assembler) -> None:
         a.ldi_a_hl(); a.ld_abs_a(address)
     a.ld_rr_nn("hl", LEVEL_DOOR_OFFSET); add_level_page(a); a.ld_rr_nn("de", DOOR_TABLE)
     a.ld_rr_nn("bc", MAX_DOORS * DOOR_RECORD_BYTES); a.call("copy_bc")
+    # The slot tail: the placed items go to the WRAM bank the world is being
+    # loaded into (bank 1, where the renderer draws them) and to bank 2,
+    # where the simulation takes them, with the trigger records beside them
+    # there; the loadout fills the pools in the copied window, which
+    # init_simulation carries into bank 2 as it does the rest of the world.
+    a.ldh_a_n(SVBK); a.push("af")
+    for bank in (None, 2):
+        if bank: a.ld_r_n("a", bank); a.ldh_n_a(SVBK)
+        a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET); add_level_page(a)
+        a.ld_rr_nn("de", ITEM_TABLE); a.ld_rr_nn("bc", ITEM_TABLE_END - ITEM_TABLE); a.call("copy_bc")
+    a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET + EXTRAS_TRIGGERS); add_level_page(a)
+    a.ld_rr_nn("de", TRIGGER_TABLE); a.ld_rr_nn("bc", TRIGGER_TABLE_END - TRIGGER_TABLE); a.call("copy_bc")
+    a.pop("af"); a.ldh_n_a(SVBK)
+    a.ld_rr_nn("hl", LEVEL_EXTRAS_OFFSET + EXTRAS_LOADOUT); add_level_page(a)
+    for address in (AMMO, AMMO + 1, PLAYER_ARMOUR):
+        a.ldi_a_hl(); a.ld_abs_a(address)
+    a.ld_a_hl(); a.ld_abs_a(LEVEL_TRIGGER_COUNT)
     a.ld_r_n("a", 1); a.ld_abs_a(0x2000)
     if TEXTURED_WALLS:
         # The wall textures follow the palette set: TEX_DIRECTORY points at
@@ -63,6 +80,8 @@ def emit_level_loader(a: Assembler) -> None:
     a.ld_r_n("a", WORLD_MODE_LIVING); a.ld_abs_a(WORLD_MODE)
     a.xor_r("a"); a.ld_abs_a(PLAYER_KEYS)   # a card opens doors in its own sector
     a.ld_abs_a(SECTOR_KILLS)
+    for address in (ITEMS_TAKEN, ITEMS_TAKEN + 1, TRIGGERS_FIRED):
+        a.ld_abs_a(address)
     # Sector timing is armed by init_simulation after it establishes the
     # simulation clock. Capturing it here used to save the previous world's
     # clock and then subtract from a freshly reset one.
@@ -132,7 +151,9 @@ def emit_oam_system(a: Assembler) -> None:
 
     a.label("clear_entity_oam_shadow")
     a.xor_r("a")
-    for index in range(ENTITY_OAM_FIRST, 40):
+    # The world's sixteen objects; the HUD's key objects above them keep
+    # their place (update_key_oam sets them).
+    for index in range(ENTITY_OAM_FIRST, ENTITY_OAM_FIRST + ENTITY_OAM_COUNT if KEY_HUD else 40):
         a.ld_abs_a(OAM_SHADOW + index * 4)
     a.ld_rr_nn("hl", OAM_SHADOW + ENTITY_OAM_FIRST * 4); store_hl_abs(a, ENTITY_OAM_PTR_L, ENTITY_OAM_PTR_H)
     a.xor_r("a"); a.ld_abs_a(SENTINEL_OAM_USED)
@@ -465,7 +486,7 @@ def emit_line_of_sight(a: Assembler) -> None:
 def emit_world_update(a: Assembler) -> None:
     a.label("update_world")
     a.ld_a_abs(WORLD_MODE); a.or_r("a"); a.ret("z")
-    a.call("update_animated_doors"); a.call("collect_pickup_and_exit")
+    a.call("update_animated_doors"); a.call("collect_pickup_and_exit"); a.call("update_placed")
     a.ld_a_abs(SENTINEL_STATE); a.cp_n(SENTINEL_DEAD); a.ret("z")
     a.ld_r_n("a", 4); a.ld_abs_a(AI_CATCHUP_BUDGET)
     a.label("ai_catchup_loop")
@@ -622,7 +643,8 @@ def emit_world_update(a: Assembler) -> None:
     a.cp_n(100); a.jr("pickup_health_store", "c")
     a.label("pickup_health_cap"); a.ld_r_n("a", 99)
     a.label("pickup_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("check_level_exit")
-    a.label("pickup_keycard"); a.ld_r_n("a", 1); a.ld_abs_a(PLAYER_KEYS)
+    # A dropped card is the first colour's.
+    a.label("pickup_keycard"); a.ld_a_abs(PLAYER_KEYS); a.or_n(1); a.ld_abs_a(PLAYER_KEYS)
     a.label("check_level_exit")
     a.ld_a_abs(EXIT_ACTIVE); a.or_r("a"); a.ret("z")
     a.ld_a_abs(PLAYER_XH); a.ld_r_r("b", "a"); a.ld_a_abs(EXIT_CELL_X); a.cp_r("b"); a.ret("nz")
@@ -633,6 +655,8 @@ def emit_world_update(a: Assembler) -> None:
     a.ld_a_abs(LEVEL_COMPLETE); a.or_r("a"); a.ret("nz")
     a.ld_r_n("a", 1); a.ld_abs_a(LEVEL_COMPLETE)
     a.call("stamp_sector_result"); a.jp("sound_complete")
+
+    emit_placed(a)
 
     a.label("stamp_sector_result")
     # SECTOR_TIME = SIM_CLOCK - SECTOR_START, then fold the sector into the run.
@@ -701,6 +725,104 @@ def emit_world_update(a: Assembler) -> None:
     a.label("sentinel_survived_hit"); a.ld_r_n("a", SENTINEL_HURT); a.ld_abs_a(SENTINEL_STATE); a.ld_r_n("a", 3); a.ld_abs_a(SENTINEL_ANIM); a.ret()
 
 
+def emit_placed(a: Assembler) -> None:
+    """The simulation's side of a level's placed items and triggers.
+
+    Every tick the player's cell is compared with the unfired triggers and
+    the untaken items (WRAM bank 2, which the simulation has mapped). A
+    trigger opens its remote door as B opens a door; an item takes effect,
+    unless it has nothing to give (health, armour or a pool already full, or
+    a pool the level left infinite), in which case it stays on the floor
+    until it has. A level without either costs two compares a tick."""
+    a.label("update_placed")
+    a.ld_a_abs(PLAYER_YH); a.cb("swap", "a"); a.ld_r_r("b", "a")
+    a.ld_a_abs(PLAYER_XH); a.or_r("b"); a.ld_r_r("b", "a")          # B = the player's cell, (y << 4) | x
+    a.ld_a_abs(LEVEL_TRIGGER_COUNT); a.or_r("a"); a.jr("placed_items", "z")
+    a.ld_r_r("c", "a"); a.ld_rr_nn("hl", TRIGGER_TABLE); a.ld_r_n("d", 1)
+    a.label("trigger_loop")
+    a.ldi_a_hl(); a.cp_r("b"); a.jr("trigger_next", "nz")
+    a.ld_a_abs(TRIGGERS_FIRED); a.ld_r_r("e", "a"); a.and_r("d"); a.jr("trigger_next", "nz")
+    a.ld_r_r("a", "e"); a.or_r("d"); a.ld_abs_a(TRIGGERS_FIRED)
+    a.ld_a_hl(); a.push("bc"); a.push("de"); a.push("hl"); a.call("trigger_open_door")
+    a.pop("hl"); a.pop("de"); a.pop("bc")
+    a.label("trigger_next")
+    a.inc_rr("hl"); a.cb("sla", "d"); a.dec_r("c"); a.jr("trigger_loop", "nz")
+    a.label("placed_items")
+    a.ld_a_abs(ITEM_TABLE); a.or_r("a"); a.ret("z")
+    a.ld_r_r("c", "a"); a.ld_rr_nn("hl", ITEM_TABLE + 1); a.ld_r_n("e", 0)
+    a.label("item_loop")
+    a.ldi_a_hl(); a.cp_r("b"); a.jr("item_next", "nz")
+    a.ld_a_hl(); a.push("bc"); a.push("de"); a.push("hl"); a.call("take_item")
+    a.pop("hl"); a.pop("de"); a.pop("bc")
+    a.label("item_next")
+    a.inc_rr("hl"); a.inc_r("e"); a.dec_r("c"); a.jr("item_loop", "nz")
+    a.ret()
+
+    a.label("trigger_open_door")   # A = door index; a shut door starts opening
+    a.ld_r_r("e", "a"); a.add_a_r("a"); a.add_a_r("e"); a.add_a_r("a")     # six bytes a record
+    a.add_a_n((DOOR_TABLE + DOOR_STATE_OFFSET) & 0xFF); a.ld_r_r("l", "a"); a.ld_r_n("h", (DOOR_TABLE + DOOR_STATE_OFFSET) >> 8)
+    a.ld_a_hl(); a.or_r("a"); a.ret("nz")
+    a.ld_r_n("a", 1); a.ldi_hl_a(); a.xor_r("a"); a.ld_hl_a()             # state opening, fraction 0
+    a.jp("sound_door")
+
+    a.label("take_item")           # A = item type, E = its index
+    a.ld_r_r("d", "a")
+    # C = its bit, HL = the byte of ITEMS_TAKEN that holds it.
+    a.ld_r_r("a", "e"); a.and_n(7); a.ld_r_r("b", "a"); a.inc_r("b"); a.ld_r_n("c", 0x80)
+    a.label("take_item_bit"); a.cb("rlc", "c"); a.dec_r("b"); a.jr("take_item_bit", "nz")
+    a.ld_rr_nn("hl", ITEMS_TAKEN); a.cb("bit", "e", 3); a.jr("take_item_byte", "z"); a.inc_rr("hl")
+    a.label("take_item_byte")
+    a.ld_a_hl(); a.and_r("c"); a.ret("nz")                                   # already taken
+    a.push("hl"); a.push("bc")
+    a.ld_r_r("a", "d"); a.and_n(15); a.add_a_r("a"); a.add_a_r("a"); a.ld_r_r("e", "a"); a.ld_r_n("d", 0)
+    a.ld_rr_label("hl", "item_types"); a.add_hl_rr("de")
+    a.ldi_a_hl(); a.ld_r_r("c", "a")
+    a.ld_a_hl(); a.ld_r_r("b", "a"); a.ld_r_r("a", "c")                      # A = effect, B = value
+    a.or_r("a"); a.jr("take_armour", "nz")
+    a.ld_a_abs(PLAYER_HEALTH); a.cp_n(99); a.jr("take_refused", "nc")
+    a.add_a_r("b"); a.cp_n(100); a.jr("take_health_store", "c"); a.ld_r_n("a", 99)
+    a.label("take_health_store"); a.ld_abs_a(PLAYER_HEALTH); a.jr("take_done")
+    a.label("take_armour")
+    a.dec_r("a"); a.jr("take_ammo", "nz")
+    a.ld_a_abs(PLAYER_ARMOUR); a.cp_n(100); a.jr("take_refused", "nc")
+    a.add_a_r("b"); a.cp_n(101); a.jr("take_armour_store", "c"); a.ld_r_n("a", 100)
+    a.label("take_armour_store"); a.ld_abs_a(PLAYER_ARMOUR); a.jr("take_done")
+    a.label("take_ammo")
+    a.cp_n(3); a.jr("take_key", "nc")                                       # 1, 2: pool 0, pool 1
+    a.ld_rr_nn("hl", AMMO - 1); a.ld_r_r("e", "a"); a.ld_r_n("d", 0); a.add_hl_rr("de")
+    # Full, or infinite (255): nothing to give.
+    a.ld_a_hl(); a.cp_n(99); a.jr("take_refused", "nc")
+    a.add_a_r("b"); a.cp_n(100); a.jr("take_ammo_store", "c"); a.ld_r_n("a", 99)
+    a.label("take_ammo_store"); a.ld_hl_a(); a.jr("take_done")
+    a.label("take_key")
+    a.jr("take_weapon", "nz")                                               # 3: a key, B its bit
+    a.ld_a_abs(PLAYER_KEYS); a.or_r("b"); a.ld_abs_a(PLAYER_KEYS); a.jr("take_done")
+    a.label("take_weapon")                                                  # 4: weapon B, owned from now
+    a.ld_r_r("e", "b"); a.ld_r_n("d", 0); a.ld_rr_label("hl", "weapon_bit_masks"); a.add_hl_rr("de")
+    a.ld_a_abs(WEAPONS_OWNED); a.or_r("(hl)"); a.ld_abs_a(WEAPONS_OWNED)
+    a.label("take_done")
+    a.pop("bc"); a.pop("hl"); a.ld_a_hl(); a.or_r("c"); a.ld_hl_a()
+    a.jp("sound_pickup")
+    a.label("take_refused")
+    a.pop("bc"); a.pop("hl"); a.ret()
+
+    a.label("fire_ammo")           # carry: the weapon in hand is dry and the shot is refused
+    # A shot takes its cost from the weapon's pool, unless it has none or the
+    # level left the pool infinite. A dry weapon clicks and the hand goes
+    # back to the first weapon, which never runs dry, by the ordinary swap.
+    a.call("weapon_record"); a.inc_rr("hl"); a.inc_rr("hl")
+    a.ldi_a_hl(); a.or_r("a"); a.ret("z")                  # no pool (carry clear)
+    a.ld_r_r("c", "a")
+    a.ld_a_hl(); a.ld_r_r("b", "a")                          # B = cost, C = pool + 1
+    a.ld_rr_nn("hl", AMMO - 1); a.ld_r_r("e", "c"); a.ld_r_n("d", 0); a.add_hl_rr("de")
+    a.ld_a_hl(); a.cp_n(INFINITE_AMMO); a.ret("z")           # infinite (carry clear)
+    a.sub_r("b"); a.jr("fire_dry", "c")
+    a.ld_hl_a(); a.ret()                                     # carry clear: fire
+    a.label("fire_dry")
+    a.xor_r("a"); a.ld_abs_a(WEAPON_INDEX); a.inc_r("a"); a.ld_abs_a(WEAPON_RELOAD)
+    a.call("sound_locked"); a.scf(); a.ret()
+
+
 def emit_movement_v6(a: Assembler) -> None:
     a.label("map_cell_bc")  # B=x cell, C=y cell -> A material
     a.ld_r_r("a", "c"); a.cb("swap", "a"); a.add_a_r("b"); a.ld_r_r("l", "a"); a.ld_r_n("h", 0xD0); a.ld_a_hl(); a.ret()
@@ -754,7 +876,15 @@ def emit_movement_v6(a: Assembler) -> None:
     a.ld_a_abs(v1.RAY_YH); a.ld_r_r("c", "a"); a.call("lookup_door_bc")
     a.or_r("a"); a.ret("z")
     a.ld_a_abs(DOOR_ACTIVE_STATE); a.or_r("a"); a.ret("nz")
+    # A remote door answers only its trigger.
+    a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_REMOTE); a.jp("sound_locked", "nz")
     a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_KEYCARD); a.jr("open_door6_sentinel_lock", "z")
+    # A card door wants its colour (bits 4-5, the key's bit with two keys),
+    # or any card when it names none.
+    a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.cb("swap", "a"); a.and_n(3); a.jr("open_door6_any_card", "z")
+    a.ld_r_r("b", "a"); a.ld_a_abs(PLAYER_KEYS); a.and_r("b"); a.jr("open_door6_refused", "z")
+    a.jr("open_door6_sentinel_lock")
+    a.label("open_door6_any_card")
     a.ld_a_abs(PLAYER_KEYS); a.or_r("a"); a.jr("open_door6_refused", "z")
     a.label("open_door6_sentinel_lock")
     a.ld_a_abs(DOOR_ACTIVE_FLAGS); a.and_n(DOOR_FLAG_LOCK_SENTINEL); a.jr("open_door6_unlocked", "z")

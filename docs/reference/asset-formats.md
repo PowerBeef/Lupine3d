@@ -72,6 +72,7 @@ record plays which role.
 | `portrait` | 16×16 | 4: normal, blink, hurt, dead | the HUD packet's portrait, six tile IDs |
 | `hud` | 160×24 | 1 | 94 of 96 HUD patterns, bank 0 `$8200-$87DF`, BG palette 1 |
 | `drops` | 8×8 | 2: medkit, keycard | OBJ patterns, OBJ palette 2; each is the top of an 8×16 object over an empty pattern |
+| `items` | 8×8 | one per item `sprite` (Sable: medkit, stim, slugs, cells, armour, card, case; `art/tools/make_item_art.py`) | OBJ patterns after the fixtures, each over an empty pattern; drawn in the item type's palette (drops, effects or decor), so one card cel is both key colours; optional, required when the game has `items` |
 | `hit_effect`, `exit_beacon` | 8×8 | 2 each | OBJ patterns |
 | `fixtures` | 16×16 | 3 per family: 16, 8 and 4 pixels across (the engine derives a half-width copy) | masked OBJ patterns |
 | wall textures (`textures`) | 16×8, the upper half of a face | 1 | row-window tables in the texture banks; a level's theme picks its set |

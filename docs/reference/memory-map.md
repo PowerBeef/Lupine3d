@@ -26,13 +26,13 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | banks 146-153 (`$4000` in 146 to `$8000` in 153) | 131,072 | product table | persistent |
 | bank 154 `$4000-$8000` | 16,384 | inactive atlas | persistent |
 | bank 155 `$4000-$8000` | 16,384 | texture row windows (three blocks per bank) | persistent |
-| bank 156 `$4000-$695A` | 10,586 | boot art and authored state | persistent |
+| bank 156 `$4000-$6A5A` | 10,842 | boot art and authored state | persistent |
 | banks 157-172 (`$4000` in 157 to `$8000` in 172) | 262,144 | Q14 directions | persistent |
 | banks 173-236 (`$4000` in 173 to `$8000` in 236) | 1,048,576 | prepared rays and packet padding | persistent |
 | bank 237 `$4000-$5F80` | 8,064 | unfolded diagnostic strips (reserved) | persistent |
 | bank 238 `$4000-$52D0` | 4,816 | cold raw vectors and camera-plane tables | persistent |
 | bank 240 `$4000-$8000` | 16,384 | songs and note periods | persistent |
-| banks 241-244 (`$4000` in 241 to `$60B0` in 244) | 57,520 | campaign levels, 5 per bank in 2816-byte slots | persistent |
+| banks 241-244 (`$4000` in 241 to `$60E5` in 244) | 57,573 | campaign levels, 5 per bank in 2816-byte slots | persistent |
 | bank 245 `$4000-$5400` | 5,120 | weapon cel sheets, streamed into the OBJ window one at a time | persistent |
 | bank 246 `$4000-$8000` | 16,384 | texture row windows (three blocks per bank) | persistent |
 | bank 247 `$4000-$8000` | 16,384 | texture slopes, height-class rows and stride classes | persistent |
@@ -56,6 +56,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$C7F2-$C7F8` | 6 | campaign scalars: actor count, palette set, weapons owned, level page, texture directory | persistent |
 | `$C7F8-$C7FA` | 2 | live and snapshot map generations | persistent |
 | `$C7FA-$C7FB` | 1 | overlapped publication hand-off | persistent |
+| `$C7FB-$C7FD` | 2 | level trigger count and fired triggers (simulation) | persistent |
 | `$C800-$C8BA` | 186 | OAM, publication and world epoch state | persistent |
 | `$C8BA-$C8CE` | 20 | foreground queue and publication ownership | persistent |
 | `$C8CE-$C8CF` | 1 | dynamic patterns already streamed by HBlank DMA | composition through publication |
@@ -66,6 +67,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$C8F0-$C900` | 16 | screen composition and level selection | persistent |
 | `$C900-$CAF0` | 496 | snapshot copy / later fixture visibility | exclusive sequential reuse |
 | `$CAF0-$CAF8` | 8 | folded column tile IDs | one composed column |
+| `$CAF8-$CAFF` | 7 | actor patrol headings and wake radius (simulation only) | persistent |
 | `$CB00-$CB6F` | 111 | saved render HRAM | simulation service |
 | `$CB70-$CB80` | 16 | dynamic cache key staging and pointer | one tile lookup/composition |
 | `$CB80-$CB9A` | 26 | atomic actor admission staging | entity rendering, no yields |
@@ -94,6 +96,7 @@ the linker refuses a build under the 3,000-byte resident reserve.
 | `$D400-$D720` | 800 | physical descriptors and ray depth/segments | persistent |
 | `$D720-$D7A8` | 136 | snapshot world, entity projection and campaign state | persistent |
 | `$D7A8-$D7DE` | 54 | per-slot actor projection records | entity rendering |
+| `$D7DE-$D7FF` | 33 | placed items: count, then cell and type (the same in bank 2 for the simulation) | persistent |
 | `$D800-$D8A0` | 160 | physical segments | persistent |
 | `$D8A0-$D8C8` | 40 | Q14 and door/LOS scratch | persistent |
 | `$D8D0-$D8DA` | 10 | mask submission scratch | persistent |

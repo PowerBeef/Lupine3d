@@ -101,6 +101,7 @@ def make_level_payload(level) -> bytes:
         (LEVEL_DOOR_OFFSET, level.door_bytes()),
         (LEVEL_ACTOR_OFFSET, actor_records(level)),
         (LEVEL_FIXTURE_OFFSET, fixture_records(level)),
+        (LEVEL_EXTRAS_OFFSET, level.extras_bytes()),
     ):
         start = offset - 0x4000
         assert start + len(data) <= len(payload), "level payload overruns its bank"
@@ -407,8 +408,22 @@ def build_engine() -> tuple[bytes, Assembler, dict[str, object]]:
     # The shotgun (1, 0) is the engine's original behaviour and every
     # measurement's baseline; the slug rifle trades time for damage; the arc
     # lance is the heavy, slow discharge; the pulse carbine a quick double hit.
-    a.label("weapon_stats"); a.bytes(bytes(value for w in GAME.weapons for value in (w.damage, w.recovery_ticks)),
-                                     "damage and cooldown per weapon")
+    # Four bytes per weapon since pools: damage, recovery, the pool a shot
+    # draws on (0 none, else the pool's number plus one) and what it costs.
+    a.label("weapon_stats"); a.bytes(bytes(
+        value for w in GAME.weapons
+        for value in (w.damage, w.recovery_ticks, 0 if w.ammo is None else GAME.ammo.index(w.ammo) + 1, w.cost)),
+        "damage, cooldown, pool and cost per weapon")
+    # Four bytes per placed item type (game.json `items`): what it does
+    # (0 health, 1 armour, 2 and 3 a pool, 4 a key, 5 a weapon), how much or
+    # which, its source cel and its OBJ palette. A type number past the
+    # table reads the first record (the level compiler never writes one).
+    effect_codes = {"health": 0, "armour": 1, "ammo": 2, "key": 4, "weapon": 5}
+    item_records = [bytes((effect_codes[item.effect] + item.pool, item.value,
+                           ITEM_TILE_BASE + 2 * ITEM_CEL_NAMES.index(item.sprite) if ITEM_CEL_NAMES else 0,
+                           item.palette)) for item in GAME.items] or [bytes((0, 0, 0, 2))]
+    item_records += [item_records[0]] * (16 - len(item_records))
+    a.label("item_types"); a.bytes(b"".join(item_records), "effect, value, cel and palette per item type")
     a.label("weapon_bit_masks"); a.bytes(bytes(1 << i for i in range(WEAPON_COUNT)), "WEAPONS_OWNED bit per weapon")
     # Per weapon, the attribute byte of each of its objects (VRAM bank 1,
     # OBJ palette 0 or 5), as games/sable_outpost/art/tools/render_weapons.py fitted them.

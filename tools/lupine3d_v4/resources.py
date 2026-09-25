@@ -428,6 +428,16 @@ def make_entity_tiles() -> bytes:
     assert len(out) == expected_tiles * 16
     from .artwork import make_fixture_tiles
     out.extend(make_fixture_tiles())
+    # The placed items' cels (game.json `items`), each over an empty pattern.
+    if ITEM_CEL_NAMES:
+        sheet = GAME.sprites["items"]
+        from .sprite_assets import manifest
+        names = manifest()["assets"][sheet]["frames"]
+        cels = frames(sheet)
+        for name in ITEM_CEL_NAMES:
+            out.extend(tile_from_pixels(cels[names.index(name)]))
+            out.extend(bytes(16))
+    assert len(out) == (ITEM_TILE_END - ENTITY_TILE_BASE) * 16
     return bytes(out)
 
 
@@ -484,6 +494,9 @@ def make_oam_shadow() -> bytes:
     # own capture oracle rather than the v0.8 one.
     data[RETICLE_OAM * 4:RETICLE_OAM * 4 + 4] = bytes((HORIZON - 4 + 16, 76 + 8, RETICLE_TILE, 0x0C))
     data[MUZZLE_OAM * 4:MUZZLE_OAM * 4 + 4] = bytes((0, 76 + 8, MUZZLE_TILE, 0x0B))
+    if KEY_HUD:
+        for key in range(len(GAME.keys)):
+            data[(KEY_OAM + key) * 4:(KEY_OAM + key) * 4 + 4] = bytes((0, KEY_OAM_X[key], KEY_TILE, 0x08 | KEY_PALETTES[key]))
     return bytes(data)
 
 

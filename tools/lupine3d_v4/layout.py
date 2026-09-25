@@ -247,6 +247,15 @@ WEAPON_CEL_PATTERNS = WEAPON_OBJECTS * 2
 WEAPON_SCREEN_X = 68 if SABLE_ART else 64
 RETICLE_OAM = WEAPON_OBJECTS
 MUZZLE_OAM = WEAPON_OBJECTS + 1
+# Slim Sable: one object per key colour over the plain steel of HUD cell 12
+# on row 16, drawn only while that key is held; the key cel follows the
+# reticle and muzzle cels in the bank-1 OBJ window.
+KEY_OAM = 28
+KEY_HUD = SLIM_DISPLAY and SABLE_ART and bool(GAME.keys)
+KEY_TILE = 118
+KEY_OAM_Y = 128 + 16
+KEY_OAM_X = (96 + 8, 100 + 8)
+KEY_PALETTES = (3, 4)          # the effects (amber) and decor (teal) OBJ palettes, the cards' own
 ENTITY_OAM_FIRST = WEAPON_OBJECTS + 2   # the weapon's objects, crosshair, muzzle
 ENTITY_OAM_COUNT = 16          # bounded 32-pattern masked publication packet
 MASK_TILE_COUNT = 0xD8D0
@@ -398,9 +407,27 @@ MAP_GENERATION_END = SNAP_MAP_GEN + 1
 # VBlank interrupt to publish it (set by the main loop, cleared by the ISR).
 TAIL_PENDING = MAP_GENERATION_END
 TAIL_PENDING_END = TAIL_PENDING + 1
-assert TAIL_PENDING_END <= 0xC800, "campaign scalars overrun the OAM shadow"
+# A level's triggers are the simulation's alone: how many there are and which
+# have fired (bit n, trigger n) stay here, the records in WRAM bank 2.
+LEVEL_TRIGGER_COUNT = TAIL_PENDING_END
+TRIGGERS_FIRED = LEVEL_TRIGGER_COUNT + 1
+TRIGGER_STATE_END = TRIGGERS_FIRED + 1
+assert TRIGGER_STATE_END <= 0xC800, "campaign scalars overrun the OAM shadow"
+# The level's placed items (a count, then a cell and a type each), the same
+# in WRAM bank 1, where the renderer draws those not taken, and bank 2, where
+# the simulation takes them: load_level writes bank 1 and init_simulation
+# mirrors it. They sit after the per-slot projection records.
+ITEM_TABLE = 0xD7DE
+ITEM_TABLE_END = ITEM_TABLE + 1 + 2 * level_codec.MAX_ITEMS
+assert ITEM_TABLE_END <= 0xD800
+# The level's trigger records (a cell, then a door index), bank 2 only, in a
+# range the simulation otherwise leaves alone (bank 1 keeps its row-window
+# caches below it).
+TRIGGER_TABLE = 0xD1F0
+TRIGGER_TABLE_END = TRIGGER_TABLE + 2 * level_codec.MAX_TRIGGERS
+assert TRIGGER_TABLE_END <= 0xD200
 WEAPON_COUNT = len(GAME.weapons)        # a power of two: the index is masked (game.py WEAPON_COUNT)
-WEAPON_STAT_BYTES = 2                   # damage, cooldown in simulation ticks
+WEAPON_STAT_BYTES = 4                   # damage, cooldown in simulation ticks, pool (0 none, 1 or 2), rounds a shot
 WEAPON_TILE_BYTES = 1280 if SABLE_ART else 256
 WEAPON_CELS = WEAPON_TILE_BYTES // (WEAPON_CEL_PATTERNS * 16)   # Sable 4, legacy 1
 assert WEAPON_CELS * WEAPON_CEL_PATTERNS * 16 == WEAPON_TILE_BYTES
@@ -621,6 +648,14 @@ LEVEL_DOOR_OFFSET = level_codec.LEVEL_DOOR_OFFSET
 LEVEL_ACTOR_OFFSET = level_codec.LEVEL_ACTOR_OFFSET
 LEVEL_FIXTURE_OFFSET = level_codec.LEVEL_FIXTURE_OFFSET
 LEVEL_PAYLOAD_END = level_codec.LEVEL_PAYLOAD_END
+LEVEL_EXTRAS_OFFSET = level_codec.LEVEL_EXTRAS_OFFSET
+EXTRAS_ITEMS = level_codec.EXTRAS_ITEMS
+EXTRAS_LOADOUT = level_codec.EXTRAS_LOADOUT
+EXTRAS_TRIGGER_COUNT = level_codec.EXTRAS_TRIGGER_COUNT
+EXTRAS_TRIGGERS = level_codec.EXTRAS_TRIGGERS
+MAX_ITEMS = level_codec.MAX_ITEMS
+MAX_TRIGGERS = level_codec.MAX_TRIGGERS
+INFINITE_AMMO = level_codec.INFINITE_AMMO
 if LEVEL_ROM_BANK_BASE + LEVEL_BANK_COUNT > 256:
     raise ValueError("campaign level banks exceed the 4 MiB MBC5 image")
 
@@ -639,6 +674,8 @@ DOOR_FRACTION_OFFSET = level_codec.DOOR_FRACTION
 DOOR_FLAG_EXIT = level_codec.DOOR_FLAG_EXIT
 DOOR_FLAG_LOCK_SENTINEL = level_codec.DOOR_FLAG_LOCK_SENTINEL
 DOOR_FLAG_KEYCARD = level_codec.DOOR_FLAG_KEYCARD
+DOOR_FLAG_REMOTE = level_codec.DOOR_FLAG_REMOTE
+DOOR_KEY_SHIFT = level_codec.DOOR_KEY_SHIFT
 DROP_KIND_IDS = level_codec.DROP_KIND_IDS
 # A shot lands when the actor's Q5 depth is below the centre ray's wall depth
 # plus this slack: a quarter cell, so an actor flush against the wall it is
@@ -1118,13 +1155,31 @@ else:
     SENTINEL_MID_COLUMNS = 2
     LOD_NEAR_ENTER, LOD_NEAR_HOLD, LOD_FAR_ENTER, LOD_FAR_HOLD = 28, 36, 68, 60
 SENTINEL_MID_TILES_PER_FRAME = SENTINEL_MID_COLUMNS * 2
+# The fixture families (sixteen source patterns each), then the placed
+# items' cels, each an 8x8 cel over an empty pattern like the drops.
+FIXTURE_TILE_BASE = SENTINEL_MID_TILE_BASE + SENTINEL_MID_FRAMES * SENTINEL_MID_TILES_PER_FRAME
+ITEM_TILE_BASE = FIXTURE_TILE_BASE + 16 * len(GAME.fixture_kinds)
+# The legacy profile draws no placed items (its entity renderer is the
+# retained 8x8 one); they still take effect there.
+ITEM_CEL_NAMES = tuple(dict.fromkeys(item.sprite for item in GAME.items)) if SABLE_ART else ()
+ITEM_TILE_END = ITEM_TILE_BASE + 2 * len(ITEM_CEL_NAMES)
 ENTITY_TILE_LIMIT = 256 if SABLE_ART else WEAPON_TILE_BASE
+if ITEM_TILE_END > 256:
+    raise ValueError(f"{GAME.id}: the item cels need source patterns past 255 ({ITEM_TILE_END}): use fewer item sprites")
 if EXIT_BEACON_TILE + EXIT_BEACON_FRAMES > ENTITY_TILE_LIMIT:
     raise ValueError("entity-heavy profile exceeds tile IDs 199..239")
 
 HUD_DIGIT_BASE = 32
 HUD_SMALL_DIGIT_BASE = 52
-HUD_PACKET_BYTES = 16 if SLIM_DISPLAY else 15 if COMPACT_DISPLAY else 11
+HUD_PACKET_BYTES = 18 if SLIM_DISPLAY else 15 if COMPACT_DISPLAY else 11
+# Slim: the ammunition of the weapon in hand, two small digits after the
+# portrait's six bytes, drawn on row 16 of the health panel where the steel
+# is plain (pattern HUD_PLAIN_TILE, which is also what shows when the weapon
+# has no pool or the level left it infinite).
+HUD_AMMO_OFFSET = 16
+HUD_AMMO_X = 6
+HUD_AMMO_ROW = VIEW_ROWS + 1
+HUD_PLAIN_TILE = 73
 HUD_STATUS_OFFSET = 5 if SLIM_DISPLAY else 6 if COMPACT_DISPLAY else 8
 HUD_PORTRAIT_OFFSET = 10 if SLIM_DISPLAY else 11
 HUD_PORTRAIT_TILES = 6 if SLIM_DISPLAY else 4
@@ -1173,9 +1228,13 @@ ART_STATE_END = SENTINEL_KIND + 1
 GAME_STATE = ART_STATE_END
 # A 16-byte actor slot is exactly full, so per-actor auxiliary state goes in a
 # parallel array indexed by ENTITY_SLOT - the same shape as ACTOR_DEPTHS.
-ACTOR_PATROL = GAME_STATE            # 0..3: +x, -x, +y, -y
+# Only the simulation reads the patrol headings and the wake radius, so they
+# live in fixed WRAM beside the folded column rows (whose eight bytes on the
+# slim profile end at $CAF8) rather than in the copied window.
+ACTOR_PATROL = 0xCAF8                # 0..3: +x, -x, +y, -y
 ACTIVATION_RADIUS = ACTOR_PATROL + MAX_ACTORS   # cells, from the level header
-PLAYER_KEYS = ACTIVATION_RADIUS + 1   # cards in hand; cleared by every level load
+ACTOR_SIM_STATE_END = ACTIVATION_RADIUS + 1
+PLAYER_KEYS = GAME_STATE              # cards in hand; cleared by every level load
 # What a results screen reports. Kills fit a byte at four actors a sector;
 # time is counted in VBlanks and divided once, on the screen, with the LCD off.
 SECTOR_KILLS = PLAYER_KEYS + 1
@@ -1183,7 +1242,12 @@ CAMPAIGN_KILLS = SECTOR_KILLS + 1
 SECTOR_START = CAMPAIGN_KILLS + 1     # u16 SIM_CLOCK when the sector loaded
 SECTOR_TIME = SECTOR_START + 2        # u16 VBlanks, stamped when it is cleared
 CAMPAIGN_TIME = SECTOR_TIME + 2       # u16 VBlanks across the run
-GAME_STATE_END = CAMPAIGN_TIME + 2
+# What the player has taken and carries: the renderer draws the items not
+# taken and the HUD shows the pools, so they ride the copy like the keys.
+ITEMS_TAKEN = CAMPAIGN_TIME + 2       # u16: bit n is placed item n
+AMMO = ITEMS_TAKEN + 2                # two pools, 0..99, INFINITE_AMMO (255) for a level without a loadout
+PLAYER_ARMOUR = AMMO + 2              # points, 0..100
+GAME_STATE_END = PLAYER_ARMOUR + 1
 VBLANKS_PER_SECOND = 60
 
 # The depth pass projects every actor; the draw pass used to project each

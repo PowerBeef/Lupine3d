@@ -38,6 +38,12 @@ LIMITS: dict[str, Limit] = {
     "contact_damage": Limit(0, 170, "an enemy's contact damage",
                             "the hard skill adds half again, and the result must fit a byte"),
     "weapons": Limit(4, 4, "weapons", "the weapon index is two bits and SELECT walks all four"),
+    "ammo_pools": Limit(0, 2, "ammunition pools",
+                        "a weapon record names its pool in one byte, and the render snapshot's slack holds two"),
+    "ammo": Limit(0, 99, "rounds in a pool", "the HUD shows a pool in two digits"),
+    # Items and keys.
+    "item_types": Limit(0, 16, "item types", "a placed item names its type in four bits of its record"),
+    "keys": Limit(0, 2, "key colours", "a door names its key in two bits of its flags, zero meaning any card"),
     # Looks.
     "themes": Limit(1, 4, "themes",
                     "each theme's 36-byte texture directory and 128-byte palette set sit in the fixed half of "
@@ -60,6 +66,9 @@ LIMITS: dict[str, Limit] = {
     "actors_per_level": Limit(0, 6, "enemies in a level",
                               "six simulated actor slots; the OBJ budget admits four on screen at once"),
     "fixtures_per_level": Limit(0, 16, "wall fixtures in a level", "a level's fixture records fill 256 bytes"),
+    "items_per_level": Limit(0, 16, "placed items in a level",
+                             "which items are taken is a sixteen-bit mask in the render snapshot"),
+    "triggers_per_level": Limit(0, 8, "triggers in a level", "which triggers have fired is one byte of fixed WRAM"),
 }
 
 

@@ -88,6 +88,37 @@
         "$ref": "#/$defs/weapon"
       }
     },
+    "ammo": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "ammunition pool names, in pool order"
+    },
+    "keys": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "key colour names; key n is bit n of the keys in hand, drawn in the effects and decor OBJ palettes"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 16,
+      "items": {
+        "$ref": "#/$defs/item"
+      },
+      "description": "the item types a level can place"
+    },
     "textures": {
       "type": "object",
       "minProperties": 1,
@@ -271,6 +302,17 @@
           "minimum": 1,
           "maximum": 255,
           "description": "the first level (1-based) that owns it; null: never. The first weapon is 1, and it never decreases"
+        },
+        "ammo": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the pool a shot draws on: one of `ammo`; absent: it never runs dry (never on the first weapon)"
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "rounds a shot takes; default 1; only with ammo"
         }
       },
       "additionalProperties": false
@@ -657,6 +699,11 @@
           "type": "string",
           "minLength": 1,
           "description": "a record of the sprite manifest"
+        },
+        "items": {
+          "type": "string",
+          "minLength": 1,
+          "description": "the placed items' 8x8 sheet (a record of the sprite manifest); required when the game has items"
         }
       },
       "additionalProperties": false
@@ -707,6 +754,65 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 255
+        }
+      },
+      "additionalProperties": false
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "effect",
+        "name",
+        "sprite"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "what a level's items call it"
+        },
+        "sprite": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a frame of the items sheet"
+        },
+        "effect": {
+          "enum": [
+            "health",
+            "armour",
+            "ammo",
+            "key",
+            "weapon"
+          ]
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "health (up to 99), armour (up to 100) or rounds (up to 99) given"
+        },
+        "pool": {
+          "type": "string",
+          "minLength": 1,
+          "description": "an ammo item's pool: one of `ammo`"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a key item's colour: one of `keys`"
+        },
+        "weapon": {
+          "type": "string",
+          "minLength": 1,
+          "description": "a weapon item's weapon, by name"
+        },
+        "palette": {
+          "enum": [
+            "drops",
+            "effects",
+            "decor"
+          ],
+          "description": "the shared OBJ palette it is drawn in (default drops)"
         }
       },
       "additionalProperties": false

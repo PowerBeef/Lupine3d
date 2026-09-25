@@ -341,7 +341,22 @@ def check(output,snapshot_mode='check'):
             assert c.read8(b.HUD_PACKET+5)==b.HUD_SMALL_DIGIT_BASE+count
         for page in (0x1800,0x1C00):
             assert tuple(c.vram[0][page+i] for i in static_slots)==expected
-    assert b.HUD_PACKET_BYTES==(16 if b.SLIM_DISPLAY else 15)
+    assert b.HUD_PACKET_BYTES==(18 if b.SLIM_DISPLAY else 15)
+    # Slim: the pool of the weapon in hand, two small digits on plain steel,
+    # plain steel alone for a weapon without a pool or an infinite pool.
+    if b.SLIM_DISPLAY and any(w.ammo for w in b.GAME.weapons):
+        armed=next(i for i,w in enumerate(b.GAME.weapons) if w.ammo)
+        pool=b.GAME.ammo.index(b.GAME.weapons[armed].ammo)
+        plain,digit=b.HUD_PLAIN_TILE,b.HUD_SMALL_DIGIT_BASE
+        for weapon,rounds,expected in ((0,5,(plain,plain)),(armed,7,(plain,digit+7)),(armed,42,(digit+4,digit+2)),
+                                      (armed,0,(plain,digit)),(armed,b.INFINITE_AMMO,(plain,plain))):
+            c.write8(b.WEAPON_INDEX,weapon);c.write8(b.AMMO+pool,rounds)
+            c.call_subroutine('prepare_hud_tiles');c.call_subroutine('update_hud_tiles')
+            assert (c.read8(b.HUD_PACKET+b.HUD_AMMO_OFFSET),c.read8(b.HUD_PACKET+b.HUD_AMMO_OFFSET+1))==expected,(weapon,rounds)
+            for page in (0x1800,0x1C00):
+                assert tuple(c.vram[0][page+b.HUD_AMMO_ROW*32+b.HUD_AMMO_X+i] for i in range(2))==expected
+        c.write8(b.WEAPON_INDEX,0)
+        checks['hud_ammo_cells']=True
     # Exercise the live-to-cleared objective transition and terminal priority.
     # Verify the immutable packet and both published map copies, not only
     # the caption: the main status must change coherently with it.
