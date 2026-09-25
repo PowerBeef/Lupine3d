@@ -13,7 +13,7 @@
   says what each sector asks of the player. The controller route takes a
   card a kill leaves within a few steps at once, turns onto a near sprite
   its shots keep missing (the Q4 camera transform can draw a target at
-  contact range just outside the aim window), and CI's route runs in seven
+  contact range just outside the aim window), and CI's route runs in eight
   chunks rebalanced to the new sectors' measured updates.
 - **Placed items and triggers work in play.** The fixed-rate simulation
   never called `update_placed`, so no placed item was taken and no trigger

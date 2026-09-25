@@ -133,7 +133,7 @@ jobs:
   route:
     name: route (${{ matrix.sectors }})
     runs-on: ubuntu-latest
-    # The heaviest chunk is about 3,200 route updates.
+    # The heaviest chunk is about 3,200 route updates, about 16 minutes locally.
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -151,7 +151,9 @@ jobs:
             restart: ""
           - sectors: 15-16
             restart: ""
-          - sectors: 17-18
+          - sectors: 17-17
+            restart: ""
+          - sectors: 18-18
             restart: "1"
 
     steps:

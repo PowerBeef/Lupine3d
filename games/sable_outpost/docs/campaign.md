@@ -249,7 +249,7 @@ sector of every episode fields the boss.
 Every sector carries the same compiler certificate as the first six
 (`docs/reference/level-certificate.md`; `tests/test_campaign.py` pins it for all
 eighteen), and the controller route plays all of them in CI's `route` matrix:
-seven chunks sized by route updates (`tools/ci_lanes.py`), each on its own
+eight chunks sized by route updates (`tools/ci_lanes.py`), each on its own
 runner and entered by continue code (`make playthrough SECTORS=7-9
 ROUTE_DIR=build/playthrough-7-9`), the first from the title and the last
 restarting the campaign from the ending. `release_check.py`
