@@ -172,13 +172,13 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         if snapshots is not None and name not in snapshots.scenes:
             snapshots.observe(name, image)
 
-    def turn(target):
+    def turn(target, stop=None):
         def steering():
             delta = (target - pose()[2] + 128) % 256 - 128
             return (1 if delta > 0 else 2) if abs(delta) > 1 else 0
         for _ in range(33):
             delta = (target - pose()[2] + 128) % 256 - 128
-            if abs(delta) <= 2:
+            if abs(delta) <= 2 or (stop is not None and stop()):
                 return
             step(steering)
         raise AssertionError("turn watchdog")
@@ -242,7 +242,11 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
                 if stalled >= 6 and dx and dy:
                     along_x = not along_x
                 target = (0 if dx > 0 else 128) if along_x else (64 if dy > 0 else 192)
-                turn(target)
+                # A turn under a chaser costs contacts too: the walk's stop
+                # rule ends it as it ends a step. Cryo Vault's warden took
+                # seventy health off turns that ignored it.
+                turn(target, stop)
+                if stop is not None and stop(): return
                 # B pulses while approaching the next cell; only the ROM
                 # decides whether a reachable, unlocked door can open.
                 def walking():
@@ -368,15 +372,41 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
         # when two of them still leave the route alive.
         return live8(br.PLAYER_HEALTH) > 2 * contact_damage(actor)
 
+    def ray_clear(heading, target):
+        """The ROM scores a shot by its centre ray: the first wall along the
+        heading occludes the actor behind it. March that ray over the live
+        map to just short of the actor, so the route never keeps firing a
+        heading that grazes a wall corner. Signal Deck's and Cryo Vault's
+        diagonal neighbours soaked up dozens of axis shots that way."""
+        px, py, _ = pose()
+        reach = math.hypot(target["x"] - px, target["y"] - py) - 64
+        ux, uy = math.cos(heading * math.tau / 256), math.sin(heading * math.tau / 256)
+        travelled = 0.0
+        while travelled < reach:
+            travelled += 16
+            cx, cy = int(px + ux * travelled) >> 8, int(py + uy * travelled) >> 8
+            if not (0 <= cx < 16 and 0 <= cy < 16) or live8(br.MAP + cy * 16 + cx):
+                return False
+        return True
+
+    def attacker():
+        """An actor already swinging at the route from contact range: the one
+        to answer first, whoever the route set out to kill."""
+        px, py, _ = pose()
+        swinging = [a for a in living() if a["state"] == br.SENTINEL_ATTACK
+                    and abs(a["x"] - px) < 512 and abs(a["y"] - py) < 512 and has_sight(a)]
+        return min(swinging, key=lambda a: max(abs(a["x"] - px), abs(a["y"] - py))) if swinging else None
+
     def aiming():
-        # Re-pick the nearest survivor every interval: whoever closed to
-        # contact is the one answering fire, not the one we set out to kill.
-        target = nearest_living()
+        # Re-pick every interval: an actor swinging from contact range first,
+        # else the nearest survivor. Whoever closed to contact is the one
+        # answering fire, not the one we set out to kill.
+        target = attacker() or nearest_living()
         if target is None:
             return 0
         px, py, angle = pose()
         dx, dy = target["x"] - px, target["y"] - py
-        heading = round(math.atan2(dy, dx) * 256 / math.tau) & 255
+        heading = exact = round(math.atan2(dy, dx) * 256 / math.tau) & 255
         # A target all but on the route's own row or column is shot straight
         # down the axis: a heading one step off it drifts into the next row
         # and grazes a wall the line itself clears. Antenna Base's warden, on
@@ -388,6 +418,10 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
             heading = 0 if dx > 0 else 128
         elif abs(dx) * 23 < abs(dy):
             heading = 64 if dy > 0 else 192
+        # ... unless that axis runs into a wall before the actor: then the
+        # exact bearing, which may still clear the corner.
+        if heading != exact and not ray_clear(heading, target):
+            heading = exact
         delta = (heading - angle + 128) % 256 - 128
         # Keep steering to the target rather than parking one degree away:
         # at close range the legacy Q4 transform can put that pose outside
@@ -435,7 +469,9 @@ def run(output: Path, *, rom_path=None, symbols_path=None, restart=False, snapsh
 
     def face(actor):
         """Turn to the actor at once: the walk away leaves the route facing the
-        wrong way, and every update spent turning under a chaser costs health."""
+        wrong way, and every update spent turning under a chaser costs health.
+        Another actor already swinging from contact range is faced instead."""
+        actor = attacker() or actor
         px, py, _ = pose()
         turn(round(math.atan2(actor["y"] - py, actor["x"] - px) * 256 / math.tau) & 255)
 
